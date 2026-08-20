@@ -2,11 +2,27 @@
 -- Se aplica DESPUÉS de crear las tablas (prisma migrate / db push).
 -- Idempotente: se puede correr varias veces.
 
--- ─────────────── 1. Índice único parcial ───────────────
+-- ─────────────── 1. Índices únicos parciales ───────────────
 -- Solo un contrato 'vigente' por propiedad (regla #5 / publicación).
 create unique index if not exists uniq_contrato_vigente_por_propiedad
   on contrato (propiedad_id)
   where estado = 'vigente';
+
+-- Billing (ADR-0014).
+-- 1a. Una sola suscripción "viva" por tenant. Los estados terminales
+-- (cancelada/expirada) quedan fuera del índice para conservar el historial:
+-- un tenant puede tener muchas suscripciones pasadas, pero solo una vigente.
+create unique index if not exists uniq_suscripcion_viva_por_tenant
+  on suscripcion_tenant (tenant_id)
+  where estado in ('trial','activa','pago_pendiente','suspendida');
+
+-- 1b. Un solo cargo NO fallido por (tenant, tipo, período). Es la defensa de
+-- último recurso contra cobrar dos veces el mismo mes: aunque la lógica de
+-- aplicación falle, la base lo rechaza. Los 'fallido' quedan fuera para poder
+-- reintentar un cobro que no prosperó sin chocar con el registro anterior.
+create unique index if not exists uniq_cargo_por_tenant_tipo_periodo
+  on cargo_billing (tenant_id, tipo, periodo)
+  where estado <> 'fallido';
 
 -- ─────────────── 2. Ledger inmutable (append-only) ───────────────
 create or replace function prevent_mutation() returns trigger as $$
@@ -49,10 +65,22 @@ begin
   foreach t in array array[
     'usuario','persona','propiedad','imagen_propiedad','publicacion','reserva',
     'contrato','periodo_pago','ajuste_liquidacion','pago_entrante','asiento_ledger',
-    'voucher','notificacion','documento','acceso_otp','acceso_log','auditoria_equipo'
+    'voucher','notificacion','documento','acceso_otp','acceso_log','auditoria_equipo',
+    'consentimiento_ia',
+    -- Cupo de IA por plan (Fase B0): el consumo de un tenant no debe ser
+    -- visible ni alterable por otro.
+    'consumo_ia_diario',
+    -- Billing (ADR-0014). Contabilidad Housing↔corredor, separada del ledger
+    -- del arriendo, pero igual de multi-tenant: un corredor jamás debe ver los
+    -- cobros ni las comisiones de otro.
+    'suscripcion_tenant','cargo_billing','comision_plataforma'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.
+    -- evento_gateway_pago tampoco va: cuando llega el webhook todavía no se
+    -- sabe de qué tenant es (se resuelve después, desde la referencia del
+    -- proveedor). Es tabla de infraestructura; ninguna consulta con cara al
+    -- corredor debe leerla.
   ] loop
     execute format('alter table %I enable row level security;', t);
     execute format('drop policy if exists tenant_isolation on %I;', t);
@@ -140,6 +168,16 @@ language sql security definer set search_path = public as $$
   select tenant_id from usuario where id = p_usuario_id;
 $$;
 
+-- nueva-contrasena: además del tenant, necesitamos nombre/email/rut del
+-- usuario para rechazar contraseñas que contengan su propia información
+-- personal (política de contraseña 2026-07-31) — el flujo de reset no tiene
+-- sesión, por lo que no hay otra forma de leerlos bajo RLS.
+create or replace function auth_lookup_usuario_por_id(p_usuario_id uuid)
+returns table (nombre text, email text, rut text)
+language sql security definer set search_path = public as $$
+  select nombre, email, rut from usuario where id = p_usuario_id;
+$$;
+
 create or replace function auth_email_existe(p_email text) returns boolean
 language sql security definer set search_path = public as $$
   select exists(select 1 from usuario where email = p_email);
@@ -180,6 +218,7 @@ $$;
 
 grant execute on function auth_lookup_usuario_by_email(text) to housing_app;
 grant execute on function auth_tenant_de_usuario(uuid) to housing_app;
+grant execute on function auth_lookup_usuario_por_id(uuid) to housing_app;
 grant execute on function auth_email_existe(text) to housing_app;
 grant execute on function auth_rut_existe(text) to housing_app;
 grant execute on function auth_rut_pertenece_a_otro_usuario(text, uuid) to housing_app;

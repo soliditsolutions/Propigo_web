@@ -201,6 +201,12 @@ model Tenant {
   valoraciones     ValoracionCorredor[]
   comentarios      ComentarioCorredor[]
   auditoriasEquipo AuditoriaEquipo[]
+  consentimientosIa ConsentimientoIa[]
+  consumosIa       ConsumoIaDiario[]
+  // Billing (ADR-0014) — contabilidad Housing↔corredor, separada del ledger del arriendo
+  suscripciones    SuscripcionTenant[]
+  cargosBilling    CargoBilling[]
+  comisiones       ComisionPlataforma[]
 
   @@map("tenant")
 }
@@ -249,6 +255,7 @@ model Usuario {
   invitacionesCreadas      InvitacionColaborador[] @relation("InvitacionCreadaPor")
   auditoriasComoActor      AuditoriaEquipo[]       @relation("AuditoriaActor")
   auditoriasComoObjetivo   AuditoriaEquipo[]       @relation("AuditoriaObjetivo")
+  consentimientosIa        ConsentimientoIa[]
 
   @@index([tenantId])
   @@unique([rut])
@@ -514,6 +521,9 @@ model PagoEntrante {
   declaradoPor  Usuario?        @relation("PagoDeclaradoPor", fields: [declaradoPorId], references: [id])
   confirmadoPor Usuario?        @relation("PagoConfirmadoPor", fields: [confirmadoPorId], references: [id])
   asientos      AsientoLedger[]
+  /// Comisión de Housing devengada por este pago (Fase D). Opcional: solo los
+  /// pagos conciliados por el canal la generan, no los declarados a mano.
+  comision      ComisionPlataforma?
 
   @@map("pago_entrante")
 }
@@ -688,6 +698,33 @@ model AuditoriaEquipo {
 
   @@index([tenantId, createdAt])
   @@map("auditoria_equipo")
+}
+
+// Registro auditable de consentimiento explícito ANTES de enviar datos
+// personales a un proveedor de IA externo (Groq): foto de carnet en /registro
+// o texto de contrato en validar-doc. El servidor rechaza la llamada a la IA
+// si no llega este consentimiento marcado en la misma request (ver
+// registro/actions.ts y api/contratos/[id]/validar-doc/route.ts) — esta tabla
+// es la evidencia persistida de que se pidió y se dio, no solo un checkbox
+// de UI que no deja rastro.
+model ConsentimientoIa {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  usuarioId String   @map("usuario_id") @db.Uuid
+  // "carnet_registro" | "contrato_validar_doc"
+  flujo     String
+  // Referencia libre al objeto concreto del envío (ej. contratoId) — no aplica
+  // a carnet_registro, que es un evento único por cuenta.
+  detalle   String?
+  version   String   // versión del texto de consentimiento aceptado, ej. "ia-v1.0"
+  ip        String?  @db.Inet
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId, flujo])
+  @@map("consentimiento_ia")
 }
 
 // ── Dispositivos de confianza ────────────────────────────────────────────────
@@ -928,4 +965,211 @@ model ValoracionCorredor {
 
   @@index([tenantId])
   @@map("valoracion_corredor")
+}
+
+/// Consumo diario de tokens de IA por tenant — enforcement del cupo que venden
+/// los planes (Fase B0). Un token = una revisión de contrato con IA, tal como
+/// lo dice el tooltip publicado.
+///
+/// Se guarda como AGREGADO por (tenant, día) en vez de una fila por llamada:
+/// lo que se necesita es un contador con reset diario, no una bitácora. El
+/// UNIQUE sobre (tenant_id, fecha) permite un upsert atómico con incremento,
+/// que es lo que evita que dos peticiones simultáneas se pasen del cupo.
+///
+/// No cubre el escaneo de cédula del registro: ese ocurre ANTES de que exista
+/// el tenant (y por tanto antes de que exista un plan), así que no hay cupo
+/// contra el cual descontarlo.
+model ConsumoIaDiario {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String   @map("tenant_id") @db.Uuid
+  /// Día del consumo en UTC. La fecha se calcula en el servidor, nunca desde
+  /// el cliente: si no, bastaría con mentir la zona horaria para reiniciar el cupo.
+  fecha    DateTime @db.Date
+  usados   Int      @default(0)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, fecha])
+  @@index([tenantId])
+  @@map("consumo_ia_diario")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BILLING — Housing ↔ corredor (ADR-0014)
+//
+// CONTABILIDAD SEPARADA, A PROPÓSITO. Estos modelos NO tocan `AsientoLedger`
+// ni `PagoEntrante`, que modelan el dinero del arriendo entre arrendatario,
+// propietario y corredor. Acá vive otra relación distinta: lo que el corredor
+// le debe a Housing (suscripción + comisión por usar el canal de pago).
+//
+// Mezclarlas contaminaría la liquidación del propietario y las vistas
+// financieras. No es una convención de estilo: hay un test de invariante que
+// falla si un asiento de comisión de plataforma entra al ledger del contrato.
+//
+// Ojo con el nombre: `TipoAsiento.COMISION_CORREDOR` (ya existente) es la
+// comisión que el CORREDOR le cobra al PROPIETARIO por administrar. La
+// comisión de Housing es `ComisionPlataforma`, acá abajo. Son cosas distintas.
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum EstadoSuscripcion {
+  trial
+  activa
+  pago_pendiente   // cobro falló, en ventana de gracia (10 días — decisión D-10)
+  suspendida       // venció la gracia sin pago: se corta el acceso, no se borra nada
+  cancelada        // el corredor la dio de baja
+  expirada         // terminó el período pagado y no se renovó
+}
+
+enum CicloFacturacion {
+  mensual
+  anual
+}
+
+enum TipoCargo {
+  suscripcion
+  comision_plataforma
+}
+
+enum EstadoCargo {
+  pendiente
+  pagado
+  fallido
+  reembolsado
+}
+
+enum EstadoComision {
+  devengada   // el pago de arriendo se concilió; Housing ganó la comisión
+  facturada   // quedó incluida en un CargoBilling de cierre de mes
+  anulada     // se revirtió el pago que la originó
+}
+
+/// Suscripción del tenant a un plan. Reemplaza a `Tenant.plan` (string libre)
+/// como fuente de verdad del plan vigente.
+model SuscripcionTenant {
+  id       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String            @map("tenant_id") @db.Uuid
+  planId   String            @map("plan_id")   // "bronze" | "silver" | "gold" | "diamond"
+  ciclo    CicloFacturacion
+  estado   EstadoSuscripcion @default(activa)
+  /// Referencia de la suscripción en el proveedor (null mientras no haya pasarela).
+  gatewayRef   String? @map("gateway_ref")
+  /// Medio de pago inscrito — token opaco del proveedor. Housing NUNCA guarda
+  /// el número de tarjeta.
+  medioPagoRef String? @map("medio_pago_ref")
+  /// Hasta cuándo tiene derecho al servicio. Es esto lo que decide el acceso,
+  /// no el estado: una suscripción `cancelada` sigue dando acceso hasta esta
+  /// fecha (decisión D-05 — la baja se hace efectiva al terminar lo pagado).
+  periodoActualHasta     DateTime @map("periodo_actual_hasta") @db.Timestamptz(6)
+  /// Baja agendada: sigue activa hasta `periodoActualHasta` y no renueva.
+  cancelaAlFinDelPeriodo Boolean  @default(false) @map("cancela_al_fin_del_periodo")
+  /// Plan al que baja al terminar el período (D-05). Null = sin downgrade agendado.
+  planAgendadoId         String?  @map("plan_agendado_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant         @relation(fields: [tenantId], references: [id])
+  cargos CargoBilling[]
+
+  @@index([tenantId])
+  @@map("suscripcion_tenant")
+}
+
+/// Todo cobro de Housing a un tenant: la suscripción o el consolidado mensual
+/// de comisiones.
+model CargoBilling {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  suscripcionId String?     @map("suscripcion_id") @db.Uuid
+  tipo          TipoCargo
+  estado        EstadoCargo @default(pendiente)
+  /// Período que cubre, formato "2026-08". Junto con tipo y tenant forma la
+  /// clave natural que impide cobrar dos veces lo mismo (índice en setup.sql).
+  periodo       String
+
+  // ── Montos ──────────────────────────────────────────────────────────────
+  // Neto e IVA separados porque el DTE los necesita así (D-07).
+  montoNetoClp  Decimal  @map("monto_neto_clp")  @db.Decimal(14, 0)
+  ivaClp        Decimal  @map("iva_clp")         @db.Decimal(14, 0)
+  montoTotalClp Decimal  @map("monto_total_clp") @db.Decimal(14, 0)
+  /// Cotización en UF (solo suscripción — las comisiones son CLP fijo, D-14).
+  montoUf       Decimal? @map("monto_uf")        @db.Decimal(14, 4)
+  /// UF congelada al emitir el cargo (N-03). Sin esto no se puede explicar
+  /// después por qué el cargo de un mes difiere del anterior.
+  ufAplicada    Decimal? @map("uf_aplicada")     @db.Decimal(12, 2)
+
+  // ── Ejecución ───────────────────────────────────────────────────────────
+  /// Clave de idempotencia que Housing manda al proveedor. Única global: es la
+  /// defensa contra el doble cobro si la red falla justo después de procesar.
+  idempotencyKey       String  @unique @map("idempotency_key")
+  gatewayRef           String? @map("gateway_ref")
+  intentos             Int     @default(0) @db.SmallInt
+  ultimoErrorCategoria String? @map("ultimo_error_categoria") // ver CategoriaErrorCobro
+  ultimoErrorMensaje   String? @map("ultimo_error_mensaje")
+  pagadoEn             DateTime? @map("pagado_en") @db.Timestamptz(6)
+  /// Cuándo se notificó la mora — los 10 días de gracia corren desde acá, no
+  /// desde el cobro fallido (decisión D-10).
+  moraNotificadaEn     DateTime? @map("mora_notificada_en") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id])
+  suscripcion SuscripcionTenant?   @relation(fields: [suscripcionId], references: [id])
+  comisiones  ComisionPlataforma[]
+
+  @@index([tenantId])
+  @@index([estado])
+  @@map("cargo_billing")
+}
+
+/// Comisión que Housing devenga por cada pago de arriendo conciliado por el
+/// canal (Fase D). Se devenga por pago EFECTIVAMENTE conciliado, nunca por
+/// contrato activo: cobrar por pagos que Housing no procesó es indefendible.
+model ComisionPlataforma {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String         @map("tenant_id") @db.Uuid
+  /// Pago que la originó. Único: un pago devenga una sola comisión.
+  pagoEntranteId String         @unique @map("pago_entrante_id") @db.Uuid
+  estado         EstadoComision @default(devengada)
+  /// Monto fijo en CLP (D-14). No es un % del arriendo: desacopla el ingreso
+  /// de Housing del tamaño del arriendo.
+  montoClp       Decimal        @map("monto_clp") @db.Decimal(14, 0)
+  /// Cargo de cierre de mes donde se facturó. Null mientras está devengada.
+  cargoId        String?        @map("cargo_id") @db.Uuid
+  devengadaEn    DateTime       @default(now()) @map("devengada_en") @db.Timestamptz(6)
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id])
+  cargo  CargoBilling? @relation(fields: [cargoId], references: [id])
+  pago   PagoEntrante  @relation(fields: [pagoEntranteId], references: [id])
+
+  @@index([tenantId])
+  @@index([estado])
+  @@map("comision_plataforma")
+}
+
+/// Log crudo de webhooks. Doble propósito: idempotencia (el índice único de
+/// `idExterno` impide procesar dos veces el mismo evento — los proveedores
+/// reenvían) y auditoría (reconstruir qué dijo el proveedor exactamente, sin
+/// depender de nuestra interpretación).
+///
+/// SIN `tenant_id` a propósito: cuando llega el webhook todavía no sabemos de
+/// qué tenant es — se resuelve después, desde la referencia del proveedor. Por
+/// eso queda fuera del RLS por tenant, igual que `invitacion_colaborador` y
+/// `reset_token` (mismo motivo estructural, ver setup.sql). Es infraestructura:
+/// ninguna consulta con cara al corredor debe leerla.
+model EventoGatewayPago {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proveedor    String
+  /// Id del evento EN EL PROVEEDOR. Único: es la clave de idempotencia.
+  idExterno    String    @unique @map("id_externo")
+  tipo         String
+  /// Payload tal cual llegó, para auditar sin depender de cómo lo parseamos.
+  payload      Json
+  /// Null = recibido pero no procesado todavía (o falló el procesamiento).
+  procesadoEn  DateTime? @map("procesado_en") @db.Timestamptz(6)
+  errorProceso String?   @map("error_proceso")
+  recibidoEn   DateTime  @default(now()) @map("recibido_en") @db.Timestamptz(6)
+
+  @@index([proveedor, tipo])
+  @@map("evento_gateway_pago")
 }

@@ -27,3 +27,10 @@ Thumbs.db
 
 # Estado local de herramientas de agente (no compartir entre máquinas)
 .claude/scheduled_tasks.lock
+
+# Subidas de usuarios — fotos de propiedades y de perfil.
+# Van a disco local (ver api/upload/route.ts); son datos de clientes, no
+# código, y no deben entrar al control de versiones. Se conservan los
+# .gitkeep para que la estructura de carpetas exista tras un clone.
+apps/web/public/uploads/**
+!apps/web/public/uploads/**/.gitkeep

@@ -4,6 +4,15 @@
 > (ADR-0014 / rowMap de pagos) resisten el costo real de operar la plataforma.
 >
 > _Elaborado 2026-08-19. Precios de lista AWS us-east-1, UF $40.850, USD $912._
+>
+> ⏸️ **La implementación en AWS se difiere a la fase de release.** Hoy el proyecto
+> sigue en desarrollo local y montar la nube no aporta nada todavía. Lo que este
+> documento entrega y **sí es de uso inmediato** es la Parte II: la definición de
+> precios, que necesitaba el costo de infraestructura como insumo.
+>
+> Queda diferido a release: el dimensionamiento de §2, la elección de región de §3
+> y la migración a S3 de §5. Ninguno bloquea el desarrollo — el disco local
+> funciona bien mientras no haya despliegue.
 
 ## Resumen ejecutivo
 
@@ -223,3 +232,118 @@ mayoritariamente fija, y se diluye rápido con cada cliente nuevo.
 - [Resend pricing 2026](https://www.stackscored.com/pricing/transactional-email/resend/)
 - [AWS región Chile — anuncio](https://aws.amazon.com/blogs/aws/coming-soon-aws-south-america-chile-region/) · [São Paulo +52 %](https://www.concurrencylabs.com/blog/choose-your-aws-region-wisely/)
 - [Valor UF agosto 2026](https://valoruf.cl/)
+
+---
+
+# Parte II — Definición de precios
+
+> _Agregada 2026-08-19, tras confirmarse que AWS se implementa recién en release._
+> La infraestructura no se monta todavía, pero su costo sí es insumo de esta
+> definición: es lo que permite saber cuánto margen hay de verdad.
+
+## Un costo que faltaba: el DTE
+
+El análisis original no incluía la emisión de documentos tributarios. Resulta
+ser **costo fijo, no por documento**: el plan PYME de OpenFactura cuesta
+**$9.990 CLP/mes con emisión ilimitada**.
+
+Eso cambia el modelo a favor: no encarece los planes chicos. El fijo mensual
+queda en **$77 en arranque** y **$233 en producción** (AWS + DTE + correo).
+
+## Margen de contribución real
+
+| Plan | Precio | Pasarela | IA (uso real) | IA (cupo lleno) | Margen real | Peor caso |
+|---|---:|---:|---:|---:|---:|---:|
+| Bronze | $11,20 | $0,39 | $0,04 | $0,44 | **96 %** | 93 % |
+| Silver | $22,40 | $0,77 | $0,16 | $1,48 | **96 %** | 90 % |
+| Gold | $40,31 | $1,39 | $0,40 | $4,45 | **96 %** | 86 % |
+| Diamond | $76,15 | $2,62 | $0,79 | $14,82 | **96 %** | 77 % |
+
+Incluso con el cupo de IA consumido al 100 % todos los días, el peor plan
+(Diamond) conserva **77 % de margen**. No hay ningún plan en riesgo.
+
+## Precio piso
+
+Cuánto tendría que cobrar cada plan para cubrir su costo variable más 1/40 del
+fijo de producción — es decir, asumiendo una cartera mínima viable de 40
+corredores:
+
+| Plan | Precio hoy | Piso | Holgura |
+|---|---:|---:|---:|
+| Bronze | $11,20 | $6,47 | **1,7×** |
+| Silver | $22,40 | $6,99 | **3,2×** |
+| Gold | $40,31 | $7,88 | **5,1×** |
+| Diamond | $76,15 | $9,56 | **8,0×** |
+
+**Conclusión: los precios actuales se mantienen.** No hay razón de costo para
+moverlos. La holgura va de 1,7× a 8×.
+
+## 🔴 El problema no es el precio, es un hueco en la escalera
+
+Comparando contra Leasity a igual tamaño de cartera:
+
+| Propiedades | Leasity | Housing | Housing es |
+|---:|---:|---:|---|
+| 15 | 0,80 UF | 0,50 UF | 38 % más barato |
+| 50 | 1,70 UF | 0,90 UF | 47 % más barato |
+| **100** | **2,50 UF** | **1,70 UF** | **32 % más barato** ⚠️ |
+| 200 | 3,50 UF | 1,70 UF | 51 % más barato |
+
+**La ventaja se desploma justo en 100 propiedades**, que es el segmento que la
+estrategia dice perseguir.
+
+La causa: Gold topa en 75 y el siguiente escalón es Diamond con 200. Quien
+tiene 100 propiedades **paga por 200 y usa la mitad**. En precio por propiedad:
+
+| Plan | UF por propiedad | Salto |
+|---|---:|---:|
+| Bronze | 0,0250 | — |
+| Silver | 0,0200 | −20 % |
+| Gold | 0,0120 | −40 % |
+| Diamond | 0,0085 | −29 % |
+
+**Recomendación:** subir el tope de Gold de 75 a ~120 propiedades, sin tocar su
+precio. Cuesta $0 en infraestructura (una propiedad más son centavos) y
+convierte el 32 % en ~45 %, alineando la ventaja competitiva justo donde hoy es
+más débil. Es la intervención de mayor retorno de todo este análisis.
+
+## Enterprise (responde N-01)
+
+Extrapolando la curva de precio por propiedad:
+
+| Propiedades | Precio sugerido | CLP/mes | USD/mes |
+|---:|---:|---:|---:|
+| 350 | **2,40 UF** | $98.040 | $108 |
+| 500 | **3,10 UF** | $126.635 | $139 |
+| 1000 | **4,80 UF** | $196.080 | $215 |
+
+A 1000 propiedades Housing costaría 4,80 UF donde Leasity ni siquiera ofrece
+tramo. El costo marginal de servir ese tenant sigue siendo de centavos, así que
+es margen casi puro.
+
+**Sugerencia de implementación:** publicar hasta 500 con precio de lista y de
+ahí en adelante "a convenir" con CTA de contacto — no por costo, sino porque un
+cliente de ese tamaño necesita conversación de migración de todas formas.
+
+## Lo que de verdad limita el margen
+
+No es la infraestructura, que es 1,9-11 % del ingreso. Es lo humano:
+
+1. **Servicios de Diamond (N-08, abierta).** Una sola sesión de migración y
+   onboarding puede costar más que un mes de infraestructura completa. **Mientras
+   no se acote, es el único ítem capaz de dar vuelta el margen de un cliente.**
+2. **SLA de "soporte prioritario" (N-07, abierta).** Sin definición, es costo sin techo.
+
+Con 96 % de margen de contribución, la rentabilidad de Housing se decide en
+cuántas horas humanas consume cada cliente, no en cuánto cuesta el servidor.
+
+## Decisiones que esta definición deja tomadas
+
+| Decisión | Resultado |
+|---|---|
+| ¿Subir precios por costo de infraestructura? | **No.** Holgura de 1,7× a 8× sobre el piso |
+| ¿Bronze a 0,25 UF es viable? | **Sí**, 96 % de margen. Su límite es humano, no técnico |
+| ¿Cupo de IA de Diamond es sostenible? | **Sí**, 77 % de margen incluso al tope |
+| **N-01 — tramo Enterprise** | **Sí**: 350/500 con precio de lista, >500 a convenir |
+| **Hueco de la escalera** | **Subir Gold de 75 a ~120 propiedades** |
+

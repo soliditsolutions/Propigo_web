@@ -210,13 +210,9 @@ export async function cambiarPasswordAction(
     return { ok: false, error: "Las contraseñas nuevas no coinciden.", field: "passwordConfirm" };
   }
 
-  const strength = evaluatePassword(nuevo);
+  const strength = evaluatePassword(nuevo, { nombre: session.nombre, email: session.email });
   if (!strength.passes) {
-    return {
-      ok:    false,
-      error: "La nueva contraseña es demasiado débil. Usa al menos 15 caracteres.",
-      field: "passwordNuevo",
-    };
+    return { ok: false, error: strength.suggestion, field: "passwordNuevo" };
   }
 
   // Verificar contraseña actual
@@ -279,9 +275,29 @@ function hashOtpCode(code: string): string {
 export async function solicitarCambioContactoAction(
   campo: CampoContacto,
   valorNuevoRaw: string,
+  password: string,
 ): Promise<SolicitarCambioContactoState> {
   const session = await getSession();
   if (!session) return { ok: false, error: "Sesión expirada. Vuelve a iniciar sesión." };
+
+  // Re-autenticación: el código al correo actual prueba que la sesión sigue
+  // teniendo acceso a esa cuenta, pero no prueba que sea el dueño legítimo
+  // quien está frente al teclado ahora mismo (ej. sesión abierta y desatendida).
+  // Exigir la contraseña aquí, antes de gastar un envío de código, cierra ese hueco.
+  if (!password) {
+    return { ok: false, error: "Ingresa tu contraseña para confirmar el cambio." };
+  }
+  let usuarioAuth: { passwordHash: string | null } | null = null;
+  try {
+    usuarioAuth = await withTenant(session.tenantId, (tx) => tx.usuario.findUnique({
+      where: { id: session.sub }, select: { passwordHash: true },
+    }));
+  } catch {
+    return { ok: false, error: "Error al verificar la contraseña." };
+  }
+  if (!usuarioAuth?.passwordHash || !(await verifyPassword(password, usuarioAuth.passwordHash))) {
+    return { ok: false, error: "Contraseña incorrecta." };
+  }
 
   const valorNuevo = campo === "email"
     ? valorNuevoRaw.trim().toLowerCase()
@@ -376,7 +392,7 @@ export async function confirmarCambioContactoAction(
     return { ok: false, error: "No hay código activo. Solicita uno nuevo." };
   }
   if (registro.expiraAt <= new Date()) {
-    return { ok: false, error: "Tu código ha expirado. Solicita uno nuevo." };
+    return { ok: false, error: "Tu código expiró. Solicita uno nuevo." };
   }
   if (registro.intentos >= 3) {
     return { ok: false, error: "Demasiados intentos. Solicita un nuevo código." };

@@ -6,6 +6,7 @@ import { getTenant } from "@/lib/queries";
 import { getSession } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
+import { checkRateLimit } from "@/lib/rate-limit";
 import {
   verificarMagicBytes,
   ALLOWED_MIME_IMAGES,
@@ -32,6 +33,15 @@ export async function POST(req: NextRequest) {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+    }
+
+    // ── Rate limit: 10 uploads/min por usuario ──────────────────────────
+    const rl = checkRateLimit(`upload:${session.sub}`, 10, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Demasiados archivos subidos en poco tiempo. Intenta de nuevo en unos segundos." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
     }
 
     // ── Gate de tenant ─────────────────────────────────────────────────

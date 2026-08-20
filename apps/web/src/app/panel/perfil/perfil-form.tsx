@@ -13,9 +13,10 @@ import {
 } from "./actions";
 import { REGIONES_CHILE, getComunasDeRegion } from "@housing/core";
 import type { PerfilState, PasswordState, CampoContacto } from "./actions";
-import { evaluatePassword }        from "@/lib/password-strength";
 import { useToast }                from "@/components/ui/toast";
 import { validateRut, formatRut }  from "@/lib/rut";
+import { PasswordStrengthMeter }   from "@/components/ui/password-strength-meter";
+import { evaluatePassword }        from "@/lib/password-strength";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ function AvatarSection({
 
 // ── Sección: cambiar contraseña ───────────────────────────────────────────────
 
-function CambiarPasswordSection() {
+function CambiarPasswordSection({ nombre, email }: { nombre: string; email: string }) {
   const { show: toast } = useToast();
   const [state, formAction, pending] = useActionState<PasswordState, FormData>(
     cambiarPasswordAction, null,
@@ -136,7 +137,7 @@ function CambiarPasswordSection() {
   const [showActual, setShowActual] = useState(false);
   const [showNuevo,  setShowNuevo]  = useState(false);
   const [pwd, setPwd] = useState("");
-  const strength = evaluatePassword(pwd);
+  const passes = evaluatePassword(pwd, { nombre, email }).passes;
 
   useEffect(() => {
     if (state?.ok) toast("Contraseña actualizada correctamente.", "success");
@@ -214,28 +215,7 @@ function CambiarPasswordSection() {
             </button>
           </div>
 
-          {/* Barra de fuerza */}
-          {pwd.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-1.5 flex-1 rounded-full transition-all duration-300"
-                    style={{
-                      background: i <= strength.score
-                        ? strength.color
-                        : "var(--hw-border)",
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="text-xs" style={{ color: strength.passes ? "var(--hw-success)" : "var(--hw-text-3)" }}>
-                {strength.label}
-                {strength.suggestion && ` — ${strength.suggestion}`}
-              </p>
-            </div>
-          )}
+          <PasswordStrengthMeter password={pwd} nombre={nombre} email={email} />
           {!state?.ok && state?.field === "passwordNuevo" && (
             <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{state.error}</p>
           )}
@@ -268,9 +248,9 @@ function CambiarPasswordSection() {
         )}
 
         <button
-          type="submit" disabled={pending || !strength.passes}
+          type="submit" disabled={pending || !passes}
           className="hw-btn-primary"
-          style={{ height: "42px", fontSize: "14px", borderRadius: "10px", opacity: (!strength.passes && pwd.length > 0) ? 0.5 : 1 }}
+          style={{ height: "42px", fontSize: "14px", borderRadius: "10px", opacity: (!passes && pwd.length > 0) ? 0.5 : 1 }}
         >
           {pending ? <><Loader2 className="h-4 w-4 animate-spin" />Actualizando…</> : "Actualizar contraseña"}
         </button>
@@ -306,6 +286,8 @@ function CambiarContactoField({
   const [isPending, startTransition] = useTransition();
   const [paso, setPaso]           = useState<"idle" | "nuevo" | "codigo">("idle");
   const [nuevoValor, setNuevoValor] = useState("");
+  const [password, setPassword]     = useState("");
+  const [showPwd, setShowPwd]       = useState(false);
   const [codigo, setCodigo]         = useState("");
   const [error, setError]           = useState("");
   const [valorMostrado, setValorMostrado] = useState(valorActual);
@@ -320,14 +302,18 @@ function CambiarContactoField({
   function cancelar() {
     setPaso("idle");
     setNuevoValor("");
+    setPassword("");
     setCodigo("");
     setError("");
   }
 
+  // El password se conserva mientras dura el flujo (no solo en el primer envío)
+  // para que "Reenviar código" no obligue a retipearlo — se limpia recién al
+  // cancelar o al confirmar el cambio.
   function handleEnviarCodigo() {
     setError("");
     startTransition(async () => {
-      const res = await solicitarCambioContactoAction(campo, nuevoValor);
+      const res = await solicitarCambioContactoAction(campo, nuevoValor, password);
       if (!res.ok) { setError(res.error); return; }
       setPaso("codigo");
       setCooldown(60);
@@ -410,10 +396,32 @@ function CambiarContactoField({
             onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
             onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
           />
+          <div className="relative">
+            <input
+              type={showPwd ? "text" : "password"} value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Tu contraseña actual" disabled={isPending}
+              autoComplete="current-password"
+              style={{ ...fieldStyle, paddingRight: "40px" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+            />
+            <button
+              type="button" onClick={() => setShowPwd((v) => !v)}
+              aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70"
+              style={{ color: "var(--hw-text-4)" }}
+            >
+              {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <p className="text-[11px]" style={{ color: "var(--hw-text-4)" }}>
+            Confirma tu contraseña para pedir el código de verificación.
+          </p>
           <div className="flex flex-wrap gap-2">
             <button
-              type="button" onClick={handleEnviarCodigo} disabled={isPending || !nuevoValor.trim()}
-              className="hw-btn-primary" style={{ ...btnPrimaryStyle, opacity: !nuevoValor.trim() ? 0.5 : 1 }}
+              type="button" onClick={handleEnviarCodigo} disabled={isPending || !nuevoValor.trim() || !password}
+              className="hw-btn-primary" style={{ ...btnPrimaryStyle, opacity: (!nuevoValor.trim() || !password) ? 0.5 : 1 }}
             >
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Send className="h-3.5 w-3.5" aria-hidden="true" />}
               {isPending ? "Enviando…" : "Enviar código"}
@@ -895,7 +903,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
 
       {section === "seguridad" && (
         <>
-          <CambiarPasswordSection />
+          <CambiarPasswordSection nombre={perfil.nombre} email={perfil.email} />
           <TwoFASection />
         </>
       )}

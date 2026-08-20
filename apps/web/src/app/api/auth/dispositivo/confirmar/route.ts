@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     // para mostrar "Código expirado" en lugar de "Intentos agotados".
     if (registro.expiraAt <= new Date()) {
       return NextResponse.json(
-        { error: "Tu código ha expirado. Solicita uno nuevo.", errorCode: "EXPIRADO" },
+        { error: "Tu código expiró. Solicita uno nuevo.", errorCode: "EXPIRADO" },
         { status: 400 },
       );
     }

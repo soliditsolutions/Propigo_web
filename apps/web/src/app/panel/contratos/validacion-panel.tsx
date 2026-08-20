@@ -7,6 +7,7 @@ import {
   DollarSign, Users, ThumbsUp, Upload, FileText, X,
 } from "lucide-react";
 import type { ValidacionResultado, ValidacionEstado } from "@/app/api/contratos/[id]/validar/route";
+import { CupoBadge } from "@/components/panel/ui";
 
 export type Fase = "pre_firma" | "post_firma";
 
@@ -17,6 +18,8 @@ interface Props {
   estadoPrevio:          ValidacionEstado | null;
   validacionAt:          Date | string | null;
   confirmadaAt:          Date | string | null;
+  /** Consumo de IA de hoy. null donde no aplica mandar documentos a la IA. */
+  cupoIa:                { usado: number; max: number } | null;
 }
 
 // ── Paleta de colores por estado ────────────────────────────────────────────
@@ -139,6 +142,7 @@ export function ValidacionPanel({
   estadoPrevio,
   validacionAt,
   confirmadaAt,
+  cupoIa,
 }: Props) {
   const [cargando,           setCargando]           = useState(false);
   const [confirmando,        setConfirmando]        = useState(false);
@@ -149,6 +153,12 @@ export function ValidacionPanel({
   const [error,              setError]              = useState<string | null>(null);
   const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
   const [cargandoDoc,        setCargandoDoc]        = useState(false);
+  const [consentIaDoc,       setConsentIaDoc]       = useState(false);
+  const [cupo,               setCupo]               = useState(cupoIa);
+
+  // El servidor rechaza igual con 429 (lib/plan-limits.ts); esto solo evita
+  // que alguien suba un archivo y espere para recibir un error evitable.
+  const sinCupoIa = cupo !== null && cupo.usado >= cupo.max;
 
   const cfg  = fase === "post_firma" ? FASE_CONFIG.post_firma : FASE_CONFIG.pre_firma;
   const tono = estado ? TONE[estado] : null;
@@ -180,15 +190,22 @@ export function ValidacionPanel({
   }
 
   async function handleValidarDoc() {
-    if (!archivoSeleccionado) return;
+    if (!archivoSeleccionado || !consentIaDoc) return;
     setCargandoDoc(true);
     setError(null);
     setFechaConfirm(null);
     try {
       const fd = new FormData();
       fd.append("archivo", archivoSeleccionado);
+      fd.append("consentIa", "on");
       const res  = await fetch(`/api/contratos/${contratoId}/validar-doc`, { method: "POST", body: fd });
-      const data = await res.json() as { ok?: boolean; validacion?: ValidacionResultado; error?: string };
+      const data = await res.json() as {
+        ok?: boolean; validacion?: ValidacionResultado; error?: string;
+        cupoIa?: { usado: number; max: number };
+      };
+      // Vale tanto para el 200 como para el 429: en ambos casos la ruta manda
+      // el consumo real, así el indicador no queda desfasado del servidor.
+      if (data.cupoIa) setCupo(data.cupoIa);
       if (!res.ok || !data.ok || !data.validacion) {
         setError(data.error ?? "Error al analizar el documento. Intenta nuevamente.");
         return;
@@ -405,6 +422,15 @@ export function ValidacionPanel({
           <div className="flex-1 h-px" style={{ background: "var(--hw-border)" }} />
         </div>
 
+        {/* Cupo diario de IA — va acá, antes del selector de archivo, porque
+            sirve para decidir si vale la pena ir a buscar el documento. Dentro
+            del bloque que aparece recién con el archivo elegido, avisaría tarde. */}
+        {cupo && (
+          <div className="flex items-center justify-center">
+            <CupoBadge usado={cupo.usado} max={cupo.max} unidad="revisiones con IA hoy" />
+          </div>
+        )}
+
         {/* ── Subida de archivo PDF / DOCX ──────────────────────────────── */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -445,22 +471,45 @@ export function ValidacionPanel({
           </div>
 
           {archivoSeleccionado && (
-            <button
-              type="button"
-              onClick={handleValidarDoc}
-              disabled={cargandoDoc}
-              className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
-              style={{
-                background: cargandoDoc ? "var(--hw-text-4)" : "var(--hw-accent-teal)",
-                cursor:     cargandoDoc ? "not-allowed" : "pointer",
-              }}
-            >
-              {cargandoDoc ? (
-                <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Leyendo documento…</>
-              ) : (
-                <><FileText className="h-4 w-4" aria-hidden="true" />Analizar documento subido</>
-              )}
-            </button>
+            <>
+              {/* Consentimiento IA — específico para el envío de este documento a
+                  Groq (proveedor externo). Registro auditable en ConsentimientoIa. */}
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={consentIaDoc}
+                  onChange={(e) => setConsentIaDoc(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded"
+                  style={{ accentColor: "var(--hw-primary)" }}
+                />
+                <span className="text-xs leading-relaxed" style={{ color: "var(--hw-text-3)" }}>
+                  Acepto que el texto de este documento sea enviado a nuestro proveedor
+                  de análisis por IA (Groq) exclusivamente para esta revisión.
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleValidarDoc}
+                disabled={cargandoDoc || !consentIaDoc || sinCupoIa}
+                className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
+                style={{
+                  // Fondo y tinta van en par (ver globals.css): el acento teal
+                  // suelto con texto blanco no llega al mínimo AA.
+                  background: cargandoDoc ? "var(--hw-text-4)" : "var(--hw-accent-teal-btn)",
+                  color:      cargandoDoc ? "var(--hw-bg)"     : "var(--hw-on-accent-teal)",
+                  cursor:     cargandoDoc || !consentIaDoc || sinCupoIa ? "not-allowed" : "pointer",
+                }}
+              >
+                {cargandoDoc ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Leyendo documento…</>
+                ) : sinCupoIa ? (
+                  <><FileText className="h-4 w-4" aria-hidden="true" />Sin revisiones con IA por hoy</>
+                ) : (
+                  <><FileText className="h-4 w-4" aria-hidden="true" />Analizar documento subido</>
+                )}
+              </button>
+            </>
           )}
         </div>
 

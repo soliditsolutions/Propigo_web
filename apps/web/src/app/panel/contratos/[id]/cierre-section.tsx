@@ -6,7 +6,7 @@ import {
   XCircle, Loader2, CheckCircle2, ShieldCheck, AlertTriangle,
 } from "lucide-react";
 import { terminarContrato } from "./actions";
-import { clp } from "@/lib/format";
+import { clp, cantidad } from "@/lib/format";
 import { useToast } from "@/components/ui/toast";
 
 interface Props {
@@ -161,7 +161,7 @@ export function CierreSection({
             <div className="text-xs" style={{ color: "var(--hw-warning-dk)" }}>
               <p className="font-semibold">Renta del período faltante (informativa)</p>
               <p className="mt-0.5">
-                Quedan {meses} mes(es) hasta el término pactado: <strong>{rentaPeriodoFaltanteDisplay}</strong>.
+                {meses === 1 ? "Queda" : "Quedan"} {cantidad(meses, "mes", "meses")} hasta el término pactado: <strong>{rentaPeriodoFaltanteDisplay}</strong>.
                 Es habitual pactar que el arrendatario deba las rentas del período que falta
                 (Art. 1489 Código Civil) cuando pone término anticipado. El cobro se gestiona fuera del sistema.
               </p>

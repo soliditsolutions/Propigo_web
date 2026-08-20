@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, ShieldCheck, AlertTriangle, Download } from "lucide-react";
-import { getActor, getContratoDetalle } from "@/lib/queries";
-import { clp, num, fecha } from "@/lib/format";
+import { getActor, getContratoDetalle, getCupoIaInfo } from "@/lib/queries";
+import { clp, num, fecha, cantidad } from "@/lib/format";
 import { Badge, Card, estadoTone, estadoPulse, estadoLabel, PageTitle } from "@/components/panel/ui";
 import { TabNav } from "@/components/panel/tab-nav";
 import { FirmaSection } from "./firma-section";
@@ -73,6 +73,13 @@ export default async function ContratoDetallePage({
       try { detalle = await getContratoDetalle(tenant.id, id); } catch { notFound(); }
     }
   }
+
+  // Cupo diario de IA — solo se consulta si el contrato está en borrador, que
+  // es el único estado donde se puede mandar el documento a la IA. En un
+  // contrato vigente sería una consulta a la base para no mostrar nada.
+  const cupoIa = detalle.estado === "borrador"
+    ? await getCupoIaInfo(tenant.id, tenant.plan)
+    : null;
 
   const alertVencimiento = (() => {
     if (detalle.estado !== "vigente" || !detalle.fechaFin) return null;
@@ -197,13 +204,21 @@ export default async function ContratoDetallePage({
       {/* ── Tab: Vigencia ───────────────────────────────────────────────── */}
       {tab === "vigencia" && (
         <>
+            {/* key por contrato en TODAS las secciones con estado propio.
+                Next.js reutiliza esta misma page al navegar entre contratos, así
+                que sin key React no remonta y el estado sobrevive al cambio. En
+                estas secciones eso no es cosmético: los checkbox de confirmación
+                ("ambas partes firmaron", "deseo cancelar") llegarían ya marcados
+                al contrato siguiente, a un clic de accionar sobre el equivocado. */}
           {detalle.estado === "borrador" && (
             <FirmaSection
+              key={detalle.id}
               contratoId={detalle.id}
               validacionIa={detalle.validacionIa as import("@/app/api/contratos/[id]/validar/route").ValidacionResultado | null}
               validacionEstado={detalle.validacionEstado}
               validacionAt={detalle.validacionAt}
               validacionConfirmadaAt={detalle.validacionConfirmadaAt}
+              cupoIa={cupoIa}
             />
           )}
 
@@ -247,6 +262,7 @@ export default async function ContratoDetallePage({
           <div id="renovar-section">
             {detalle.estado === "vigente" && detalle.fechaFin !== null && alertVencimiento?.urgente && (
               <RenovarSection
+                key={detalle.id}
                 contratoId={detalle.id}
                 fechaFinActual={detalle.fechaFin}
                 valorArriendoActual={detalle.valorArriendo}
@@ -257,6 +273,7 @@ export default async function ContratoDetallePage({
 
           {detalle.estado === "vigente" && (
             <CierreSection
+              key={detalle.id}
               contratoId={detalle.id}
               fechaFin={detalle.fechaFin}
               valorArriendo={detalle.valorArriendo}
@@ -274,7 +291,7 @@ export default async function ContratoDetallePage({
                 <ShieldCheck className="h-5 w-5 text-[var(--hw-primary)] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--hw-text-1)]">
-                    Garantía — {detalle.garantiaMeses} mes(es) ·{" "}
+                    Garantía de {cantidad(detalle.garantiaMeses, "mes", "meses")} ·{" "}
                     {detalle.garantiaDenominacion === "UF" && detalle.garantiaMontoBase != null
                       ? <>{detalle.garantiaMontoBase} UF <span className="font-normal text-[var(--hw-text-4)]">(depositado {clp(detalle.garantiaMontoCLP)})</span></>
                       : <>depositado {clp(detalle.garantiaMontoCLP)}</>}

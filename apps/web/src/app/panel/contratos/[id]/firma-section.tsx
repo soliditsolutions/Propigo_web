@@ -14,9 +14,10 @@ interface Props {
   validacionEstado:      ValidacionEstado | null;
   validacionAt:          Date | null;
   validacionConfirmadaAt: Date | null;
+  cupoIa:                 { usado: number; max: number } | null;
 }
 
-export function FirmaSection({ contratoId, validacionIa, validacionEstado, validacionAt, validacionConfirmadaAt }: Props) {
+export function FirmaSection({ contratoId, validacionIa, validacionEstado, validacionAt, validacionConfirmadaAt, cupoIa }: Props) {
   const router = useRouter();
   const { show: toast }                = useToast();
   const [isPending,    startTransition] = useTransition();
@@ -75,13 +76,20 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
       <div className="px-5 py-4 space-y-4">
 
         {/* Asesor IA — revisión pre-firma */}
+        {/* key por contrato: el panel guarda el resultado de la validación y el
+            archivo adjunto en estado local, inicializado desde props. `useState(prop)`
+            solo toma el valor al montar, y al navegar de un contrato a otro React
+            reutiliza la misma instancia (misma posición del árbol) — sin esto, el
+            resultado y el archivo del contrato anterior sobreviven al cambio. */}
         <ValidacionPanel
+          key={contratoId}
           contratoId={contratoId}
           fase="pre_firma"
           resultadoPrevio={validacionIa}
           estadoPrevio={validacionEstado}
           validacionAt={validacionAt}
           confirmadaAt={validacionConfirmadaAt}
+          cupoIa={cupoIa}
         />
 
         <div className="space-y-2 text-sm" style={{ color: "var(--hw-warning-dk)" }}>

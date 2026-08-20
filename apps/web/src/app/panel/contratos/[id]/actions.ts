@@ -10,6 +10,7 @@ import { generarCalendario, type PeriodoCalendario } from "@housing/core";
 import { esc } from "@/lib/html";
 import { logError } from "@/lib/logger";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
+import { cantidad, plural } from "@/lib/format";
 
 export type ResultadoOk =
   | { ok: true }
@@ -69,9 +70,9 @@ export async function activarContrato(contratoId: string): Promise<ResultadoOk> 
           contratoId,
           tipo:       "nuevo_contrato",
           canal:      "email",
-          estado:     "simulada",
+          estado:     "pendiente",
           asunto:     "Contrato de arriendo activado",
-          cuerpo:     "Tu contrato de arriendo ha sido firmado y está vigente.",
+          cuerpo:     "Tu contrato de arriendo quedó firmado y vigente.",
         },
       });
     });
@@ -612,10 +613,10 @@ export async function renovarContrato(
           contratoId,
           tipo:   "renovacion_contrato",
           canal:  "email",
-          estado: "simulada",
+          estado: "pendiente",
           asunto: "Renovación de contrato de arriendo",
           cuerpo: `Tu contrato de arriendo ha sido renovado hasta el ${opts.nuevaFechaFin}. `
-            + `Se generaron ${nuevosCalendario.length} período(s) adicional(es) de pago.`,
+            + `Generamos ${cantidad(nuevosCalendario.length, "período", "períodos")} ${plural(nuevosCalendario.length, "adicional", "adicionales")} de pago.`,
         },
       });
     });

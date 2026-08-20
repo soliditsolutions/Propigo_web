@@ -6,6 +6,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { generarCalendario, validarRut } from "@housing/core";
 import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
+import { cantidad } from "@/lib/format";
 
 /** Error de dominio controlado: el mensaje se devuelve al cliente tal cual. */
 class DomainError extends Error {
@@ -296,7 +297,7 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
             montoClp:       garantiaMontoCLP,
             monedaOrigen:   data.garantiaDenominacion,
             fechaEvento:    fechaInicio,
-            descripcion:    `Garantía recibida — ${data.garantiaMeses} mes(es) · ${detalleGarantia}`,
+            descripcion:    `Garantía recibida: ${cantidad(data.garantiaMeses, "mes", "meses")} · ${detalleGarantia}`,
           },
         });
       }
@@ -315,7 +316,9 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
           contratoId: c.id,
           tipo:       "solicitud_firma",
           canal:      "email",
-          estado:     "simulada",
+          // "pendiente", no "simulada": el despachador solo toma las pendientes,
+          // así que marcarla simulada equivale a no avisarle nunca al arrendatario.
+          estado:     "pendiente",
           asunto:     "Contrato de arriendo pendiente de firma",
           cuerpo:     `Tu contrato de arriendo (inicio ${data.fechaInicio}) está listo para firma. Coordina con tu corredor.`,
         },

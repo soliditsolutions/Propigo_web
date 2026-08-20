@@ -48,3 +48,19 @@ export function clpOrUf(valor: number | string | null, denom: string | null): st
 export function plural(n: number, singular: string, pluralForm?: string): string {
   return n === 1 ? singular : (pluralForm ?? `${singular}s`);
 }
+
+/**
+ * Cantidad + sustantivo ya concordado: cantidad(1, "día") → "1 día".
+ *
+ * Existe para erradicar el "día(s)" de la interfaz. La RAE admite ese
+ * paréntesis en formularios administrativos, donde quien redacta no conoce la
+ * cantidad; en una UI esa condición no se cumple —el sistema sí la conoce— y
+ * escribir "1 día(s)" solo delata que nadie resolvió la concordancia.
+ * Ver Docs/referencias/guia-de-estilo-editorial.md §4.
+ *
+ * Envuelve a `plural()` en vez de reimplementarlo, para que ambos compartan la
+ * misma regla de pluralización y no puedan divergir.
+ */
+export function cantidad(n: number, singular: string, pluralForm?: string): string {
+  return `${n} ${plural(n, singular, pluralForm)}`;
+}

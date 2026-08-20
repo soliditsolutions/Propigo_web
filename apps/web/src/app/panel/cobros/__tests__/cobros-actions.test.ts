@@ -226,6 +226,65 @@ describe("cerrarLiquidacion — BL-RC2 (idempotencia contra doble-submit)", () =
   });
 });
 
+describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () => {
+  // Regresión: ambas notificaciones se creaban con estado "simulada", y el
+  // despachador (enviarNotificacionesPendientes) solo toma las "pendiente".
+  // Resultado: el voucher se generaba pero el propietario nunca recibía su
+  // aviso de liquidación. Los tests existentes no miraban el estado, así que
+  // el fallo era invisible — esto lo deja fijado.
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc" } });
+    mockPrismaTransaction.mockImplementation(
+      async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
+    );
+    mockCalcLiq.mockReturnValue({
+      comisionCLP: 30000,
+      descuentoPropietarioCLP: 0,
+      liquidacionNetaCLP: 470000,
+    });
+    mockTx.periodoPago.findFirst.mockResolvedValue({
+      ...periodoBase,
+      contrato: {
+        id: "contrato-123",
+        denominacion: "CLP",
+        comisionCorredorPct: "0.06",
+        arrendatarioId: "arrendatario-123",
+        propietarioId: "propietario-123",
+      },
+    });
+    mockTx.asientoLedger.findFirst
+      .mockResolvedValueOnce({ montoClp: "500000", fechaEvento: new Date(), ufAplicada: null, valorOrigen: null })
+      .mockResolvedValueOnce(null);
+    mockTx.periodoPago.updateMany.mockResolvedValue({ count: 1 });
+    mockTx.voucher.create.mockResolvedValue({});
+    mockTx.notificacion.create.mockResolvedValue({});
+  });
+
+  it("crea ambas notificaciones como \"pendiente\", nunca \"simulada\"", async () => {
+    await cerrarLiquidacion("periodo-123", []);
+
+    const estados = mockTx.notificacion.create.mock.calls.map((c) => c[0].data.estado);
+    expect(estados.length).toBeGreaterThanOrEqual(2);
+    expect(estados).not.toContain("simulada");
+    for (const e of estados) expect(e).toBe("pendiente");
+  });
+
+  it("el propietario recibe el desglose, no solo el total", async () => {
+    await cerrarLiquidacion("periodo-123", []);
+
+    const alPropietario = mockTx.notificacion.create.mock.calls
+      .map((c) => c[0].data)
+      .find((d) => d.tipo === "liquidacion_propietario");
+
+    expect(alPropietario).toBeDefined();
+    // Sin desglose el destinatario no puede cuadrar de dónde sale el neto.
+    expect(alPropietario!.cuerpo).toMatch(/Arriendo:/);
+    expect(alPropietario!.cuerpo).toMatch(/Comisión corredor:/);
+    expect(alPropietario!.cuerpo).toMatch(/Neto a pagar:/);
+  });
+});
+
 describe("simularPago — ownership (ADR-0013, Fase D)", () => {
   beforeEach(() => {
     vi.clearAllMocks();

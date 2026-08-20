@@ -438,18 +438,35 @@ export async function cerrarLiquidacion(
       });
 
       // Notificaciones
+      //
+      // Van como "pendiente", NO "simulada": el despachador
+      // (enviarNotificacionesPendientes) solo toma las pendientes, así que
+      // marcarlas simuladas equivalía a no enviarlas nunca. El propietario
+      // jamás recibía su aviso de liquidación aunque el voucher sí se generaba.
+      const money = (n: number) => `${Math.round(n).toLocaleString("es-CL")}`;
+
+      // Glosa: el desglose ya vive en el snapshot del voucher; sin él, el correo
+      // decía solo el total y el destinatario no podía cuadrar de dónde salía.
+      const glosaPropietario = [
+        `Arriendo: ${money(arriendoCLP)}`,
+        `Comisión corredor: -${money(liq.comisionCLP)}`,
+        liq.descuentoPropietarioCLP > 0 ? `Descuentos: -${money(liq.descuentoPropietarioCLP)}` : null,
+        ...ajustes.map((a) => `${a.descripcion}: ${a.montoCLP < 0 ? "-" : "+"}${money(Math.abs(a.montoCLP))}`),
+        `Neto a pagar: ${money(liq.liquidacionNetaCLP)}`,
+      ].filter(Boolean).join(" · ");
+
       await tx.notificacion.create({
         data: { tenantId: tenant.id, personaId: c.arrendatarioId, contratoId: c.id,
           tipo: "voucher_pago", asunto: `Comprobante período ${periodo.numero}`,
-          cuerpo: `Pago procesado. Monto: $${arriendoCLP.toLocaleString("es-CL")}.`,
-          estado: "simulada" },
+          cuerpo: `Comprobante del período ${periodo.numero}. Arriendo: ${money(arriendoCLP)}.`,
+          estado: "pendiente" },
       });
       await tx.notificacion.create({
         data: { tenantId: tenant.id, personaId: c.propietarioId, contratoId: c.id,
           tipo: "liquidacion_propietario",
           asunto: `Liquidación período ${periodo.numero}`,
-          cuerpo: `Neto a pagar: $${liq.liquidacionNetaCLP.toLocaleString("es-CL")}.`,
-          estado: "simulada" },
+          cuerpo: `Detalle de tu liquidación del período ${periodo.numero}. ${glosaPropietario}.`,
+          estado: "pendiente" },
       });
 
       return {

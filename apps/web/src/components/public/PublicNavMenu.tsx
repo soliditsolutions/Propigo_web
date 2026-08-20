@@ -48,10 +48,15 @@ function AuthActions({
 }
 
 /**
- * Acciones del lado derecho del navbar. Desktop (≥md): Iniciar sesión →
- * Registrarse → cambiar tema, en ese orden. Mobile (<md): tema + hamburguesa
- * que despliega un panel con los enlaces de PublicNavLinks (ocultos en la
- * píldora central en mobile) y las acciones de cuenta.
+ * Acciones del lado derecho del navbar. Desktop (≥lg): Iniciar sesión →
+ * Registrarse → cambiar tema, en ese orden. Mobile/tablet (<lg): tema +
+ * hamburguesa que despliega un panel con los enlaces de PublicNavLinks
+ * (ocultos en la píldora central por debajo de `lg`) y las acciones de
+ * cuenta. El corte es `lg` (1024px), no `md` (768px) — a 768px (tablet
+ * portrait) el navbar de escritorio no tiene ancho real para
+ * "Iniciar sesión + Registrarse" (ver el mismo razonamiento en
+ * ScrollWalkthrough.tsx, que comparte el problema con el escenario
+ * cinematográfico).
  */
 export function PublicNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [open, setOpen] = useState(false);
@@ -66,14 +71,14 @@ export function PublicNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <div className="pf-navbar-actions flex items-center gap-2">
-      {/* ── Desktop: Iniciar sesión, Registrarse, tema ─────────────────── */}
-      <div className="hidden items-center gap-2 md:flex">
+      {/* ── Desktop (≥lg): Iniciar sesión, Registrarse, tema ────────────── */}
+      <div className="hidden items-center gap-2 lg:flex">
         <AuthActions isLoggedIn={isLoggedIn} />
         <ThemeToggle />
       </div>
 
-      {/* ── Mobile: tema + hamburguesa ──────────────────────────────────── */}
-      <div className="flex items-center gap-2 md:hidden">
+      {/* ── Mobile/tablet (<lg): tema + hamburguesa ──────────────────────── */}
+      <div className="flex items-center gap-2 lg:hidden">
         <ThemeToggle />
         <button
           type="button"
@@ -87,11 +92,11 @@ export function PublicNavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
         </button>
       </div>
 
-      {/* ── Mobile: panel desplegable ────────────────────────────────────── */}
+      {/* ── Mobile/tablet: panel desplegable ─────────────────────────────── */}
       {open && (
         <div
           id="pf-mobile-menu"
-          className="absolute inset-x-0 top-full md:hidden"
+          className="absolute inset-x-0 top-full lg:hidden"
           style={{
             background: "var(--pf-surface-glass)",
             backdropFilter: "blur(16px) saturate(1.6)",

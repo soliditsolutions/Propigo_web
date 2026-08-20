@@ -147,6 +147,12 @@
   --hw-accent-teal:  #5EEAD4;
   --hw-accent-violet:#C084FC;
 
+  /* Par botón sólido teal + su tinta. El acento suelto no sirve como fondo de
+     botón con texto blanco: #5EEAD4 con blanco da 1,48:1 (AA pide 4,5:1).
+     Estos dos tokens van siempre juntos; no mezclar con --hw-accent-teal. */
+  --hw-accent-teal-btn: #5EEAD4;
+  --hw-on-accent-teal:  #032B27;   /* 10,3:1 sobre el teal claro */
+
   /* Sidebar del PANEL (distinto de --hw-sidebar*, que es fijo y solo para el
      aside de marca de login/registro). Este set SÍ se themea: en oscuro
      conserva la identidad navy/índigo de siempre; en claro pasa a ser un
@@ -304,6 +310,13 @@
   --hw-primary-bd:   #C7C3FF;
   --hw-accent-teal:  #0D9488;
   --hw-accent-violet:#9333EA;
+
+  /* Ver nota en el tema oscuro. Acá el acento es oscuro, pero #0D9488 con
+     blanco da 3,74:1 — insuficiente para texto de 14 px. Un paso más oscuro
+     (teal-700) llega a 5,47:1 sin alterar --hw-accent-teal, que se usa en
+     gradientes y auroras donde el valor actual sí funciona. */
+  --hw-accent-teal-btn: #0F766E;
+  --hw-on-accent-teal:  #FFFFFF;   /* 5,47:1 sobre el teal oscuro */
 
   /* Sidebar del PANEL — diseño propio para claro, no el navy fijo aclarado
      por transparencia (--hw-sidebar* sigue existiendo tal cual, intacto,
@@ -671,12 +684,17 @@ html {
 /* scroll-margin solo importa en el modo apilado (mobile/sin JS), donde el
    ancla vive en la parada misma y hay que despejar el navbar. */
 .hw-walk-stop    { position: relative; padding: 4rem 1.5rem; scroll-margin-top: 6rem; overflow: hidden; }
-/* Fondo por-parada del modo apilado: el fotograma cubre la sección completa
-   (object-cover, alto dictado por el contenido) y encima va el mismo velo
-   de legibilidad del escenario. El scrim funde los bordes superior e
-   inferior hacia el color de página, así las fotos de paradas contiguas
-   transicionan suave en vez de chocar en una costura dura. */
+/* Fondo por-parada del modo apilado: SOLO existe ya en la parada 0 (ver
+   ScrollWalkthrough.tsx) — el fotograma cubre esa parada (object-cover) y
+   encima va el mismo velo de legibilidad del escenario. El scrim funde los
+   bordes superior e inferior hacia el color de página, así la transición
+   hacia la parada siguiente (sin foto) es suave en vez de una costura dura. */
 .hw-walk-stop-bg { position: absolute; inset: 0; }
+/* Solo la parada 0 (Inicio) conserva foto en modo apilado — con una altura
+   dictada por el contenido (como el resto de las paradas) la foto, compuesta
+   para 100vh de escritorio, se recortaría a una tira sin componer como
+   escena. Con una altura mínima intencional se lee como una escena real. */
+.hw-walk-stop-hero { min-height: min(720px, 88vh); display: flex; align-items: center; justify-content: center; }
 
 /* Panel para el texto que va DIRECTO sobre la foto (titulares del hero y de
    sección). Sin esto el texto compite con la escena: en tema claro el cuerpo
@@ -691,7 +709,7 @@ html {
   border-radius: var(--hw-radius-card);
 }
 
-@media (min-width: 768px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
   /* El navbar público TAMBIÉN es sticky y ocupa flujo real antes de esta
      sección: en la carga inicial (scrollY 0), el escenario (sticky, 100vh)
      todavía no se "engancha" a top:0 — su posición natural es justo bajo el
@@ -746,14 +764,24 @@ html {
    convertirse en un segundo botón sólido (que sí dividiría la atención). */
 .hw-cta-secondary {
   border-width: 1.5px !important;
-  border-color: color-mix(in srgb, var(--pf-purple) 65%, transparent) !important;
+  /* Borde sólido (--pf-purple), no al 65% de opacidad: contra el relleno
+     tenue de abajo, ese 65% medía solo 2.79:1 — bajo el 3:1 que pide WCAG
+     1.4.11 para el contorno de un control. Sólido da 4.84:1 y es lo que ya
+     mostraba el :hover (ver abajo, ahora redundante con el estado por
+     defecto y por eso se quita de ahí). */
+  border-color: var(--pf-purple) !important;
   /* --hw-surface-glass (~4%) es casi invisible sobre .hw-walk-panel, que YA
      es vidrio (--hw-glass-card, ~42-48%) — el botón se perdía contra su
      propio fondo, quedando solo un hilo de borde y texto flotando. Partir de
      --hw-glass-card (mismo token, calibrado para vidrio-sobre-foto) y sumar
      un tinte de marca le da cuerpo propio y lo liga a la paleta en vez de un
-     outline genérico gris. */
-  background: color-mix(in srgb, var(--pf-purple) 16%, var(--hw-glass-card)) !important;
+     outline genérico gris.
+     16%→8%: con texto y relleno del mismo color de marca, MÁS tinte acerca el
+     fondo al color del texto — a más "cuerpo" de marca, MENOS contraste, no
+     más (medido: 16% da 4.34:1 en oscuro, bajo el 4.5:1 de AA; 8% da 4.82:1).
+     En claro este mismo tinte pega aún peor (un fondo YA claro se acerca más
+     rápido al texto claro) — ver el override de abajo para ese tema. */
+  background: color-mix(in srgb, var(--pf-purple) 8%, var(--hw-glass-card)) !important;
   -webkit-backdrop-filter: blur(10px) saturate(1.3);
   backdrop-filter: blur(10px) saturate(1.3);
   color: var(--pf-purple) !important;
@@ -761,12 +789,19 @@ html {
   transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 .hw-cta-secondary:hover {
-  border-color: var(--pf-purple) !important;
   background: color-mix(in srgb, var(--pf-purple) 28%, var(--hw-glass-card)) !important;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -8px var(--pf-purple-shadow);
 }
 .hw-cta-secondary:active { transform: translateY(0); }
+/* Tema claro: --hw-glass-card ya es casi blanco, así que CUALQUIER tinte de
+   --pf-purple empuja el fondo hacia el mismo tono claro-violeta del texto —
+   8% mide 4.28:1, todavía bajo AA. 0% (--hw-glass-card puro) es el techo real
+   de este patrón en claro: 4.50:1, el borde sólido de arriba sigue dando la
+   identidad de marca sin depender del relleno. */
+:root[data-theme="aurora-light"] .hw-cta-secondary {
+  background: var(--hw-glass-card) !important;
+}
 
 /* ── Hint de scroll del hero (solo modo fijado) — el chevron "respira" hacia
    abajo; la opacidad del bloque completo la maneja el componente según el
@@ -1635,13 +1670,17 @@ html {
 .pf-navbar-links { justify-self: center; }
 .pf-navbar-actions { justify-self: end; }
 
-/* En mobile la píldora central (`.pf-navbar-links`) se oculta con
-   `hidden md:flex` (ver PublicNavLinks) pero sigue siendo un ítem del grid:
+/* Por debajo de `lg` la píldora central (`.pf-navbar-links`) se oculta con
+   `hidden lg:flex` (ver PublicNavLinks) pero sigue siendo un ítem del grid:
    su columna "auto" no colapsa a 0 solo por estar display:none, así que
    la columna de acciones quedaba angosta y el bloque tema+hamburguesa
    terminaba centrado en vez de pegado al borde derecho. Con solo 2 columnas
-   reales en mobile, logo y acciones quedan en los extremos exactos. */
-@media (max-width: 767.98px) {
+   reales por debajo de `lg`, logo y acciones quedan en los extremos exactos.
+   El corte es `lg` (1024px), no `md` (768px): a 768px (tablet portrait) el
+   grid de 3 columnas de escritorio (`1fr auto 1fr`) no tiene espacio real
+   para "Iniciar sesión + Registrarse" — confirmado con getBoundingClientRect
+   en vivo, desbordaba el viewport. */
+@media (max-width: 1023.98px) {
   .pf-navbar-grid { grid-template-columns: auto 1fr; }
   .pf-navbar-actions { grid-column: 2; }
 }
@@ -1785,7 +1824,16 @@ html {
   color: #fff;
   text-decoration: none;
   white-space: nowrap;
-  background: linear-gradient(135deg, var(--pf-purple) 0%, color-mix(in srgb, var(--pf-purple) 62%, #c9c4ff) 100%);
+  /* --pf-purple-btn, no --pf-purple: el extremo claro del gradiente (mezclado
+     hacia #c9c4ff) caía a 3.17:1 con texto blanco — muy por debajo del 4.5:1
+     de AA — incluso partiendo ya de --pf-purple-btn en el extremo oscuro.
+     Medido: extremo oscuro 4.93:1, extremo claro 3.17:1 con la mezcla al 62%
+     original; subir el % de mezcla para salvar el extremo claro aplana el
+     gradiente hasta volverlo casi sólido de todos modos, así que se deja
+     sólido directamente — mismo look "botón estrella" vía el box-shadow con
+     glow, sin depender de un degradé que no puede ser legible en los dos
+     extremos a la vez. */
+  background: var(--pf-purple-btn);
   box-shadow:
     0 4px 14px var(--pf-purple-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.30);

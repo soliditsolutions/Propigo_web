@@ -94,6 +94,35 @@ const LAST_STOP_SAFETY_PX = 4;
 // tope).
 const MAX_TICK_STEP = 0.16;
 
+// Amplificación aplicada a cada evento de rueda/trackpad antes de convertirlo
+// en scroll real (ver `onWheel` más abajo). Sin esto, cruzar una parada
+// completa (SCROLL_PER_STOP_VH) con una rueda de mouse tradicional — que
+// entrega ~100-120px de scroll nativo por "click" — pedía unas 20 vueltas de
+// rueda: se sentía pesado, sobre todo comparado con trackpad (que ya scrollea
+// fluido por naturaleza). Con 2x, la misma parada pide la mitad.
+const WHEEL_AMPLIFY = 2;
+
+// Tope de píxeles que un solo evento de rueda puede mover, YA amplificado.
+// Una rueda física entrega ~100-120px por click — bien por debajo del tope,
+// así que un scroll normal no lo nota. Lo que acota es el caso contrario: un
+// evento de deltaY grande (fling de trackpad, mouse de alta resolución)
+// amplificado 2x podría saltar una distancia enorme de una sola vez. Esto no
+// solo protege el amplificador nuevo — mejora la protección que ya existía
+// contra "saltarse una categoría" con scroll muy rápido (antes el scroll
+// nativo no tenía ningún tope por evento).
+const WHEEL_MAX_STEP_PX = 240;
+
+// Normaliza `deltaY` a píxeles sin importar `deltaMode`. En Chrome/Edge casi
+// siempre es 0 (píxeles) incluso para rueda física — los casos 1 y 2 son
+// infrecuentes en la práctica (algunos navegadores/configuraciones antiguas)
+// pero sin este ajuste un deltaY "en líneas" se leería como si fueran
+// píxeles y el salto resultante sería minúsculo o gigante según el caso.
+function wheelDeltaToPx(e: WheelEvent) {
+  if (e.deltaMode === 1) return e.deltaY * 16;
+  if (e.deltaMode === 2) return e.deltaY * window.innerHeight;
+  return e.deltaY;
+}
+
 /**
  * Escenario "walkthrough": el fondo fotográfico queda fijado ocupando la
  * pantalla mientras el usuario scrollea por una pista alta y transparente;
@@ -159,7 +188,13 @@ export function ScrollWalkthrough({
   // sincrónico en el cuerpo del efecto) para no encadenar renders en el
   // commit, tal como ya se hace en el efecto de scroll de abajo.
   useLayoutEffect(() => {
-    const desktopMq = window.matchMedia("(min-width: 768px)");
+    // `lg` (1024px), no `md` (768px): a 768px un tablet en portrait no tiene
+    // ancho de sobra para el escenario cinematográfico de escritorio (el
+    // navbar completo tampoco cabe ahí — ver el mismo corte en
+    // PublicNavLinks/PublicNavMenu). Por debajo de 1024px el modo apilado
+    // (rediseñado para mobile-first, no un clon aplanado del escenario) es
+    // la experiencia correcta, no solo un fallback de degradación.
+    const desktopMq = window.matchMedia("(min-width: 1024px)");
     const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const raf = requestAnimationFrame(() => {
       const isPinned = desktopMq.matches && !reduceMq.matches;
@@ -171,7 +206,7 @@ export function ScrollWalkthrough({
 
   useEffect(() => {
     const reduceMq  = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const desktopMq = window.matchMedia("(min-width: 768px)");
+    const desktopMq = window.matchMedia("(min-width: 1024px)");
 
     let raf = 0;
     let attached = false;
@@ -256,6 +291,27 @@ export function ScrollWalkthrough({
       snapTimer = window.setTimeout(onScrollEnd, 150);
     }
 
+    // Reemplaza el scroll nativo de la rueda/trackpad DENTRO del escenario por
+    // uno amplificado (ver constantes arriba). Al estar en el propio
+    // `sectionRef.current` (no en `window`), esto se auto-limita: mientras el
+    // cursor esté sobre el escenario (toda su extensión de N×220vh) los
+    // eventos le llegan a él primero; apenas el usuario scrollea más allá del
+    // final (el `sticky` se despega y el footer entra a la pantalla), el
+    // cursor deja de estar sobre este elemento y la rueda vuelve a comportarse
+    // nativamente — sin necesidad de revisar la posición de scroll acá.
+    function onWheel(e: WheelEvent) {
+      const raw = wheelDeltaToPx(e);
+      if (raw === 0) return;
+      e.preventDefault();
+      const amplified = Math.sign(raw) * Math.min(Math.abs(raw) * WHEEL_AMPLIFY, WHEEL_MAX_STEP_PX);
+      // "instant", no "auto": `html` tiene `scroll-behavior: smooth` a nivel
+      // global (para la navegación por ancla del navbar) — "auto" hereda esa
+      // CSS y cada notch de rueda quedaba animándose de a poco en vez de
+      // saltar ya. tick() ya provee su propio suavizado (el lerp del
+      // crossfade), así que el salto de scroll en sí debe ser inmediato.
+      window.scrollBy({ top: amplified, behavior: "instant" });
+    }
+
     function sync() {
       const enable = !reduceMq.matches && desktopMq.matches;
       setPinned(enable);
@@ -263,11 +319,13 @@ export function ScrollWalkthrough({
         attached = true;
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll, { passive: true });
+        sectionRef.current?.addEventListener("wheel", onWheel, { passive: false });
         raf = requestAnimationFrame(tick);
       } else if (!enable && attached) {
         attached = false;
         window.removeEventListener("scroll", onScroll);
         window.removeEventListener("resize", onScroll);
+        sectionRef.current?.removeEventListener("wheel", onWheel);
         if (raf) { cancelAnimationFrame(raf); raf = 0; }
         window.clearTimeout(snapTimer);
         current = 0;
@@ -451,7 +509,7 @@ export function ScrollWalkthrough({
                 ref={(el) => { stopRefs.current[i] = el; }}
                 // Apilado (mobile/sin JS) el ancla sí puede vivir en la parada.
                 id={!pinned ? s.anchorId : undefined}
-                className="hw-walk-stop"
+                className={`hw-walk-stop${i === 0 ? " hw-walk-stop-hero" : ""}`}
                 style={
                   active
                     ? {
@@ -463,23 +521,33 @@ export function ScrollWalkthrough({
                     : undefined
                 }
               >
-                {/* Fondo por-parada — SOLO se ve en modo apilado (mobile/
-                    reduced-motion/sin JS; en desktop lo apaga el CSS y la
-                    foto la pone el crossfade de arriba). Cada categoría
-                    conserva así su fotograma también en mobile. Sin
-                    `priority`: entran lazy conforme se scrollea; en desktop,
-                    aunque ocultas, comparten URL con las del crossfade así
-                    que el navegador las deduplica. */}
-                <div className="hw-walk-stop-bg" aria-hidden="true">
-                  <Image
-                    src={s.image}
-                    alt=""
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0" style={{ background: scrimBg }} />
-                </div>
+                {/* Fondo por-parada — SOLO en la parada 0 (Inicio) y SOLO en
+                    modo apilado (mobile/reduced-motion/sin JS; en desktop lo
+                    apaga el CSS y la foto la pone el crossfade de arriba).
+                    Las paradas 1+ NO llevan foto en apilado: son fotogramas
+                    compuestos para 100vh de escritorio, y recortados por
+                    `object-cover` a la altura variable de una tarjeta de
+                    texto se ven como una porción arbitraria de la escena
+                    (a veces sin ningún elemento reconocible) — y esa porción
+                    cambia parada a parada según cuánto texto tenga cada una.
+                    Sin fondo, se ve el `--hw-page` + `.hw-aurora-layer` de
+                    la página (mismo tratamiento que login/registro/Nuestros
+                    Planes: tarjeta glass sobre aurora, no sobre foto). Sin
+                    `priority`: aunque solo queda esta, entra lazy igual que
+                    antes; en desktop, aunque oculta, comparte URL con la del
+                    crossfade así que el navegador la deduplica. */}
+                {i === 0 && (
+                  <div className="hw-walk-stop-bg" aria-hidden="true">
+                    <Image
+                      src={s.image}
+                      alt=""
+                      fill
+                      sizes="100vw"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0" style={{ background: scrimBg }} />
+                  </div>
+                )}
                 {/* ScrollReveal: no-op en modo fijado (el fade ya lo maneja `vis`
                     arriba, y el stop siempre está geométricamente en viewport así
                     que dispara casi al montar) — pero en modo apilado (mobile/

@@ -127,7 +127,7 @@ export default async function Home() {
       id: "pagos",
       icon: Wallet,
       title: "Cobros que se concilian solos",
-      text: "El sistema detecta cada pago, lo concilia al instante y emite un comprobante inmutable. Te avisa cuando un arriendo se atrasa —no cuando ya perdiste el mes— con una contabilidad auditable de respaldo.",
+      text: "El sistema detecta cada pago y lo concilia al instante, con un comprobante inmutable y una contabilidad auditable. Te avisa apenas un arriendo se atrasa, no cuando ya perdiste el mes.",
     },
     {
       id: "marketplace",
@@ -157,7 +157,11 @@ export default async function Home() {
           hover, reservado para el CTA principal de la página. */}
       <div className="mt-5 flex justify-center">
         <Link href="/registro">
-          <Button size="lg" className="hw-sheen bg-[var(--pf-purple)] hover:opacity-90">
+          {/* --pf-purple-btn, no --pf-purple: texto blanco sobre --pf-purple da
+              solo 3.62:1 en tema oscuro (falla AA, 4.5:1) — --pf-purple-btn ya
+              existe en el token system justo para esto (4.93:1 oscuro; en claro
+              son el mismo valor, sin cambio). */}
+          <Button size="lg" className="hw-sheen bg-[var(--pf-purple-btn)] hover:opacity-90">
             Empezar como corredor
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -193,7 +197,11 @@ export default async function Home() {
   /* ── Parada 1 — Sala: acerca de (beneficios) ─────────────────────────── */
   const stopFeatures = (
     <div id="acerca-de-card">
-      {/* Panel de legibilidad: el encabezado va directo sobre la foto. */}
+      {/* Panel de legibilidad: en desktop (≥lg) el encabezado va directo
+          sobre la foto del crossfade. Por debajo de `lg` no hay foto detrás
+          (ver ScrollWalkthrough.tsx) — el glass panel igual queda bien
+          apoyado sobre el fondo aurora de la página, mismo tratamiento que
+          login/registro. */}
       <div className="mb-8 flex justify-center">
         <div className="hw-walk-panel px-6 py-4 text-center sm:px-8">
           <span className="text-xs font-bold uppercase tracking-widest text-[var(--pf-purple)]">
@@ -204,13 +212,16 @@ export default async function Home() {
             <span className="pf-headline-accent">sin sorpresas</span>
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">
-            PropTech para corredores de propiedades en Chile — gestión de
-            arriendos, cobros automáticos y marketplace público en una sola
-            plataforma, con el foco puesto en la transparencia de principio a fin.
+            Housing reúne la gestión de arriendos, los cobros automáticos y un
+            marketplace público en una sola plataforma para corredores de
+            propiedades en Chile, con la transparencia como eje.
           </p>
         </div>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+
+      {/* Desktop (≥lg, 3 tarjetas caben cómodas lado a lado): grilla fija,
+          sin cambios respecto al diseño anterior. */}
+      <div className="hidden gap-5 lg:grid lg:grid-cols-3">
         {features.map((f) => (
           <div key={f.id} className="hw-auth-card flex h-full flex-col p-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-purple-tint)] text-[var(--pf-purple)]">
@@ -220,6 +231,27 @@ export default async function Home() {
             <p className="mt-2 text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">{f.text}</p>
           </div>
         ))}
+      </div>
+
+      {/* Mobile/tablet (<lg): mismo componente EmblaCarousel que ya usa
+          "Destacado" para propiedades/corredores — no un patrón nuevo. Sin
+          parallax (no hay imagen de fondo en la tarjeta) ni autoplay: son 3
+          tarjetas con texto para leer con calma, no una vitrina para hojear
+          pasivamente. Ancho fijo por tarjeta (no 100%) para que se note que
+          hay una siguiente y anime a deslizar en vez de leerse como una
+          lista de una sola columna. */}
+      <div className="lg:hidden">
+        <EmblaCarousel ariaLabel="Beneficios de Housing para corredores" autoplay={false}>
+          {features.map((f) => (
+            <div key={f.id} className="hw-auth-card flex h-full w-[82vw] max-w-xs shrink-0 flex-col p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-purple-tint)] text-[var(--pf-purple)]">
+                <f.icon className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-balance font-semibold text-[var(--pf-navy)]">{f.title}</h3>
+              <p className="mt-2 text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">{f.text}</p>
+            </div>
+          ))}
+        </EmblaCarousel>
       </div>
     </div>
   );
@@ -231,7 +263,7 @@ export default async function Home() {
         <Star className="h-5 w-5" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />
         <h2 className="pf-headline-accent text-xl font-bold tracking-tight sm:text-2xl">Destacado</h2>
         <span className="hidden text-sm sm:inline" style={{ color: "var(--pf-text-muted)" }}>
-          — lo mejor, disponible ahora
+          Lo mejor, disponible ahora
         </span>
         {/* Acceso al marketplace movido al encabezado (antes ocupaba una fila
             entera al fondo, poco visible y comiendo el alto justo de la parada). */}

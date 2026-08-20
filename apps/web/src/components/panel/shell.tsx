@@ -194,7 +194,7 @@ export function PanelShell({ tenant, user, children }: Props) {
   );
 
   return (
-    <div className="relative min-h-screen hw-page-bg overflow-hidden">
+    <div className="relative h-screen hw-page-bg overflow-hidden">
       {/* Fondo — en claro, mismo blob suave que login/registro/home; en
           oscuro, variante "beams" (franjas de luz, aproximación CSS-only del
           componente Beams de React Bits — ver .hw-beams-layer). Solo se
@@ -204,7 +204,7 @@ export function PanelShell({ tenant, user, children }: Props) {
           (ver nota "usar con moderación" en .hw-aurora-bg de globals.css). */}
       <div className="hw-beams-layer" aria-hidden="true" />
 
-      <div className="relative z-10 flex min-h-screen">
+      <div className="relative z-10 flex h-screen">
       {/* FIX UI-C4 — Skip link: permite a usuarios de teclado/lector de pantalla
           saltar directamente al contenido principal sin recorrer toda la barra lateral.
           WCAG 2.4.1 — Bypass Blocks. Visible solo cuando recibe foco (sr-only). */}
@@ -271,7 +271,7 @@ export function PanelShell({ tenant, user, children }: Props) {
       </aside>
 
       {/* Contenido principal */}
-      <div className="flex flex-1 min-w-0 flex-col">
+      <div className="flex flex-1 min-w-0 min-h-0 flex-col">
         {/* Header glassmorfismo sticky */}
         <header
           className="hw-glass flex h-14 shrink-0 items-center justify-between px-4 md:px-6 sticky top-0 z-20"
@@ -332,7 +332,7 @@ export function PanelShell({ tenant, user, children }: Props) {
         {/* Fondo opaco propio: el contenido del panel (tablas, formularios)
             es denso — la aurora no debe traslucir aquí, solo en sidebar/header. */}
         <main
-          className="flex-1 overflow-auto p-4 md:p-6"
+          className="flex-1 min-h-0 overflow-auto p-4 md:p-6"
           style={{ background: "var(--hw-page)" }}
           id="main-content"
         >

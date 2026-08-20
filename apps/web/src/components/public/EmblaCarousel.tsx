@@ -34,6 +34,10 @@ interface EmblaCarouselProps {
   parallax?: boolean;
   /** Retardo del autoplay en ms. */
   autoplayDelay?: number;
+  /** Desactiva el plugin de autoplay (p. ej. para tarjetas de texto: sin
+   *  vitrina pasiva compitiendo con la lectura). Por defecto activo, para
+   *  no cambiar el comportamiento de los carruseles ya existentes. */
+  autoplay?: boolean;
 }
 
 export function EmblaCarousel({
@@ -41,10 +45,11 @@ export function EmblaCarousel({
   ariaLabel,
   parallax = false,
   autoplayDelay = 4200,
+  autoplay = true,
 }: EmblaCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "start", dragFree: true, containScroll: "trimSnaps" },
-    [Autoplay({ delay: autoplayDelay, stopOnInteraction: false, stopOnMouseEnter: true })],
+    autoplay ? [Autoplay({ delay: autoplayDelay, stopOnInteraction: false, stopOnMouseEnter: true })] : [],
   );
 
   const tweenFactor = useRef(0);

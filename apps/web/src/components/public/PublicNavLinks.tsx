@@ -156,7 +156,7 @@ export function PublicNavLink({
  */
 export function PublicNavLinks() {
   return (
-    <nav className="pf-navbar-links hidden md:flex" aria-label="Navegación principal">
+    <nav className="pf-navbar-links hidden lg:flex" aria-label="Navegación principal">
       <div className="pf-navpill">
         {NAV_LINKS.map((l) => (
           <PublicNavLink key={l.href} href={l.href} className="pf-navpill-link">

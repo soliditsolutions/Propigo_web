@@ -458,7 +458,7 @@ export default function TerminosUsoPage() {
             <Section id="contacto" title="10. Contacto y canal de denuncias">
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  { icon: Mail,  label: "Email legal", value: EMAIL_CONTACTO },
+                  { icon: Mail,  label: "Correo legal", value: EMAIL_CONTACTO },
                   { icon: Phone, label: "Teléfono",    value: TELEFONO       },
                 ].map(({ icon: Icon, label, value }) => (
                   <div

@@ -63,7 +63,7 @@ export default async function EstadisticasPage({
     <>
       <PageTitle
         title="Estadísticas"
-        subtitle="Analítica de tu cartera — datos reales, sin cargar todo en una sola pantalla."
+        subtitle="Analítica de tu cartera con datos reales, organizada en pestañas para no saturar la pantalla."
       />
 
       <TabNav

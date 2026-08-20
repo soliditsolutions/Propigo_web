@@ -52,7 +52,7 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
         <StatCard
           label="Lucro cesante del mes"
           value={clp(data.vacancyLossClp)}
-          sub="Estimado — propiedades vacías, renta de su último contrato"
+          sub="Estimado sobre las propiedades vacías, según la renta de su último contrato"
           tone={data.vacancyLossClp > 0 ? "amber" : "slate"}
           icon={<TrendingDown className="h-4 w-4" />}
         />

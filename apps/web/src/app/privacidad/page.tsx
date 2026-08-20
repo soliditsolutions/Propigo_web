@@ -297,7 +297,7 @@ export default function PrivacidadPage() {
                 {[
                   {
                     nombre: "Resend Inc. (EE.UU.)",
-                    rol: "Proveedor de email transaccional",
+                    rol: "Proveedor de correo transaccional",
                     datos: "Nombre y dirección de correo para envío de notificaciones",
                     garantia: "Cláusulas contractuales estándar (SCCs). Política: resend.com/privacy",
                   },

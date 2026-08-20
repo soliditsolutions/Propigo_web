@@ -8,7 +8,7 @@ import {
   Building2, Users, DollarSign, Calendar, Loader2,
 } from "lucide-react";
 import { generarCalendario, validarRut, formatearRut } from "@housing/core";
-import { fecha } from "@/lib/format";
+import { fecha, cantidad } from "@/lib/format";
 import { buscarPersonas, crearContrato } from "./actions";
 import type { PersonaBusqueda } from "./actions";
 
@@ -455,7 +455,7 @@ function Step2({
                     onClick={() => onSelectPersona(p)}
                     className="hw-btn w-full px-4 py-2.5 text-left text-sm"
                     style={{
-                      background:   "white",
+                      background:   "var(--hw-surface)",
                       borderTop:    i > 0 ? `1px solid var(--hw-border)` : "none",
                       display:      "block",
                     }}
@@ -564,7 +564,7 @@ function Step3({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <FieldRow label="Comisión corredor (%)" hint="% del primer mes de arriendo">
+          <FieldRow label="Comisión corredor (%)" hint="% de cada período liquidado (fee de administración mensual)">
             <TextInput
               type="number"
               inputMode="decimal"
@@ -806,7 +806,7 @@ function Step4({
               className="mb-2 text-xs font-semibold uppercase tracking-wide"
               style={{ color: "var(--hw-text-4)" }}
             >
-              Vista previa — primeros {preview.length} período(s)
+              Vista previa: primeros {cantidad(preview.length, "período", "períodos")}
             </p>
             <div
               className="overflow-hidden rounded-xl border"

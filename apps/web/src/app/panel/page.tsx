@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTenant, getResumen } from "@/lib/queries";
 import { Card, StatCard, Badge, estadoTone, estadoPulse, PageTitle } from "@/components/panel/ui";
 import { AnimatedNumber } from "@/components/panel/animated-number";
+import { cantidad, plural } from "@/lib/format";
 import { AlertTriangle, Banknote, FileText, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { ProximosClient } from "./proximos-client";
 
@@ -25,7 +26,7 @@ export default async function Dashboard() {
         <StatCard
           label="Por cobrar"
           value={<AnimatedNumber value={r.deudaTotal} format="clp" />}
-          sub={`${r.periodosAtrasados} período(s) atrasado(s)`}
+          sub={`${cantidad(r.periodosAtrasados, "período", "períodos")} ${plural(r.periodosAtrasados, "atrasado", "atrasados")}`}
           tone={r.periodosAtrasados > 0 ? "red" : "slate"}
           icon={<AlertTriangle className="h-4 w-4" />}
         />
@@ -39,14 +40,14 @@ export default async function Dashboard() {
         <StatCard
           label="Contratos vigentes"
           value={<AnimatedNumber value={r.contratosVigentes} format="int" />}
-          sub={`${r.propiedades.total} propiedades`}
+          sub={cantidad(r.propiedades.total, "propiedad", "propiedades")}
           tone="green"
           icon={<FileText className="h-4 w-4" />}
         />
         <StatCard
           label="Gasto común"
           value={<AnimatedNumber value={r.gcRecaudado} format="clp" />}
-          sub="Passthrough (no es ingreso)"
+          sub="Se traspasa completo, no es ingreso"
           tone="slate"
           icon={<ArrowLeftRight className="h-4 w-4" />}
         />

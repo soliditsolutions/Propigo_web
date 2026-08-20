@@ -50,7 +50,7 @@ export async function GET(
     // aquí también para que nadie pueda descargar un PDF "BORRADOR" que
     // podría no coincidir con lo que realmente se firmó.
     return NextResponse.json(
-      { error: "El borrador solo está disponible mientras el contrato no se ha activado." },
+      { error: "El borrador solo está disponible mientras el contrato no se active." },
       { status: 409 },
     );
   }

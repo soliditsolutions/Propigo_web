@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, Send, Loader2, ChevronDown } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { cantidad, plural } from "@/lib/format";
 
 interface Comentario {
   id:           string;
@@ -54,7 +55,7 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
         toast(d.error ?? "Error al enviar el comentario.", "error");
         return;
       }
-      toast("Comentario enviado. El arrendatario recibirá un email de notificación.", "success");
+      toast("Comentario enviado. El arrendatario recibirá un correo con el aviso.", "success");
       setTexto("");
       router.refresh();
     });
@@ -108,7 +109,8 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
                     <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--hw-text-2)" }}>{c.texto}</p>
                     {c.documentos.length > 0 && (
                       <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
-                        {c.documentos.length} documento(s) adjunto(s)
+                        {cantidad(c.documentos.length, "documento", "documentos")}{" "}
+                        {plural(c.documentos.length, "adjunto", "adjuntos")}
                       </p>
                     )}
                   </div>
@@ -156,7 +158,7 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
           </button>
         </div>
         <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
-          El arrendatario recibirá un email de notificación y podrá ver el mensaje en su portal.
+          El arrendatario recibirá un correo con el aviso y podrá ver el mensaje en su portal.
         </p>
       </form>
     </div>

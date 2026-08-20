@@ -1,8 +1,8 @@
 import { getRendimientoPropiedades } from "@/lib/queries";
 import { Card, StatCard, SectionTitle, Badge, type BadgeTone } from "@/components/panel/ui";
 import { MiniBarSeries } from "@/components/panel/charts/mini-bar-series";
-import { clp } from "@/lib/format";
-import { Star, TrendingUp, TrendingDown, Minus, Repeat, Heart, ShieldCheck } from "lucide-react";
+import { clp, cantidad } from "@/lib/format";
+import { Star, TrendingUp, TrendingDown, Minus, Repeat, Heart, ShieldCheck, Users } from "lucide-react";
 
 const TIPO_LABEL: Record<string, string> = { casa: "Casa", departamento: "Departamento", cabana: "Cabaña" };
 const TENDENCIA_ICON = { subiendo: TrendingUp, bajando: TrendingDown, estable: Minus };
@@ -27,7 +27,7 @@ export async function RendimientoPropiedadesTab({ tenantId }: { tenantId: string
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
-          label="Rotación (turnover)"
+          label="Rotación de arrendatarios"
           value={`${data.turnoverPct}%`}
           sub="Contratos terminados en 12m / propiedades totales"
           tone="slate"
@@ -68,6 +68,52 @@ export async function RendimientoPropiedadesTab({ tenantId }: { tenantId: string
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
+          <SectionTitle title="Renta por m²" description="Renta mensual dividida por los metros cuadrados totales. Solo aparecen las propiedades con superficie registrada." />
+          {data.rentaPorM2.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Ninguna propiedad con contrato vigente tiene m² cargados.</p>
+          ) : (
+            <div className="space-y-2">
+              {data.rentaPorM2.map((r, i) => (
+                <div key={r.propiedadId} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-4 shrink-0 text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>{i + 1}</span>
+                    <span className="truncate" style={{ color: "var(--hw-text-1)" }}>{r.direccion}</span>
+                  </div>
+                  <span className="font-semibold tabular-nums shrink-0" style={{ color: "var(--hw-text-1)" }}>{clp(r.clpPorM2)}/m²</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <SectionTitle title="Rendimiento por colaborador" description="Cartera asignada, ingreso acumulado 12 meses" />
+          {data.rendimientoColaboradores.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Sin colaboradores activos en el equipo.</p>
+          ) : (
+            <div className="space-y-3">
+              {data.rendimientoColaboradores.map((c) => (
+                <div key={c.colaboradorId} className="flex items-center justify-between gap-3 text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Users className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
+                    <span className="truncate" style={{ color: "var(--hw-text-1)" }}>{c.nombre}</span>
+                    <span className="shrink-0 text-xs" style={{ color: "var(--hw-text-4)" }}>{c.propiedadesCount} prop.</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {c.periodosAtrasados > 0 && (
+                      <span className="text-xs" style={{ color: "var(--hw-danger)" }}>{cantidad(c.periodosAtrasados, "atraso", "atrasos")}</span>
+                    )}
+                    <span className="font-semibold tabular-nums" style={{ color: "var(--hw-success)" }}>{clp(c.ingresoClp)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-5">
           <SectionTitle title="Ranking de rentabilidad" description="Ingreso acumulado, 12 meses" />
           {data.rankingRentabilidad.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Sin pagos registrados aún en la ventana de 12 meses.</p>
@@ -95,7 +141,7 @@ export async function RendimientoPropiedadesTab({ tenantId }: { tenantId: string
               {data.rankingMora.map((r) => (
                 <div key={r.propiedadId} className="flex items-center justify-between text-sm">
                   <span className="truncate" style={{ color: "var(--hw-text-1)" }}>{r.direccion}</span>
-                  <span className="font-semibold shrink-0" style={{ color: "var(--hw-danger)" }}>{r.periodosAtrasados} atraso(s)</span>
+                  <span className="font-semibold shrink-0" style={{ color: "var(--hw-danger)" }}>{cantidad(r.periodosAtrasados, "atraso", "atrasos")}</span>
                 </div>
               ))}
             </div>
@@ -168,7 +214,7 @@ export async function RendimientoPropiedadesTab({ tenantId }: { tenantId: string
                   <Heart className="h-3.5 w-3.5" style={{ color: "var(--hw-danger)" }} aria-hidden="true" />
                   {a.nombre}
                 </span>
-                <span className="text-xs" style={{ color: "var(--hw-text-4)" }}>{a.contratosCount} contrato(s)</span>
+                <span className="text-xs" style={{ color: "var(--hw-text-4)" }}>{cantidad(a.contratosCount, "contrato", "contratos")}</span>
               </div>
             ))}
           </div>

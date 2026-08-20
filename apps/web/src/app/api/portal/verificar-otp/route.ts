@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     }
     if (otp.expiraEn < ahora) {
       return NextResponse.json(
-        { ok: false, error: "El código ha expirado. Solicita uno nuevo en el portal.", errorCode: "EXPIRADO" },
+        { ok: false, error: "El código expiró. Solicita uno nuevo en el portal.", errorCode: "EXPIRADO" },
         { status: 400 },
       );
     }

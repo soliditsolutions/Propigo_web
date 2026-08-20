@@ -19,6 +19,7 @@
  * Interés máximo convencional (mora): Ley 18.010, no 18.101. Prácticas de mercado 2026.
  */
 import { validateRut } from "./rut";
+import { cantidad } from "./format";
 import type { ValidacionResultado, ValidacionEstado } from "@/app/api/contratos/[id]/validar/route";
 
 /** Solo los campos que las reglas necesitan (sin nombres ni direcciones: no hacen falta). */
@@ -78,7 +79,7 @@ export function evaluarReglasContrato(d: DatosContratoReglas): ValidacionResulta
   if (!d.fechaFin) {
     recomendaciones.push("El plazo es indefinido: un plazo fijo de 12 meses da más certeza a ambas partes.");
   } else if (d.fechaFin.getTime() <= d.fechaInicio.getTime()) {
-    const msg = "La fecha de término es anterior o igual a la de inicio: revisá la vigencia del contrato.";
+    const msg = "La fecha de término es anterior o igual a la de inicio: revisa la vigencia del contrato.";
     estructura.push(msg); criticas.push(msg);
   }
 
@@ -89,7 +90,7 @@ export function evaluarReglasContrato(d: DatosContratoReglas): ValidacionResulta
 
   // ── Renta (montos, coherencia) ───────────────────────────────────────────────
   if (!(d.valorArriendo > 0)) {
-    const msg = "La renta mensual es cero o inválida: revisá el monto del arriendo.";
+    const msg = "La renta mensual es cero o inválida: revisa el monto del arriendo.";
     montos.push(msg); criticas.push(msg);
   }
 
@@ -110,8 +111,8 @@ export function evaluarReglasContrato(d: DatosContratoReglas): ValidacionResulta
     estado === "aprobado"
       ? "El contrato cumple las verificaciones automáticas de estructura, montos y datos de las partes. Puede firmarse con confianza."
     : estado === "con_alertas"
-      ? `Se encontraron ${totalAlertas} observación(es) y ${recomendaciones.length} sugerencia(s). El contrato es válido; revisá los puntos señalados para robustecerlo.`
-      : `Hay ${criticas.length} punto(s) con impacto legal que conviene revisar antes de firmar. Podés proceder igualmente bajo tu criterio.`;
+      ? `Encontramos ${cantidad(totalAlertas, "observación", "observaciones")} y ${cantidad(recomendaciones.length, "sugerencia", "sugerencias")}. El contrato es válido; revisa los puntos señalados para robustecerlo.`
+      : `Hay ${cantidad(criticas.length, "punto", "puntos")} con impacto legal que conviene revisar antes de firmar. Puedes continuar de todos modos, bajo tu criterio.`;
 
   return { estado, resumen, categorias, alertas_criticas: criticas, recomendaciones };
 }

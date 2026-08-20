@@ -25,7 +25,29 @@ vi.mock("../validar/route", () => ({
   validarEsquema: vi.fn((x) => x),
 }));
 
-const { sanitizarTextoDocumento } = await import("../route");
+const { sanitizarTextoDocumento, extraerTextoPdf } = await import("../route");
+
+// PDF mínimo válido (1 página, fuente Helvetica, texto "Hello Housing") — usado
+// para el test de regresión de extraerTextoPdf.
+const PDF_MINIMO = Buffer.from(
+  `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 55>>stream
+BT /F1 24 Tf 20 100 Td (Hello Housing) Tj ET
+endstream
+endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+xref
+0 6
+0000000000 65535 f
+trailer<</Size 6/Root 1 0 R>>
+startxref
+0
+%%EOF`,
+  "latin1",
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Tests
@@ -171,5 +193,19 @@ describe("sanitizarTextoDocumento() — anti prompt injection en PDFs/DOCX", () 
 
   it("maneja string vacío sin errores", () => {
     expect(sanitizarTextoDocumento("")).toBe("");
+  });
+});
+
+describe("extraerTextoPdf() — regresión: pdf-parse v2 ya no es callable", () => {
+  // pdf-parse v2 reemplazó la función v1 (`pdfParse(buf)`) por la clase
+  // `PDFParse` (`new PDFParse({ data }).getText()`). El código previo hacía
+  // `mod.default ?? mod` y llamaba el resultado como función — como v2 no
+  // tiene `default`, terminaba invocando el propio objeto del módulo y
+  // fallaba con "pdfParse is not a function" para CUALQUIER PDF real, no
+  // solo los inválidos. Encontrado al probar el gate de consentimiento IA
+  // con un PDF real durante la verificación de esta sesión.
+  it("extrae el texto de un PDF real sin lanzar 'pdfParse is not a function'", async () => {
+    const texto = await extraerTextoPdf(PDF_MINIMO);
+    expect(texto).toContain("Hello Housing");
   });
 });

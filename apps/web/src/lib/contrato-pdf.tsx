@@ -19,6 +19,7 @@
  */
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { formatRut } from "./rut";
+import { cantidad } from "./format";
 
 export interface ContratoPdfData {
   tenantNombre: string;
@@ -179,7 +180,7 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
 
         <Clausula n="CUARTO">
           El atraso en el pago de la renta más allá del plazo establecido en la cláusula anterior,
-          contados {d.moraDiasGracia} día(s) de gracia, dará derecho a la parte Arrendadora a cobrar
+          contados {cantidad(d.moraDiasGracia, "día", "días")} de gracia, dará derecho a la parte Arrendadora a cobrar
           una multa moratoria equivalente al {d.moraTasaPct}% de la renta por cada mes o fracción de
           atraso, sin perjuicio de su facultad para poner término al contrato. Los pagos y
           devoluciones en mora entre las partes se reajustarán según la variación de la Unidad de
@@ -216,7 +217,7 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
           {garantiaTexto
             ? <>A fin de garantizar la conservación del Inmueble y el cumplimiento de las
                 obligaciones del presente contrato, la parte Arrendataria entrega en garantía la
-                suma de {garantiaTexto} ({d.garantiaMeses} mes(es) de renta), que la parte
+                suma de {garantiaTexto} ({cantidad(d.garantiaMeses, "mes", "meses")} de renta), que la parte
                 Arrendadora se obliga a devolver — debidamente reajustada (Art. 21, Ley N° 18.101)
                 — tras la restitución del Inmueble, descontando el valor efectivo de los deterioros
                 o perjuicios de cargo de la parte Arrendataria. Esta garantía no podrá imputarse en

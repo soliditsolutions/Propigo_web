@@ -43,7 +43,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
     if (!form.nombre.trim())        e.nombre       = "Requerido";
     if (!form.apellido.trim())      e.apellido     = "Requerido";
     if (form.telefono.trim().length < 8) e.telefono = "Teléfono inválido";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Email inválido";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Correo electrónico inválido";
     if (!form.titulo.trim())        e.titulo       = "Requerido";
     if (form.descripcion.trim().length < 10) e.descripcion = "Mínimo 10 caracteres";
     setErrores(e);

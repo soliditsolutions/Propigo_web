@@ -348,3 +348,51 @@ export function TableWrapper({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+/* ── CupoBadge ─────────────────────────────────────────────── */
+
+/**
+ * Indicador "usado / máximo" de un cupo del plan (Fase B0 del rowMap).
+ *
+ * El enforcement vive en el servidor (lib/plan-limits.ts); esto es lo que
+ * hace que el límite sea *previsible* en vez de una pared sorpresa: quien
+ * va a cargar propiedades o a mandar contratos a la IA ve cuánto le queda
+ * antes de quedarse sin cupo, no después.
+ *
+ * Por eso hay un estado intermedio ámbar además del rojo: avisar al 80 %
+ * deja margen para decidir (subir de plan, liberar cupo) mientras todavía
+ * se puede; avisar solo al llegar al tope ya no sirve de aviso.
+ */
+export function CupoBadge({
+  usado,
+  max,
+  unidad,
+  planLabel,
+}: {
+  usado: number;
+  max: number;
+  unidad: string;
+  /** Si se pasa, se muestra "· plan Gold" — útil donde el upsell tiene sentido. */
+  planLabel?: string;
+}) {
+  const lleno = usado >= max;
+  // max puede ser 0 en un plan sin la capacidad; dividir daría Infinity/NaN
+  // y pintaría el badge en ámbar sin motivo.
+  const cerca = !lleno && max > 0 && usado / max >= 0.8;
+
+  const tono = lleno
+    ? { bg: "var(--hw-danger-lt)",  fg: "var(--hw-danger)",  bd: "var(--hw-danger-bd)" }
+    : cerca
+      ? { bg: "var(--hw-warning-lt)", fg: "var(--hw-warning)", bd: "var(--hw-warning-bd)" }
+      : { bg: "var(--hw-surface-2)",  fg: "var(--hw-text-3)",  bd: "var(--hw-border-2)" };
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+      style={{ background: tono.bg, color: tono.fg, border: `1px solid ${tono.bd}` }}
+    >
+      <span className="tabular-nums">{usado} / {max}</span> {unidad}
+      {planLabel ? ` · plan ${planLabel}` : ""}
+    </span>
+  );
+}

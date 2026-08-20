@@ -4,6 +4,8 @@ import { getSession } from "./auth";
 import { withTenant, type TenantClient } from "./tenant-db";
 import type { Tenant } from "@/generated/prisma/client";
 import { convertirUfAClp, esPeriodoDeReajuste } from "@housing/core";
+import { getCupoPropiedades, getPlanEfectivo } from "./plans";
+import { consultarConsumoIaHoy } from "./plan-limits";
 
 export type Actor = {
   usuarioId: string;
@@ -391,8 +393,14 @@ async function getContratoDetalleTx(tx: TenantClient, tenantId: string, contrato
   });
 
   // Garantía disponible HOY — revalorizada a la UF del día si se pactó en UF
-  // (mismo criterio que terminarContrato en actions.ts), menos lo ya retenido
-  // según el ledger (v_garantia_retenida — 0 en un contrato aún no terminado).
+  // (mismo criterio que terminarContrato en actions.ts). v_garantia_retenida
+  // no resta aquí: su "retenida_clp" es el saldo vivo en custodia (parte de
+  // GARANTIA_RECIBIDA/REAJUSTE_GARANTIA, que suman, menos RETENCION/DEVOLUCION,
+  // que restan) — en un contrato aún vigente solo existe el asiento RECIBIDA,
+  // así que ese saldo ya ES el disponible; restarlo de garantiaRevaluadaCLP
+  // los cancela entre sí y deja 0 siempre, ocultando la UI de retención en
+  // CierreSection. garantiaRetenidaCLP se conserva solo para mostrar el saldo
+  // en custodia en la tarjeta de "Garantía" (no representa daños retenidos).
   const hoy = new Date();
   const garantiaRevaluadaCLP =
     contrato.garantiaDenominacion === "UF" && contrato.garantiaMontoBase !== null
@@ -403,7 +411,7 @@ async function getContratoDetalleTx(tx: TenantClient, tenantId: string, contrato
     tenantId, contratoId,
   );
   const garantiaRetenidaCLP = Number(retenidaRows[0]?.retenida_clp ?? 0);
-  const garantiaDisponibleCLP = garantiaRevaluadaCLP - garantiaRetenidaCLP;
+  const garantiaDisponibleCLP = contrato.estado === "vigente" ? garantiaRevaluadaCLP : 0;
 
   return {
     ...contrato,
@@ -611,6 +619,27 @@ export async function getColaboradoresActivos(tenantId: string) {
   }));
 }
 
+// ─── Cupos del plan (Fase B0) ───────────────────────────────────────────────
+
+/**
+ * Consumo de cupo de propiedades del tenant, para mostrarlo en el panel.
+ *
+ * Es solo lectura: el límite lo hace valer `verificarCupoPropiedades()` dentro
+ * de la transacción que crea la propiedad. Acá se reusa el mismo contador para
+ * que lo que ve el corredor y lo que aplica el servidor no puedan divergir.
+ */
+export async function getCupoPropiedadesInfo(tenantId: string, plan: string | null) {
+  const usado = await withTenant(tenantId, (tx) =>
+    tx.propiedad.count({ where: { tenantId } }),
+  );
+  return { usado, max: getCupoPropiedades(plan), planLabel: getPlanEfectivo(plan).name };
+}
+
+/** Consumo de IA de hoy, para el indicador previo a mandar un contrato a la IA. */
+export async function getCupoIaInfo(tenantId: string, plan: string | null) {
+  return withTenant(tenantId, (tx) => consultarConsumoIaHoy(tx, tenantId, plan));
+}
+
 // ─── Estadísticas (analítica por tier de plan) ──────────────────────────────
 //
 // 4 pestañas, 4 funciones independientes — cada una solo se llama si el tab
@@ -815,6 +844,8 @@ export type AnaliticaFinanciera = {
   evolucionMorosidad: { mes: string; tasaPct: number }[];
   /** % de obligaciones vencidas (12m) cobradas dentro de los 5 días desde su vencimiento. */
   collectionRatePct: number;
+  /** Aging de la morosidad ABIERTA hoy (no histórica), por antigüedad desde el vencimiento. */
+  agingMorosidad: { bucket: "1-30" | "31-60" | "60+"; count: number; montoClp: number }[];
 };
 
 export async function getAnaliticaFinanciera(tenantId: string): Promise<AnaliticaFinanciera> {
@@ -890,7 +921,37 @@ export async function getAnaliticaFinanciera(tenantId: string): Promise<Analitic
       ? Math.round((dentroDePlazo / periodosHist.length) * 1000) / 10
       : 0;
 
-    return { ingresosCobradosPorMes, comisionGanadaPorMes, ticketPromedioClp, carteraPorDenominacion, evolucionMorosidad, collectionRatePct };
+    // Aging de morosidad: solo periodos ATRASADOS hoy (deuda abierta), no el
+    // historial de 12m usado arriba — bucketizado por días desde vencimiento.
+    // arriendoCLP se congela a la UF del día de vencimiento, mismo criterio
+    // que getPeriodosPendientes.
+    const periodosAtrasadosHoy = await tx.periodoPago.findMany({
+      where: { tenantId, estado: "atrasado" },
+      select: { fechaVencimiento: true, montoBase: true, contrato: { select: { denominacion: true } } },
+    });
+    const ufCacheAging = new Map<string, number>();
+    async function ufEnFechaAging(f: Date): Promise<number> {
+      const k = f.toISOString().slice(0, 10);
+      if (!ufCacheAging.has(k)) ufCacheAging.set(k, await getUfCLPTx(tx, f));
+      return ufCacheAging.get(k)!;
+    }
+    const bucketsAging: Record<"1-30" | "31-60" | "60+", { count: number; montoClp: number }> = {
+      "1-30": { count: 0, montoClp: 0 },
+      "31-60": { count: 0, montoClp: 0 },
+      "60+": { count: 0, montoClp: 0 },
+    };
+    for (const p of periodosAtrasadosHoy) {
+      const dias = Math.round((hoy.getTime() - p.fechaVencimiento.getTime()) / 86_400_000);
+      const montoClp = p.contrato.denominacion === "UF"
+        ? convertirUfAClp(Number(p.montoBase), await ufEnFechaAging(p.fechaVencimiento))
+        : Math.round(Number(p.montoBase));
+      const bucket = dias <= 30 ? "1-30" : dias <= 60 ? "31-60" : "60+";
+      bucketsAging[bucket].count += 1;
+      bucketsAging[bucket].montoClp += montoClp;
+    }
+    const agingMorosidad = (["1-30", "31-60", "60+"] as const).map((bucket) => ({ bucket, ...bucketsAging[bucket] }));
+
+    return { ingresosCobradosPorMes, comisionGanadaPorMes, ticketPromedioClp, carteraPorDenominacion, evolucionMorosidad, collectionRatePct, agingMorosidad };
   });
 }
 
@@ -917,6 +978,16 @@ export type RendimientoPropiedades = {
   turnoverPct: number;
   retencionPct: number;
   arrendatariosSinAtrasos: { personaId: string; nombre: string; contratosCount: number }[];
+  /** Renta vigente / m² totales, solo propiedades con m² cargado. */
+  rentaPorM2: { propiedadId: string; direccion: string; clpPorM2: number }[];
+  /** Vacío si el tenant no tiene colaboradores activos (ADR-0013, Fase C). */
+  rendimientoColaboradores: {
+    colaboradorId: string;
+    nombre: string;
+    propiedadesCount: number;
+    ingresoClp: number;
+    periodosAtrasados: number;
+  }[];
 };
 
 export async function getRendimientoPropiedades(tenantId: string): Promise<RendimientoPropiedades> {
@@ -1026,7 +1097,7 @@ export async function getRendimientoPropiedades(tenantId: string): Promise<Rendi
       where: { tenantId, estado: "vigente" },
       select: {
         propiedadId: true, valorArriendo: true, denominacion: true,
-        propiedad: { select: { direccion: true, tipo: true, comuna: true } },
+        propiedad: { select: { direccion: true, tipo: true, comuna: true, m2Totales: true } },
       },
     });
     const publicacionesActivas = await tx.publicacion.findMany({
@@ -1067,6 +1138,56 @@ export async function getRendimientoPropiedades(tenantId: string): Promise<Rendi
       }
       return { propiedadId: c.propiedadId, direccion: c.propiedad.direccion, rentaActualClp, medianaMercadoClp, muestraComparables, posicion };
     });
+
+    // Renta por m²: mismo rentaActualClp de comparablesMercado, dividido por
+    // m2Totales — solo propiedades con m² cargado (campo opcional).
+    const m2PorPropiedad = new Map(contratosVigentesProp.map((c) => [
+      c.propiedadId, c.propiedad.m2Totales !== null ? Number(c.propiedad.m2Totales) : null,
+    ]));
+    const rentaPorM2 = comparablesMercado
+      .map((c) => ({ propiedadId: c.propiedadId, direccion: c.direccion, m2: m2PorPropiedad.get(c.propiedadId) ?? null, rentaActualClp: c.rentaActualClp }))
+      .filter((c): c is typeof c & { m2: number } => c.m2 !== null && c.m2 > 0)
+      .map((c) => ({ propiedadId: c.propiedadId, direccion: c.direccion, clpPorM2: Math.round(c.rentaActualClp / c.m2) }))
+      .sort((a, b) => b.clpPorM2 - a.clpPorM2)
+      .slice(0, 10);
+
+    // Rendimiento por colaborador (ADR-0013, Fase C): reusa ingresoPorPropiedad
+    // y moraPorPropiedad ya calculados arriba, agregados vía Propiedad.asignadoAId.
+    const colaboradoresActivos = await tx.usuario.findMany({
+      where: { tenantId, rol: "colaborador", desactivadoEn: null },
+      select: { id: true, nombre: true },
+    });
+    let rendimientoColaboradores: RendimientoPropiedades["rendimientoColaboradores"] = [];
+    if (colaboradoresActivos.length > 0) {
+      const propiedadesAsignadas = await tx.propiedad.findMany({
+        where: { tenantId, asignadoAId: { not: null } },
+        select: { id: true, asignadoAId: true },
+      });
+      const colaboradorPorPropiedad = new Map(propiedadesAsignadas.map((p) => [p.id, p.asignadoAId as string]));
+      const propiedadesCountPorColaborador = new Map<string, number>();
+      for (const p of propiedadesAsignadas) {
+        propiedadesCountPorColaborador.set(p.asignadoAId!, (propiedadesCountPorColaborador.get(p.asignadoAId!) ?? 0) + 1);
+      }
+      const ingresoPorColaborador = new Map<string, number>();
+      for (const [propiedadId, v] of ingresoPorPropiedad) {
+        const colabId = colaboradorPorPropiedad.get(propiedadId);
+        if (colabId) ingresoPorColaborador.set(colabId, (ingresoPorColaborador.get(colabId) ?? 0) + v.monto);
+      }
+      const moraPorColaborador = new Map<string, number>();
+      for (const [propiedadId, v] of moraPorPropiedad) {
+        const colabId = colaboradorPorPropiedad.get(propiedadId);
+        if (colabId) moraPorColaborador.set(colabId, (moraPorColaborador.get(colabId) ?? 0) + v.count);
+      }
+      rendimientoColaboradores = colaboradoresActivos
+        .map((c) => ({
+          colaboradorId: c.id,
+          nombre: c.nombre,
+          propiedadesCount: propiedadesCountPorColaborador.get(c.id) ?? 0,
+          ingresoClp: ingresoPorColaborador.get(c.id) ?? 0,
+          periodosAtrasados: moraPorColaborador.get(c.id) ?? 0,
+        }))
+        .sort((a, b) => b.ingresoClp - a.ingresoClp);
+    }
 
     // Turnover: contratos que terminaron en los últimos 12 meses / propiedades totales.
     // Excluye "cancelado" — mismo motivo que en vacancia.
@@ -1128,6 +1249,8 @@ export async function getRendimientoPropiedades(tenantId: string): Promise<Rendi
       turnoverPct,
       retencionPct,
       arrendatariosSinAtrasos,
+      rentaPorM2,
+      rendimientoColaboradores,
     };
   });
 }
@@ -1161,6 +1284,8 @@ export type ProyeccionesRiesgo = {
     tasaAtrasoPct: number;
     nivel: "bajo" | "medio" | "alto";
   }[];
+  /** Concentración de ingreso (12m) por propietario — top 5, para detectar dependencia excesiva de una sola cartera. */
+  concentracionPropietarios: { propietarioId: string; nombre: string; ingresoClp: number; pctDelTotal: number }[];
 };
 
 export async function getProyeccionesRiesgo(tenantId: string): Promise<ProyeccionesRiesgo> {
@@ -1350,12 +1475,38 @@ export async function getProyeccionesRiesgo(tenantId: string): Promise<Proyeccio
       ingresoResultanteClp: Math.round(ingresoBase6mClp * (1 - escenarioPctMora / 100)),
     }));
 
+    // Concentración de riesgo por propietario: ingreso realizado (12m) desde
+    // asiento_ledger.propietarioId — campo directo del asiento, no requiere
+    // join contra Contrato. Top 5 por % del ingreso total de la cartera.
+    const inicio12mConcentracion = new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth() - 11, 1));
+    const ingresosPorPropietarioRows = await tx.asientoLedger.findMany({
+      where: { tenantId, tipo: "PAGO_RECIBIDO", fechaEvento: { gte: inicio12mConcentracion } },
+      select: { montoClp: true, propietarioId: true, propietario: { select: { nombre: true } } },
+    });
+    const montoPorPropietario = new Map<string, { nombre: string; monto: number }>();
+    let totalIngreso12mPropietarios = 0;
+    for (const a of ingresosPorPropietarioRows) {
+      const monto = Number(a.montoClp);
+      totalIngreso12mPropietarios += monto;
+      const prev = montoPorPropietario.get(a.propietarioId);
+      if (prev) prev.monto += monto;
+      else montoPorPropietario.set(a.propietarioId, { nombre: a.propietario.nombre, monto });
+    }
+    const concentracionPropietarios = [...montoPorPropietario.entries()]
+      .map(([propietarioId, v]) => ({
+        propietarioId, nombre: v.nombre, ingresoClp: v.monto,
+        pctDelTotal: totalIngreso12mPropietarios > 0 ? Math.round((v.monto / totalIngreso12mPropietarios) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.pctDelTotal - a.pctDelTotal)
+      .slice(0, 5);
+
     return {
       proyeccionIngresos,
       riesgoMora: { tasaActualPct, tasaProyectadaPct, tendencia: tendenciaMora },
       alertasRenovacion,
       stressTest,
       riesgoPorArrendatario,
+      concentracionPropietarios,
     };
   });
 }

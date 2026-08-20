@@ -9,6 +9,7 @@ import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
 import { geocodificarDireccion } from "@/lib/geocoding";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { verificarCupoPropiedades } from "@/lib/plan-limits";
 import { getClientIpFromHeaders } from "@/lib/ip";
 
 export type ResultadoCrear =
@@ -216,6 +217,18 @@ export async function crearPropiedad(data: {
     const ip    = getClientIpFromHeaders(await headers());
 
     const propiedad = await withTenant(actor.tenantId, async (tx) => {
+      // Cupo de propiedades del plan (Fase B0). Va DENTRO de la transacción y
+      // antes de cualquier escritura: contar fuera dejaría una ventana para que
+      // dos altas simultáneas pasaran ambas el chequeo. Si no hay cupo se
+      // aborta acá, sin haber creado al propietario.
+      const cupo = await verificarCupoPropiedades(tx, actor.tenantId, actor.tenant.plan);
+      if (!cupo.permitido) {
+        throw new DomainError(
+          `Alcanzaste el límite de ${cupo.max} propiedades de tu plan. ` +
+            "Sube de plan para seguir agregando.",
+        );
+      }
+
       // Buscar o crear propietario por RUT (dentro del tenant)
       let propietario = await tx.persona.findFirst({
         where: { tenantId: actor.tenantId, rut: propietarioRutCanon },

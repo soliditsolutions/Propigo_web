@@ -6,7 +6,16 @@ import { Check, Info, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { BorderGlow } from "@/components/ui/border-glow";
-import { PLANS, type Plan, type PlanFeature } from "@/lib/plans";
+import { PLANS, precioUf, type Plan, type PlanFeature } from "@/lib/plans";
+
+/**
+ * Precio en UF, siempre con 2 decimales y coma decimal (convención chilena):
+ * "0,50 UF", no "0,5 UF". Es un precio — mostrar un decimal en un plan y dos
+ * en otro se lee como descuido, y "0,5" invita a leerlo mal de reojo.
+ */
+function formatearUf(valor: number): string {
+  return valor.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 const POLICIES = [
   {
@@ -87,7 +96,7 @@ function PlanCard({
   billing: "mensual" | "anual";
   onSelect: (plan: Plan) => void;
 }) {
-  const price = billing === "mensual" ? plan.monthly : plan.annual;
+  const precio = precioUf(plan, billing);
   return (
     <BorderGlow radius={20} className="h-full">
     <div
@@ -126,10 +135,10 @@ function PlanCard({
           key={billing}
           className="hw-num hw-price-swap text-2xl font-bold text-[var(--pf-navy)] lg:text-[27px]"
         >
-          USD ${price}
+          {formatearUf(precio)} UF
         </span>
         <span className="text-[11px] text-[var(--pf-text-muted)]">
-          /{billing === "mensual" ? "mes" : "año"}
+          /{billing === "mensual" ? "mes" : "año"} + IVA
         </span>
       </div>
       {/* Slot de alto fijo: el badge de ahorro aparece solo en anual, pero el
@@ -161,7 +170,10 @@ function PlanCard({
       <Button
         size="sm"
         variant={plan.featured ? undefined : "outline"}
-        className={`hw-sheen mt-auto w-full ${plan.featured ? "bg-[var(--pf-purple)]" : ""}`}
+        // --pf-purple-btn, no --pf-purple: mismo motivo que el CTA del hero
+        // (page.tsx) — texto blanco sobre --pf-purple da 3.62:1 en oscuro,
+        // bajo el 4.5:1 de AA.
+        className={`hw-sheen mt-auto w-full ${plan.featured ? "bg-[var(--pf-purple-btn)]" : ""}`}
         onClick={() => onSelect(plan)}
       >
         Elegir {plan.name}
@@ -261,7 +273,7 @@ export function PlanesStop() {
         <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
         <p className="text-[11px] leading-snug text-[var(--pf-text-body)] lg:text-xs">
           <strong className="font-semibold text-[var(--pf-navy)]">
-            Prueba sin riesgo — Garantía de 10 días.
+            Prueba sin riesgo: garantía de 10 días.
           </strong>{" "}
           Cumplimos con la Ley Pro Consumidor (Chile): tienes 10 días de
           retracto con reembolso del 100% si la plataforma no se adapta a ti, y
@@ -310,7 +322,8 @@ export function PlanesStop() {
             size="lg"
             disabled={!accepted}
             onClick={confirmAndContinue}
-            className="hw-sheen mt-4 w-full bg-[var(--pf-purple)]"
+            // --pf-purple-btn: mismo motivo que los otros CTA de esta parada.
+            className="hw-sheen mt-4 w-full bg-[var(--pf-purple-btn)]"
           >
             Continuar con {modal.plan.name}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

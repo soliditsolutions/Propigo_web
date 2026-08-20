@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getTenant, getProyeccionesRiesgo } from "@/lib/queries";
-import { getAnalyticsTier } from "@/lib/plan-tier";
+import { puedeExportar } from "@/lib/plans";
 
 /**
  * Exportación CSV de "Proyecciones y Riesgo" — exclusiva Diamond (dentro del
@@ -28,10 +28,15 @@ export async function GET() {
     return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 });
   }
 
-  const tier = getAnalyticsTier(tenant.plan);
-  const puedeExportar = tier === "avanzada" && tenant.plan === "diamond";
-  if (!puedeExportar) {
-    return NextResponse.json({ error: "La exportación está disponible solo en el plan Diamond." }, { status: 403 });
+  // La capacidad vive en la definición del plan (lib/plans.ts), no en una
+  // comparación de strings acá: los planes cambiaron y la exportación pasó a
+  // estar incluida desde Gold. Con el helper, mover esa línea es editar un
+  // campo del plan, no cazar literales "diamond" repartidos por el código.
+  if (!puedeExportar(tenant.plan)) {
+    return NextResponse.json(
+      { error: "La exportación de información está disponible desde el plan Gold." },
+      { status: 403 },
+    );
   }
 
   const data = await getProyeccionesRiesgo(tenant.id);

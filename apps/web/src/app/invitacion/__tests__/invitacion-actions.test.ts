@@ -83,8 +83,8 @@ beforeEach(() => {
 
 describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", () => {
   it("rechaza si el plan actual ya está al límite solo con Manager + colaboradores activos (downgrade mientras la invitación seguía viva)", async () => {
-    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 2
-    mockUsuarioCount.mockResolvedValue(1); // 1 colaborador activo → cupoUsado = 1(manager) + 1 = 2 >= 2
+    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 3
+    mockUsuarioCount.mockResolvedValue(2); // 2 colaboradores activos → cupoUsado = 1(manager) + 2 = 3 >= 3
 
     const res = await aceptarInvitacionAction(null, formData());
 
@@ -95,8 +95,8 @@ describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", (
   });
 
   it("permite aceptar cuando hay cupo disponible en el plan actual", async () => {
-    mockTenantFindUnique.mockResolvedValue({ plan: "gold" }); // max 5
-    mockUsuarioCount.mockResolvedValue(1); // cupoUsado = 1 + 1 = 2 < 5
+    mockTenantFindUnique.mockResolvedValue({ plan: "gold" }); // max 10
+    mockUsuarioCount.mockResolvedValue(1); // cupoUsado = 1 + 1 = 2 < 10
 
     await aceptarInvitacionAction(null, formData());
 
@@ -119,8 +119,8 @@ describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", (
   });
 
   it("permite aceptar la primera invitación de un tenant recién creado (0 colaboradores activos, plan con cupo >= 2)", async () => {
-    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 2
-    mockUsuarioCount.mockResolvedValue(0); // cupoUsado = 1 + 0 = 1 < 2
+    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 3
+    mockUsuarioCount.mockResolvedValue(0); // cupoUsado = 1 + 0 = 1 < 3
 
     await aceptarInvitacionAction(null, formData());
 
@@ -143,7 +143,7 @@ describe("aceptarInvitacionAction — validaciones existentes (regresión)", () 
   it("rechaza si la invitación no existe/expiró/ya se usó", async () => {
     mockInvitacionFindFirst.mockResolvedValue(null);
     const res = await aceptarInvitacionAction(null, formData());
-    expect(res).toEqual({ error: expect.stringMatching(/expiró o ya fue utilizada/i) });
+    expect(res).toEqual({ error: expect.stringMatching(/expiró o ya se usó/i) });
     expect(mockTenantFindUnique).not.toHaveBeenCalled();
   });
 });

@@ -5,9 +5,16 @@ import { withTenant } from "@/lib/tenant-db";
 import { type ValidacionResultado, validarEsquema } from "../validar/route";
 import { detectarPii } from "@/lib/pii-detector";
 import { logError } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/ip";
+import { consumirTokenIa } from "@/lib/plan-limits";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_TEXT_CHARS = 20_000;            // ~5 000 tokens — más que suficiente
+
+// Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
+// request esperando indefinidamente en vez de fallar rápido.
+const GROQ_TIMEOUT_MS = 30_000;
 
 /**
  * Sanitiza el texto extraído de un PDF/DOCX antes de enviarlo al LLM.
@@ -28,13 +35,19 @@ export function sanitizarTextoDocumento(texto: string): string {
 }
 
 // ── Extracción PDF ──────────────────────────────────────────────────────────
-async function extraerTextoPdf(buf: Buffer): Promise<string> {
-  // pdf-parse: compatible con CJS y ESM; el cast silencia la discrepancia de tipos
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod = (await import("pdf-parse")) as any;
-  const pdfParse = mod.default ?? mod;
-  const data = await pdfParse(buf);
-  return data.text.replace(/\s+/g, " ").trim();
+// pdf-parse v2 reemplazó la función callable de v1 por la clase `PDFParse`
+// (new PDFParse({ data }).getText()) — sin este cambio, cualquier PDF real
+// fallaba con "pdfParse is not a function" (encontrado al probar con un PDF
+// real durante la verificación del gate de consentimiento IA).
+export async function extraerTextoPdf(buf: Buffer): Promise<string> {
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buf });
+  try {
+    const { text } = await parser.getText();
+    return text.replace(/\s+/g, " ").trim();
+  } finally {
+    await parser.destroy();
+  }
 }
 
 // ── Extracción DOCX (ZIP + zlib) ────────────────────────────────────────────
@@ -138,6 +151,15 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
+    // Rate limit por usuario — llamadas a IA externa son costosas, evita spam.
+    const rl = checkRateLimit(`validar_doc:${session.sub}`, 10, 10 * 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Demasiadas validaciones en poco tiempo. Intenta de nuevo en unos minutos." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
+
     let tenant;
     try { tenant = await getTenant(); }
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
@@ -163,6 +185,29 @@ export async function POST(
     if (!archivo || !(archivo instanceof File)) {
       return NextResponse.json({ error: "Se requiere un archivo en el campo 'archivo'." }, { status: 400 });
     }
+
+    // Consentimiento explícito ANTES de enviar el texto extraído a la IA externa
+    // (Groq) — distinto del gate de PII más abajo. Sin esto, rechazamos aquí
+    // aunque la UI lo hubiera permitido (defensa en profundidad).
+    if (!form.get("consentIa")) {
+      return NextResponse.json(
+        { error: "Debes aceptar el envío del documento a nuestro proveedor de análisis por IA." },
+        { status: 400 },
+      );
+    }
+
+    // Registro auditable del consentimiento — se deja constancia de que se pidió
+    // y se dio, independiente de si el análisis posterior tiene éxito o no.
+    await withTenant(tenant.id, (tx) => tx.consentimientoIa.create({
+      data: {
+        tenantId:  tenant.id,
+        usuarioId: session.sub,
+        flujo:     "contrato_validar_doc",
+        detalle:   contratoId,
+        version:   "ia-v1.0",
+        ip:        getClientIp(req),
+      },
+    }));
 
     if (archivo.size > MAX_FILE_BYTES) {
       return NextResponse.json(
@@ -250,8 +295,34 @@ export async function POST(
       "Devuelve el JSON de validación según las instrucciones del sistema.",
     ].join("\n\n");
 
+    // Cupo diario de IA del plan (Fase B0). Se descuenta acá, lo más tarde
+    // posible: si se hiciera al entrar, un archivo rechazado por tamaño, por
+    // PII o por formato le habría gastado un token al corredor sin que la IA
+    // llegara a ejecutarse nunca. El descuento es atómico (ver plan-limits.ts),
+    // así que dos peticiones simultáneas no pueden pasarse del cupo.
+    //
+    // Es distinto del rate limit de más arriba: ese frena ráfagas por usuario;
+    // este hace valer lo que el plan vende, por tenant y por día.
+    const cupoIa = await withTenant(tenant.id, (tx) =>
+      consumirTokenIa(tx, tenant.id, tenant.plan),
+    );
+    if (!cupoIa.permitido) {
+      return NextResponse.json(
+        {
+          error:
+            `Agotaste tus ${cupoIa.max} revisiones de contrato con IA de hoy. ` +
+            "El cupo se renueva mañana, o puedes subir de plan para tener más.",
+          // El panel refresca su indicador con esto, así queda en 3/3 sin
+          // necesidad de recargar la página para enterarse.
+          cupoIa: { usado: cupoIa.usado, max: cupoIa.max },
+        },
+        { status: 429 },
+      );
+    }
+
     const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method:  "POST",
+      signal:  AbortSignal.timeout(GROQ_TIMEOUT_MS),
       headers: {
         "Authorization": `Bearer ${groqApiKey}`,
         "Content-Type":  "application/json",
@@ -304,7 +375,11 @@ export async function POST(
       },
     }));
 
-    return NextResponse.json({ ok: true, validacion });
+    return NextResponse.json({
+      ok: true,
+      validacion,
+      cupoIa: { usado: cupoIa.usado, max: cupoIa.max },
+    });
 
   } catch (err) {
     const e = err as Error & { cause?: unknown };

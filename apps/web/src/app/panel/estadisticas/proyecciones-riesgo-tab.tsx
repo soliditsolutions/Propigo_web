@@ -2,6 +2,7 @@ import { getProyeccionesRiesgo } from "@/lib/queries";
 import { Card, SectionTitle, Badge, type BadgeTone } from "@/components/panel/ui";
 import { ProyeccionChart } from "@/components/panel/charts/proyeccion-chart";
 import { clp, fecha } from "@/lib/format";
+import { puedeExportar } from "@/lib/plans";
 import { Download, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 
 const TENDENCIA_ICON = { subiendo: TrendingUp, bajando: TrendingDown, estable: Minus };
@@ -12,15 +13,18 @@ const NIVEL_LABEL: Record<string, string> = { bajo: "Riesgo bajo", medio: "Riesg
 
 export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId: string; tenantPlan: string | null }) {
   const data = await getProyeccionesRiesgo(tenantId);
-  const puedeExportar = tenantPlan === "diamond";
+  // La capacidad la define el plan (lib/plans.ts), no una comparación de
+  // strings acá. La API que sirve el CSV valida lo mismo por su cuenta:
+  // ocultar el botón es cortesía, el límite real está en el servidor.
+  const habilitaExportar = puedeExportar(tenantPlan);
   const TendenciaIcon = TENDENCIA_ICON[data.riesgoMora.tendencia];
 
   return (
     <div className="space-y-6">
       <Card className="p-5">
         <div className="mb-1 flex items-center justify-between">
-          <SectionTitle title="Proyección de ingresos" description="Próximos 6 meses — cifras aproximadas, no un compromiso" />
-          {puedeExportar && (
+          <SectionTitle title="Proyección de ingresos" description="Próximos 6 meses. Son cifras estimadas, no un compromiso de cobro." />
+          {habilitaExportar && (
             <a
               href="/api/panel/estadisticas/exportar"
               className="hw-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
@@ -51,7 +55,7 @@ export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId
             </div>
           </div>
           <p className="mt-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
-            Estimación por tendencia reciente, no un modelo predictivo — úsala como alerta temprana, no como cifra exacta.
+            Es una estimación por tendencia reciente, no un modelo predictivo. Úsala como alerta temprana, no como cifra exacta.
           </p>
         </Card>
 
@@ -87,7 +91,7 @@ export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
-          <SectionTitle title="Stress-test de cartera" description="Ingreso de los próximos 6 meses si un % adicional cae en mora" />
+          <SectionTitle title="Escenarios de estrés" description="Cuánto ingreso quedaría en los próximos 6 meses si un porcentaje adicional de arrendatarios cayera en mora." />
           <div className="space-y-2">
             {data.stressTest.map((s) => (
               <div key={s.escenarioPctMora} className="flex items-center justify-between text-sm">
@@ -97,12 +101,12 @@ export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId
             ))}
           </div>
           <p className="mt-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
-            Simulación simple sobre la proyección actual — no un modelo de stress-testing financiero real.
+            Es una simulación simple sobre la proyección actual, no un modelo financiero de estrés real.
           </p>
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Riesgo por arrendatario" description="Historial propio de atrasos — no un credit score real" />
+          <SectionTitle title="Riesgo por arrendatario" description="Se calcula con el historial de pagos de cada arrendatario en tu cartera. No es una evaluación crediticia." />
           {data.riesgoPorArrendatario.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Sin suficiente historial de pagos para estimar riesgo.</p>
           ) : (
@@ -120,6 +124,35 @@ export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId
           )}
         </Card>
       </div>
+
+      <Card className="p-5">
+        <SectionTitle title="Concentración de riesgo por propietario" description="% del ingreso cobrado (12m) que depende de cada propietario" />
+        {data.concentracionPropietarios.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Sin ingresos cobrados en los últimos 12 meses.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {data.concentracionPropietarios.map((p) => (
+              <div key={p.propietarioId} className="flex items-center gap-3 text-sm">
+                <span className="w-32 shrink-0 truncate sm:w-48" style={{ color: "var(--hw-text-1)" }}>{p.nombre}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: "var(--hw-border)" }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${Math.min(p.pctDelTotal, 100)}%`, background: p.pctDelTotal >= 30 ? "var(--hw-danger)" : "var(--hw-primary)" }}
+                  />
+                </div>
+                <span className="w-16 shrink-0 text-right tabular-nums font-semibold" style={{ color: "var(--hw-text-1)" }}>{p.pctDelTotal}%</span>
+                <span className="hidden w-28 shrink-0 text-right tabular-nums sm:inline" style={{ color: "var(--hw-text-4)" }}>{clp(p.ingresoClp)}</span>
+              </div>
+            ))}
+            {data.concentracionPropietarios[0].pctDelTotal >= 30 && (
+              <p className="mt-1 flex items-start gap-1.5 text-xs" style={{ color: "var(--hw-warning)" }}>
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                Más del 30 % del ingreso depende de un solo propietario. Evalúa diversificar la cartera.
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

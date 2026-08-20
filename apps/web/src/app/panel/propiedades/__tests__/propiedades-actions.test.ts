@@ -43,6 +43,10 @@ const mockPersonaCreate       = vi.fn();
 const mockPropiedadCreate     = vi.fn();
 const mockPropiedadUpdate     = vi.fn();
 const mockPropiedadFindFirst  = vi.fn();
+/** Cupo de propiedades del plan (Fase B0) — por defecto, tenant muy por debajo
+ * del límite para que estos tests sigan probando lo suyo (asignación y
+ * auditoría) y no el cupo, que tiene sus propios tests. */
+const mockPropiedadCount      = vi.fn().mockResolvedValue(0);
 const mockUsuarioFindFirst    = vi.fn();
 const mockAuditoriaCreate     = vi.fn();
 const mockImagenDeleteMany    = vi.fn().mockResolvedValue(undefined);
@@ -59,7 +63,7 @@ const mockPublicacionUpdateMany = vi.fn().mockResolvedValue({});
 vi.mock("@/lib/db", () => {
   const models = {
     persona:         { upsert: mockPersonaUpsert, findFirst: mockPersonaFindFirst, create: mockPersonaCreate },
-    propiedad:       { create: mockPropiedadCreate, update: mockPropiedadUpdate, findFirst: mockPropiedadFindFirst, findMany: vi.fn() },
+    propiedad:       { create: mockPropiedadCreate, update: mockPropiedadUpdate, findFirst: mockPropiedadFindFirst, findMany: vi.fn(), count: mockPropiedadCount },
     imagenPropiedad: { deleteMany: mockImagenDeleteMany, createMany: mockImagenCreateMany },
     usuario:         { findFirst: mockUsuarioFindFirst },
     auditoriaEquipo: { create: mockAuditoriaCreate },

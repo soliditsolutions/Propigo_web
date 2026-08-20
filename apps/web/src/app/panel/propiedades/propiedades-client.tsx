@@ -8,7 +8,7 @@ import {
   Plus, Loader2, AlertCircle, Image as ImageIcon, CheckCircle2, Pencil,
   Lock, ArrowRight, RotateCcw, UploadCloud,
 } from "lucide-react";
-import { Badge, estadoTone, estadoPulse } from "@/components/panel/ui";
+import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { type DateFilterState } from "@/components/panel/date-filter";
@@ -880,10 +880,13 @@ export function PropiedadesClient({
   propiedades,
   esManager,
   colaboradores,
+  cupo,
 }: {
   propiedades: Propiedad[];
   esManager: boolean;
   colaboradores: Colaborador[];
+  /** null para un Colaborador: no crea propiedades, el cupo no le aplica. */
+  cupo: { usado: number; max: number; planLabel: string } | null;
 }) {
   const router = useRouter();
   const [busqueda, setBusqueda]         = useState("");
@@ -891,6 +894,10 @@ export function PropiedadesClient({
   const [seleccionada, setSeleccionada] = useState<Propiedad | null>(null);
   const [dateFilter, setDateFilter]     = useState<DateFilterState>({ sort: "nuevas", range: "todos" });
   const [pageSize, setPageSize]         = useState(25);
+  // El servidor rechaza igual el alta (lib/plan-limits.ts); deshabilitar el
+  // botón evita mandar a alguien a llenar un formulario que ya sabemos que
+  // va a fallar. El badge de al lado es el que explica por qué.
+  const cupoLleno = cupo !== null && cupo.usado >= cupo.max;
 
   // Dialog "Nueva propiedad"
   const [openCrear, setOpenCrear]     = useState(false);
@@ -1088,15 +1095,20 @@ export function PropiedadesClient({
           // ADR-0013 (Fase D) — crear propiedad es exclusivo del Manager; un
           // Colaborador gestiona lo asignado, no crea inventario nuevo.
           esManager ? (
-            <button
-              type="button"
-              onClick={() => { setOpenCrear(true); setErrorCrear(""); setRutErrorCrear(""); setFormCrear(FORM_CREAR_INICIAL); }}
-              className="hw-btn-primary"
-              style={{ height: "32px", fontSize: "12px", padding: "0 12px" }}
-            >
-              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              Nueva propiedad
-            </button>
+            <div className="flex items-center gap-2">
+              {cupo && <CupoBadge usado={cupo.usado} max={cupo.max} unidad="propiedades" planLabel={cupo.planLabel} />}
+              <button
+                type="button"
+                onClick={() => { setOpenCrear(true); setErrorCrear(""); setRutErrorCrear(""); setFormCrear(FORM_CREAR_INICIAL); }}
+                className="hw-btn-primary"
+                style={{ height: "32px", fontSize: "12px", padding: "0 12px" }}
+                disabled={cupoLleno}
+                title={cupoLleno ? "Alcanzaste el máximo de propiedades de tu plan. Sube de plan para cargar más." : undefined}
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Nueva propiedad
+              </button>
+            </div>
           ) : undefined
         }
       >

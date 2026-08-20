@@ -84,15 +84,15 @@ describe("invitarColaboradorAction — cupo de usuarios por plan", () => {
     expect(mockInvitacionCreate).not.toHaveBeenCalled();
   });
 
-  it("rechaza cuando el cupo está lleno por colaboradores activos (Silver, 2 usuarios)", async () => {
+  it("rechaza cuando el cupo está lleno por colaboradores activos (Silver, 3 usuarios)", async () => {
     mockGetActor.mockResolvedValue(actorManager("silver"));
-    mockUsuarioCount.mockResolvedValue(1);   // 1 colaborador activo
+    mockUsuarioCount.mockResolvedValue(2);   // 2 colaboradores activos
     mockInvitacionCount.mockResolvedValue(0);
-    // cupoUsado = 1 + 1 + 0 = 2 >= max(silver)=2 → rechazado
+    // cupoUsado = 1 (manager) + 2 + 0 = 3 >= max(silver)=3 → rechazado
 
     const res = await invitarColaboradorAction("Juan Pérez", "juan@empresa.cl");
 
-    expect(res).toEqual({ ok: false, error: expect.stringMatching(/límite de 2 usuarios/i) });
+    expect(res).toEqual({ ok: false, error: expect.stringMatching(/límite de 3 usuarios/i) });
     expect(mockInvitacionCreate).not.toHaveBeenCalled();
   });
 
@@ -108,11 +108,11 @@ describe("invitarColaboradorAction — cupo de usuarios por plan", () => {
     expect(mockInvitacionCreate).not.toHaveBeenCalled();
   });
 
-  it("permite invitar justo bajo el límite (Gold, 5 usuarios, 3 ocupados)", async () => {
+  it("permite invitar justo bajo el límite (Gold, 10 usuarios, 3 ocupados)", async () => {
     mockGetActor.mockResolvedValue(actorManager("gold"));
     mockUsuarioCount.mockResolvedValue(1);    // 1 colaborador activo
     mockInvitacionCount.mockResolvedValue(1); // 1 invitación pendiente
-    // cupoUsado = 1 + 1 + 1 = 3 < max(gold)=5 → permitido
+    // cupoUsado = 1 + 1 + 1 = 3 < max(gold)=10 → permitido
 
     const res = await invitarColaboradorAction("Nuevo Colaborador", "nuevo@empresa.cl");
 
@@ -163,7 +163,7 @@ describe("getCupoInfo — información de cupo para la UI", () => {
 
     const info = await getCupoInfo();
 
-    expect(info).toEqual({ usado: 4, max: 5, planLabel: "Gold" });
+    expect(info).toEqual({ usado: 4, max: 10, planLabel: "Gold" });
   });
 
   it("un plan desconocido devuelve planLabel 'Gratuito' y el cupo de Bronze", async () => {

@@ -1,3 +1,27 @@
+/**
+ * Planes de suscripción — fuente única de precios y límites.
+ *
+ * PRECIOS EN UF + IVA (decisión D-01, ADR-0014). Antes estaban en USD, lo que
+ * no servía: todas las pasarelas chilenas liquidan en CLP, y cotizar en dólares
+ * habría hecho variar el precio mes a mes sin que el corredor aceptara ningún
+ * alza. La UF es el estándar chileno para contratos recurrentes y absorbe la
+ * inflación sin necesidad de "subir precios".
+ *
+ * El anual equivale a 10 meses (2 meses gratis ⇒ 16,7 % de descuento).
+ *
+ * LOS LÍMITES DE ACÁ SE APLICAN DE VERDAD. Hasta la Fase B0 eran solo texto de
+ * marketing: se vendían "slots de propiedades" y "tokens de IA" que nada en el
+ * código contaba. No se pueden cobrar precios diferenciados por límites que no
+ * se aplican, así que cada número de este archivo tiene un helper de cupo y un
+ * punto de enforcement en el servidor.
+ */
+
+/** IVA chileno. Único lugar donde vive la tasa. */
+export const IVA_PCT = 19;
+
+/** Meses que se pagan en el plan anual (12 − 2 de regalo). */
+export const MESES_PAGADOS_ANUAL = 10;
+
 export type PlanId = "bronze" | "silver" | "gold" | "diamond";
 
 export type PlanFeature = {
@@ -13,18 +37,25 @@ export type Plan = {
   name: string;
   /** Subtítulo de la card: a quién está dirigido el plan. */
   tagline: string;
-  monthly: number;
-  annual: number;
+  /** Precio mensual en UF, sin IVA. */
+  mensualUf: number;
+  /** Precio anual en UF, sin IVA (= mensualUf × MESES_PAGADOS_ANUAL). */
+  anualUf: number;
   /** Etiqueta de ahorro que aparece al facturar anual. */
   annualSavings: string;
   features: PlanFeature[];
   /**
-   * Cupo de usuarios del tenant (Manager incluido). Única fuente para el
-   * enforcement real de ADR-0013 Fase E (`getCupoUsuarios()` más abajo) y
-   * para la línea "Acceso/Multicuenta" de la card — cambiar este número
-   * basta para actualizar ambos a la vez, no hay que tocar el texto aparte.
+   * Cupo de propiedades del tenant. Cuenta TODAS las propiedades sin importar
+   * su estado (borrador, disponible, reservada, arrendada) — coherente con el
+   * tooltip ya publicado. Decisión N-05.
    */
+  maxPropiedades: number;
+  /** Cupo de usuarios del tenant (Manager incluido) — ADR-0013 Fase E. */
   maxUsuarios: number;
+  /** Revisiones de contrato con IA por día. Se reinicia cada día. */
+  tokensDiarios: number;
+  /** Si el plan permite exportar información (CSV). */
+  permiteExportar: boolean;
   /** Plan destacado visualmente ("Más popular"). */
   featured?: boolean;
 };
@@ -34,100 +65,182 @@ const TOOLTIP_SLOTS =
 const TOOLTIP_TOKENS =
   "Cada token equivale a una revisión de contrato con IA. El cupo se renueva todos los días.";
 
+function propiedadesFeatureText(max: number): string {
+  return `Hasta ${max} propiedades`;
+}
+
 function usuariosFeatureText(maxUsuarios: number): string {
   return maxUsuarios === 1
     ? "Acceso para 1 usuario"
-    : `Multicuenta: hasta ${maxUsuarios} usuarios`;
+    : `Acceso multiusuario: hasta ${maxUsuarios} usuarios`;
 }
 
-/** Única fuente de los 4 planes — la usa la parada "Nuestros Planes" del
- * escenario walkthrough (ver PlanesStop.tsx). */
+function tokensFeatureText(tokens: number): string {
+  return `${tokens} tokens diarios de IA`;
+}
+
+/**
+ * Única fuente de los 4 planes — la usa la parada "Nuestros Planes" del
+ * escenario walkthrough (ver PlanesStop.tsx) y todo el enforcement de cupos.
+ *
+ * Nota sobre las features: describen SOLO lo que el producto hace hoy. Se
+ * quitaron a propósito promesas que no existen todavía ("roles y permisos
+ * configurables" — el sistema tiene exactamente dos roles fijos, Manager y
+ * Colaborador, ver ADR-0013). Vender una capacidad inexistente se cae con el
+ * primer cliente que la busque.
+ */
 export const PLANS: Plan[] = [
   {
     id: "bronze",
     name: "Bronze",
     tagline:
-      "Ideal para corredores independientes que están dando sus primeros pasos en el rubro de los arriendos.",
-    monthly: 5,
-    annual: 50,
-    annualSavings: "Ahorras 2 meses",
+      "Ideal para corredores independientes que están comenzando a administrar sus primeras propiedades.",
+    mensualUf: 0.25,
+    anualUf: 2.5,
+    annualSavings: "2 meses gratis",
+    maxPropiedades: 10,
+    maxUsuarios: 1,
+    tokensDiarios: 3,
+    permiteExportar: false,
     features: [
-      { text: "7 slots para propiedades", tooltip: TOOLTIP_SLOTS },
-      { text: "3 tokens diarios de IA", tooltip: TOOLTIP_TOKENS },
-      { text: "Analítica básica de cartera" },
+      { text: propiedadesFeatureText(10), tooltip: TOOLTIP_SLOTS },
       { text: usuariosFeatureText(1) },
+      { text: tokensFeatureText(3), tooltip: TOOLTIP_TOKENS },
+      { text: "Analítica básica de cartera" },
+      { text: "Herramientas de administración y automatización" },
       { text: "Soporte técnico estándar" },
     ],
-    maxUsuarios: 1,
   },
   {
     id: "silver",
     name: "Silver",
     tagline:
-      "Diseñado para corredores en crecimiento con una cartera de clientes establecida.",
-    monthly: 12,
-    annual: 120,
-    annualSavings: "Ahorras USD $24",
+      "Para corredores y pequeñas agencias que están haciendo crecer su cartera.",
+    mensualUf: 0.5,
+    anualUf: 5,
+    annualSavings: "2 meses gratis",
+    maxPropiedades: 25,
+    maxUsuarios: 3,
+    tokensDiarios: 10,
+    permiteExportar: false,
     features: [
-      { text: "20 slots para propiedades", tooltip: TOOLTIP_SLOTS },
-      { text: "7 tokens diarios de IA", tooltip: TOOLTIP_TOKENS },
+      { text: propiedadesFeatureText(25), tooltip: TOOLTIP_SLOTS },
+      { text: usuariosFeatureText(3) },
+      { text: tokensFeatureText(10), tooltip: TOOLTIP_TOKENS },
       { text: "Analítica intermedia de desempeño" },
-      { text: usuariosFeatureText(2) },
+      { text: "Herramientas de administración y automatización" },
       { text: "Soporte técnico estándar" },
     ],
-    maxUsuarios: 2,
   },
   {
     id: "gold",
     name: "Gold",
     tagline:
-      "Pensado para corredores experimentados y agencias pequeñas con alto volumen.",
-    monthly: 25,
-    annual: 250,
-    annualSavings: "Ahorras USD $50",
-    features: [
-      { text: "50 slots para propiedades", tooltip: TOOLTIP_SLOTS },
-      { text: "25 tokens diarios de IA", tooltip: TOOLTIP_TOKENS },
-      { text: "Analítica avanzada de portafolio" },
-      { text: usuariosFeatureText(5) },
-      { text: "Soporte técnico estándar" },
-    ],
-    maxUsuarios: 5,
+      "Para agencias en crecimiento que necesitan administrar su operación en equipo.",
+    mensualUf: 0.9,
+    anualUf: 9,
+    annualSavings: "2 meses gratis",
+    maxPropiedades: 75,
+    maxUsuarios: 10,
+    tokensDiarios: 30,
+    permiteExportar: true,
     featured: true,
+    features: [
+      { text: propiedadesFeatureText(75), tooltip: TOOLTIP_SLOTS },
+      { text: usuariosFeatureText(10) },
+      { text: tokensFeatureText(30), tooltip: TOOLTIP_TOKENS },
+      { text: "Analítica avanzada de cartera" },
+      { text: "Exportación de información" },
+      { text: "Herramientas avanzadas de administración y automatización" },
+      { text: "Soporte prioritario" },
+    ],
   },
   {
     id: "diamond",
     name: "Diamond",
     tagline:
-      "Exclusivo para agencias consolidadas y grandes portafolios de administración.",
-    monthly: 50,
-    annual: 500,
-    annualSavings: "Ahorras USD $100",
+      "Para agencias consolidadas y administradoras con grandes carteras de propiedades.",
+    mensualUf: 1.7,
+    anualUf: 17,
+    annualSavings: "2 meses gratis",
+    maxPropiedades: 200,
+    maxUsuarios: 20,
+    // "IA de alto uso" del brief comercial, aterrizado a un número: el sistema
+    // necesita un tope concreto para poder aplicarlo, y "ilimitado" sería un
+    // costo abierto contra la API de IA que no controlamos. Decisión N-02.
+    tokensDiarios: 100,
+    permiteExportar: true,
     features: [
-      { text: "200 slots para propiedades", tooltip: TOOLTIP_SLOTS },
-      { text: "Tokens de IA ilimitados", tooltip: TOOLTIP_TOKENS },
-      { text: "Analítica premium + exportación" },
-      { text: usuariosFeatureText(10) },
-      { text: "Soporte técnico estándar" },
+      { text: propiedadesFeatureText(200), tooltip: TOOLTIP_SLOTS },
+      { text: usuariosFeatureText(20) },
+      { text: tokensFeatureText(100), tooltip: TOOLTIP_TOKENS },
+      { text: "Analítica premium de cartera" },
+      { text: "Exportación avanzada de información" },
+      { text: "Herramientas completas de administración y automatización" },
+      { text: "Migración asistida de cartera" },
+      { text: "Onboarding y capacitación inicial al equipo" },
+      { text: "Soporte prioritario" },
     ],
-    maxUsuarios: 10,
   },
 ];
 
-const CUPO_USUARIOS_POR_PLAN: Record<PlanId, number> = Object.fromEntries(
-  PLANS.map((p) => [p.id, p.maxUsuarios]),
-) as Record<PlanId, number>;
+const PLAN_POR_ID = new Map<PlanId, Plan>(PLANS.map((p) => [p.id, p]));
 
 /**
- * Cupo de usuarios (Manager + Colaboradores activos + invitaciones
- * pendientes) permitido por el plan del tenant — ADR-0013 Fase E.
+ * Plan efectivo de un tenant a partir del string guardado.
  *
- * `Tenant.plan` es un string libre sin respaldo de billing todavía (todo
- * signup nuevo recibe "Gratuito" — ver registro/actions.ts), mismo criterio
- * de fallback que `getAnalyticsTier()` en plan-tier.ts: cualquier valor que
- * no calce con un PlanId conocido cae en el cupo de Bronze (el más bajo),
- * nunca en "sin límite".
+ * `Tenant.plan` es un string libre (todo signup nuevo recibe "Gratuito"), así
+ * que cualquier valor desconocido cae en **Bronze**, el plan más bajo — nunca
+ * en "sin límite". Es deliberado: un fallo o un dato corrupto en billing debe
+ * restringir, jamás abrir permisos.
  */
+export function getPlanEfectivo(plan: string | null): Plan {
+  return PLAN_POR_ID.get(plan as PlanId) ?? PLAN_POR_ID.get("bronze")!;
+}
+
+/** Cupo de usuarios (Manager + Colaboradores activos + invitaciones pendientes). */
 export function getCupoUsuarios(plan: string | null): number {
-  return CUPO_USUARIOS_POR_PLAN[plan as PlanId] ?? CUPO_USUARIOS_POR_PLAN.bronze;
+  return getPlanEfectivo(plan).maxUsuarios;
+}
+
+/** Cupo de propiedades del tenant (cuenta todos los estados — ver N-05). */
+export function getCupoPropiedades(plan: string | null): number {
+  return getPlanEfectivo(plan).maxPropiedades;
+}
+
+/** Revisiones de contrato con IA permitidas por día. */
+export function getCupoTokensDiarios(plan: string | null): number {
+  return getPlanEfectivo(plan).tokensDiarios;
+}
+
+/** Si el plan habilita exportar información (CSV). */
+export function puedeExportar(plan: string | null): boolean {
+  return getPlanEfectivo(plan).permiteExportar;
+}
+
+// ── Precios ────────────────────────────────────────────────────────────────
+
+/** Precio en UF, sin IVA, según el ciclo elegido. */
+export function precioUf(plan: Plan, ciclo: "mensual" | "anual"): number {
+  return ciclo === "anual" ? plan.anualUf : plan.mensualUf;
+}
+
+/**
+ * Convierte un precio en UF a su desglose en CLP (neto, IVA y total).
+ *
+ * El valor de la UF se recibe como parámetro en vez de leerse acá adentro: al
+ * emitir un cargo hay que **congelar** la UF del día y guardarla junto al monto
+ * (decisión N-03), y eso solo puede decidirlo quien emite el cargo. Una función
+ * que fuera a buscar la UF por su cuenta daría un resultado distinto en cada
+ * llamada y haría imposible reproducir un cobro pasado.
+ *
+ * Los montos en CLP son enteros: el peso chileno no tiene decimales.
+ */
+export function desglosarPrecioClp(
+  montoUf: number,
+  valorUfClp: number,
+): { netoClp: number; ivaClp: number; totalClp: number } {
+  const netoClp = Math.round(montoUf * valorUfClp);
+  const ivaClp = Math.round((netoClp * IVA_PCT) / 100);
+  return { netoClp, ivaClp, totalClp: netoClp + ivaClp };
 }

@@ -11,7 +11,7 @@ import {
   reactivarColaboradorAction,
 } from "./actions";
 import { useToast } from "@/components/ui/toast";
-import { Badge } from "@/components/panel/ui";
+import { Badge, CupoBadge } from "@/components/panel/ui";
 
 type Colaborador = {
   id: string;
@@ -33,22 +33,6 @@ type Cupo = { usado: number; max: number; planLabel: string };
 function diasRestantes(expiresAt: string): number {
   const ms = new Date(expiresAt).getTime() - Date.now();
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
-}
-
-function CupoBadge({ cupo }: { cupo: Cupo }) {
-  const lleno = cupo.usado >= cupo.max;
-  return (
-    <span
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-      style={{
-        background: lleno ? "var(--hw-danger-lt)"  : "var(--hw-surface-2)",
-        color:      lleno ? "var(--hw-danger)"      : "var(--hw-text-3)",
-        border:     `1px solid ${lleno ? "var(--hw-danger-bd)" : "var(--hw-border-2)"}`,
-      }}
-    >
-      {cupo.usado} / {cupo.max} usuarios · plan {cupo.planLabel}
-    </span>
-  );
 }
 
 function InvitarForm({ cupo }: { cupo: Cupo }) {
@@ -99,7 +83,7 @@ function InvitarForm({ cupo }: { cupo: Cupo }) {
           <UserPlus className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
           <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>Invitar colaborador</h2>
         </div>
-        <CupoBadge cupo={cupo} />
+        <CupoBadge usado={cupo.usado} max={cupo.max} unidad="usuarios" planLabel={cupo.planLabel} />
       </div>
 
       {lleno && (

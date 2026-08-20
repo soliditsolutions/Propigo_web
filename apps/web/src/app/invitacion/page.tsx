@@ -34,7 +34,7 @@ export default async function InvitacionPage({
       select: { nombre: true, email: true, invitadoPorId: true },
     });
     if (!invitacion) {
-      invalidMensaje = "La invitación ha expirado o ya fue utilizada. Pide a tu administrador que te reenvíe una nueva.";
+      invalidMensaje = "La invitación expiró o ya se usó. Pide a tu administrador que te reenvíe una nueva.";
     } else {
       nombre = invitacion.nombre;
       email  = invitacion.email;
@@ -121,7 +121,7 @@ export default async function InvitacionPage({
                 </div>
 
                 <div className="hw-auth-card p-6">
-                  <InvitacionForm token={token} />
+                  <InvitacionForm token={token} nombre={nombre} email={email} />
                 </div>
               </div>
             )}

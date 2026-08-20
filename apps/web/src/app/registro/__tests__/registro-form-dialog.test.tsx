@@ -10,7 +10,7 @@
  * HTML semánticos para poder probar el árbol sin depender de los internals
  * de @base-ui en jsdom.
  */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import React from "react";
 
@@ -43,12 +43,21 @@ vi.mock("../actions", () => ({ registroAction: vi.fn() }));
 
 // evaluatePassword: siempre retorna contraseña muy fuerte para que no bloquee el submit
 vi.mock("@/lib/password-strength", () => ({
+  PASSWORD_MIN_LENGTH: 8,
   evaluatePassword: () => ({
     score:      4,
     label:      "Muy fuerte",
     color:      "#16a34a",
     suggestion: "",
     passes:     true,
+  }),
+  checkRequisitos: () => ({
+    minLength:      true,
+    hasLetter:      true,
+    hasDigit:       true,
+    hasSpecial:     true,
+    noPersonalInfo: true,
+    notCommon:      true,
   }),
 }));
 
@@ -289,7 +298,22 @@ describe("CarnetModal Dialog (UI-C7) — validación de archivo", () => {
     FileReader.prototype.readAsDataURL = originalReadAsDataURL;
   });
 
-  it("el botón 'Verificar y crear cuenta' se habilita tras cargar un archivo válido", () => {
+  it("el botón 'Verificar y crear cuenta' sigue deshabilitado con archivo pero sin marcar el consentimiento IA", () => {
+    mockUseActionState.mockReturnValue([null, vi.fn(), false]);
+    render(<RegistroForm />);
+    abrirModal();
+
+    const input = screen.getByLabelText(/subir imagen del carnet de identidad/i);
+    FileReader.prototype.readAsDataURL = vi.fn();
+    const jpgFile = new File(["imagen"], "carnet.jpg", { type: "image/jpeg" });
+    fireEvent.change(input, { target: { files: [jpgFile] } });
+
+    expect(
+      screen.getByRole("button", { name: /verificar y crear cuenta/i }),
+    ).toBeDisabled();
+  });
+
+  it("el botón 'Verificar y crear cuenta' se habilita tras cargar un archivo válido y marcar el consentimiento IA", () => {
     mockUseActionState.mockReturnValue([null, vi.fn(), false]);
     render(<RegistroForm />);
     abrirModal();
@@ -300,6 +324,10 @@ describe("CarnetModal Dialog (UI-C7) — validación de archivo", () => {
 
     const jpgFile = new File(["imagen"], "carnet.jpg", { type: "image/jpeg" });
     fireEvent.change(input, { target: { files: [jpgFile] } });
+
+    // Único checkbox visible en el dialog en este punto: el de consentimiento IA
+    // (el consentimiento general de T&C ya se marcó en abrirModal(), en el form externo).
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("checkbox"));
 
     expect(
       screen.getByRole("button", { name: /verificar y crear cuenta/i }),

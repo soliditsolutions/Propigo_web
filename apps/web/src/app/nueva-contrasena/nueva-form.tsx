@@ -5,30 +5,8 @@ import { useActionState }  from "react";
 import Link                from "next/link";
 import { Eye, EyeOff, KeyRound, AlertCircle } from "lucide-react";
 import { nuevaContrasenaAction } from "./actions";
-import { evaluatePassword }      from "@/lib/password-strength";
 import { Spinner }               from "@/components/ui/spinner";
-
-function PasswordStrengthMeter({ password }: { password: string }) {
-  if (!password) return null;
-  const s = evaluatePassword(password);
-  return (
-    <div className="mt-2 space-y-1.5">
-      <div className="flex gap-1">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div
-            key={i}
-            className="h-1.5 flex-1 rounded-full transition-all duration-200"
-            style={{ background: i <= s.score ? s.color : "var(--hw-border-2)" }}
-          />
-        ))}
-      </div>
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-semibold shrink-0" style={{ color: s.color }}>{s.label}</span>
-        <span className="text-xs text-right" style={{ color: "var(--hw-text-4)" }}>{s.suggestion}</span>
-      </div>
-    </div>
-  );
-}
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 export function NuevaContrasenaForm({ token }: { token: string }) {
   const [state, formAction, pending] = useActionState(nuevaContrasenaAction, null);
@@ -95,7 +73,7 @@ export function NuevaContrasenaForm({ token }: { token: string }) {
         </div>
         <PasswordStrengthMeter password={password} />
         <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
-          Mínimo 15 caracteres. Las frases largas son más seguras y fáciles de recordar.
+          Mínimo 8 caracteres, con letras, números y un carácter especial. Evita tu nombre o correo.
         </p>
       </div>
 

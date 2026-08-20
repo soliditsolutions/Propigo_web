@@ -102,7 +102,7 @@ function CodigoExpiradoPanel({
     >
       <Clock className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--hw-warning)" }} aria-hidden />
       <p className="text-sm font-semibold mb-1" style={{ color: "var(--hw-warning-dk)" }}>
-        Tu código ha expirado
+        Tu código expiró
       </p>
       <p className="text-xs mb-3" style={{ color: "var(--hw-warning-dk)" }}>
         Los códigos son válidos por 10 minutos. Solicita uno nuevo para continuar.
@@ -221,7 +221,7 @@ export default function VerificarForm({
       if (!res.ok) {
         const sec = typeof data.cooldownSec === "number" ? data.cooldownSec : RESEND_COOLDOWN;
         setCooldown(sec);
-        toast(data.error ?? "Error al enviar el código. Inténtalo de nuevo.", "warning");
+        toast(data.error ?? "No pudimos enviar el código. Inténtalo de nuevo.", "warning");
         return;
       }
       setEnviado(true);

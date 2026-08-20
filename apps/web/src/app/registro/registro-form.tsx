@@ -1,10 +1,10 @@
 "use client";
 
-import { startTransition, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { useActionState }  from "react";
 import Link                from "next/link";
 import {
-  Eye, EyeOff, AlertCircle, Shield, Upload, X, CheckCircle2,
+  Eye, EyeOff, AlertCircle, Shield, Upload, X, CheckCircle2, Camera, ImageUp,
 } from "lucide-react";
 import { registroAction }         from "./actions";
 import { evaluatePassword }       from "@/lib/password-strength";
@@ -17,33 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-
-/* ── Medidor de fuerza de contraseña ─────────────────────────────────────── */
-function PasswordStrengthMeter({ password }: { password: string }) {
-  if (!password) return null;
-  const s = evaluatePassword(password);
-  return (
-    <div className="mt-2 space-y-1.5">
-      <div className="flex gap-1">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div
-            key={i}
-            className="h-1.5 flex-1 rounded-full transition-all duration-200"
-            style={{ background: i <= s.score ? s.color : "var(--hw-border-2)" }}
-          />
-        ))}
-      </div>
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-semibold shrink-0" style={{ color: s.color }}>
-          {s.label}
-        </span>
-        <span className="text-xs text-right" style={{ color: "var(--hw-text-4)" }}>
-          {s.suggestion}
-        </span>
-      </div>
-    </div>
-  );
-}
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 /* ── Estilos de input reutilizables ─────────────────────────────────────── */
 const inputBase: React.CSSProperties = {
@@ -86,15 +60,30 @@ const MAX_BYTES        = 5 * 1024 * 1024;
 // FIX UI-C7: refactor a Dialog de @base-ui/react.
 // El Popup gestiona automáticamente role="dialog", aria-modal="true",
 // aria-labelledby (apunta a DialogTitle) y el focus trap.
+// Soporte de cámara detectado una sola vez en el módulo: en jsdom (tests) y en
+// navegadores sin getUserMedia (http no seguro, permiso bloqueado por política,
+// etc.) da false y el modo por archivo queda como único camino — sin ramas
+// nuevas que mantener en los tests existentes.
+const CAMERA_SUPPORTED =
+  typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+
 function CarnetModalBody({
   onConfirmar,
 }: {
-  onConfirmar: (file: File) => void;
+  onConfirmar: (file: File, consentIa: boolean) => void;
 }) {
   const [carnetFile,    setCarnetFile]    = useState<File | null>(null);
   const [carnetPreview, setCarnetPreview] = useState<string | null>(null);
   const [dragOver,      setDragOver]      = useState(false);
   const [fileError,     setFileError]     = useState<string | null>(null);
+  const [consentIa,     setConsentIa]     = useState(false);
+  const [modo,          setModo]          = useState<"camara" | "archivo">(
+    CAMERA_SUPPORTED ? "camara" : "archivo",
+  );
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   function procesarArchivo(file: File) {
     setFileError(null);
@@ -116,6 +105,55 @@ function CarnetModalBody({
     setCarnetFile(null);
     setCarnetPreview(null);
     setFileError(null);
+  }
+
+  // Enciende la cámara mientras el modo sea "camara" y no haya foto capturada
+  // todavía; libera el stream (apaga el indicador de cámara del navegador) en
+  // cualquier otro caso — cambio de modo, foto ya tomada, o cierre del modal.
+  useEffect(() => {
+    if (modo !== "camara" || carnetFile) return;
+    let cancelado = false;
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .then((stream) => {
+        if (cancelado) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          void videoRef.current.play();
+        }
+        setCameraReady(true);
+        setCameraError(null);
+      })
+      .catch(() => {
+        // Permiso denegado, sin cámara disponible, o contexto no seguro (http).
+        // Nunca bloqueamos el registro por esto — el upload manual sigue disponible.
+        setCameraError("No pudimos acceder a la cámara. Puedes subir una foto en su lugar.");
+        setModo("archivo");
+      });
+
+    return () => {
+      cancelado = true;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setCameraReady(false);
+    };
+  }, [modo, carnetFile]);
+
+  function capturarFoto() {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      procesarArchivo(new File([blob], `carnet-${Date.now()}.jpg`, { type: "image/jpeg" }));
+    }, "image/jpeg", 0.92);
   }
 
   return (
@@ -162,50 +200,133 @@ function CarnetModalBody({
           <strong>frontis de tu Cédula de Identidad chilena</strong>.
         </p>
 
-        {/* Zona de carga o previsualización */}
-        {!carnetPreview ? (
-          <label
-            className="flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer"
-            style={{
-              height:     "156px",
-              border:     `2px dashed ${dragOver ? "var(--hw-primary)" : "var(--hw-border-2)"}`,
-              background: dragOver ? "var(--hw-primary-lt)" : "var(--hw-page)",
-            }}
-            onDragOver={(e)  => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={()  => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              const f = e.dataTransfer.files[0];
-              if (f) procesarArchivo(f);
-            }}
-          >
-            <Upload
-              className="mb-2 h-8 w-8"
-              style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-4)" }}
-              aria-hidden="true"
-            />
-            <span
-              className="text-sm font-medium"
-              style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-1)" }}
+        {/* Zona de carga, cámara o previsualización */}
+        {!carnetPreview && modo === "camara" ? (
+          <div className="space-y-2">
+            <div
+              className="relative overflow-hidden rounded-xl"
+              style={{ height: "220px", background: "#0a0a0a" }}
             >
-              Arrastra tu carnet o haz clic aquí
-            </span>
-            <span className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
-              JPG, PNG o WEBP · Máx. 5 MB
-            </span>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              aria-label="Subir imagen del carnet de identidad"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) procesarArchivo(f);
-                e.target.value = "";
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="h-full w-full object-cover"
+              />
+              {/* Marco guía — proporción de una cédula chilena (~85.6 × 54 mm) */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-5">
+                <div
+                  className="w-full rounded-lg"
+                  style={{
+                    aspectRatio: "1.586",
+                    maxHeight:   "132px",
+                    border:      "3px solid rgba(255,255,255,0.9)",
+                    boxShadow:   "0 0 0 9999px rgba(0,0,0,0.5)",
+                  }}
+                />
+              </div>
+              {!cameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Spinner className="h-6 w-6 text-white" />
+                </div>
+              )}
+            </div>
+            <p className="text-center text-xs" style={{ color: "var(--hw-text-4)" }}>
+              Encuadra tu cédula dentro del marco y toma la foto
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={capturarFoto}
+                disabled={!cameraReady}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
+                style={{ background: "var(--hw-primary)" }}
+              >
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Capturar foto
+              </button>
+              <button
+                type="button"
+                onClick={() => setModo("archivo")}
+                className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-medium"
+                style={{ color: "var(--hw-text-3)" }}
+              >
+                <ImageUp className="h-3.5 w-3.5" aria-hidden="true" />
+                Subir archivo
+              </button>
+            </div>
+          </div>
+        ) : !carnetPreview ? (
+          <div className="space-y-2">
+            {cameraError && (
+              <div
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs"
+                role="alert"
+                style={{
+                  background: "var(--hw-warning-lt)",
+                  color:      "var(--hw-warning-dk)",
+                  border:     "1px solid var(--hw-warning-bd)",
+                }}
+              >
+                <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {cameraError}
+              </div>
+            )}
+            <label
+              className="flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer"
+              style={{
+                height:     "156px",
+                border:     `2px dashed ${dragOver ? "var(--hw-primary)" : "var(--hw-border-2)"}`,
+                background: dragOver ? "var(--hw-primary-lt)" : "var(--hw-page)",
               }}
-            />
-          </label>
+              onDragOver={(e)  => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={()  => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                const f = e.dataTransfer.files[0];
+                if (f) procesarArchivo(f);
+              }}
+            >
+              <Upload
+                className="mb-2 h-8 w-8"
+                style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-4)" }}
+                aria-hidden="true"
+              />
+              <span
+                className="text-sm font-medium"
+                style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-1)" }}
+              >
+                Arrastra tu carnet o haz clic aquí
+              </span>
+              <span className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                JPG, PNG o WEBP · Máx. 5 MB
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label="Subir imagen del carnet de identidad"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) procesarArchivo(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {CAMERA_SUPPORTED && !cameraError && (
+              <button
+                type="button"
+                onClick={() => setModo("camara")}
+                className="flex items-center gap-1.5 text-xs font-medium"
+                style={{ color: "var(--hw-primary)" }}
+              >
+                <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+                Usar la cámara en su lugar
+              </button>
+            )}
+          </div>
         ) : (
           <div className="space-y-2">
             <div
@@ -264,6 +385,23 @@ function CarnetModalBody({
           nombre coincidan. No se almacena ni se comparte con terceros.
         </p>
 
+        {/* Consentimiento IA — específico para el envío de esta imagen a Groq
+            (proveedor externo), distinto del consentimiento general de T&C del
+            formulario. Registro auditable en ConsentimientoIa al crear la cuenta. */}
+        <label className="flex cursor-pointer items-start gap-2.5">
+          <input
+            type="checkbox"
+            checked={consentIa}
+            onChange={(e) => setConsentIa(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded"
+            style={{ accentColor: "var(--hw-primary)" }}
+          />
+          <span className="text-xs leading-relaxed" style={{ color: "var(--hw-text-3)" }}>
+            Acepto que la imagen de mi cédula sea enviada a nuestro proveedor de
+            verificación de identidad por IA (Groq) exclusivamente para este análisis.
+          </span>
+        </label>
+
         {/* Botones */}
         <div className="flex gap-3">
           <DialogClose
@@ -278,8 +416,8 @@ function CarnetModalBody({
           </DialogClose>
           <button
             type="button"
-            onClick={() => carnetFile && onConfirmar(carnetFile)}
-            disabled={!carnetFile}
+            onClick={() => carnetFile && consentIa && onConfirmar(carnetFile, consentIa)}
+            disabled={!carnetFile || !consentIa}
             className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
             style={{ background: "var(--hw-primary)" }}
           >
@@ -296,6 +434,8 @@ export function RegistroForm() {
   const [state, formAction, pending] = useActionState(registroAction, null);
   const [showPwd, setShowPwd]            = useState(false);
   const [password, setPassword]          = useState("");
+  const [nombre, setNombre]              = useState("");
+  const [email, setEmail]                = useState("");
   const [rut, setRut]                    = useState("");
   const [modalOpen, setModalOpen]        = useState(false);
   const [clientErrors, setClientErrors]  = useState<Record<string, string>>({});
@@ -320,23 +460,24 @@ export function RegistroForm() {
     e.preventDefault();
     if (!formRef.current) return;
 
-    const fd      = new FormData(formRef.current);
-    const nombre  = (fd.get("nombre")?.toString() ?? "").trim();
-    const email   = (fd.get("email")?.toString() ?? "").trim();
-    const empresa = (fd.get("empresa")?.toString() ?? "").trim();
-    const consent = fd.get("consent")?.toString();
+    const fd       = new FormData(formRef.current);
+    const nombreV  = nombre.trim();
+    const emailV   = email.trim();
+    const empresa  = (fd.get("empresa")?.toString() ?? "").trim();
+    const consent  = fd.get("consent")?.toString();
 
     const errs: Record<string, string> = {};
-    if (!nombre || nombre.length < 2)
+    if (!nombreV || nombreV.length < 2)
       errs.nombre = "Ingresa tu nombre completo (mínimo 2 caracteres).";
     if (!rut || !validateRut(rut))
       errs.rut = "El RUT no es válido. Verifica el dígito verificador.";
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (!emailV || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailV))
       errs.email = "Ingresa un correo electrónico válido.";
     if (!empresa || empresa.length < 2)
       errs.empresa = "Ingresa el nombre de tu corredora (mínimo 2 caracteres).";
-    if (!password || !evaluatePassword(password).passes)
-      errs.password = "La contraseña es demasiado débil. Usa al menos 15 caracteres.";
+    const strength = evaluatePassword(password, { nombre: nombreV, email: emailV });
+    if (!password || !strength.passes)
+      errs.password = strength.suggestion || "Ingresa una contraseña.";
     if (!consent)
       errs.consent = "Debes aceptar los Términos de uso y la Política de privacidad.";
 
@@ -356,10 +497,11 @@ export function RegistroForm() {
     setModalOpen(true);
   }
 
-  function handleConfirmar(carnetFile: File) {
+  function handleConfirmar(carnetFile: File, consentIa: boolean) {
     if (!formRef.current) return;
     const fd = new FormData(formRef.current);
     fd.append("carnet", carnetFile);
+    if (consentIa) fd.append("consentIa", "on");
     setModalOpen(false);
     startTransition(() => formAction(fd));
   }
@@ -381,12 +523,16 @@ export function RegistroForm() {
             required
             placeholder="Juan García López"
             disabled={pending}
+            value={nombre}
             aria-invalid={nombreErr ? true : undefined}
             aria-describedby={nombreErr ? "nombre-error" : "nombre-hint"}
             style={inputStyle(!!nombreErr, pending)}
             onFocus={onFocus}
             onBlur={makeOnBlur(!!nombreErr)}
-            onChange={() => { if (clientErrors.nombre) setClientErrors((p) => ({ ...p, nombre: "" })); }}
+            onChange={(e) => {
+              setNombre(e.target.value);
+              if (clientErrors.nombre) setClientErrors((p) => ({ ...p, nombre: "" }));
+            }}
           />
           <p id="nombre-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
             Ingresa tu nombre tal como aparece en tu Cédula de Identidad.
@@ -441,12 +587,16 @@ export function RegistroForm() {
             required
             placeholder="correo@empresa.cl"
             disabled={pending}
+            value={email}
             aria-invalid={emailErr ? true : undefined}
             aria-describedby={emailErr ? "email-error" : undefined}
             style={inputStyle(!!emailErr, pending)}
             onFocus={onFocus}
             onBlur={makeOnBlur(!!emailErr)}
-            onChange={() => { if (clientErrors.email) setClientErrors((p) => ({ ...p, email: "" })); }}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (clientErrors.email) setClientErrors((p) => ({ ...p, email: "" }));
+            }}
           />
           {emailErr && (
             <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
@@ -520,10 +670,10 @@ export function RegistroForm() {
             </button>
           </div>
           <div aria-live="polite" aria-atomic="true">
-            <PasswordStrengthMeter password={password} />
+            <PasswordStrengthMeter password={password} nombre={nombre} email={email} />
           </div>
           <p id="password-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
-            Mínimo 15 caracteres. Las frases largas son más seguras y fáciles de recordar.
+            Mínimo 8 caracteres, con letras, números y un carácter especial. Evita tu nombre o correo.
           </p>
           {passwordErr && (
             <p id="password-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>

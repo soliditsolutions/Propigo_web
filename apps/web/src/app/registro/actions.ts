@@ -1,5 +1,6 @@
 "use server";
 
+import { headers }                         from "next/headers";
 import { redirect }                        from "next/navigation";
 import { prisma }                          from "@/lib/db";
 import { hashPassword }                    from "@/lib/password";
@@ -7,6 +8,12 @@ import { signSession, setSessionCookie }   from "@/lib/auth";
 import { evaluatePassword }                from "@/lib/password-strength";
 import { validateRut, canonicalRut }       from "@/lib/rut";
 import { verificarMagicBytes, ALLOWED_MIME_IMAGES } from "@/lib/magic-bytes";
+import { getClientIpFromHeaders }          from "@/lib/ip";
+import { checkRateLimit }                  from "@/lib/rate-limit";
+
+// Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
+// verificación de identidad esperando indefinidamente en vez de fallar rápido.
+const GROQ_TIMEOUT_MS = 20_000;
 
 export type RegistroState = { error: string; field?: string } | null;
 
@@ -74,6 +81,7 @@ async function leerCarnetConIA(base64: string, mimeType: string): Promise<Carnet
 
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method:  "POST",
+    signal:  AbortSignal.timeout(GROQ_TIMEOUT_MS),
     headers: {
       Authorization:  `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -122,6 +130,7 @@ export async function registroAction(
   const empresa  = formData.get("empresa")?.toString().trim()             ?? "";
   const password = formData.get("password")?.toString()                   ?? "";
   const consent  = formData.get("consent")?.toString();
+  const consentIa = formData.get("consentIa")?.toString();
 
   // ── 1. Validaciones de formato ────────────────────────────────────────────
   if (!nombre || !rut || !email || !empresa || !password) {
@@ -157,13 +166,9 @@ export async function registroAction(
     };
   }
 
-  // NIST SP800-63B sin 2FA → mínimo score 3
-  const strength = evaluatePassword(password);
+  const strength = evaluatePassword(password, { nombre, email, rut });
   if (!strength.passes) {
-    return {
-      error: "La contraseña es demasiado débil. Usa al menos 15 caracteres.",
-      field: "password",
-    };
+    return { error: strength.suggestion, field: "password" };
   }
 
   // ── 2. Verificación de identidad por carnet ──────────────────────────────
@@ -175,6 +180,9 @@ export async function registroAction(
     process.env.NODE_ENV !== "production" && process.env.E2E_BYPASS_IDENTITY === "1";
 
   let rutCanonical: string;
+  // IP de quien dio el consentimiento IA — se persiste junto al registro auditable
+  // (ConsentimientoIa) al crear la cuenta, más abajo. null si vino por bypassIdentidad.
+  let consentIaIp: string | null = null;
 
   if (bypassIdentidad) {
     rutCanonical = canonicalRut(rut);
@@ -196,6 +204,16 @@ export async function registroAction(
       return { error: "La imagen del carnet no puede superar los 5 MB.", field: "carnet" };
     }
 
+    // Consentimiento explícito ANTES de enviar la imagen a la IA externa (Groq).
+    // Distinto del checkbox general de T&C (`consent`, Ley 21.719 Art. 4): este
+    // es específico para el procesamiento de la foto del carnet por un tercero.
+    if (!consentIa) {
+      return {
+        error: "Debes aceptar el envío de tu cédula a nuestro proveedor de verificación de identidad para continuar.",
+        field: "carnet",
+      };
+    }
+
     // FIX M4: verificar magic bytes — el cliente puede declarar un MIME falso (CWE-434)
     const buffer = Buffer.from(await carnetFile.arrayBuffer());
     if (!verificarMagicBytes(buffer, carnetFile.type)) {
@@ -209,6 +227,19 @@ export async function registroAction(
     if (!process.env.GROQ_API_KEY) {
       return {
         error: "El servicio de verificación de identidad no está disponible temporalmente. Contacta con soporte.",
+        field: "carnet",
+      };
+    }
+
+    // Rate limit por IP — el registro es previo a cualquier cuenta, así que no
+    // hay usuarioId para limitar por sesión; una IP no debería necesitar más
+    // de un puñado de intentos legítimos (foto borrosa, mal encuadre) por hora.
+    const ip = getClientIpFromHeaders(await headers());
+    consentIaIp = ip;
+    const rlCarnet = checkRateLimit(`registro_carnet:${ip}`, 5, 10 * 60_000);
+    if (!rlCarnet.allowed) {
+      return {
+        error: "Demasiados intentos de verificación. Intenta de nuevo en unos minutos.",
         field: "carnet",
       };
     }
@@ -274,7 +305,7 @@ export async function registroAction(
       return { error: "Ya existe una cuenta registrada con este RUT.", field: "rut" };
     }
   } catch {
-    return { error: "Error al conectar con el servidor. Intenta de nuevo." };
+    return { error: "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo." };
   }
 
   // ── 4. Crear Tenant + Usuario en transacción atómica ─────────────────────
@@ -297,7 +328,7 @@ export async function registroAction(
       // de aquí, dentro de esta transacción, ya se puede escribir en usuario.
       await tx.$executeRaw`SELECT set_config('app.current_tenant_id', ${tenant.id}, true)`;
 
-      return tx.usuario.create({
+      const usuario = await tx.usuario.create({
         data: {
           tenantId:       tenant.id,
           rol:            "manager",
@@ -310,9 +341,31 @@ export async function registroAction(
         },
         select: { id: true, tenantId: true, rol: true, nombre: true, email: true },
       });
+
+      // Registro auditable del consentimiento IA dado más arriba — solo aplica
+      // si de verdad se llamó a Groq (bypassIdentidad se salta todo el flujo).
+      // Limitación conocida: si el RUT/nombre del carnet no coincide con el
+      // formulario (o cualquier otro paso posterior falla), la cuenta nunca se
+      // crea y este registro tampoco se persiste — no existe tenant/usuario al
+      // cual asociarlo antes de este punto (RLS exige tenant_id no nulo). El
+      // consentimiento sigue exigiéndose y aplicándose correctamente antes de
+      // la llamada a Groq; lo que no queda es la traza para un intento fallido.
+      if (!bypassIdentidad) {
+        await tx.consentimientoIa.create({
+          data: {
+            tenantId:  tenant.id,
+            usuarioId: usuario.id,
+            flujo:     "carnet_registro",
+            version:   "ia-v1.0",
+            ip:        consentIaIp,
+          },
+        });
+      }
+
+      return usuario;
     });
   } catch {
-    return { error: "Error al crear la cuenta. Intenta de nuevo." };
+    return { error: "No pudimos crear tu cuenta. Intenta de nuevo." };
   }
 
   // ── 5. Emitir sesión JWT ─────────────────────────────────────────────────

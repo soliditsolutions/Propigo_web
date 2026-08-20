@@ -33,7 +33,7 @@ export default async function NuevaContrasenaPage({
     });
     if (!resetToken) {
       invalidMensaje =
-        "El enlace de recuperación ha expirado o ya fue utilizado. Solicita uno nuevo.";
+        "El enlace de recuperación expiró o ya se usó. Solicita uno nuevo.";
     }
   }
 

@@ -20,14 +20,10 @@ export async function nuevaContrasenaAction(
     return { error: "Enlace de recuperación inválido. Solicita uno nuevo." };
   }
 
-  // Validar fuerza de contraseña antes de tocar la base de datos
-  const strength = evaluatePassword(password);
-  if (!strength.passes) {
-    return { error: "La contraseña es demasiado débil. Se requieren al menos 15 caracteres." };
-  }
-
   // Verificar token en DB (re-validación defensiva — podría haber expirado entre
-  // el page load y el submit del formulario)
+  // el page load y el submit del formulario). Se resuelve antes del chequeo
+  // de fuerza para poder rechazar una contraseña que contenga la propia
+  // información personal del usuario.
   const tokenHash = await hashToken(rawToken);
 
   const resetToken = await prisma.resetToken.findFirst({
@@ -40,7 +36,18 @@ export async function nuevaContrasenaAction(
   });
 
   if (!resetToken) {
-    return { error: "El enlace ha expirado o ya fue utilizado. Solicita uno nuevo." };
+    return { error: "El enlace expiró o ya se usó. Solicita uno nuevo." };
+  }
+
+  // reset_token no tiene tenant_id (sin RLS) pero usuario sí — igual que
+  // auth_tenant_de_usuario más abajo, se lee vía función SECURITY DEFINER
+  // porque todavía no hay sesión/tenant conocido en este punto del flujo.
+  const usuarioRows = await prisma.$queryRaw<{ nombre: string; email: string; rut: string | null }[]>`
+    SELECT * FROM auth_lookup_usuario_por_id(${resetToken.usuarioId}::uuid)
+  `;
+  const strength = evaluatePassword(password, usuarioRows[0]);
+  if (!strength.passes) {
+    return { error: strength.suggestion };
   }
 
   // ADR-0011 Fase 2: reset_token no tiene tenant_id (no está sujeta a RLS),
@@ -52,7 +59,7 @@ export async function nuevaContrasenaAction(
   `;
   const tenantId = tenantRows[0]?.tenant_id;
   if (!tenantId) {
-    return { error: "El enlace ha expirado o ya fue utilizado. Solicita uno nuevo." };
+    return { error: "El enlace expiró o ya se usó. Solicita uno nuevo." };
   }
 
   // Actualizar contraseña e invalidar token en transacción atómica
@@ -70,7 +77,7 @@ export async function nuevaContrasenaAction(
       });
     });
   } catch {
-    return { error: "Error al actualizar la contraseña. Intenta de nuevo." };
+    return { error: "No pudimos actualizar tu contraseña. Intenta de nuevo." };
   }
 
   redirect("/login?reset=1");

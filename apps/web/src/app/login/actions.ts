@@ -76,7 +76,7 @@ export async function loginAction(
   const password = formData.get("password")?.toString() ?? "";
 
   if (!email || !password) {
-    return { error: "Ingresa tu email y contraseña." };
+    return { error: "Ingresa tu correo electrónico y contraseña." };
   }
 
   // ── Buscar usuario ──────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ export async function loginAction(
       desactivadoEn:  row.desactivado_en,
     } : null;
   } catch {
-    return { error: "Error al conectar con el servidor. Intenta de nuevo." };
+    return { error: "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo." };
   }
 
   // ── Rate limiting por IP (BD-backed, scoped al tenant) ─────────────────
@@ -135,7 +135,7 @@ export async function loginAction(
     const isPermanent = user.failedAttempts >= MAX_ATTEMPTS;
     if (isPermanent) {
       return {
-        error:    "Tu cuenta ha sido bloqueada por seguridad.",
+        error:    "Bloqueamos tu cuenta por seguridad.",
         blocked:  true,
         attempts: user.failedAttempts,
       };
@@ -175,13 +175,13 @@ export async function loginAction(
 
       const isPermanent = newAttempts >= MAX_ATTEMPTS;
       return {
-        error:    isPermanent ? "Tu cuenta ha sido bloqueada por seguridad." : "Email o contraseña incorrectos.",
+        error:    isPermanent ? "Bloqueamos tu cuenta por seguridad." : "Correo o contraseña incorrectos.",
         attempts: newAttempts,
         ...(lockUntil && !isPermanent ? { lockedUntil: lockUntil.getTime() } : {}),
         ...(isPermanent               ? { blocked: true }                    : {}),
       };
     }
-    return { error: "Email o contraseña incorrectos." };
+    return { error: "Correo o contraseña incorrectos." };
   }
 
   // ── Collaborator desactivado (ADR-0013) ─────────────────────────────────
@@ -238,7 +238,7 @@ export async function loginAction(
 
     await setSessionCookie(token);
   } catch {
-    return { error: "Error al crear la sesión. Intenta de nuevo." };
+    return { error: "No pudimos iniciar tu sesión. Intenta de nuevo." };
   }
 
   // redirect() lanza un error interno de Next.js — debe ir fuera del try/catch

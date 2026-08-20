@@ -29,13 +29,10 @@ export async function aceptarInvitacionAction(
     return { error: "Debes aceptar los Términos de uso y la Política de privacidad." };
   }
 
-  const strength = evaluatePassword(password);
-  if (!strength.passes) {
-    return { error: "La contraseña es demasiado débil. Usa al menos 15 caracteres.", field: "password" };
-  }
-
   // Re-validar el token en el servidor — pudo expirar o usarse entre el
-  // page load y el submit del formulario.
+  // page load y el submit del formulario. Se resuelve antes del chequeo de
+  // fuerza para poder rechazar una contraseña que contenga el propio
+  // nombre/correo del invitado.
   const tokenHash = await hashToken(rawToken);
   const invitacion = await prisma.invitacionColaborador.findFirst({
     where: {
@@ -47,7 +44,12 @@ export async function aceptarInvitacionAction(
   });
 
   if (!invitacion) {
-    return { error: "La invitación expiró o ya fue utilizada. Pide a tu administrador que te reenvíe una nueva." };
+    return { error: "La invitación expiró o ya se usó. Pide a tu administrador que te reenvíe una nueva." };
+  }
+
+  const strength = evaluatePassword(password, { nombre: invitacion.nombre, email: invitacion.email });
+  if (!strength.passes) {
+    return { error: strength.suggestion, field: "password" };
   }
 
   // invitacion_colaborador no tiene tenant_id — se resuelve vía la misma
@@ -58,7 +60,7 @@ export async function aceptarInvitacionAction(
   `;
   const tenantId = tenantRows[0]?.tenant_id;
   if (!tenantId) {
-    return { error: "La invitación expiró o ya fue utilizada. Pide a tu administrador que te reenvíe una nueva." };
+    return { error: "La invitación expiró o ya se usó. Pide a tu administrador que te reenvíe una nueva." };
   }
 
   // Doble-chequeo de unicidad (defensa en profundidad — auth_email_existe ya
@@ -122,7 +124,7 @@ export async function aceptarInvitacionAction(
       return usuario;
     });
   } catch {
-    return { error: "Error al crear la cuenta. Intenta de nuevo." };
+    return { error: "No pudimos crear tu cuenta. Intenta de nuevo." };
   }
 
   try {

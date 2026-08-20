@@ -191,8 +191,8 @@ function BlockedPanel() {
             Cuenta bloqueada por seguridad
           </p>
           <p className="mt-1 leading-relaxed" style={{ color: "var(--hw-danger-dk)" }}>
-            Se detectó un número excesivo de intentos fallidos. Tu cuenta ha sido bloqueada
-            para proteger tu información.
+            Detectamos demasiados intentos fallidos y bloqueamos tu cuenta para proteger
+            tu información.
           </p>
         </div>
       </div>

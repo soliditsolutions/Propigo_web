@@ -12,6 +12,24 @@
 // esta variable es obligatoria — ver runStartupChecks().
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+/**
+ * Escapa texto antes de interpolarlo en el HTML de un correo.
+ *
+ * Todo lo que venga de una persona —nombres, direcciones, el texto libre de un
+ * comentario, y sobre todo los formularios PÚBLICOS de contacto y denuncia del
+ * marketplace— llega acá sin ninguna garantía. Sin escapar, quien envía el
+ * formulario decide el HTML de un correo que sale desde nuestro dominio: es un
+ * vector de phishing con la credibilidad de Housing detrás.
+ */
+function esc(v: unknown): string {
+  return String(v ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 /** Retorna true cuando Resend está configurado (útil para UI). */
 export function tieneEmailReal(): boolean {
   return Boolean(process.env.RESEND_API_KEY);
@@ -44,7 +62,7 @@ export async function sendPasswordResetEmail(
   await resend.emails.send({
     from:    "Housing SOLIDIT <no-reply@solidit.cl>",
     to:      email,
-    subject: "Enlace para restablecer tu contraseña — Housing",
+    subject: "Restablece tu contraseña de Housing",
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="margin:0 0 8px;color:#0F172A">Recupera tu contraseña</h2>
@@ -91,8 +109,8 @@ export async function sendNotificacionEmail(
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px">
         <p style="margin:0 0 4px;font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Housing SOLIDIT</p>
-        <h2 style="margin:0 0 16px;color:#0F172A">${notif.asunto}</h2>
-        <p style="color:#475569;line-height:1.6">${notif.cuerpo ?? ""}</p>
+        <h2 style="margin:0 0 16px;color:#0F172A">${esc(notif.asunto)}</h2>
+        <p style="color:#475569;line-height:1.6">${esc(notif.cuerpo ?? "")}</p>
         <hr style="border:none;border-top:1px solid #E2E8F0;margin:24px 0">
         <p style="font-size:12px;color:#94A3B8">
           Este mensaje fue enviado por Housing SOLIDIT. Si tienes dudas, contacta a tu corredor.
@@ -128,12 +146,12 @@ export async function sendPortalOtpEmail(
   await resend.emails.send({
     from:    "Housing SOLIDIT <no-reply@solidit.cl>",
     to:      email,
-    subject: `${codigo} — Código de acceso al portal Housing`,
+    subject: `${codigo}: tu código de acceso al portal`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${nombre}</h2>
+        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${esc(nombre)}</h2>
         <p style="color:#475569">Solicitaste acceso al portal de autoconsulta para la propiedad:</p>
-        <p style="font-weight:600;color:#0F172A">${direccion}</p>
+        <p style="font-weight:600;color:#0F172A">${esc(direccion)}</p>
         <div style="background:#F1F5F9;border-radius:12px;padding:24px;text-align:center;margin:24px 0">
           <p style="margin:0;font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Tu código de acceso (${rolLabel})</p>
           <p style="font-size:40px;font-weight:700;letter-spacing:.15em;color:#0F172A;margin:8px 0">${codigo}</p>
@@ -182,22 +200,22 @@ export async function sendContactoCorredorEmail(opts: {
     from:    "Housing SOLIDIT <notificaciones@solidit.cl>",
     to:      emailCorredor,
     replyTo: email,
-    subject: `Nueva consulta: ${titulo} — Housing`,
+    subject: `Nueva consulta: ${titulo}`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px">
         <p style="margin:0 0 4px;font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Housing SOLIDIT</p>
         <h2 style="margin:0 0 16px;color:#0F172A">Nueva consulta de contacto</h2>
-        <p style="color:#475569">Recibiste una consulta sobre la propiedad <strong>${tituloPub}</strong>.</p>
+        <p style="color:#475569">Recibiste una consulta sobre la propiedad <strong>${esc(tituloPub)}</strong>.</p>
         <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
-          <tr><td style="padding:8px 0;color:#64748B;width:120px">Nombre</td><td style="padding:8px 0;color:#0F172A;font-weight:600">${nombre} ${apellido}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748B">Email</td><td style="padding:8px 0"><a href="mailto:${email}" style="color:#2563EB">${email}</a></td></tr>
-          <tr><td style="padding:8px 0;color:#64748B">Teléfono</td><td style="padding:8px 0;color:#0F172A">${telefono}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748B;width:120px">Nombre</td><td style="padding:8px 0;color:#0F172A;font-weight:600">${esc(nombre)} ${esc(apellido)}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748B">Email</td><td style="padding:8px 0"><a href="mailto:${esc(email)}" style="color:#2563EB">${esc(email)}</a></td></tr>
+          <tr><td style="padding:8px 0;color:#64748B">Teléfono</td><td style="padding:8px 0;color:#0F172A">${esc(telefono)}</td></tr>
           <tr><td style="padding:8px 0;color:#64748B">Contactar por</td><td style="padding:8px 0;color:#0F172A">${canales}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748B">Asunto</td><td style="padding:8px 0;color:#0F172A;font-weight:600">${titulo}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748B">Asunto</td><td style="padding:8px 0;color:#0F172A;font-weight:600">${esc(titulo)}</td></tr>
         </table>
         <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin:16px 0">
           <p style="margin:0;font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Mensaje</p>
-          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${descripcion}</p>
+          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${esc(descripcion)}</p>
         </div>
         <p style="font-size:12px;color:#94A3B8;margin-top:16px">
           Puedes responder directamente a este correo para contactar al interesado.<br>
@@ -231,12 +249,12 @@ export async function sendAcuseContactoEmail(opts: {
   await resend.emails.send({
     from:    "Housing SOLIDIT <notificaciones@solidit.cl>",
     to:      emailCliente,
-    subject: `Tu consulta fue recibida — Housing`,
+    subject: "Recibimos tu consulta",
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <p style="margin:0 0 4px;font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Housing SOLIDIT</p>
-        <h2 style="margin:0 0 8px;color:#0F172A">¡Tu consulta fue recibida!</h2>
-        <p style="color:#475569">Hola, ${nombreCliente}. Tu consulta sobre la propiedad <strong>${tituloPub}</strong> fue enviada correctamente al corredor <strong>${nombreCorredor}</strong>.</p>
+        <h2 style="margin:0 0 8px;color:#0F172A">Recibimos tu consulta</h2>
+        <p style="color:#475569">Hola, ${nombreCliente}. Tu consulta sobre la propiedad <strong>${esc(tituloPub)}</strong> fue enviada correctamente al corredor <strong>${esc(nombreCorredor)}</strong>.</p>
         <div style="background:#F0FDF4;border-radius:12px;padding:16px;margin:20px 0;border:1px solid #BBF7D0">
           <p style="margin:0;font-size:13px;color:#15803D">El corredor se pondrá en contacto contigo próximamente usando los canales que indicaste.</p>
         </div>
@@ -290,7 +308,7 @@ export async function sendDenunciaAdminEmail(opts: {
   await resend.emails.send({
     from:    "Housing SOLIDIT <notificaciones@solidit.cl>",
     to:      "contacto@solidit.cl",
-    subject: `[DENUNCIA] ${tipoLabel[tipo] ?? tipo} — ${objetivo} — Housing`,
+    subject: `[Denuncia] ${tipoLabel[tipo] ?? tipo}: ${objetivo === "propiedad" ? "propiedad" : "corredor"}`,
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
         <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px;margin-bottom:20px">
@@ -298,18 +316,18 @@ export async function sendDenunciaAdminEmail(opts: {
           <p style="margin:4px 0 0;color:#B91C1C;font-size:13px">${new Date().toLocaleString("es-CL", { timeZone: "America/Santiago" })}</p>
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">
-          <tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600;width:160px">Tipo de denuncia</td><td style="padding:8px 12px;color:#0F172A">${tipoLabel[tipo] ?? tipo}</td></tr>
+          <tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600;width:160px">Tipo de denuncia</td><td style="padding:8px 12px;color:#0F172A">${esc(tipoLabel[tipo] ?? tipo)}</td></tr>
           <tr><td style="padding:8px 12px;color:#64748B;font-weight:600">Objetivo</td><td style="padding:8px 12px;color:#0F172A">${objetivo === "propiedad" ? "Propiedad" : "Corredor"}</td></tr>
-          ${tituloPub ? `<tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600">Propiedad</td><td style="padding:8px 12px;color:#0F172A">${tituloPub}</td></tr>` : ""}
-          ${nombreCorredor ? `<tr><td style="padding:8px 12px;color:#64748B;font-weight:600">Corredor</td><td style="padding:8px 12px;color:#0F172A">${nombreCorredor}</td></tr>` : ""}
-          <tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600">Denunciante</td><td style="padding:8px 12px;color:#0F172A">${denunciante}${!esAnonima && emailDenunciante ? ` &lt;${emailDenunciante}&gt;` : ""}</td></tr>
-          <tr><td style="padding:8px 12px;color:#64748B;font-weight:600">IP origen</td><td style="padding:8px 12px;color:#0F172A">${ip ?? "no disponible"}</td></tr>
+          ${tituloPub ? `<tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600">Propiedad</td><td style="padding:8px 12px;color:#0F172A">${esc(tituloPub)}</td></tr>` : ""}
+          ${nombreCorredor ? `<tr><td style="padding:8px 12px;color:#64748B;font-weight:600">Corredor</td><td style="padding:8px 12px;color:#0F172A">${esc(nombreCorredor)}</td></tr>` : ""}
+          <tr style="background:#F8FAFC"><td style="padding:8px 12px;color:#64748B;font-weight:600">Denunciante</td><td style="padding:8px 12px;color:#0F172A">${esc(denunciante)}${!esAnonima && emailDenunciante ? ` &lt;${esc(emailDenunciante)}&gt;` : ""}</td></tr>
+          <tr><td style="padding:8px 12px;color:#64748B;font-weight:600">IP origen</td><td style="padding:8px 12px;color:#0F172A">${esc(ip ?? "no disponible")}</td></tr>
         </table>
         <div style="background:#F8FAFC;border-radius:12px;padding:16px;margin-bottom:16px">
           <p style="margin:0 0 8px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Descripción</p>
-          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${descripcion}</p>
+          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${esc(descripcion)}</p>
         </div>
-        ${evidencia ? `<div style="background:#FFFBEB;border-radius:12px;padding:16px;border:1px solid #FDE68A"><p style="margin:0 0 8px;font-size:12px;color:#92400E;text-transform:uppercase;letter-spacing:.05em">Evidencia aportada</p><p style="margin:0;color:#78350F;line-height:1.6">${evidencia}</p></div>` : ""}
+        ${evidencia ? `<div style="background:#FFFBEB;border-radius:12px;padding:16px;border:1px solid #FDE68A"><p style="margin:0 0 8px;font-size:12px;color:#92400E;text-transform:uppercase;letter-spacing:.05em">Evidencia aportada</p><p style="margin:0;color:#78350F;line-height:1.6">${esc(evidencia)}</p></div>` : ""}
         <p style="font-size:11px;color:#94A3B8;margin-top:20px">Esta denuncia fue recibida a través del formulario público de Housing. Evalúa su pertinencia antes de actuar.</p>
       </div>
     `,
@@ -343,14 +361,14 @@ export async function sendComentarioCorredorEmail(opts: {
   await resend.emails.send({
     from:    "Housing SOLIDIT <notificaciones@solidit.cl>",
     to:      emailArrendatario,
-    subject: `Nuevo mensaje de tu corredor — Housing`,
+    subject: "Tu corredor te dejó un mensaje",
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px">
         <p style="margin:0 0 4px;font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Housing SOLIDIT</p>
-        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${nombreArrendatario}</h2>
-        <p style="color:#475569">Tu corredor <strong>${nombreCorredor}</strong> te dejó un mensaje sobre la propiedad <strong>${direccionPropiedad}</strong>.</p>
+        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${esc(nombreArrendatario)}</h2>
+        <p style="color:#475569">Tu corredor <strong>${esc(nombreCorredor)}</strong> te dejó un mensaje sobre la propiedad <strong>${direccionPropiedad}</strong>.</p>
         <div style="background:#F8FAFC;border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid #2563EB">
-          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${texto}</p>
+          <p style="margin:0;color:#0F172A;line-height:1.6;white-space:pre-wrap">${esc(texto)}</p>
         </div>
         ${tieneDocumentos ? `<p style="color:#475569;font-size:13px">Este mensaje incluye documentos adjuntos. Accede a tu portal para descargarlos.</p>` : ""}
         <p style="font-size:12px;color:#94A3B8;margin-top:20px">
@@ -389,10 +407,10 @@ export async function sendDeviceCodeEmail(
   await resend.emails.send({
     from:    "Housing SOLIDIT <no-reply@solidit.cl>",
     to:      email,
-    subject: `${codigo} — Código de verificación de dispositivo`,
+    subject: `${codigo}: verifica tu nuevo dispositivo`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="margin:0 0 8px">Hola, ${nombre}</h2>
+        <h2 style="margin:0 0 8px">Hola, ${esc(nombre)}</h2>
         <p style="color:#475569">Detectamos un acceso desde un nuevo dispositivo.</p>
         <div style="background:#F1F5F9;border-radius:12px;padding:24px;text-align:center;margin:24px 0">
           <p style="margin:0;font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Tu código de verificación</p>
@@ -438,7 +456,7 @@ export async function sendCollaboratorInviteEmail(
     subject: `${nombreEmpresa} te invitó a unirte en Housing`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${nombre}</h2>
+        <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${esc(nombre)}</h2>
         <p style="color:#475569"><strong>${nombreEmpresa}</strong> te invitó a colaborar en la gestión de sus propiedades en Housing.</p>
         <div style="margin:24px 0">
           <a href="${link}" style="display:inline-block;background:#2563EB;color:#fff;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none">
@@ -488,10 +506,10 @@ export async function sendCambioContactoCodeEmail(
   await resend.emails.send({
     from:    "Housing SOLIDIT <no-reply@solidit.cl>",
     to:      email,
-    subject: `${codigo} — Confirma tu cambio de ${campoLabel}`,
+    subject: `${codigo}: confirma tu cambio de ${campoLabel}`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="margin:0 0 8px">Hola, ${nombre}</h2>
+        <h2 style="margin:0 0 8px">Hola, ${esc(nombre)}</h2>
         <p style="color:#475569">Pediste cambiar tu ${campoLabel} a <strong>${valorNuevo}</strong>.</p>
         <div style="background:#F1F5F9;border-radius:12px;padding:24px;text-align:center;margin:24px 0">
           <p style="margin:0;font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Tu código de confirmación</p>

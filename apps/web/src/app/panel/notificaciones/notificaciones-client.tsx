@@ -5,10 +5,10 @@ import {
   Bell, CheckCircle2, Clock, Info, Loader2, Mail, Send,
   ShieldCheck, TrendingUp, X,
 } from "lucide-react";
-import { Badge } from "@/components/panel/ui";
+import { Badge, Tabs } from "@/components/panel/ui";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
-import { fecha } from "@/lib/format";
+import { fecha, cantidad } from "@/lib/format";
 import type { NotificacionItem } from "@/lib/queries";
 import { generarRecordatorios, marcarSimulada, simularEnvioMasivo, enviarNotificacionesPendientes } from "./actions";
 import { useToast } from "@/components/ui/toast";
@@ -35,16 +35,43 @@ const TIPO_ICON: Record<string, React.ReactNode> = {
 };
 
 type FiltroEstado = "todas" | "pendiente" | "simulada";
-type FiltroTipo   = "todos" | "cobro" | "recordatorio_vencimiento" | "liquidacion_propietario" | "voucher_pago" | "solicitud_firma" | "renovacion_contrato";
+type Categoria   = "todas" | "cobros" | "pagos" | "contratos" | "mensajes";
 
-const FILTROS_TIPO: { key: FiltroTipo; label: string }[] = [
-  { key: "todos",                    label: "Todos los tipos"    },
-  { key: "cobro",                    label: "Cobros"             },
-  { key: "recordatorio_vencimiento", label: "Recordatorios"      },
-  { key: "liquidacion_propietario",  label: "Liquidaciones"      },
-  { key: "voucher_pago",             label: "Vouchers"           },
-  { key: "solicitud_firma",          label: "Firmas"             },
-  { key: "renovacion_contrato",      label: "Renovaciones"       },
+/**
+ * Las notificaciones se agrupan por CATEGORÍA, no una pestaña por tipo.
+ *
+ * Hay 10 tipos y una corredora puede administrar hasta 200 propiedades: diez
+ * pestañas serían el mismo amontonamiento, solo que en horizontal. Cuatro
+ * categorías responden a la pregunta con la que el corredor llega ("¿quién me
+ * debe?", "¿qué comprobantes salieron?", "¿qué pasa con mis contratos?") en vez
+ * de obligarlo a conocer la taxonomía interna del sistema.
+ *
+ * Un tipo nuevo que no esté acá cae en "contratos" por defecto — nunca
+ * desaparece de la vista, que es el fallo que importa evitar.
+ */
+const CATEGORIA_DE_TIPO: Record<string, Exclude<Categoria, "todas">> = {
+  cobro:                    "cobros",
+  recordatorio_vencimiento: "cobros",
+  voucher_pago:             "pagos",
+  liquidacion_propietario:  "pagos",
+  nuevo_contrato:           "contratos",
+  solicitud_firma:          "contratos",
+  renovacion_contrato:      "contratos",
+  termino_contrato:         "contratos",
+  salida_anticipada:        "contratos",
+  comentario_corredor:      "mensajes",
+};
+
+function categoriaDe(tipo: string): Exclude<Categoria, "todas"> {
+  return CATEGORIA_DE_TIPO[tipo] ?? "contratos";
+}
+
+const CATEGORIAS: { key: Categoria; label: string }[] = [
+  { key: "todas",     label: "Todas"      },
+  { key: "cobros",    label: "Cobros"     },
+  { key: "pagos",     label: "Pagos"      },
+  { key: "contratos", label: "Contratos"  },
+  { key: "mensajes",  label: "Mensajes"   },
 ];
 
 const GUIDE_KEY = "hw_notif_guide_dismissed";
@@ -58,7 +85,7 @@ export function NotificacionesClient({
 }) {
   const [noticias, setNoticias]     = useState(inicial);
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("todas");
-  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todos");
+  const [categoria, setCategoria]   = useState<Categoria>("todas");
   const [isPending, start]          = useTransition();
   const { show: toast }             = useToast();
   const [pageSize, setPageSize]     = useState(25);
@@ -78,18 +105,25 @@ export function NotificacionesClient({
     simulada:  noticias.filter((n) => n.estado === "simulada").length,
   }), [noticias]);
 
-  const tiposCounts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const n of noticias) c[n.tipo] = (c[n.tipo] ?? 0) + 1;
+  // El contador de cada pestaña respeta el filtro de estado activo: si estoy
+  // viendo "Pendientes", la pestaña debe decir cuántas pendientes hay en cada
+  // categoría, no el total histórico — si no, los números no cuadran con la lista.
+  const catCounts = useMemo(() => {
+    const base = filtroEstado === "todas" ? noticias : noticias.filter((n) => n.estado === filtroEstado);
+    const c: Record<string, number> = { todas: base.length };
+    for (const n of base) {
+      const k = categoriaDe(n.tipo);
+      c[k] = (c[k] ?? 0) + 1;
+    }
     return c;
-  }, [noticias]);
+  }, [noticias, filtroEstado]);
 
   const filtradas = useMemo(() => {
     let r = noticias;
     if (filtroEstado !== "todas") r = r.filter((n) => n.estado === filtroEstado);
-    if (filtroTipo   !== "todos") r = r.filter((n) => n.tipo   === filtroTipo);
+    if (categoria    !== "todas") r = r.filter((n) => categoriaDe(n.tipo) === categoria);
     return r;
-  }, [noticias, filtroEstado, filtroTipo]);
+  }, [noticias, filtroEstado, categoria]);
 
   const pagina = filtradas.slice(0, pageSize);
 
@@ -107,7 +141,7 @@ export function NotificacionesClient({
         const r = await enviarNotificacionesPendientes();
         if (r.ok) {
           toast(
-            `${r.enviadas} email(s) enviado(s)${r.errores > 0 ? ` · ${r.errores} error(es)` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin email` : ""}.`,
+            `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}.`,
             r.errores > 0 ? "error" : "success",
           );
           if (r.enviadas > 0) window.location.reload();
@@ -115,7 +149,7 @@ export function NotificacionesClient({
       } else {
         const r = await simularEnvioMasivo();
         if (r.ok) {
-          toast(`${r.enviadas} recordatorio(s) marcado(s) como enviados (simulado).`, "success");
+          toast(`${cantidad(r.enviadas, "recordatorio", "recordatorios")} marcado${r.enviadas === 1 ? "" : "s"} como enviado${r.enviadas === 1 ? "" : "s"} (simulación).`, "success");
           setNoticias((prev) =>
             prev.map((n) => n.estado === "pendiente" ? { ...n, estado: "simulada" as const } : n)
           );
@@ -153,10 +187,10 @@ export function NotificacionesClient({
               <ol className="space-y-1 text-sm" style={{ color: "var(--hw-primary-dk)" }}>
                 <li><span className="font-bold">1.</span> Haz clic en <strong>Generar recordatorios</strong> para que Housing cree automáticamente los avisos de cobro y vencimiento basados en tus contratos activos.</li>
                 <li><span className="font-bold">2.</span> Revisa la lista — cada notificación irá al arrendatario o propietario correspondiente.</li>
-                <li><span className="font-bold">3.</span> Usa <strong>{emailRealActivo ? "Enviar" : "Simular envío"}</strong> para {emailRealActivo ? "enviarlas por email a cada destinatario." : "marcarlas como enviadas (activa el envío real configurando RESEND_API_KEY)."}</li>
+                <li><span className="font-bold">3.</span> Usa <strong>{emailRealActivo ? "Enviar" : "Simular envío"}</strong> para {emailRealActivo ? "enviarlas por correo a cada destinatario." : "marcarlas como enviadas (activa el envío real configurando RESEND_API_KEY)."}</li>
               </ol>
               <p className="text-xs" style={{ color: "var(--hw-primary)" }}>
-                💡 En producción, los envíos se harán vía email/WhatsApp de forma automática según la cadencia ADR-0008.
+                💡 En producción los envíos salen solos por correo y WhatsApp, según la cadencia definida en el ADR-0008.
               </p>
             </div>
             <button
@@ -217,21 +251,18 @@ export function NotificacionesClient({
           />
         ))}
 
-        {/* Separador visual */}
-        <span className="h-6 w-px self-center" style={{ background: "var(--hw-border)" }} aria-hidden="true" />
-
-        {/* Filtros de tipo */}
-        {FILTROS_TIPO.filter((f) => f.key === "todos" || (tiposCounts[f.key] ?? 0) > 0).map((f) => (
-          <FilterChip
-            key={f.key}
-            label={f.label}
-            count={f.key !== "todos" ? tiposCounts[f.key] : undefined}
-            active={filtroTipo === f.key}
-            activeColor="var(--hw-primary-dk)"
-            onClick={() => setFiltroTipo(f.key)}
-          />
-        ))}
       </FilterToolbar>
+
+      {/* Categoría — eje distinto al estado, por eso va en pestañas aparte y no
+          mezclado entre los chips: "pendiente/enviada" y "de qué se trata" son
+          dos preguntas separadas y juntarlas en una fila las volvía ilegibles. */}
+      <div className="mt-4 overflow-x-auto">
+        <Tabs
+          tabs={CATEGORIAS.map((c) => ({ key: c.key, label: c.label, count: catCounts[c.key] ?? 0 }))}
+          active={categoria}
+          onChange={(k) => setCategoria(k as Categoria)}
+        />
+      </div>
 
       {/* ── Lista ───────────────────────────────────────── */}
       {filtradas.length === 0 ? (

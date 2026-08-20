@@ -5,6 +5,7 @@ import { getActor, marcarPeriodosAtrasados, propiedadIdsVisibles } from "@/lib/q
 import { withTenant } from "@/lib/tenant-db";
 import { sendNotificacionEmail } from "@/lib/email";
 import { logError } from "@/lib/logger";
+import { cantidad } from "@/lib/format";
 import type { Tenant, Prisma } from "@/generated/prisma/client";
 
 /** Hoy a medianoche UTC — dinámico, para cálculo de días (no hardcodear fechas). */
@@ -110,9 +111,9 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
           canal: "email",
           estado: "pendiente",
           asunto: diasHastaVencimiento === 0
-            ? `Tu arriendo vence hoy — ${c.propiedad.direccion}`
-            : `Tu arriendo vence en ${diasHastaVencimiento} día(s) — ${c.propiedad.direccion}`,
-          cuerpo: `Recordatorio: el pago de tu arriendo vence el ${p.fechaVencimiento.toLocaleDateString("es-CL", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" })}.`,
+            ? `Tu arriendo vence hoy: ${c.propiedad.direccion}`
+            : `Tu arriendo vence en ${cantidad(diasHastaVencimiento, "día", "días")}: ${c.propiedad.direccion}`,
+          cuerpo: `El pago de tu arriendo vence el ${p.fechaVencimiento.toLocaleDateString("es-CL", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" })}. Paga antes de esa fecha para no generar intereses por mora.`,
           payload: { periodoId: p.id, diasRestantes: diasHastaVencimiento },
         });
         yaNotificado.add(`recordatorio_vencimiento::${p.id}`);
@@ -130,8 +131,8 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
           tipo: "cobro",
           canal: "email",
           estado: "pendiente",
-          asunto: `Pago pendiente con ${diasDesdeVencimiento} día(s) de atraso — ${c.propiedad.direccion}`,
-          cuerpo: `Tienes un pago atrasado por ${diasDesdeVencimiento} día(s). Por favor regulariza a la brevedad para evitar cargos de mora.`,
+          asunto: `Pago atrasado ${cantidad(diasDesdeVencimiento, "día", "días")}: ${c.propiedad.direccion}`,
+          cuerpo: `Tu pago del arriendo lleva ${cantidad(diasDesdeVencimiento, "día", "días")} de atraso. Regulariza cuanto antes: los intereses por mora se acumulan cada día.`,
           payload: { periodoId: p.id, diasAtraso: diasDesdeVencimiento },
         });
         yaNotificado.add(`cobro::${p.id}`);
@@ -155,8 +156,8 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
             tipo: "liquidacion_propietario",
             canal: "email",
             estado: "pendiente",
-            asunto: `Liquidación pendiente hace ${diasDesdePago - ventana} día(s) — ${c.propiedad.direccion}`,
-            cuerpo: `El pago del período fue recibido hace ${diasDesdePago} días. La liquidación aún no ha sido procesada.`,
+            asunto: `Liquidación pendiente: ${c.propiedad.direccion}`,
+            cuerpo: `Recibimos el pago del arriendo hace ${cantidad(diasDesdePago, "día", "días")} y la liquidación todavía no se procesa. Superó en ${cantidad(diasDesdePago - ventana, "día", "días")} la ventana acordada.`,
             payload: { periodoId: p.id, diasFueraVentana: diasDesdePago - ventana },
           });
           yaNotificado.add(`liquidacion_propietario::${p.id}`);
@@ -180,13 +181,13 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
       ok: true,
       creados: nuevas.length,
       mensaje: nuevas.length > 0
-        ? `Se generaron ${nuevas.length} recordatorio(s) nuevos.`
-        : "No hay recordatorios nuevos pendientes de generar.",
+        ? `Generamos ${cantidad(nuevas.length, "recordatorio", "recordatorios")}.`
+        : "No hay recordatorios nuevos por generar.",
     };
   } catch (e) {
     logError("generarRecordatorios", e);
     // SEC: nunca exponer mensajes internos (Prisma/stack) al cliente
-    return { ok: false, creados: 0, mensaje: "Error al generar recordatorios. Intenta nuevamente." };
+    return { ok: false, creados: 0, mensaje: "No pudimos generar los recordatorios. Vuelve a intentarlo." };
   }
 }
 

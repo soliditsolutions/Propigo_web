@@ -211,6 +211,7 @@ model Tenant {
   vouchers         Voucher[]
   notificaciones   Notificacion[]
   alertas          AlertaPersonalizada[]
+  preferenciasNotif PreferenciaNotificacion[]
   documentos       Documento[]
   accesosOtp       AccesoOtp[]
   accesosLog       AccesoLog[]
@@ -302,6 +303,8 @@ model Persona {
   notificaciones        Notificacion[]
   accesosOtp            AccesoOtp[]
   accesosLog            AccesoLog[]
+  preferenciaNotif PreferenciaNotificacion[]
+
 
   @@index([tenantId])
   @@unique([tenantId, rut])
@@ -663,6 +666,37 @@ model AlertaPersonalizada {
 
   @@index([tenantId])
   @@map("alerta_personalizada")
+}
+
+/**
+ * Preferencia de notificaciones de una persona (arrendatario o propietario).
+ *
+ * **La ausencia de fila significa suscrito.** Así, al generar un contrato la
+ * persona queda suscrita sin necesidad de crear nada — y no hay forma de que
+ * un olvido en el alta la deje sin avisos.
+ *
+ * `bajaHasta` distingue las dos formas de baja que la ley y el sentido común
+ * piden separar: con fecha es una pausa (vacaciones, sobrecarga puntual); en
+ * null con `suscrito = false` es una baja permanente, que el art. 28 B de la
+ * Ley 19.496 obliga a respetar de forma indefinida una vez solicitada.
+ */
+model PreferenciaNotificacion {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  personaId     String    @map("persona_id") @db.Uuid
+  suscrito      Boolean   @default(true)
+  /// Fin de una baja temporal. null con suscrito=false ⇒ baja permanente.
+  bajaHasta     DateTime? @map("baja_hasta") @db.Date
+  motivo        String?
+  actualizadoEn DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  persona Persona @relation(fields: [personaId], references: [id])
+
+  @@unique([tenantId, personaId])
+  @@index([tenantId])
+  @@map("preferencia_notificacion")
 }
 
 model Documento {

@@ -7,6 +7,8 @@
 import { redirect, notFound } from "next/navigation";
 import { withTenant } from "@/lib/tenant-db";
 import { getPortalSession } from "@/lib/portal-auth";
+import { PreferenciasAvisos } from "./preferencias-avisos";
+import { puedeRecibir, describirPreferencia } from "@/lib/notificacion-preferencias";
 import { marcarPeriodosAtrasados } from "@/lib/queries";
 import {
   Building2, Calendar, CreditCard, Download, FileText,
@@ -108,6 +110,13 @@ export default async function PortalContratoPage({
   if (!contrato) notFound();
 
   registrarAccesoVista(tenantId, personaId, null);
+
+  // Preferencia de avisos. La ausencia de fila significa suscrito, así que
+  // quien nunca tocó nada ve el control en "activado" sin datos previos.
+  const prefRow = await withTenant(tenantId, (tx) => tx.preferenciaNotificacion.findUnique({
+    where:  { tenantId_personaId: { tenantId, personaId } },
+    select: { suscrito: true, bajaHasta: true },
+  }));
 
   const p              = contrato.propiedad;
   const esArrendatario = rol === "arrendatario";
@@ -473,6 +482,13 @@ export default async function PortalContratoPage({
             <ValoracionButton token={contrato.tokenValoracion} />
           </div>
         )}
+
+        <div className="pb-4">
+          <PreferenciasAvisos
+            suscrito={puedeRecibir(prefRow)}
+            descripcion={describirPreferencia(prefRow)}
+          />
+        </div>
 
         {/* ── Footer ── */}
         <div className="pb-4 flex flex-col items-center gap-1 text-center text-xs" style={{ color: "var(--hw-text-4)" }}>

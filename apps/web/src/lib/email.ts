@@ -30,6 +30,26 @@ function esc(v: unknown): string {
     .replaceAll("'", "&#39;");
 }
 
+/**
+ * Pie con la vía para dar de baja los avisos.
+ *
+ * Va en TODA comunicación de aviso (art. 28 B de la Ley 19.496: identificar al
+ * remitente y ofrecer una vía para pedir la suspensión). NO va en los correos
+ * de seguridad —código del portal, verificación de dispositivo, recuperación
+ * de contraseña—: darse de baja del código con el que entras a tu cuenta te
+ * deja fuera del sistema, y esos correos responden a una acción que la persona
+ * acaba de hacer, no son comunicaciones que no pidió.
+ */
+function pieConBaja(urlBaja?: string): string {
+  const remitente = `<p style="font-size:12px;color:#94A3B8;margin:0">Enviado por Housing SOLIDIT en nombre de tu corredora.</p>`;
+  if (!urlBaja) return remitente;
+  return `${remitente}
+        <p style="font-size:12px;color:#94A3B8;margin:6px 0 0">
+          ¿No quieres recibir estos avisos?
+          <a href="${esc(urlBaja)}" style="color:#2563EB">Darte de baja aquí</a>.
+        </p>`;
+}
+
 /** Retorna true cuando Resend está configurado (útil para UI). */
 export function tieneEmailReal(): boolean {
   return Boolean(process.env.RESEND_API_KEY);
@@ -88,6 +108,7 @@ export async function sendPasswordResetEmail(
 export async function sendNotificacionEmail(
   notif: { asunto: string; cuerpo: string | null; tipo: string },
   persona: { email: string; nombre: string },
+  urlBaja?: string,
 ): Promise<void> {
   const { email, nombre } = persona;
 
@@ -97,6 +118,7 @@ export async function sendNotificacionEmail(
     console.log(`    Para   : ${email} (${nombre})`);
     console.log(`    Asunto : ${notif.asunto}`);
     console.log(`    Tipo   : ${notif.tipo}`);
+    console.log(`    Baja   : ${urlBaja ?? "(sin enlace)"}`);
     console.log("──────────────────────────────────────────────────────\n");
     return;
   }
@@ -112,9 +134,7 @@ export async function sendNotificacionEmail(
         <h2 style="margin:0 0 16px;color:#0F172A">${esc(notif.asunto)}</h2>
         <p style="color:#475569;line-height:1.6">${esc(notif.cuerpo ?? "")}</p>
         <hr style="border:none;border-top:1px solid #E2E8F0;margin:24px 0">
-        <p style="font-size:12px;color:#94A3B8">
-          Este mensaje fue enviado por Housing SOLIDIT. Si tienes dudas, contacta a tu corredor.
-        </p>
+        ${pieConBaja(urlBaja)}
       </div>
     `,
   });
@@ -336,6 +356,8 @@ export async function sendDenunciaAdminEmail(opts: {
 
 /** Notifica al arrendatario que el corredor dejó un comentario en su portal. */
 export async function sendComentarioCorredorEmail(opts: {
+  /** Enlace de baja; ver pieConBaja(). */
+  urlBaja?: string;
   emailArrendatario: string;
   nombreArrendatario: string;
   nombreCorredor: string;
@@ -372,9 +394,9 @@ export async function sendComentarioCorredorEmail(opts: {
         </div>
         ${tieneDocumentos ? `<p style="color:#475569;font-size:13px">Este mensaje incluye documentos adjuntos. Accede a tu portal para descargarlos.</p>` : ""}
         <p style="font-size:12px;color:#94A3B8;margin-top:20px">
-          Puedes ver este mensaje en tu portal de arrendatarios.<br>
-          Housing SOLIDIT · Gestión de arriendos · Ley 21.719
+          Puedes ver este mensaje en tu portal de arrendatarios.
         </p>
+        ${pieConBaja(opts.urlBaja)}
       </div>
     `,
   });

@@ -76,7 +76,10 @@ begin
     'suscripcion_tenant','cargo_billing','comision_plataforma',
     -- Alertas personalizadas: las define el admin de UNA corredora y solo esa
     -- corredora debe verlas. Sin esto quedarían visibles entre tenants.
-    'alerta_personalizada'
+    'alerta_personalizada',
+    -- Preferencia de notificaciones: una corredora no debe ver ni alterar
+    -- las bajas que las personas dieron ante otra.
+    'preferencia_notificacion'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.

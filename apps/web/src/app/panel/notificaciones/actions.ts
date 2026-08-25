@@ -8,6 +8,9 @@ import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
 import { renderizarAlerta } from "@/lib/alertas";
 import { clpOrUf } from "@/lib/format";
+import {
+  puedeRecibir, firmarTokenBaja, MAX_CORREOS_POR_DIA,
+} from "@/lib/notificacion-preferencias";
 import type { Tenant, Prisma } from "@/generated/prisma/client";
 
 /** Hoy a medianoche UTC — dinámico, para cálculo de días (no hardcodear fechas). */
@@ -268,11 +271,21 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
  * @param tenantOverride  Si se provee, se usa directamente (para cron jobs del
  *   sistema que no tienen sesión de usuario). Si se omite, se lee desde la sesión.
  */
+/**
+ * Cuántas notificaciones se procesan por corrida. Antes eran 50, que en un
+ * cierre de mes con cartera grande dejaba avisos esperando al día siguiente.
+ */
+const LOTE_ENVIO = 200;
+
 export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): Promise<{
   ok: boolean;
   enviadas: number;
   errores: number;
   sinEmail: number;
+  /** Personas que pidieron no recibir avisos (baja vigente). */
+  dadasDeBaja: number;
+  /** Diferidas por tope diario; salen en la próxima corrida, no se pierden. */
+  diferidas: number;
 }> {
   try {
     const actor  = tenantOverride ? null : await getActor();
@@ -287,26 +300,72 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
         ...(propiedadIds ? { contrato: { propiedadId: { in: propiedadIds } } } : {}),
       },
       include: {
-        persona: { select: { nombre: true, email: true } },
+        persona: {
+          select: {
+            id: true, nombre: true, email: true,
+            preferenciaNotif: { select: { suscrito: true, bajaHasta: true } },
+          },
+        },
       },
-      take: 50,
+      take: LOTE_ENVIO,
       orderBy: { createdAt: "asc" },
     }));
 
     let enviadas = 0;
     let errores  = 0;
     let sinEmail = 0;
+    let dadasDeBaja = 0;
+    let diferidas   = 0;
+
+    // Correos ya enviados hoy a cada persona, para no llenarle el buzón.
+    // Se cuenta lo REALMENTE enviado (estado "enviada" con fecha), no lo
+    // generado: lo que quedó pendiente todavía no ocupó su bandeja.
+    const desdeMedianoche = new Date();
+    desdeMedianoche.setHours(0, 0, 0, 0);
+    const enviadosHoy = await withTenant(tenant.id, (tx) => tx.notificacion.groupBy({
+      by: ["personaId"],
+      where: { tenantId: tenant.id, estado: "enviada", enviadaEn: { gte: desdeMedianoche } },
+      _count: { _all: true },
+    }));
+    const cuota = new Map(enviadosHoy.map((r) => [r.personaId, r._count._all]));
 
     for (const notif of pendientes) {
       if (!notif.persona.email) {
         sinEmail++;
         continue;
       }
+
+      // Baja vigente: no se envía y la notificación queda registrada como
+      // tal. No se borra — el aviso se generó y eso es parte del historial;
+      // lo que no ocurre es la molestia al destinatario.
+      const pref = notif.persona.preferenciaNotif[0] ?? null;
+      if (!puedeRecibir(pref)) {
+        await withTenant(tenant.id, (tx) => tx.notificacion.update({
+          where: { id: notif.id },
+          data:  { estado: "simulada" },
+        }));
+        dadasDeBaja++;
+        continue;
+      }
+
+      // Tope diario por persona. Lo que excede NO se descarta: se queda
+      // pendiente y sale mañana.
+      const yaHoy = cuota.get(notif.personaId) ?? 0;
+      if (yaHoy >= MAX_CORREOS_POR_DIA) {
+        diferidas++;
+        continue;
+      }
+
       try {
+        const urlBaja = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/no-molestar?t=${
+          await firmarTokenBaja(notif.persona.id, tenant.id)
+        }`;
         await sendNotificacionEmail(
           { asunto: notif.asunto, cuerpo: notif.cuerpo, tipo: notif.tipo },
           { email: notif.persona.email, nombre: notif.persona.nombre },
+          urlBaja,
         );
+        cuota.set(notif.personaId, yaHoy + 1);
         await withTenant(tenant.id, (tx) => tx.notificacion.update({
           where: { id: notif.id },
           data: { estado: "enviada", enviadaEn: new Date() },
@@ -320,10 +379,10 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
 
     revalidatePath("/panel/notificaciones");
     revalidatePath("/panel");
-    return { ok: true, enviadas, errores, sinEmail };
+    return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas };
   } catch (e) {
     logError("enviarNotificacionesPendientes", e);
-    return { ok: false, enviadas: 0, errores: 0, sinEmail: 0 };
+    return { ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0 };
   }
 }
 

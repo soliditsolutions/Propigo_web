@@ -159,6 +159,22 @@ enum DestinatarioAlerta {
 /** Cuándo se dispara sola una alerta. null en el modelo = solo envío manual.
  *  Ambos disparadores se anclan a un período de pago, que es lo único con
  *  fecha cierta contra la cual medir. */
+/**
+ * Hasta dónde llega una baja de notificaciones.
+ *
+ * Separar los dos alcances evita el peor escenario: que alguien pida "menos
+ * correos" y con eso deje de enterarse de que su arriendo venció. Los avisos
+ * esenciales son los que cambian obligaciones o dan cuenta de dinero —
+ * vencimientos, atrasos, término de contrato, comprobantes, liquidaciones—;
+ * los opcionales son comunicación de la corredora que no altera nada de eso.
+ */
+enum AlcanceBaja {
+  /// Deja de recibir solo los avisos informativos. Es el alcance recomendado.
+  solo_opcionales
+  /// Deja de recibir absolutamente todo, incluidos los avisos del contrato.
+  todos
+}
+
 enum DisparadorAlerta {
   antes_de_vencimiento   // diasOffset días ANTES de la fecha de vencimiento
   dias_de_mora           // diasOffset días DESPUÉS, con el período ya atrasado
@@ -685,10 +701,15 @@ model PreferenciaNotificacion {
   tenantId      String    @map("tenant_id") @db.Uuid
   personaId     String    @map("persona_id") @db.Uuid
   suscrito      Boolean   @default(true)
+  /// Qué alcanza la baja. Solo tiene sentido con suscrito = false.
+  alcance       AlcanceBaja @default(solo_opcionales)
   /// Fin de una baja temporal. null con suscrito=false ⇒ baja permanente.
   bajaHasta     DateTime? @map("baja_hasta") @db.Date
   motivo        String?
-  actualizadoEn DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  // @default además de @updatedAt: sin default en la BD, cualquier INSERT que
+  // no pase por Prisma (un backfill, un arreglo de datos por SQL) falla con
+  // violación de NOT NULL. Detectado probando exactamente ese caso.
+  actualizadoEn DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id])

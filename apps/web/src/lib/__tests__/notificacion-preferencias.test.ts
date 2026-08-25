@@ -16,39 +16,107 @@ import {
   verificarTokenBaja,
   DURACIONES,
   MAX_CORREOS_POR_DIA,
+  esEsencial,
+  bajaTotal,
+  TIPOS_ESENCIALES,
+  TIPOS_OPCIONALES,
+  ALCANCES,
 } from "../notificacion-preferencias";
 
 const HOY = new Date("2026-08-19T12:00:00Z");
 
-describe("puedeRecibir", () => {
-  it("sin preferencia registrada, recibe", () => {
+describe("puedeRecibir — la baja por defecto NO alcanza lo esencial", () => {
+  const ESENCIAL = "recordatorio_vencimiento";
+  const OPCIONAL = "alerta_personalizada";
+
+  it("sin preferencia registrada, recibe todo", () => {
     // La ausencia de fila significa suscrito: nadie queda sin avisos porque
     // el alta se haya olvidado de crear el registro.
-    expect(puedeRecibir(null, HOY)).toBe(true);
+    expect(puedeRecibir(null, ESENCIAL, HOY)).toBe(true);
+    expect(puedeRecibir(null, OPCIONAL, HOY)).toBe(true);
   });
 
-  it("suscrito explícito, recibe", () => {
-    expect(puedeRecibir({ suscrito: true, bajaHasta: null }, HOY)).toBe(true);
+  it("suscrito explícito, recibe todo", () => {
+    const p = { suscrito: true, bajaHasta: null };
+    expect(puedeRecibir(p, ESENCIAL, HOY)).toBe(true);
+    expect(puedeRecibir(p, OPCIONAL, HOY)).toBe(true);
   });
 
-  it("baja permanente, NO recibe", () => {
-    expect(puedeRecibir({ suscrito: false, bajaHasta: null }, HOY)).toBe(false);
+  it("baja de alcance normal: corta lo opcional, DEJA pasar lo esencial", () => {
+    // Es el corazón de la separación: quien pidió "menos correos" no puede
+    // dejar de enterarse de que su arriendo venció.
+    const p = { suscrito: false, bajaHasta: null, alcance: "solo_opcionales" as const };
+    expect(puedeRecibir(p, OPCIONAL, HOY)).toBe(false);
+    expect(puedeRecibir(p, ESENCIAL, HOY)).toBe(true);
   });
 
-  it("baja temporal vigente, NO recibe", () => {
+  it("baja total: corta absolutamente todo", () => {
+    const p = { suscrito: false, bajaHasta: null, alcance: "todos" as const };
+    expect(puedeRecibir(p, OPCIONAL, HOY)).toBe(false);
+    expect(puedeRecibir(p, ESENCIAL, HOY)).toBe(false);
+  });
+
+  it("baja temporal vigente respeta el alcance", () => {
     const futuro = new Date("2026-09-30T00:00:00Z");
-    expect(puedeRecibir({ suscrito: false, bajaHasta: futuro }, HOY)).toBe(false);
+    const parcial = { suscrito: false, bajaHasta: futuro, alcance: "solo_opcionales" as const };
+    expect(puedeRecibir(parcial, ESENCIAL, HOY)).toBe(true);
+    expect(puedeRecibir(parcial, OPCIONAL, HOY)).toBe(false);
   });
 
-  it("baja temporal ya vencida, vuelve a recibir sin intervención", () => {
+  it("baja temporal ya vencida, vuelve a recibir todo sin intervención", () => {
     const pasado = new Date("2026-07-01T00:00:00Z");
-    expect(puedeRecibir({ suscrito: false, bajaHasta: pasado }, HOY)).toBe(true);
+    const p = { suscrito: false, bajaHasta: pasado, alcance: "todos" as const };
+    expect(puedeRecibir(p, ESENCIAL, HOY)).toBe(true);
+    expect(puedeRecibir(p, OPCIONAL, HOY)).toBe(true);
   });
 
-  it("el mismo día del término todavía NO recibe", () => {
+  it("el mismo día del término todavía NO recibe lo opcional", () => {
     // Se resuelve a favor de la persona: la pausa se respeta completa.
     const hoyMismo = new Date("2026-08-19T12:00:00Z");
-    expect(puedeRecibir({ suscrito: false, bajaHasta: hoyMismo }, HOY)).toBe(false);
+    expect(puedeRecibir({ suscrito: false, bajaHasta: hoyMismo }, "alerta_personalizada", HOY)).toBe(false);
+  });
+
+  it("sin alcance guardado se comporta como parcial (valor por defecto de la BD)", () => {
+    // Las filas creadas antes de existir la columna no deben quedar cortando
+    // avisos esenciales por omisión.
+    const p = { suscrito: false, bajaHasta: null };
+    expect(puedeRecibir(p, ESENCIAL, HOY)).toBe(true);
+    expect(puedeRecibir(p, OPCIONAL, HOY)).toBe(false);
+  });
+});
+
+describe("esEsencial", () => {
+  it.each([...TIPOS_ESENCIALES])("%s es esencial", (t) => {
+    expect(esEsencial(t)).toBe(true);
+  });
+
+  it.each([...TIPOS_OPCIONALES])("%s es opcional", (t) => {
+    expect(esEsencial(t)).toBe(false);
+  });
+
+  it("un tipo desconocido se trata como esencial", () => {
+    // Lado seguro del error: recibir un correo de más es peor que no
+    // enterarse de algo que afecta el bolsillo.
+    expect(esEsencial("tipo_que_alguien_agregue_manana")).toBe(true);
+  });
+
+  it("ningún tipo está en ambas listas", () => {
+    const cruce = [...TIPOS_ESENCIALES].filter((t) => TIPOS_OPCIONALES.has(t));
+    expect(cruce).toEqual([]);
+  });
+});
+
+describe("bajaTotal", () => {
+  it("distingue la baja total de la parcial", () => {
+    expect(bajaTotal({ suscrito: false, bajaHasta: null, alcance: "todos" }, HOY)).toBe(true);
+    expect(bajaTotal({ suscrito: false, bajaHasta: null, alcance: "solo_opcionales" }, HOY)).toBe(false);
+    expect(bajaTotal(null, HOY)).toBe(false);
+    expect(bajaTotal({ suscrito: true, bajaHasta: null }, HOY)).toBe(false);
+  });
+
+  it("una baja total ya vencida deja de serlo", () => {
+    const pasado = new Date("2026-07-01T00:00:00Z");
+    expect(bajaTotal({ suscrito: false, bajaHasta: pasado, alcance: "todos" }, HOY)).toBe(false);
   });
 });
 
@@ -108,11 +176,34 @@ describe("token de baja", () => {
 });
 
 describe("describirPreferencia", () => {
-  it("distingue los tres estados", () => {
-    expect(describirPreferencia(null, HOY)).toMatch(/recibes/i);
-    expect(describirPreferencia({ suscrito: false, bajaHasta: null }, HOY)).toMatch(/baja/i);
-    expect(describirPreferencia({ suscrito: false, bajaHasta: new Date("2026-09-30T00:00:00Z") }, HOY))
-      .toMatch(/pausados hasta/i);
+  it("distingue suscrito, baja parcial y baja total", () => {
+    expect(describirPreferencia(null, HOY)).toMatch(/recibes todos/i);
+    expect(describirPreferencia({ suscrito: false, bajaHasta: null, alcance: "solo_opcionales" }, HOY))
+      .toMatch(/informativos/i);
+    expect(describirPreferencia({ suscrito: false, bajaHasta: null, alcance: "todos" }, HOY))
+      .toMatch(/incluidos los de tu contrato/i);
+  });
+
+  it("en baja parcial deja claro que lo del contrato sigue llegando", () => {
+    const t = describirPreferencia({ suscrito: false, bajaHasta: null, alcance: "solo_opcionales" }, HOY);
+    expect(t).toMatch(/siguen llegando/i);
+  });
+
+  it("menciona la fecha cuando la baja es temporal", () => {
+    const t = describirPreferencia(
+      { suscrito: false, bajaHasta: new Date("2026-09-30T00:00:00Z"), alcance: "solo_opcionales" }, HOY);
+    expect(t).toMatch(/hasta el/i);
+  });
+});
+
+describe("alcances publicados", () => {
+  it("el alcance recomendado va primero", () => {
+    // El orden es la recomendación implícita: lo que no se lee, se acepta.
+    expect(ALCANCES[0].clave).toBe("solo_opcionales");
+  });
+
+  it("el alcance total advierte la consecuencia real", () => {
+    expect(ALCANCES[1].detalle).toMatch(/vence|impago/i);
   });
 });
 

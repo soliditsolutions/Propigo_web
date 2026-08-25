@@ -6,7 +6,7 @@ import { logError } from "@/lib/logger";
 import { verificarTokenBaja, calcularBajaHasta } from "@/lib/notificacion-preferencias";
 
 export type ResultadoBaja =
-  | { ok: true; permanente: boolean; hasta: string | null }
+  | { ok: true; permanente: boolean; hasta: string | null; total: boolean }
   | { ok: false; error: string };
 
 /**
@@ -20,10 +20,18 @@ export type ResultadoBaja =
  * meses después, el resultado es el mismo. Un "ya te habías dado de baja" que
  * pareciera un error haría dudar de si la solicitud quedó registrada.
  */
-export async function registrarBaja(token: string, duracion: string, motivo?: string): Promise<ResultadoBaja> {
+export async function registrarBaja(
+  token: string,
+  duracion: string,
+  alcance: string,
+  motivo?: string,
+): Promise<ResultadoBaja> {
   try {
     const payload = await verificarTokenBaja(token);
     if (!payload) return { ok: false, error: "Este enlace no es válido. Búscalo en el pie de cualquier aviso que te hayamos enviado." };
+
+    if (alcance !== "solo_opcionales" && alcance !== "todos")
+      return { ok: false, error: "Elige qué avisos quieres dejar de recibir." };
 
     let hasta: Date | null;
     try {
@@ -43,14 +51,15 @@ export async function registrarBaja(token: string, duracion: string, motivo?: st
 
     await withTenant(tenantId, (tx) => tx.preferenciaNotificacion.upsert({
       where:  { tenantId_personaId: { tenantId, personaId } },
-      create: { tenantId, personaId, suscrito: false, bajaHasta: hasta, motivo: motivo?.slice(0, 300) || null },
-      update: { suscrito: false, bajaHasta: hasta, motivo: motivo?.slice(0, 300) || null },
+      create: { tenantId, personaId, suscrito: false, bajaHasta: hasta, alcance, motivo: motivo?.slice(0, 300) || null },
+      update: { suscrito: false, bajaHasta: hasta, alcance, motivo: motivo?.slice(0, 300) || null },
     }));
 
     return {
       ok: true,
       permanente: hasta === null,
       hasta: hasta ? hasta.toISOString() : null,
+      total: alcance === "todos",
     };
   } catch (e) {
     logError("registrarBaja", e);

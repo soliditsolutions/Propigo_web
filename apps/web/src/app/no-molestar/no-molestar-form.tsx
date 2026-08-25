@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { BellOff, CheckCircle2, Loader2 } from "lucide-react";
-import { DURACIONES } from "@/lib/notificacion-preferencias";
+import { DURACIONES, ALCANCES } from "@/lib/notificacion-preferencias";
 import { registrarBaja } from "./actions";
 
 export function NoMolestarForm({
@@ -14,18 +14,20 @@ export function NoMolestarForm({
   nombre?: string;
   corredora?: string;
 }) {
+  // Por defecto, el alcance que no puede perjudicar a nadie.
+  const [alcance, setAlcance]   = useState<string>("solo_opcionales");
   const [duracion, setDuracion] = useState<string>("1m");
   const [motivo, setMotivo]     = useState("");
   const [error, setError]       = useState("");
-  const [listo, setListo]       = useState<{ permanente: boolean; hasta: string | null } | null>(null);
+  const [listo, setListo]       = useState<{ permanente: boolean; hasta: string | null; total: boolean } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function enviar() {
     setError("");
     startTransition(async () => {
-      const r = await registrarBaja(token, duracion, motivo);
+      const r = await registrarBaja(token, duracion, alcance, motivo);
       if (!r.ok) { setError(r.error); return; }
-      setListo({ permanente: r.permanente, hasta: r.hasta });
+      setListo({ permanente: r.permanente, hasta: r.hasta, total: r.total });
     });
   }
 
@@ -35,10 +37,18 @@ export function NoMolestarForm({
         <CheckCircle2 className="mx-auto h-10 w-10" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
         <h1 className="text-xl font-bold" style={{ color: "var(--hw-text-1)" }}>Listo, no te escribimos más</h1>
         <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+          {listo.total
+            ? "No te enviaremos ningún correo"
+            : "Dejamos de enviarte los avisos informativos"}
           {listo.permanente
-            ? "Dejamos de enviarte avisos por correo de forma permanente."
-            : `Dejamos de enviarte avisos hasta el ${new Date(listo.hasta!).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" })}.`}
+            ? " de forma permanente."
+            : ` hasta el ${new Date(listo.hasta!).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" })}.`}
         </p>
+        {!listo.total && (
+          <p className="text-sm" style={{ color: "var(--hw-success)" }}>
+            Los avisos de tu contrato —vencimientos, atrasos y comprobantes— te van a seguir llegando.
+          </p>
+        )}
         <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
           Si cambias de opinión, puedes volver a activarlos cuando quieras desde tu portal de arrendatario.
           Esto no afecta tu contrato ni tus pagos.
@@ -60,12 +70,39 @@ export function NoMolestarForm({
         </p>
       </div>
 
-      {/* Lo que la persona necesita saber ANTES de decidir, no después. */}
-      <div className="rounded-xl p-3 text-xs" style={{ background: "var(--hw-warning-lt)", color: "var(--hw-warning-dk)", border: "1px solid var(--hw-warning-bd)" }}>
-        Dejarás de recibir los recordatorios de vencimiento, los avisos de pago atrasado
-        y los comprobantes. Tu contrato, tus pagos y tus plazos siguen exactamente igual —
-        lo único que cambia es que no te llegarán por correo.
-      </div>
+      <fieldset className="space-y-2">
+        <legend className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+          ¿Qué avisos quieres dejar de recibir?
+        </legend>
+        {ALCANCES.map((a) => (
+          <label key={a.clave} className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
+            style={{
+              background: alcance === a.clave ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
+              border: `1px solid ${alcance === a.clave ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+            }}>
+            <input
+              type="radio" name="alcance" value={a.clave}
+              checked={alcance === a.clave}
+              onChange={() => setAlcance(a.clave)}
+              className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--hw-primary)" }}
+            />
+            <span className="min-w-0">
+              <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>{a.etiqueta}</span>
+              <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>{a.detalle}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+
+      {/* La advertencia aparece solo cuando corresponde: en el alcance seguro
+          sería ruido, y el ruido constante enseña a ignorar las advertencias. */}
+      {alcance === "todos" && (
+        <div className="rounded-xl p-3 text-xs" style={{ background: "var(--hw-warning-lt)", color: "var(--hw-warning-dk)", border: "1px solid var(--hw-warning-bd)" }}>
+          Con esta opción tampoco te avisaremos si tu arriendo vence o queda impago.
+          Tu contrato, tus pagos y tus plazos siguen exactamente igual — pero vas a
+          tener que revisarlos tú en el portal.
+        </div>
+      )}
 
       <fieldset className="space-y-2">
         <legend className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>

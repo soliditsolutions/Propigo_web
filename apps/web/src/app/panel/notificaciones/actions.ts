@@ -303,7 +303,7 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
         persona: {
           select: {
             id: true, nombre: true, email: true,
-            preferenciaNotif: { select: { suscrito: true, bajaHasta: true } },
+            preferenciaNotif: { select: { suscrito: true, bajaHasta: true, alcance: true } },
           },
         },
       },
@@ -339,7 +339,9 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
       // tal. No se borra — el aviso se generó y eso es parte del historial;
       // lo que no ocurre es la molestia al destinatario.
       const pref = notif.persona.preferenciaNotif[0] ?? null;
-      if (!puedeRecibir(pref)) {
+      // El tipo importa: una baja de alcance normal no corta los avisos
+      // esenciales del contrato (vencimientos, atrasos, comprobantes).
+      if (!puedeRecibir(pref, notif.tipo)) {
         await withTenant(tenant.id, (tx) => tx.notificacion.update({
           where: { id: notif.id },
           data:  { estado: "simulada" },

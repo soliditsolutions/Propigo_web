@@ -115,7 +115,7 @@ export default async function PortalContratoPage({
   // quien nunca tocó nada ve el control en "activado" sin datos previos.
   const prefRow = await withTenant(tenantId, (tx) => tx.preferenciaNotificacion.findUnique({
     where:  { tenantId_personaId: { tenantId, personaId } },
-    select: { suscrito: true, bajaHasta: true },
+    select: { suscrito: true, bajaHasta: true, alcance: true },
   }));
 
   const p              = contrato.propiedad;

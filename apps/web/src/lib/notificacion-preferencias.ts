@@ -33,6 +33,45 @@ export type BajaPayload = JWTPayload & {
  */
 export const MAX_CORREOS_POR_DIA = 3;
 
+/**
+ * Avisos **esenciales**: los que cambian obligaciones del contrato o dan
+ * cuenta de dinero. Dejar de recibirlos puede costarle plata o derechos a la
+ * persona, así que la baja por defecto NO los alcanza.
+ *
+ * El criterio para entrar acá es simple: ¿si no le llega, se puede perjudicar?
+ * Un recordatorio de vencimiento, sí. Un mensaje del corredor contando que
+ * viene el gásfiter, no — y además queda en el portal.
+ */
+export const TIPOS_ESENCIALES = new Set([
+  "recordatorio_vencimiento",  // cuándo tiene que pagar
+  "cobro",                     // está atrasado
+  "voucher_pago",              // comprobante de SU pago: respaldo ante disputa
+  "liquidacion_propietario",   // cuánto se le liquida
+  "solicitud_firma",           // tiene que firmar
+  "nuevo_contrato",            // su contrato quedó vigente
+  "renovacion_contrato",       // su contrato se renovó
+  "termino_contrato",          // su contrato terminó
+  "salida_anticipada",         // término anticipado
+]);
+
+/**
+ * Un tipo desconocido se trata como **esencial**.
+ *
+ * Es el lado seguro del error: si mañana se agrega un tipo y nadie lo
+ * clasifica, el peor caso es que alguien reciba un correo de más. Al revés
+ * —tratarlo como opcional— el peor caso es que no se entere de algo que le
+ * afecta el bolsillo.
+ */
+export function esEsencial(tipo: string): boolean {
+  return TIPOS_ESENCIALES.has(tipo) || !TIPOS_OPCIONALES.has(tipo);
+}
+
+/** Comunicación de la corredora que no altera obligaciones ni dinero. */
+export const TIPOS_OPCIONALES = new Set([
+  "alerta_personalizada",
+  "comentario_corredor",
+]);
+
 function getSecretoBaja(): Uint8Array {
   const raw = process.env.AUTH_SECRET;
   if (!raw || raw.length < 32) throw new Error("AUTH_SECRET demasiado corto");
@@ -70,6 +109,7 @@ export async function verificarTokenBaja(token: string): Promise<BajaPayload | n
 export type Preferencia = {
   suscrito:  boolean;
   bajaHasta: Date | null;
+  alcance?:  "solo_opcionales" | "todos";
 } | null;
 
 /**
@@ -79,21 +119,64 @@ export type Preferencia = {
  * incorporada recibe sus avisos sin depender de que el alta haya creado la
  * fila. Una baja temporal ya vencida vuelve a habilitar los envíos sola.
  */
-export function puedeRecibir(pref: Preferencia, hoy: Date = new Date()): boolean {
+export function puedeRecibir(
+  pref: Preferencia,
+  tipo?: string,
+  hoy: Date = new Date(),
+): boolean {
   if (!pref) return true;
   if (pref.suscrito) return true;
-  if (pref.bajaHasta === null) return false;             // permanente
-  return hoy > pref.bajaHasta;                           // temporal ya vencida
+
+  // Baja temporal ya vencida: vuelve a recibir todo, sin intervención.
+  if (pref.bajaHasta !== null && hoy > pref.bajaHasta) return true;
+
+  // Baja vigente. Solo alcanza a los esenciales si la persona lo pidió
+  // explícitamente. Sin tipo (consultas de UI sobre el estado general) se
+  // responde por el alcance, no por el aviso concreto.
+  if (pref.alcance === "todos") return false;
+  if (tipo === undefined) return false;
+  return esEsencial(tipo);
+}
+
+/** ¿La baja de esta persona alcanza también a los avisos del contrato? */
+export function bajaTotal(pref: Preferencia, hoy: Date = new Date()): boolean {
+  if (!pref || pref.suscrito) return false;
+  if (pref.bajaHasta !== null && hoy > pref.bajaHasta) return false;
+  return pref.alcance === "todos";
 }
 
 /** Texto para la interfaz. Describe el estado sin obligar a interpretarlo. */
 export function describirPreferencia(pref: Preferencia, hoy: Date = new Date()): string {
-  if (puedeRecibir(pref, hoy)) return "Recibes los avisos por correo.";
-  if (pref?.bajaHasta) {
-    return `Pausados hasta el ${pref.bajaHasta.toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" })}.`;
+  if (!pref || pref.suscrito) return "Recibes todos los avisos por correo.";
+  if (pref.bajaHasta !== null && hoy > pref.bajaHasta) return "Recibes todos los avisos por correo.";
+
+  const total = pref.alcance === "todos";
+  const qué = total
+    ? "Diste de baja todos los avisos, incluidos los de tu contrato"
+    : "Pausaste los avisos informativos. Los de tu contrato (vencimientos, atrasos y comprobantes) siguen llegando";
+
+  if (pref.bajaHasta) {
+    const hasta = pref.bajaHasta.toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
+    return `${qué}, hasta el ${hasta}.`;
   }
-  return "Diste de baja los avisos por correo.";
+  return `${qué}.`;
 }
+
+/** Alcances que ofrece el formulario de baja. */
+export const ALCANCES = [
+  {
+    clave: "solo_opcionales",
+    etiqueta: "Solo los avisos informativos",
+    detalle: "Seguirás recibiendo los de tu contrato: vencimientos, atrasos y comprobantes.",
+  },
+  {
+    clave: "todos",
+    etiqueta: "Todos, incluidos los de mi contrato",
+    detalle: "No te llegará ningún correo, ni siquiera si tu arriendo vence o queda impago.",
+  },
+] as const;
+
+export type ClaveAlcance = (typeof ALCANCES)[number]["clave"];
 
 /** Duraciones que ofrece el formulario de baja. */
 export const DURACIONES = [

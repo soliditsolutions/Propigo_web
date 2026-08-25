@@ -204,12 +204,18 @@ export default async function ContratoDetallePage({
       {/* ── Tab: Vigencia ───────────────────────────────────────────────── */}
       {tab === "vigencia" && (
         <>
-            {/* key por contrato en TODAS las secciones con estado propio.
-                Next.js reutiliza esta misma page al navegar entre contratos, así
-                que sin key React no remonta y el estado sobrevive al cambio. En
-                estas secciones eso no es cosmético: los checkbox de confirmación
-                ("ambas partes firmaron", "deseo cancelar") llegarían ya marcados
-                al contrato siguiente, a un clic de accionar sobre el equivocado. */}
+            {/* key por contrato en las secciones con estado propio.
+                Estas secciones guardan checkbox de confirmación ("ambas partes
+                firmaron", "deseo cancelar"); que sobrevivan a un cambio de
+                contrato dejaría al usuario a un clic de accionar sobre el
+                equivocado.
+
+                VERIFICADO 2026-08-19: hoy Next.js ya remonta al cambiar el
+                parámetro [id], así que quitar este key NO reproduce el problema
+                — se comprobó en el navegador. El key se mantiene como defensa
+                explícita, no porque haya un fallo activo: la garantía de
+                remontaje depende del router, no de nuestro código, y el costo
+                de equivocarse acá es accionar sobre el contrato equivocado. */}
           {detalle.estado === "borrador" && (
             <FirmaSection
               key={detalle.id}

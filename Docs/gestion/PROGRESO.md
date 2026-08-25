@@ -2,7 +2,9 @@
 
 > Checklist que actualizamos en cada etapa. `[x]` hecho · `[~]` en curso · `[ ]` pendiente.
 
-_Última actualización: 2026-07-30 — Cuentas multi-usuario Fases B-E completas (ver ADR-0013); revisión legal de las cláusulas de contrato contra la Ley 18.101 vigente y un contrato de arriendo real de referencia — se encontró y corrigió una cita legal fabricada ("art. 46, Ley 18.101" no existe) presente en 6 lugares del código/UI, y se rediseñó el término anticipado (renta del período faltante, Art. 1489 CC, en vez de una "multa" fija sin respaldo legal ni real — ver ADR-0009). **Ítem 9 completo**: borrador de contrato de arriendo descargable en PDF (plantilla fija + datos reales, sin redacción libre de IA — ver detalle abajo). Detalle en Etapa 6 al final._
+_Última actualización: 2026-08-19 — **Etapa 7**: Fase A de billing (puerto, webhook, modelos) y Fase B0 completas — los cupos que venden los planes ahora se aplican de verdad, verificado con 10 consumos en paralelo contra Postgres real. Se encontraron y corrigieron dos fallos que llevaban meses invisibles: **cinco de ocho notificaciones nunca se enviaban** (se creaban como `simulada` y el despachador solo toma las `pendiente`) y **HTML sin escapar en los correos**, alcanzable desde los formularios públicos del marketplace. Precios en UF validados contra costo: se mantienen, con 96 % de margen de contribución. Detalle en Etapa 7 al final._
+
+_Actualización anterior: 2026-07-30 — Cuentas multi-usuario Fases B-E completas (ver ADR-0013); revisión legal de las cláusulas de contrato contra la Ley 18.101 vigente y un contrato de arriendo real de referencia — se encontró y corrigió una cita legal fabricada ("art. 46, Ley 18.101" no existe) presente en 6 lugares del código/UI, y se rediseñó el término anticipado (renta del período faltante, Art. 1489 CC, en vez de una "multa" fija sin respaldo legal ni real — ver ADR-0009). **Ítem 9 completo**: borrador de contrato de arriendo descargable en PDF (plantilla fija + datos reales, sin redacción libre de IA — ver detalle abajo). Detalle en Etapa 6 al final._
 
 _Actualización anterior: 2026-07-28 — Cuentas multi-usuario (Manager/Collaborator, ADR-0013) Fase A completa: rename de rol, `getActor()`, schema de invitación/auditoría/desactivación. Dos hallazgos de seguridad encontrados y corregidos en el mismo trabajo (RUT editable sin re-verificación en Mi perfil; crash en vez de expulsión limpia al desactivar un usuario con sesión activa). Detalle al final._
 
@@ -286,11 +288,68 @@ Ver `Docs/decisiones/ADR-0013-cuentas-multiusuario.md` para el diseño completo 
 - **Crash en vez de expulsión limpia (ROL-SEC-9)**: al desactivar a un usuario con sesión activa, la siguiente request crasheaba con una pantalla de error de Next.js en vez de redirigir a `/login` — `clearSessionCookie()` no puede llamarse desde un Server Component en render, solo desde una Server Action o Route Handler. Corregido: el chequeo vive en `panel/layout.tsx` (choke point de todo `/panel/*`) y redirige a un nuevo handler `GET /api/auth/logout` que sí puede limpiar la cookie (evita además un loop de redirects con el proxy, que solo valida la firma del JWT).
 - Regression test agregado: `src/lib/__tests__/auth-jwt-tamper.test.ts` (ROL-SEC-5 — manipulación de JWT).
 
+---
+
+## Etapa 7 — Billing, cupos de plan y corrección de notificaciones (2026-08-06 → 2026-08-19)
+
+### Fase A de pagos — fundación sin proveedor (ADR-0014) — completo
+- [x] Puerto `BillingGateway` con categorías de error de dominio y `esReintentable()` — solo rechazo y fallo temporal se reintentan
+- [x] Adaptador *fake* en memoria, que se niega a construirse si `NODE_ENV === "production"`
+- [x] Webhook: firma verificada **antes** de parsear el cuerpo, tope de 64 KB, ventana anti-replay de 24 h, idempotencia apoyada en el UNIQUE de Postgres
+- [x] Modelos `SuscripcionTenant`, `CargoBilling`, `ComisionPlataforma`, `EventoGatewayPago` + migración + RLS
+- [ ] **P-A6** panel interno de observabilidad — diferido: aún no hay cobros que observar
+
+Verificado con `curl` contra el endpoint real (no mock): 7 escenarios, incluido el
+que importa — **el mismo evento repetido responde 200 `duplicado` y deja una sola
+fila**, que es justo lo que un test con `prisma` mockeado no puede demostrar.
+
+### Fase B0 — los límites que venden los planes ahora se aplican — completo
+Hallazgo que reordenó el trabajo: **los planes vendían cupos que el software no
+aplicaba**. Un Bronze podía cargar 500 propiedades y consumir IA sin tope. No se
+pueden cobrar precios diferenciados por límites que no existen, así que esto pasó
+a ser prerrequisito de cobrar y no una mejora posterior.
+
+- [x] `lib/plans.ts` migrado de USD a **UF + IVA** (0,25 / 0,50 / 0,90 / 1,70) con cupos reales y fallback conservador a Bronze
+- [x] `verificarCupoPropiedades()` dentro de la transacción que crea
+- [x] `consumirTokenIa()` que chequea e incrementa en **una sola sentencia** (`ON CONFLICT ... WHERE usados < max`)
+- [x] `puedeExportar(plan)` reemplaza el `=== "diamond"` hardcodeado, en UI y API
+- [x] `CupoBadge` compartido, con aviso en ámbar desde el 80 % (no solo rojo al tope)
+
+**Prueba de concurrencia contra Postgres real:** 10 consumos de IA en paralelo
+contra un cupo de 3 → exactamente **3 otorgados**, sin sobregiro. Es la evidencia
+de que la compuerta atómica elimina la carrera que tendría un "leer, comparar,
+escribir" en pasos separados.
+
+### Correcciones de esta etapa
+
+- [x] **Cinco de ocho notificaciones nunca se enviaban.** Se creaban con `estado: "simulada"` y el despachador solo toma las `"pendiente"`. El propietario nunca recibía su liquidación; el arrendatario, ninguno de los avisos sobre su propio contrato. Corregido + glosa con el desglose que ya existía en el `snapshot` del voucher pero no se usaba. **Verificado end-to-end en el navegador:** activar contrato → fila `pendiente` en BD → cron → `enviada` con fecha, y el correo en la consola del servidor.
+- [x] **HTML sin escapar en los correos** (hallazgo no reportado, encontrado al revisar). Los formularios de contacto y denuncia del marketplace son públicos y sin autenticar: quien enviaba el formulario decidía el HTML de un correo saliendo de nuestro dominio. 27 interpolaciones escapadas.
+- [x] **Contraste de botones.** El botón sólido teal tenía texto blanco sobre `#5EEAD4`: **1,48:1** donde AA exige 4,5:1 — el texto llegaba a verse invisible. Par de tokens nuevo: ahora 10,3:1 en oscuro y 5,47:1 en claro, medido en el navegador.
+- [x] **Notificaciones agrupadas por categoría** en pestañas (Cobros / Pagos / Contratos / Mensajes), separando el eje "¿ya salió?" del eje "¿de qué se trata?".
+- [x] `public/uploads/**` agregado a `.gitignore` — antes las fotos de clientes se commiteaban al repositorio.
+
+### Documentación producida
+- `ADR-0014` — decisiones estructurales de pagos: la plataforma nunca toca el dinero del arriendo; ledger de contratos y de billing son libros separados.
+- `rowmap-pagos.md` — filas, preguntas con recomendación por defecto, bitácora, hallazgos, y anexo comparativo de pasarelas (**D-02 pospuesta** por decisión del cliente; bloquea toda la Fase B).
+- `costos-infraestructura-y-precios.md` — dimensionamiento AWS y **definición de precios**. Los precios en UF se mantienen: el margen de contribución es 96 % con uso realista y 77 % en el peor caso. **La infraestructura no amenaza el margen; los compromisos humanos de Diamond sí.** AWS diferido a release.
+- `rowmap-producto.md` — trabajo de producto (Rol SII, cuentas de servicio, garantía, avisos de reajuste), con el rol de especialista desde el que se aborda cada grupo.
+- `revision-2026-08-19.md` y `look-back-2026-08-19.md` — revisión de temas y barrido de pendientes.
+- `cuentas-de-prueba.md` — cuenta de corredor persistente e idempotente para pruebas manuales.
+
+### Nota de método
+Un diagnóstico **se refutó al verificarlo**: se había atribuido un problema de
+estado que sobrevivía entre contratos a la falta de `key`, y al quitarlo en el
+navegador el problema no reapareció — Next.js ya remonta al cambiar el parámetro
+de ruta. El `key` se mantiene como defensa explícita, pero el comentario en el
+código se corrigió para no afirmar algo que no se pudo demostrar. Queda anotado
+en BRAIN.md §2 para que nadie "arregle" un problema inexistente.
+
+
 ## Notas / decisiones pendientes
 - Proveedor de identidad para producción (sin definir).
-- Pasarela de pago y modelo legal de cuenta recaudadora (sin definir).
+- Pasarela de pago (**D-02**, pospuesta explícitamente el 2026-08-19). Bloquea toda la Fase B. El comparativo Flow / Transbank / Mercado Pago / Fintoc, con el costo real de la diferencia a cada escala, está en el anexo de `rowmap-pagos.md`.
 - Fuente oficial de UF/IPC para producción (SII / Banco Central).
-- **Upload de imágenes en producción**: `public/uploads/` no persiste entre deploys. Migrar API route a S3/R2 antes de lanzar (sin cambios en schema ni UI).
+- **Upload de imágenes en producción**: `public/uploads/` no persiste entre deploys. Migrar a S3/R2 antes de lanzar — **diferido a la fase de release** (2026-08-19, decisión del cliente: en desarrollo el disco local funciona). Lo que sí se resolvió: el directorio ya está en `.gitignore`, porque las fotos de clientes se estaban commiteando al repositorio.
 - **Regulación STR municipal**: vacío legal activo en Chile (jun 2026). Monitorear legislación futura que podría afectar a propietarios STR de la corredora.
 - **Identidad/contrato — pendientes de la línea de verificación por IA**: captura de cédula por cámara (marco guía + fallback a upload manual — hoy solo lectura de QR del reverso), detección de contrato firmado vs. borrador por firma digital del PDF, consentimiento opt-in con T&C/política versionados (modal actual a corregir), fixes de higiene de seguridad pendientes en las llamadas a IA externa. Sin fecha objetivo.
 - **Ítems 8, 9 y 11** del backlog de mejoras: requieren definición de alcance antes de poder implementarse.

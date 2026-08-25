@@ -73,7 +73,10 @@ begin
     -- Billing (ADR-0014). Contabilidad Housing↔corredor, separada del ledger
     -- del arriendo, pero igual de multi-tenant: un corredor jamás debe ver los
     -- cobros ni las comisiones de otro.
-    'suscripcion_tenant','cargo_billing','comision_plataforma'
+    'suscripcion_tenant','cargo_billing','comision_plataforma',
+    -- Alertas personalizadas: las define el admin de UNA corredora y solo esa
+    -- corredora debe verlas. Sin esto quedarían visibles entre tenants.
+    'alerta_personalizada'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.

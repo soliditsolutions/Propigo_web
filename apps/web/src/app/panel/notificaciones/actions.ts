@@ -6,6 +6,8 @@ import { withTenant } from "@/lib/tenant-db";
 import { sendNotificacionEmail } from "@/lib/email";
 import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
+import { renderizarAlerta } from "@/lib/alertas";
+import { clpOrUf } from "@/lib/format";
 import type { Tenant, Prisma } from "@/generated/prisma/client";
 
 /** Hoy a medianoche UTC — dinámico, para cálculo de días (no hardcodear fechas). */
@@ -50,7 +52,7 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
 
     // Obtener todos los períodos pendientes/atrasados/pagados con sus contratos y personas.
     // Secuencial, no Promise.all: tx comparte una única conexión Postgres.
-    const [periodos, existentes] = await withTenant(tenant.id, async (tx) => {
+    const [periodos, existentes, alertasAuto, alertasEmitidas] = await withTenant(tenant.id, async (tx) => {
       const periodos = await tx.periodoPago.findMany({
         where: {
           tenantId: tenant.id,
@@ -63,6 +65,12 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
               id: true,
               arrendatarioId: true,
               propietarioId: true,
+              // Nombres y monto: los usan los marcadores de las alertas
+              // personalizadas ({{arrendatario}}, {{monto}}…).
+              valorArriendo: true,
+              denominacion: true,
+              arrendatario: { select: { nombre: true } },
+              propietario:  { select: { nombre: true } },
               propiedad: { select: { direccion: true } },
             },
           },
@@ -73,7 +81,21 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
         where: { tenantId: tenant.id },
         select: { payload: true, tipo: true },
       });
-      return [periodos, existentes] as const;
+      // Alertas personalizadas con disparador (las manuales no se emiten solas).
+      const alertasAuto = await tx.alertaPersonalizada.findMany({
+        where: { tenantId: tenant.id, activa: true, disparador: { not: null } },
+      });
+
+      // Para no repetir una alerta sobre el mismo período. Se apoya en las
+      // columnas alerta_id/periodo_id (indexadas), no en el payload: el
+      // deduplicado por tipo no alcanza acá, porque dos alertas distintas
+      // pueden apuntar legítimamente al mismo período.
+      const alertasEmitidas = await tx.notificacion.findMany({
+        where:  { tenantId: tenant.id, alertaId: { not: null } },
+        select: { alertaId: true, periodoId: true },
+      });
+
+      return [periodos, existentes, alertasAuto, alertasEmitidas] as const;
     });
 
     // Extraer periodoIds ya notificados por tipo
@@ -84,6 +106,10 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
         yaNotificado.add(`${n.tipo}::${payload.periodoId}`);
       }
     }
+
+    const alertaYaEmitida = new Set(
+      alertasEmitidas.map((n) => `${n.alertaId}::${n.periodoId}`),
+    );
 
     const nuevas: Prisma.NotificacionUncheckedCreateInput[] = [];
 
@@ -162,6 +188,47 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
           });
           yaNotificado.add(`liquidacion_propietario::${p.id}`);
         }
+      }
+
+      // ── 4. Alertas personalizadas con disparador ───────────────────────
+      //
+      // Van acá y no en simularPago() a propósito: el sentido del aviso es
+      // llegar ANTES de que el cobro cambie, así que se emite contra períodos
+      // futuros o ya vencidos, nunca en el momento de registrar el pago.
+      for (const a of alertasAuto) {
+        if (a.diasOffset === null) continue;   // validado al guardar; guarda defensiva
+
+        const calza =
+          a.disparador === "antes_de_vencimiento"
+            ? p.estado === "pendiente" && diasHastaVencimiento === a.diasOffset
+            : p.estado === "atrasado"  && diasDesdeVencimiento === a.diasOffset;
+
+        if (!calza || alertaYaEmitida.has(`${a.id}::${p.id}`)) continue;
+
+        const datos = {
+          arrendatario: c.arrendatario.nombre,
+          propietario:  c.propietario.nombre,
+          direccion:    c.propiedad.direccion,
+          monto:        clpOrUf(Number(c.valorArriendo), c.denominacion),
+          vencimiento:  p.fechaVencimiento,
+          corredora:    tenant.nombre,
+        };
+
+        nuevas.push({
+          tenantId:   tenant.id,
+          personaId:  a.destinatario === "arrendatario" ? c.arrendatarioId : c.propietarioId,
+          contratoId: c.id,
+          alertaId:   a.id,
+          periodoId:  p.id,
+          tipo:       "alerta_personalizada",
+          canal:      "email",
+          estado:     "pendiente",
+          asunto:     renderizarAlerta(a.asunto, datos),
+          cuerpo:     renderizarAlerta(a.cuerpo, datos),
+        });
+        // Marcar de inmediato: dos períodos del mismo contrato podrían calzar
+        // en la misma corrida y duplicarían el aviso antes de persistirse.
+        alertaYaEmitida.add(`${a.id}::${p.id}`);
       }
     }
 

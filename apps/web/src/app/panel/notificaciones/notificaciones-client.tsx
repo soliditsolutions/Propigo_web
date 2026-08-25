@@ -3,7 +3,7 @@
 import { useState, useTransition, useMemo } from "react";
 import {
   Bell, CheckCircle2, Clock, Info, Loader2, Mail, Send,
-  ShieldCheck, TrendingUp, X,
+  ShieldCheck, TrendingUp, X, BellPlus,
 } from "lucide-react";
 import { Badge, Tabs } from "@/components/panel/ui";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
@@ -23,6 +23,7 @@ const TIPO_TONE: Record<string, "red" | "amber" | "blue" | "green" | "slate"> = 
   nuevo_contrato:           "green",
   solicitud_firma:          "blue",
   renovacion_contrato:      "blue",
+  alerta_personalizada:     "blue",
 };
 
 const TIPO_ICON: Record<string, React.ReactNode> = {
@@ -32,6 +33,7 @@ const TIPO_ICON: Record<string, React.ReactNode> = {
   voucher_pago:             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />,
   solicitud_firma:          <ShieldCheck  className="h-3.5 w-3.5" aria-hidden="true" />,
   renovacion_contrato:      <TrendingUp   className="h-3.5 w-3.5" aria-hidden="true" />,
+  alerta_personalizada:      <BellPlus    className="h-3.5 w-3.5" aria-hidden="true" />,
 };
 
 type FiltroEstado = "todas" | "pendiente" | "simulada";
@@ -60,6 +62,9 @@ const CATEGORIA_DE_TIPO: Record<string, Exclude<Categoria, "todas">> = {
   termino_contrato:         "contratos",
   salida_anticipada:        "contratos",
   comentario_corredor:      "mensajes",
+  // Las alertas personalizadas son mensajes que escribe la corredora, no
+  // eventos del contrato: van con los mensajes y no con los contratos.
+  alerta_personalizada:     "mensajes",
 };
 
 function categoriaDe(tipo: string): Exclude<Categoria, "todas"> {
@@ -184,13 +189,19 @@ export function NotificacionesClient({
               <p className="font-semibold" style={{ color: "var(--hw-primary-dk)" }}>
                 ¿Cómo funciona esta página?
               </p>
+              <p className="text-sm" style={{ color: "var(--hw-primary-dk)" }}>
+                Acá se juntan los avisos que Housing manda por correo a tus arrendatarios
+                y propietarios: cobros que vencen, pagos atrasados y liquidaciones listas.
+              </p>
               <ol className="space-y-1 text-sm" style={{ color: "var(--hw-primary-dk)" }}>
-                <li><span className="font-bold">1.</span> Haz clic en <strong>Generar recordatorios</strong> para que Housing cree automáticamente los avisos de cobro y vencimiento basados en tus contratos activos.</li>
-                <li><span className="font-bold">2.</span> Revisa la lista — cada notificación irá al arrendatario o propietario correspondiente.</li>
-                <li><span className="font-bold">3.</span> Usa <strong>{emailRealActivo ? "Enviar" : "Simular envío"}</strong> para {emailRealActivo ? "enviarlas por correo a cada destinatario." : "marcarlas como enviadas (activa el envío real configurando RESEND_API_KEY)."}</li>
+                <li><span className="font-bold">1.</span> <strong>Generar recordatorios</strong> revisa tus contratos vigentes y crea los avisos que corresponden hoy. Puedes hacerlo cuando quieras: no duplica los que ya existen.</li>
+                <li><span className="font-bold">2.</span> Revisa la lista antes de enviar. Cada aviso muestra a quién va y por qué contrato; las pestañas de arriba los agrupan por tipo.</li>
+                <li><span className="font-bold">3.</span> <strong>{emailRealActivo ? "Enviar" : "Simular envío"}</strong> {emailRealActivo ? "envía por correo todos los pendientes." : "marca los pendientes como enviados, sin enviar nada todavía."}</li>
               </ol>
               <p className="text-xs" style={{ color: "var(--hw-primary)" }}>
-                💡 En producción los envíos salen solos por correo y WhatsApp, según la cadencia definida en el ADR-0008.
+                {emailRealActivo
+                  ? "Un aviso que ya salió no se vuelve a enviar, aunque generes recordatorios de nuevo."
+                  : "El envío por correo todavía no está activo en esta cuenta, así que por ahora los avisos se marcan como enviados sin salir. Escríbenos para activarlo."}
               </p>
             </div>
             <button

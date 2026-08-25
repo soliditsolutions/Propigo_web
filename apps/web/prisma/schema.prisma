@@ -142,10 +142,26 @@ enum TipoNotificacion {
   solicitud_firma
   renovacion_contrato    // Notificación al arrendatario cuando se renueva el contrato
   comentario_corredor    // Corredor deja un comentario/mensaje en el portal del arrendatario
+  alerta_personalizada   // Alerta definida por el admin de la corredora (AlertaPersonalizada)
 }
 
 enum CanalNotificacion {
   email
+}
+
+/** A quién va dirigida una alerta personalizada. Se resuelve a la Persona
+ *  concreta usando el contrato sobre el que se envía. */
+enum DestinatarioAlerta {
+  arrendatario
+  propietario
+}
+
+/** Cuándo se dispara sola una alerta. null en el modelo = solo envío manual.
+ *  Ambos disparadores se anclan a un período de pago, que es lo único con
+ *  fecha cierta contra la cual medir. */
+enum DisparadorAlerta {
+  antes_de_vencimiento   // diasOffset días ANTES de la fecha de vencimiento
+  dias_de_mora           // diasOffset días DESPUÉS, con el período ya atrasado
 }
 
 enum EstadoNotificacion {
@@ -194,6 +210,7 @@ model Tenant {
   asientos         AsientoLedger[]
   vouchers         Voucher[]
   notificaciones   Notificacion[]
+  alertas          AlertaPersonalizada[]
   documentos       Documento[]
   accesosOtp       AccesoOtp[]
   accesosLog       AccesoLog[]
@@ -256,6 +273,7 @@ model Usuario {
   auditoriasComoActor      AuditoriaEquipo[]       @relation("AuditoriaActor")
   auditoriasComoObjetivo   AuditoriaEquipo[]       @relation("AuditoriaObjetivo")
   consentimientosIa        ConsentimientoIa[]
+  alertasCreadas AlertaPersonalizada[]
 
   @@index([tenantId])
   @@unique([rut])
@@ -595,16 +613,56 @@ model Notificacion {
   asunto     String
   cuerpo     String?
   payload    Json?
+  // Alerta que originó esta notificación. Solo para tipo alerta_personalizada.
+  // Existe como columna y no dentro de payload porque la generación automática
+  // consulta por él para no repetir el mismo aviso dos veces.
+  alertaId   String?            @map("alerta_id") @db.Uuid
+  periodoId  String?            @map("periodo_id") @db.Uuid
   enviadaEn  DateTime?          @map("enviada_en") @db.Timestamptz(6)
   createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
   persona  Persona   @relation(fields: [personaId], references: [id])
   contrato Contrato? @relation(fields: [contratoId], references: [id])
+  alerta   AlertaPersonalizada? @relation(fields: [alertaId], references: [id])
 
   @@index([tenantId])
   @@index([personaId])
+  @@index([alertaId, periodoId])
   @@map("notificacion")
+}
+
+/**
+ * Alerta que el administrador de la corredora define una vez y queda
+ * disponible para que cualquier corredor de la cuenta la use.
+ *
+ * Crear/editar es exclusivo del Manager (ADR-0013); enviarla la puede usar
+ * cualquiera con acceso al contrato. El cuerpo admite marcadores del tipo
+ * {{arrendatario}} que se reemplazan al enviar — ver lib/alertas.ts.
+ *
+ * Con `disparador` en null la alerta es solo manual. Con un disparador
+ * definido, generarRecordatorios() la emite sola contra los períodos que
+ * calcen, sin repetir (de ahí el índice [alertaId, periodoId] en Notificacion).
+ */
+model AlertaPersonalizada {
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  nombre       String
+  asunto       String
+  cuerpo       String
+  destinatario DestinatarioAlerta
+  activa       Boolean            @default(true)
+  disparador   DisparadorAlerta?
+  diasOffset   Int?               @map("dias_offset") @db.SmallInt
+  creadaPorId  String             @map("creada_por_id") @db.Uuid
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  creadaPor     Usuario        @relation(fields: [creadaPorId], references: [id])
+  notificaciones Notificacion[]
+
+  @@index([tenantId])
+  @@map("alerta_personalizada")
 }
 
 model Documento {

@@ -25,18 +25,39 @@ contrato y de administración de cuentas de servicios.
 |---|---|---|---|---|
 | **P-PR1** | Campo `rol` (Rol de Avalúo SII) en `Propiedad` + migración | — | — | `[ ]` |
 | **P-PR2** | Validación de formato del Rol (`1234-56`), reutilizable en servidor y cliente | P-PR1 | **G-01** | `[!]` |
-| **P-PR3** | Modelo `CuentaServicio` (tipo, número, empresa, titular, quién paga) + migración | — | **G-02** | `[!]` |
+| **P-PR3** | Modelo `CuentaServicio` (tipo, número, empresa, titular, quién paga) + migración | — | G-02 ✅ | `[ ]` |
 | **P-PR4** | Agregar `cuenta_servicio` al arreglo de RLS en `setup.sql` | P-PR3 | — | `[ ]` |
 | **P-PR5** | Rol obligatorio en los formularios de crear y editar propiedad | P-PR2 | — | `[ ]` |
-| **P-PR6** | Sub-formulario repetible de cuentas de servicio | P-PR3 | **G-02** | `[!]` |
+| **P-PR6** | Sub-formulario repetible de cuentas de servicio, con cada servicio declarado o marcado "no aplica" | P-PR3 | G-02 ✅, G-05 ✅ | `[ ]` |
 | **P-PR7** | Incluir el Rol en el borrador PDF del contrato | P-PR1 | — | `[ ]` |
 | **P-PR8** | Test de aislamiento: un tenant no ve las cuentas de otro | P-PR4 | — | `[ ]` |
+| **P-PR9** | Exponer Rol y cuentas en el **portal** al arrendatario y al propietario del contrato | P-PR3 | — | `[ ]` |
+| **P-PR10** | Test negativo: la ficha pública del marketplace **no** devuelve Rol ni cuentas | P-PR1, P-PR3 | — | `[ ]` |
 
 **Restricción de privacidad que NO debe romperse.** El marketplace público arma su
 consulta con un `select` explícito de campos (`marketplace/[id]/page.tsx`). El Rol
 y los números de cuenta son datos fiscales y privados: **no deben agregarse nunca
 a ese select**. Hoy el diseño protege por omisión — conviene dejarlo dicho para
 que nadie lo "complete" por prolijidad más adelante.
+
+**Quién ve y quién edita** (decisión del 2026-08-19). Los datos sensibles de la
+propiedad —Rol y cuentas de servicio— son visibles para **corredor, propietario y
+arrendatario**, y quedan fuera del alcance del público general.
+
+| Actor | Ve | Edita | Por dónde |
+|---|---|---|---|
+| Manager de la corredora | ✅ | ✅ | Panel |
+| Colaborador a cargo | ✅ | ✅ | Panel |
+| Colaborador sin asignación | ❌ | ❌ | — |
+| Propietario | ✅ | ❌ | Portal (OTP) |
+| Arrendatario del contrato vigente | ✅ | ❌ | Portal (OTP) |
+| Público del marketplace | ❌ | ❌ | — |
+
+Dos cosas que esto **no** obliga a construir de cero:
+- La regla de edición ya existe. `actualizarPropiedad()` valida
+  "manager **o** asignado" (ADR-0013 Fase D); los campos nuevos la heredan.
+- El portal ya distingue `arrendatario` y `propietario` en su acceso por OTP,
+  así que P-PR9 es agregar datos a una vista existente, no un portal nuevo.
 
 ### 🎓 Rol para este grupo: Ingeniero de datos de producto
 
@@ -186,7 +207,8 @@ avisar dos veces del mismo reajuste.
 | ID | Pregunta | Sev. | Bloquea | Recomendación por defecto | Estado |
 |---|---|---|---|---|---|
 | **G-01** | Formato del Rol: ¿se acepta solo `NNNN-NN`, o también roles de mayor longitud y con letra que existen en algunas comunas? | 🟡 | P-PR2 | Validar `\d{1,5}-[\dkK]` (permisivo), normalizando a mayúscula. Un validador demasiado estricto bloquea propiedades legítimas, y el costo de un rol mal tipeado es bajo comparado con no poder cargar la propiedad. | **Abierta** |
-| **G-02** | ¿Las cuentas de servicio son **obligatorias** también, o solo el Rol? | 🔴 | P-PR3, P-PR6 | Solo el Rol obligatorio. Las cuentas, opcionales al crear y exigidas al **activar** la propiedad o al generar contrato — el corredor rara vez las tiene a mano en la carga inicial, y bloquear ahí genera propiedades que nunca se terminan de cargar. | **Abierta** |
+| **G-02** | ¿Las cuentas de servicio son **obligatorias** también, o solo el Rol? | 🔴 | P-PR3, P-PR6 | *(recomendación no adoptada: se sugería exigirlas recién al activar)* | ✅ **Resuelta** 2026-08-19 — **obligatorias al registrar**, igual que el Rol. Decisión del cliente |
+| **G-05** | "Obligatorias" no puede significar "las cuatro con número": una propiedad sin gas de red no tiene cuenta de gas. ¿Cómo se cumple la obligatoriedad sin exigir lo imposible? | 🟡 | P-PR6 | Cada servicio del set canónico (agua, luz, gas, gastos comunes) debe quedar **declarado explícitamente**: con sus datos, o marcado **"no aplica"**. Se prohíbe dejarlo en blanco. Preserva la intención —que no queden propiedades a medio cargar— sin bloquear casos legítimos. | ✅ **Resuelta** 2026-08-19 — default aplicado |
 | **G-03** | Al corregir `Voucher`: ¿se agrega `propietarioId` opcional, o se reemplaza por un `personaId` genérico con el rol del destinatario? | 🟡 | P-GA2 | `personaId` + `destinatario` (arrendatario/propietario). Un voucher siempre tiene exactamente un destinatario; dos FK opcionales invitan a que ambas queden nulas o ambas llenas. | **Abierta** |
 | **G-04** | ¿Con cuánta anticipación se avisa un reajuste? | 🟡 | P-NT1, P-NT2 | 30 días antes del período reajustado, reutilizando la cadencia que ya usa `recordatorio_vencimiento`. Menos que eso no le da tiempo al arrendatario de organizarse, que es el punto del aviso. | **Abierta** |
 
@@ -200,6 +222,9 @@ avisar dos veces del mismo reajuste.
 | 2026-08-19 | El Rol se marca `NOT NULL` de una vez, sin backfill | Estamos en `develop` y la base se puede resetear: no hay datos productivos que migrar | Respuesta directa |
 | 2026-08-19 | Las cuentas de servicio van en **tabla relacionada**, no en columnas de `Propiedad` | El set de servicios varía por propiedad, y cada cuenta necesita empresa, titular y quién paga — no solo un número | Recomendación aceptada |
 | 2026-08-19 | Los tres grupos son independientes entre sí; se parte por el 1 | Es el único que toca esquema y RLS, y es prerrequisito del seguimiento de deudas | Acordado |
+| 2026-08-19 | **Las cuentas de servicio son obligatorias al registrar la propiedad**, no al activarla | Decisión del cliente. Se había recomendado lo contrario (fricción en la carga inicial); el cliente prioriza que ninguna propiedad quede sin sus cuentas | Respuesta directa (G-02) |
+| 2026-08-19 | "Obligatorio" = **cada servicio declarado o marcado "no aplica"**, nunca en blanco | Una propiedad sin gas de red no puede tener cuenta de gas: exigir las cuatro con número haría imposible cargar casos legítimos. Así se cumple la intención sin bloquear | Default aplicado (G-05) |
+| 2026-08-19 | Rol y cuentas: **visibles** para corredor, propietario y arrendatario; **restringidos** al público | Decisión del cliente. Edita solo el corredor a cargo o el manager; propietario y arrendatario solo consultan | Respuesta directa |
 
 ## Fuera de alcance de este rowMap
 

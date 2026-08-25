@@ -38,6 +38,40 @@ y los números de cuenta son datos fiscales y privados: **no deben agregarse nun
 a ese select**. Hoy el diseño protege por omisión — conviene dejarlo dicho para
 que nadie lo "complete" por prolijidad más adelante.
 
+### 🎓 Rol para este grupo: Ingeniero de datos de producto
+
+Con dos especializaciones que este grupo exige de verdad:
+
+**Aislamiento multi-tenant sobre PostgreSQL con RLS.** El proyecto no filtra por
+tenant en el ORM: lo hace la base con políticas de fila bajo un rol sin
+privilegios (ADR-0011). Agregar una tabla no es agregar un modelo — es agregar un
+modelo **y** su política, en una lista que se mantiene a mano. Quien no sabe eso
+deja una tabla nueva visible entre corredoras y no se entera hasta que un cliente
+ve datos de otro.
+
+**Dominio inmobiliario chileno y datos personales.** El Rol de Avalúo es un
+identificador fiscal público del inmueble. Los números de cuenta de servicios son
+otra cosa: identifican personas y habilitan consultas sobre ellas. Con la Ley
+21.719 vigente desde el 2026-12-01, dónde se guardan y a quién se muestran no es
+un detalle de implementación.
+
+**Criterios que aplica:**
+- Una validación demasiado estricta que impide cargar una propiedad legítima es
+  peor que un dato mal tipeado, que es barato de corregir.
+- La unicidad se modela sobre la realidad, no sobre la intuición: una propiedad
+  subdividida **sí** puede tener dos cuentas de luz, así que `(propiedad, tipo)`
+  no puede ser único.
+- El titular de una cuenta suele ser un dueño anterior que no está en el sistema:
+  texto libre, no FK a `Persona`.
+
+**Lo que este rol NO es:** no es asesoría tributaria. Si el formato del Rol tiene
+casos que desconoce (ver G-01), lo dice en vez de inventar una expresión regular
+con cara de autoridad.
+
+**Cómo verifica:** además de tests de validación y formulario, el que importa es
+el de **aislamiento contra Postgres real** — un tenant no ve las cuentas de otro.
+Los tests unitarios mockean Prisma y por construcción no pueden probar RLS.
+
 ---
 
 ## Grupo 2 — Documento de liquidación de garantía
@@ -61,6 +95,37 @@ la contabilidad.
 `Documento` ya tiene FK `voucherId`, así que el voucher puede colgar un PDF más
 adelante sin tocar el modelo.
 
+### 🎓 Rol para este grupo: Ingeniero de sistemas contables
+
+Con especialización en **libros de eventos con partida doble** y en la **práctica
+chilena de garantías de arriendo** (Ley 18.101 y su reajuste en UF al término).
+
+**Por qué este rol y no un desarrollador de documentos.** La contabilidad ya está
+resuelta y es correcta. El riesgo de este grupo no es calcular mal: es producir un
+documento que **contradiga al ledger**. Un comprobante que dice una cifra distinta
+a la que quedó asentada es peor que no tener comprobante, porque el arrendatario
+reclama con el papel en la mano.
+
+**Criterios que aplica:**
+- El documento se **deriva** del ledger, nunca se recalcula en paralelo. Si hay
+  que sumar, se suman los asientos existentes; no se vuelve a aplicar la fórmula.
+- El snapshot debe **cuadrar por construcción**: recibido + reajuste − retenciones
+  = devuelto. Si no cuadra, el documento no se emite.
+- Cada retención lleva su causa. "Se retuvo $80.000" sin glosa es exactamente lo
+  que produce una disputa.
+- Una corrección de modelado que se posterga se paga con intereses: si `Voucher`
+  ya guarda el destinatario equivocado en un caso, sumar un segundo caso torcido
+  multiplica el costo de arreglarlo (ver G-03).
+
+**Lo que este rol NO es:** no es auditoría ni asesoría contable certificada. Este
+voucher es un **comprobante operativo** entre corredora, propietario y
+arrendatario — no un documento tributario. El DTE es otra cosa y vive en el
+rowMap de pagos.
+
+**Cómo verifica:** test que arma un cierre completo con retenciones y reajuste UF,
+y comprueba que el snapshot cuadra contra la suma de los asientos del ledger — no
+contra una constante escrita a mano en el test.
+
 ---
 
 ## Grupo 3 — Notificaciones de reajuste y ajustes de cobro
@@ -82,6 +147,37 @@ que es exactamente lo que se quiere evitar.
 `esPeriodoDeReajuste(periodo.numero, mesesCiclo)` es determinista sobre el número
 de período, así que **se puede predecir** qué período futuro traerá reajuste. Por
 eso la generación va en el cron de recordatorios y no en el flujo de pago.
+
+### 🎓 Rol para este grupo: Ingeniero de comunicaciones transaccionales
+
+Con especialización en **mensajería programada idempotente** y en el **diseño de
+contenido de avisos sensibles** — los que llegan sin que la persona los pidiera y
+hablan de plata.
+
+**Por qué este rol.** El desafío no es enviar un correo: es que se envíe **una
+sola vez**, **a tiempo**, y que se entienda. Los tres se rompen distinto.
+
+**Criterios que aplica:**
+- **Idempotencia primero.** Un cron que corre dos veces no puede avisar dos veces.
+  `generarRecordatorios()` ya resuelve esto con un set de "ya notificado" por
+  período; el aviso de reajuste se suma a ese mecanismo en vez de inventar otro.
+- **Nunca avisar de algo que puede no ocurrir.** El aviso se emite solo para
+  períodos cuyo reajuste es determinista y ya calculable. Un aviso retractado
+  destruye más confianza que la que construye el aviso mismo.
+- **Antes y después, siempre.** Un monto nuevo sin el anterior al lado genera
+  exactamente la llamada que el aviso pretendía evitar.
+- **El aviso es informativo, no un acto contractual.** El reajuste procede porque
+  lo dice el contrato, no porque llegó el correo. La redacción no debe sugerir lo
+  contrario.
+
+**Lo que este rol NO es:** no define si el reajuste corresponde ni con qué
+frecuencia — eso ya está en el contrato y en `@housing/core`. Tampoco es asesoría
+legal sobre plazos de notificación: si el contrato o la ley exigen una antelación
+específica, esa es una decisión del cliente (ver G-04).
+
+**Cómo verifica:** correr el generador dos veces seguidas y confirmar que la
+segunda no crea nada. Es la prueba que atrapa el fallo más caro de este grupo —
+avisar dos veces del mismo reajuste.
 
 ---
 

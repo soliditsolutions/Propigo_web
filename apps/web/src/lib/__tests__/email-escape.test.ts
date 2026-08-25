@@ -85,4 +85,33 @@ describe("HTML de correos — escapado de datos de personas", () => {
     expect(enviados[0].html).not.toContain("<img src=x");
     expect(enviados[0].html).toContain("&lt;img src=x");
   });
+
+  it("el User-Agent no puede inyectar HTML en el correo de dispositivo", async () => {
+    // parseBrowser() deriva de un header que el cliente controla por completo.
+    // Es la superficie más expuesta del módulo, y el primer barrido la omitió.
+    const { sendDeviceCodeEmail } = await import("../email");
+    await sendDeviceCodeEmail("v@x.cl", "Victima", "123456", {
+      ip: "1.2.3.4", browser: PAYLOAD,
+    });
+
+    expect(enviados).toHaveLength(1);
+    expect(enviados[0].html).not.toContain("<img src=x");
+    expect(enviados[0].html).toContain("&lt;img src=x");
+  });
+
+  it("una IP forjada por cabecera tampoco inyecta", async () => {
+    const { sendDeviceCodeEmail } = await import("../email");
+    await sendDeviceCodeEmail("v@x.cl", "Victima", "123456", {
+      ip: PAYLOAD, browser: "Chrome",
+    });
+
+    expect(enviados[0].html).not.toContain("<img src=x");
+  });
+
+  it("el nombre de la corredora no inyecta en la invitación a un colaborador", async () => {
+    const { sendCollaboratorInviteEmail } = await import("../email");
+    await sendCollaboratorInviteEmail("c@b.cl", "Colab", PAYLOAD, "tok");
+
+    expect(enviados[0].html).not.toContain("<img src=x");
+  });
 });

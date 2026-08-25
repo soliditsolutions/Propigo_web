@@ -4,6 +4,30 @@ import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { verificarTokenBaja, calcularBajaHasta } from "@/lib/notificacion-preferencias";
+import { headers } from "next/headers";
+import { getClientIpFromHeaders } from "@/lib/ip";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+/**
+ * Rate limit de la superficie pública.
+ *
+ * /no-molestar es la única ruta de esta función sin sesión: cualquiera en
+ * internet puede invocar estas acciones. El token firmado impide actuar sobre
+ * una persona ajena, pero no impide martillar el endpoint — y cada intento
+ * válido escribe en la base. El resto de las rutas públicas del proyecto
+ * (OTP del portal, subida, valoraciones) ya se protegen así; esta no lo hacía.
+ *
+ * Los límites son holgados para un uso legítimo: nadie se da de baja veinte
+ * veces por minuto, pero abrir el enlace y corregir la elección un par de
+ * veces es perfectamente normal.
+ */
+const LIMITE_ESCRITURA = { max: 10, ventanaMs: 10 * 60 * 1000 };
+const LIMITE_LECTURA   = { max: 30, ventanaMs: 10 * 60 * 1000 };
+
+async function limitar(prefijo: string, max: number, ventanaMs: number): Promise<boolean> {
+  const ip = getClientIpFromHeaders(await headers());
+  return checkRateLimit(`${prefijo}:${ip}`, max, ventanaMs).allowed;
+}
 
 export type ResultadoBaja =
   | { ok: true; permanente: boolean; hasta: string | null; total: boolean }
@@ -27,6 +51,9 @@ export async function registrarBaja(
   motivo?: string,
 ): Promise<ResultadoBaja> {
   try {
+    if (!(await limitar("baja", LIMITE_ESCRITURA.max, LIMITE_ESCRITURA.ventanaMs)))
+      return { ok: false, error: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo." };
+
     const payload = await verificarTokenBaja(token);
     if (!payload) return { ok: false, error: "Este enlace no es válido. Búscalo en el pie de cualquier aviso que te hayamos enviado." };
 
@@ -70,6 +97,11 @@ export async function registrarBaja(
 /** Datos mínimos para mostrar el formulario sin exponer de más. */
 export async function contextoBaja(token: string): Promise<{ ok: boolean; nombre?: string; corredora?: string }> {
   try {
+    // Devuelve el nombre de la persona, así que también se limita: sin esto,
+    // quien obtenga un token podría usarlo como sonda repetida contra la base.
+    if (!(await limitar("baja-ctx", LIMITE_LECTURA.max, LIMITE_LECTURA.ventanaMs)))
+      return { ok: false };
+
     const payload = await verificarTokenBaja(token);
     if (!payload) return { ok: false };
 

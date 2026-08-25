@@ -440,8 +440,8 @@ export async function sendDeviceCodeEmail(
           <p style="margin:0;font-size:12px;color:#94A3B8">Válido por 10 minutos · Máximo 3 intentos</p>
         </div>
         <p style="font-size:13px;color:#64748B">
-          IP de origen: <strong>${meta.ip}</strong><br>
-          Navegador: <strong>${meta.browser}</strong>
+          IP de origen: <strong>${esc(meta.ip)}</strong><br>
+          Navegador: <strong>${esc(meta.browser)}</strong>
         </p>
         <p style="font-size:12px;color:#94A3B8">
           Si no reconoces este intento, ignora este correo y cambia tu contraseña.
@@ -479,7 +479,7 @@ export async function sendCollaboratorInviteEmail(
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="margin:0 0 8px;color:#0F172A">Hola, ${esc(nombre)}</h2>
-        <p style="color:#475569"><strong>${nombreEmpresa}</strong> te invitó a colaborar en la gestión de sus propiedades en Housing.</p>
+        <p style="color:#475569"><strong>${esc(nombreEmpresa)}</strong> te invitó a colaborar en la gestión de sus propiedades en Housing.</p>
         <div style="margin:24px 0">
           <a href="${link}" style="display:inline-block;background:#2563EB;color:#fff;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none">
             Aceptar invitación
@@ -532,7 +532,7 @@ export async function sendCambioContactoCodeEmail(
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
         <h2 style="margin:0 0 8px">Hola, ${esc(nombre)}</h2>
-        <p style="color:#475569">Pediste cambiar tu ${campoLabel} a <strong>${valorNuevo}</strong>.</p>
+        <p style="color:#475569">Pediste cambiar tu ${campoLabel} a <strong>${esc(valorNuevo)}</strong>.</p>
         <div style="background:#F1F5F9;border-radius:12px;padding:24px;text-align:center;margin:24px 0">
           <p style="margin:0;font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Tu código de confirmación</p>
           <p style="font-size:40px;font-weight:700;letter-spacing:.15em;color:#0F172A;margin:8px 0">${codigo}</p>

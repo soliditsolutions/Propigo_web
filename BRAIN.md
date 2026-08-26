@@ -1,8 +1,10 @@
 # 🧠 BRAIN — Contexto vivo del proyecto Housing
 
-> **Qué es esto.** Un único documento con el contexto que no se deduce del código: gotchas técnicos ya resueltos, decisiones no obvias, convenciones, restricciones de seguridad, patrones de trabajo y lecciones aprendidas. Sirve como **memoria de largo plazo** para retomar el proyecto o para asistentes de IA. Si resuelves un problema no trivial o descubres algo que costó entender, **anótalo aquí**.
+> **Qué es esto.** El cerebro del proyecto: todo el razonamiento y el aprendizaje que no se deduce leyendo el código. Gotchas ya resueltos, hechos del dominio que contradicen la intuición, cómo pensar la seguridad acá, cómo se verifica, y un histórico de errores con su causa raíz. Sirve como **memoria de largo plazo** para retomar el proyecto o para asistentes de IA.
 >
-> Última actualización: 2026-08-19.
+> **Cómo usarlo.** Antes de "arreglar" algo que parece obvio, busca acá: buena parte de lo que hay documentado son cosas que ya se intentaron corregir mal una vez. Al cerrar un problema no trivial, agrega una fila en §8 con la **causa raíz**, no solo el síntoma — el valor está en el porqué, no en el qué.
+>
+> Última actualización: 2026-08-26.
 
 ---
 
@@ -24,8 +26,9 @@
 - **Prisma 7 eliminó el motor Rust.** Requiere **driver adapter**: `new PrismaClient({ adapter })` con `@prisma/adapter-pg` + `pg`. La URL va por `prisma.config.ts` / `dotenv`.
 - **Serialización de `Decimal` de Prisma a Client Components.** Los `Decimal` (y `Date`) deben convertirse a `number`/`string` antes de pasarlos como props a componentes cliente, o React falla. Serializar en el Server Component.
 - **RLS SÍ tiene enforcement real, también en desarrollo.** *(Corregido 2026-08-19; antes este documento decía lo contrario.)* `DATABASE_URL` apunta al rol de runtime `housing_app`, que **no** es dueño de las tablas y por lo tanto no bypassa las políticas. Consecuencias prácticas: `prisma migrate dev` **falla** (no puede crear la shadow database) y `prisma db execute` también (no puede hacer DDL). El procedimiento correcto está más abajo. El aislamiento lo garantiza la base, no solo el código — pero eso vale únicamente para las tablas que estén en el arreglo de RLS de `setup.sql`, que **se mantiene a mano**: agregar un modelo nuevo sin agregarlo ahí lo deja visible entre corredoras. Los `grants` sí son automáticos (`alter default privileges`); las políticas no.
-- **Procedimiento de migración en este proyecto** (no es el estándar de Prisma): `prisma migrate diff --from-config-datasource --to-schema-datamodel` para generar el SQL → escribirlo en la carpeta de migración → aplicarlo con `docker exec -i housing-db psql -U housing` (el superusuario, no `housing_app`) → `prisma migrate resolve --applied <nombre>` → **reaplicar `setup.sql`** → `prisma migrate status`. **Trampa:** `migrate resolve --applied` tiene éxito aunque las tablas no existan, dejando el historial mintiendo. Verificar siempre contra la base, no contra el historial.
+- **Procedimiento de migración en este proyecto** (no es el estándar de Prisma): `prisma migrate diff --from-config-datasource prisma.config.ts --to-schema prisma/schema.prisma --script` para generar el SQL (**`--to-schema-datamodel` se eliminó en Prisma 7**; este documento lo tuvo mal hasta el 2026-08-26) → escribirlo en la carpeta de migración → aplicarlo con `docker exec -i housing-db psql -U housing` (el superusuario, no `housing_app`) → `prisma migrate resolve --applied <nombre>` → **reaplicar `setup.sql`** (también con el rol dueño: `docker exec -i housing-db psql -U housing -d housing < prisma/sql/setup.sql`; `npm run db:setup` falla con `must be owner of table contrato` porque usa `DATABASE_URL`) → `prisma migrate status`. **Trampa:** `migrate resolve --applied` tiene éxito aunque las tablas no existan, dejando el historial mintiendo. Verificar siempre contra la base, no contra el historial.
 - **`db:seed` NO funciona con `DATABASE_URL`** *(descubierto 2026-08-25)*. El seed empieza con un `TRUNCATE tenant … CASCADE`, y el rol de runtime `housing_app` no tiene ese privilegio: falla con `permission denied for table tenant`. No es un bug nuevo — el `.env` documentaba cambiar la URL a mano para estas tareas. Ahora el seed usa **`DATABASE_ADMIN_URL`** (rol dueño) si está definida, y cae a `DATABASE_URL` si no. Hay que tener esa variable en el `.env` local, que no se versiona. La app **nunca** debe usarla.
+- **`prisma generate` con el dev server arriba deja el proceso sirviendo el cliente ANTERIOR** *(2026-08-26)*. Es distinto del caché de Turbopack: acá el archivo generado en disco ya está bien, pero el proceso de Node cargó el módulo viejo y no lo suelta. El síntoma engaña porque parece un error de código: `PrismaClientValidationError: Unknown field 'campoNuevo' for select statement on model X`, con un 500 en la página. **No hay atajo:** hay que reiniciar el proceso. Se intentó levantar un segundo servidor en otro puerto y **Next.js lo rechaza** — solo permite un `next dev` por directorio, e imprime él mismo el `taskkill /PID <n> /F` necesario.
 - **`prisma migrate reset` no reaplica `setup.sql`.** Orden correcto: `migrate reset` → `db:setup` → `db:seed` → `db:seed-cuenta` (este último al final: `db:seed` hace TRUNCATE de tenant).
 - **Al navegar entre contratos, Next.js SÍ remonta los componentes.** *(Verificado en el navegador el 2026-08-19.)* Al cambiar el parámetro `[id]` de la ruta, el estado local de las secciones (checkbox de confirmación, valores sembrados desde props) **se reinicia solo** — no hace falta `key` para eso. Se comprobó quitando el `key` y confirmando que el problema no reaparece. Está anotado porque la intuición dice lo contrario ("misma page, mismo componente, misma posición → React reutiliza"), y porque evita que alguien "arregle" un problema que no existe. El `key={detalle.id}` de `contratos/[id]/page.tsx` se mantiene como defensa explícita: la garantía depende del router, no de nuestro código, y el costo de equivocarse ahí es accionar sobre el contrato equivocado.
 - **`estado: "simulada"` en una notificación equivale a NO enviarla nunca.** El despachador `enviarNotificacionesPendientes()` filtra `estado: "pendiente"`. Toda notificación nueva debe crearse como `"pendiente"`; `"simulada"` es exclusivamente para las acciones de simulación del panel. Cinco tipos estuvieron creándose como `simulada` sin que nadie lo notara (ver §6).
@@ -61,10 +64,44 @@
 - **Secretos JWT:** `AUTH_SECRET` firma panel; portal usa prefijo `"portal:" + AUTH_SECRET`; dispositivo usa su propio flujo. Tokens siempre como **hash SHA-256** en BD, nunca en claro.
 - **Todo lo que entra a una consulta desde la URL pasa por `lib/busqueda.ts`.** `terminoBusqueda` para texto, `numeroFiltro`/`enteroFiltro` para números, `idFiltro` para uuid y `opcionFiltro` para enums. Un filtro que no se entiende no se aplica; nunca llega crudo a Prisma.
 - **El rol de avalúo y los números de cuenta no salen a ninguna superficie pública.** Los ven corredor, propietario y arrendatario. Hay dos guardianes: `no-expone-datos-privados.test.ts` (revisa el `select` de las páginas públicas) y `seguridad-datos-privados.test.ts` (RLS contra Postgres real).
+- **Una sola sesión privada por navegador.** Abrir la del panel cierra la del portal y viceversa, y eso se hace en los setters de cookie (`setSessionCookie` / `setPortalCookie`), nunca en cada pantalla de login. Ver §6.
+- **El prefijo `__Host-` exige `Path=/`**, además de `Secure` y sin `Domain`. Una cookie `__Host-` con cualquier otro path la rechaza el navegador **entera**. En este proyecto ya pasó con la del portal, y no se vio en local porque el prefijo solo se aplica cuando `NODE_ENV` es production.
+- **Un Server Component no puede escribir cookies.** Todo lo que implique renovar o limpiar una sesión va en `proxy.ts` o en una Server Action, no en el componente que lee la sesión.
 
 ---
 
-## 4 bis. Validación de entrada: dónde estaba el hueco
+## 5. Hechos del dominio que contradicen la intuición
+
+Cosas que ya se investigaron y que es fácil "corregir" mal por sentido común.
+
+- **El Rol de Avalúo no tiene dígito verificador.** Eso es del RUT. Un rol es
+  solo dígitos y guiones, con la forma `manzana-predio` y la comuna opcional:
+  `573-24` o `13101-573-24`. **Los bloques tampoco tienen largo fijo** — `1-1`
+  es un rol real, así que exigir cuatro dígitos rechaza propiedades legítimas.
+  El tope de 5 dígitos por bloque es un margen elegido por nosotros, no una
+  cifra oficial del SII.
+- **Una propiedad puede tener dos cuentas del mismo servicio.** Una casa
+  subdividida tiene dos medidores de luz. Hay un test que lo permite a
+  propósito; se intentó agregar una validación de "duplicado" y el test la
+  rechazó con razón.
+- **En un edificio, el departamento, el estacionamiento y la bodega son
+  inmuebles distintos con rol propio.** Por eso los complementos son una tabla
+  aparte y el borrador de contrato los nombra: uno que solo menciona el
+  departamento deja el resto sin cubrir.
+- **El contrato que genera el sistema es un BORRADOR** que un abogado revisa y
+  legaliza. El estándar es realismo y cero citas legales inventadas, no
+  certificación legal. Ya hubo una cita fabricada ("art. 46, Ley 18.101", que no
+  existe) en seis lugares del código y la UI.
+- **El portal entrega como mucho 3 códigos OTP por persona cada 10 minutos, y
+  al cuarto responde 200 sin enviar nada.** Es deliberado (anti-enumeración,
+  ADR-0007): responder distinto revelaría si el RUT existe. Al probar a mano se
+  ve como "pedí el código y no llegó" — no es un fallo.
+
+---
+
+## 6. Cómo pensar la seguridad de este producto
+
+### Validación de entrada: dónde estaba el hueco
 
 Las **rutas de API** ya tenían su capa (Zod + rate limit) y aguantaron todo lo que se les tiró: payloads malformados, inyección y anidamiento raro devolvieron 400/422/429, nunca un 500.
 
@@ -78,31 +115,6 @@ Dos hallazgos que no eran obvios:
 - **`valor as MiEnum` sobre texto del usuario es una promesa que el compilador cree y la base no.** `tsc` quedaba limpio y `?tipo=basura` devolvía 500.
 
 ---
-
-## 5. Testing
-
-- **Núcleo (`@housing/core`):** `npm test -w @housing/core`. Cubre calendario, IPC por aniversario, ledger, conciliación, garantía, RUT. Referencia histórica: **47/47 verdes**.
-- **App (`@housing/web`):** `npm test -w @housing/web` (Vitest + Testing Library + jsdom). Incluye tests de acciones de cobros, seguridad de IA (anti prompt-injection) y sanitización de documentos.
-- **Verificar el arreglo quitándolo (mutación).** Un test que pasa después del fix no demuestra nada si también pasaba antes. La práctica es reintroducir el fallo y confirmar que falla **exactamente** el test que corresponde. En esta sesión sirvió dos veces y con resultados opuestos: confirmó el arreglo de notificaciones, y **refutó** un diagnóstico sobre estado que sobrevivía entre contratos (ver §2) — el "arreglo" no era lo que producía el efecto observado.
-- **Un test que pasa antes y después del cambio no está probando el cambio.** Los tests de cobros pasaban igual con las notificaciones en `"simulada"` que en `"pendiente"`, porque ninguno miraba ese campo. Por eso el fallo fue invisible durante meses.
-- **Los tests unitarios mockean Prisma y por construcción NO pueden probar RLS ni concurrencia.** Para eso hay que ir contra Postgres real: así se verificó la compuerta atómica de cupos de IA (10 peticiones en paralelo contra un cupo de 3 → exactamente 3 otorgadas) y así debe verificarse el aislamiento de cualquier tabla nueva.
-- **Verificación manual:** se usa el preview del navegador (Claude Preview) para validar flujos end-to-end (crear contrato, conciliar, portal, modales). No confiar solo en que "compila".
-
-### Pruebas de seguridad (estándar del proyecto)
-
-Un dato sensible se prueba atacándolo, no leyendo el código que lo protege. El barrido tiene cuatro frentes y los cuatro se corren de nuevo cada vez que se agrega una tabla o una ruta pública:
-
-1. **Aislamiento contra Postgres real** (`seguridad-datos-privados.test.ts`). Se crea una fila señuelo con un valor inconfundible y se intenta leerla, modificarla y borrarla desde otra corredora, sin contexto de tenant y con un tenant inventado. Las consultas van **a propósito sin filtrar por `tenantId`**: si algo aparece, el aislamiento lo estaba dando el código y no la base.
-2. **Inyección**, con los payloads clásicos entrando por los ids de la URL y por los campos de texto libre (el rol es el candidato natural a inyección de segundo orden). Se verifica que no filtre, que no ejecute y que el error —si lo hay— no revele la estructura de la base.
-3. **Barrido HTTP de la superficie pública**: se piden las páginas públicas de verdad y se busca el rol y los números de cuenta **en el HTML servido**. Es más fuerte que revisar el `select` en el fuente, que es lo único que puede hacer el test de código.
-4. **Basura en cada parámetro**: `abc`, `NaN`, `1e400`, negativos, desbordes y comillas en todos los `searchParams` y `params`. El criterio es duro: **cero respuestas distintas de 200** en las páginas públicas (o 404 donde corresponde), nunca un 500.
-
-Dos trampas del andamiaje que ya costaron tiempo:
-
-- **`describe.skip` se decide mientras vitest COLECTA los tests.** Un flag calculado en `beforeAll` llega tarde y el archivo entero se salta en silencio, en verde. La sonda de conexión va en el tope del módulo, con `await` de nivel superior.
-- **Un `catch {}` alrededor del setup convierte cualquier fallo en un "no hay base".** La sonda distingue las dos cosas: solo un fallo de conexión salta; con la base arriba, cualquier error revienta a la vista. Un archivo de seguridad que se salta solo es peor que no tenerlo.
-
-Y una lección sobre las aserciones: el primer intento afirmaba que una búsqueda con comodín no devolvía nada para la otra corredora, y falló con 3 filas. **No era una fuga**: eran las filas propias de esa corredora, y lo que el test había asumido mal era el escenario. La conclusión real estaba al lado —Prisma no escapa `%`— y se encontró justamente porque el fallo se investigó en vez de ajustar el número esperado.
 
 ### Una sesión privada a la vez
 
@@ -133,6 +145,33 @@ Lo que sí es un límite es la visibilidad que decide el corredor: esas filas se
 
 La distinción importa al revisar código nuevo: si algo debe quedar fuera del alcance de alguien, se filtra en el servidor. Si solo debe evitarse una mirada de reojo, basta con taparlo en la interfaz. Confundirlas produce o una falsa sensación de seguridad, o un dato que no se puede consultar cuando hace falta.
 
+---
+
+## 7. Testing y verificación
+
+- **Núcleo (`@housing/core`):** `npm test -w @housing/core`. Cubre calendario, IPC por aniversario, ledger, conciliación, garantía, RUT. Referencia histórica: **47/47 verdes**.
+- **App (`@housing/web`):** `npm test -w @housing/web` (Vitest + Testing Library + jsdom). Incluye tests de acciones de cobros, seguridad de IA (anti prompt-injection) y sanitización de documentos.
+- **Verificar el arreglo quitándolo (mutación).** Un test que pasa después del fix no demuestra nada si también pasaba antes. La práctica es reintroducir el fallo y confirmar que falla **exactamente** el test que corresponde. En esta sesión sirvió dos veces y con resultados opuestos: confirmó el arreglo de notificaciones, y **refutó** un diagnóstico sobre estado que sobrevivía entre contratos (ver §2) — el "arreglo" no era lo que producía el efecto observado.
+- **Un test que pasa antes y después del cambio no está probando el cambio.** Los tests de cobros pasaban igual con las notificaciones en `"simulada"` que en `"pendiente"`, porque ninguno miraba ese campo. Por eso el fallo fue invisible durante meses.
+- **Los tests unitarios mockean Prisma y por construcción NO pueden probar RLS ni concurrencia.** Para eso hay que ir contra Postgres real: así se verificó la compuerta atómica de cupos de IA (10 peticiones en paralelo contra un cupo de 3 → exactamente 3 otorgadas) y así debe verificarse el aislamiento de cualquier tabla nueva.
+- **Verificación manual:** se usa el preview del navegador (Claude Preview) para validar flujos end-to-end (crear contrato, conciliar, portal, modales). No confiar solo en que "compila".
+
+### Pruebas de seguridad (estándar del proyecto)
+
+Un dato sensible se prueba atacándolo, no leyendo el código que lo protege. El barrido tiene cuatro frentes y los cuatro se corren de nuevo cada vez que se agrega una tabla o una ruta pública:
+
+1. **Aislamiento contra Postgres real** (`seguridad-datos-privados.test.ts`). Se crea una fila señuelo con un valor inconfundible y se intenta leerla, modificarla y borrarla desde otra corredora, sin contexto de tenant y con un tenant inventado. Las consultas van **a propósito sin filtrar por `tenantId`**: si algo aparece, el aislamiento lo estaba dando el código y no la base.
+2. **Inyección**, con los payloads clásicos entrando por los ids de la URL y por los campos de texto libre (el rol es el candidato natural a inyección de segundo orden). Se verifica que no filtre, que no ejecute y que el error —si lo hay— no revele la estructura de la base.
+3. **Barrido HTTP de la superficie pública**: se piden las páginas públicas de verdad y se busca el rol y los números de cuenta **en el HTML servido**. Es más fuerte que revisar el `select` en el fuente, que es lo único que puede hacer el test de código.
+4. **Basura en cada parámetro**: `abc`, `NaN`, `1e400`, negativos, desbordes y comillas en todos los `searchParams` y `params`. El criterio es duro: **cero respuestas distintas de 200** en las páginas públicas (o 404 donde corresponde), nunca un 500.
+
+Dos trampas del andamiaje que ya costaron tiempo:
+
+- **`describe.skip` se decide mientras vitest COLECTA los tests.** Un flag calculado en `beforeAll` llega tarde y el archivo entero se salta en silencio, en verde. La sonda de conexión va en el tope del módulo, con `await` de nivel superior.
+- **Un `catch {}` alrededor del setup convierte cualquier fallo en un "no hay base".** La sonda distingue las dos cosas: solo un fallo de conexión salta; con la base arriba, cualquier error revienta a la vista. Un archivo de seguridad que se salta solo es peor que no tenerlo.
+
+Y una lección sobre las aserciones: el primer intento afirmaba que una búsqueda con comodín no devolvía nada para la otra corredora, y falló con 3 filas. **No era una fuga**: eran las filas propias de esa corredora, y lo que el test había asumido mal era el escenario. La conclusión real estaba al lado —Prisma no escapa `%`— y se encontró justamente porque el fallo se investigó en vez de ajustar el número esperado.
+
 ### Probar con sesión, no solo sin ella
 
 Un barrido sin sesión da una falsa tranquilidad: el guard de autenticación corta antes de que el parámetro llegue a la consulta, así que **todo responde bien por el motivo equivocado**. Se comprobó en el portal: sin sesión, `/portal/contrato/abc` redirigía a `/portal`; con sesión abierta, el mismo id daba un 500 porque llegaba a una columna `uuid`. La conclusión "panel y portal cortan antes de tocar la base" era cierta solo para el visitante anónimo.
@@ -151,7 +190,31 @@ La regla que queda: **si una pantalla muestra un campo, hay que cambiarlo y volv
 
 ---
 
-## 6. Errores y soluciones destacados (histórico)
+### No concluir desde un instrumento roto
+
+Varias veces en la misma sesión el que estaba mal era el aparato de medir, no el
+código. Cuando una comprobación da un resultado raro, **lo primero es demostrar
+que el instrumento funciona**, buscando algo que se sabe que está.
+
+- Un extractor de texto de PDF devolvió "no contiene el rol". Antes de concluir
+  nada se buscó "CONTRATO", que sin duda estaba: tampoco aparecía. El extractor
+  era el roto — `@react-pdf` escribe el texto como cadenas hexadecimales dentro
+  de operadores `TJ` (`<53455054494d4f>` es "SEPTIMO"), y además lo parte en
+  fragmentos por kerning, así que buscar palabras completas falla aunque estén.
+- Una sección del formulario "no existía" según `innerText`. Existía: el título
+  va en mayúsculas por CSS, y la búsqueda era sensible a mayúsculas.
+- Un detector de "página no encontrada" daba positivo en las tres respuestas,
+  incluida la correcta: la expresión calzaba con texto suelto del bundle.
+
+El corolario para los tests: **una aserción que pasa por el motivo equivocado es
+peor que una que falla.** Cuando un test de seguridad falló con 3 filas donde
+esperaba 0, investigar el fallo —en vez de ajustar el número esperado— fue lo
+que destapó que Prisma no escapa `%`. Las filas eran de la propia corredora; lo
+mal supuesto era el escenario del test.
+
+---
+
+## 8. Errores y soluciones destacados (histórico)
 
 | Problema | Causa raíz | Solución |
 |---|---|---|
@@ -188,7 +251,7 @@ La regla que queda: **si una pantalla muestra un campo, hay que cambiarlo y volv
 
 ---
 
-## 7. Cómo trabaja el equipo (estilo de colaboración)
+## 9. Cómo trabaja el equipo (estilo de colaboración)
 
 - **Cuestionar ideas**, no validar por validar. Proponer alternativas con criterio.
 - **Validar en papel** antes de tocar código en cambios grandes o delicados.
@@ -200,7 +263,7 @@ La regla que queda: **si una pantalla muestra un campo, hay que cambiarlo y volv
 
 ---
 
-## 8. Pendientes conocidos / deuda
+## 10. Pendientes conocidos / deuda
 
 - Recorrido formal de demostración del criterio "MVP terminado".
 - Config de producción: cargar índices en `serie_ipc`, `RESEND_API_KEY` + `CRON_SECRET` + DNS.
@@ -210,4 +273,4 @@ La regla que queda: **si una pantalla muestra un campo, hay que cambiarlo y volv
 
 ---
 
-_Este documento reemplaza/centraliza el contexto que antes vivía disperso en notas de sesión. Mantenerlo vivo: al cerrar un problema no trivial, agrega una fila en §6 o una viñeta en §2._
+_Este documento reemplaza/centraliza el contexto que antes vivía disperso en notas de sesión. Mantenerlo vivo: al cerrar un problema no trivial, agrega una fila en §8 o una viñeta en §2._

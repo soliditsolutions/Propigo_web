@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Housing — Gestión de arriendos",
   description:
-    "Plataforma PropTech para corredores de propiedades: gestión de arriendos, cobros automáticos y publicación de viviendas.",
+    "Software chileno para corredores de propiedades: administra contratos de arriendo, cobra la renta mensual y publica tu catálogo.",
 };
 
 export default async function RootLayout({

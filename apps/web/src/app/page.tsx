@@ -121,7 +121,7 @@ export default async function Home() {
       id: "gestion",
       icon: Building2,
       title: "Contratos y reajustes automáticos",
-      text: "Genera el contrato en UF o CLP, aplica el reajuste IPC en cada aniversario y calcula tu comisión sin tocar una planilla. Cero errores de cálculo, cero fechas que se te pasan.",
+      text: "Genera el contrato en UF o CLP y aplica el reajuste del IPC en cada aniversario, con la comisión ya calculada. El aniversario lo lleva el sistema, no tú.",
     },
     {
       id: "pagos",
@@ -149,9 +149,9 @@ export default async function Home() {
         <span className="pf-headline-accent">automática y sin errores</span>.
       </h1>
       <p className="mx-auto mt-3 max-w-lg text-pretty text-base leading-relaxed text-[var(--pf-text-body)] sm:text-lg">
-        Detecta pagos solos, reajusta el IPC en el aniversario de cada
-        contrato y mantén una contabilidad auditable. Pensado para quienes
-        no quieren pelear con la tecnología.
+        Detecta los pagos, aplica el reajuste del IPC en el aniversario de
+        cada contrato y deja el respaldo listo para rendirle al propietario.
+        Sin planillas.
       </p>
       {/* CTA primario — el negocio es el corredor. hw-sheen: barrido de luz al
           hover, reservado para el CTA principal de la página. */}
@@ -208,13 +208,13 @@ export default async function Home() {
             Acerca de
           </span>
           <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight text-[var(--pf-navy)] sm:text-3xl">
-            Todo lo que necesitas para arrendar{" "}
-            <span className="pf-headline-accent">sin sorpresas</span>
+            Lo que hace{" "}
+            <span className="pf-headline-accent">por ti</span>
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">
-            Housing reúne la gestión de arriendos, los cobros automáticos y un
-            marketplace público en una sola plataforma para corredores de
-            propiedades en Chile, con la transparencia como eje.
+            El arriendo se administra completo desde acá: el contrato, la
+            cobranza mensual y la publicación. Cada movimiento queda registrado
+            y el propietario puede verlo por su cuenta.
           </p>
         </div>
       </div>
@@ -241,7 +241,7 @@ export default async function Home() {
           hay una siguiente y anime a deslizar en vez de leerse como una
           lista de una sola columna. */}
       <div className="lg:hidden">
-        <EmblaCarousel ariaLabel="Beneficios de Housing para corredores" autoplay={false}>
+        <EmblaCarousel ariaLabel="Qué hace Housing por un corredor" autoplay={false}>
           {features.map((f) => (
             <div key={f.id} className="hw-auth-card flex h-full w-[82vw] max-w-xs shrink-0 flex-col p-6">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-purple-tint)] text-[var(--pf-purple)]">
@@ -263,7 +263,7 @@ export default async function Home() {
         <Star className="h-5 w-5" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />
         <h2 className="pf-headline-accent text-xl font-bold tracking-tight sm:text-2xl">Destacado</h2>
         <span className="hidden text-sm sm:inline" style={{ color: "var(--pf-text-muted)" }}>
-          Lo mejor, disponible ahora
+          Las publicaciones más recientes
         </span>
         {/* Acceso al marketplace movido al encabezado (antes ocupaba una fila
             entera al fondo, poco visible y comiendo el alto justo de la parada). */}

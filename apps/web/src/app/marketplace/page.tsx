@@ -439,7 +439,7 @@ export default async function MarketplacePage({
                 : "No hay propiedades disponibles en este momento."}
             </p>
             <p className="text-sm" style={{ color: "var(--pf-text-muted)" }}>
-              Vuelve pronto — los corredores publican nuevas propiedades regularmente.
+              Los corredores publican propiedades nuevas todas las semanas. Vuelve a mirar en unos días.
             </p>
             {(q || tipo !== "todas" || hayFiltrosActivos) && (
               <Link href="/marketplace" className="pf-btn-secondary" style={{ padding: "10px 20px", fontSize: "13px" }}>
@@ -600,7 +600,7 @@ export default async function MarketplacePage({
             ¿Eres corredor de propiedades?
           </h2>
           <p className="mt-3 text-base" style={{ color: "#A0AEC0" }}>
-            Publica tus propiedades, gestiona contratos y automatiza cobros en una sola plataforma. Sin complicaciones.
+            Publica tu catálogo con tu marca y recibe las consultas directo, sin pagar comisión por cada contacto.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link

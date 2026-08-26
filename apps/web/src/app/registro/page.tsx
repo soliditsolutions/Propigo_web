@@ -9,11 +9,19 @@ export const metadata: Metadata = {
   title: "Crear cuenta — Housing",
 };
 
+/*
+ * Cada punto nombra algo que el producto hace y que se puede comprobar. Los
+ * textos anteriores eran folleto: "en un solo lugar", "automatizadas" sin decir
+ * qué, y una afirmación directamente falsa —"cifrado de extremo a extremo"—
+ * que este sistema no tiene ni puede tener, porque el servidor renderiza los
+ * datos. Publicitar una protección inexistente no es solo mal copy: es
+ * publicidad engañosa (Ley 19.496).
+ */
 const benefits = [
-  { icon: Users,      text: "Gestiona tus propiedades y arrendatarios en un solo lugar" },
-  { icon: FileText,   text: "Contratos, cobros y liquidaciones automatizadas"            },
-  { icon: Lock,       text: "Seguridad de nivel bancario con cifrado de extremo a extremo" },
-  { icon: ShieldCheck, text: "Cumplimiento Ley 21.719 · Protección de datos · Chile 2026" },
+  { icon: Users,       text: "Tus propiedades, contratos y arrendatarios en un solo inventario" },
+  { icon: FileText,    text: "El reajuste del IPC se aplica solo, en el aniversario de cada contrato" },
+  { icon: Lock,        text: "Cada corredora ve únicamente sus datos, separados en la base" },
+  { icon: ShieldCheck, text: "Consentimiento y trato de datos conforme a la Ley 21.719" },
 ];
 
 export default function RegistroPage() {
@@ -43,10 +51,10 @@ export default function RegistroPage() {
 
           <h1 className="text-3xl font-bold leading-snug tracking-tight" style={{ color: "var(--hw-sidebar-text)" }}>
             Empieza gratis,{" "}
-            <span className="hw-sidebar-headline-accent">sin complicaciones.</span>
+            <span className="hw-sidebar-headline-accent">sin tarjeta.</span>
           </h1>
           <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--hw-sidebar-muted)" }}>
-            Crea tu cuenta en minutos y comienza a gestionar tus arriendos con total control y seguridad.
+            No pedimos tarjeta para empezar. Puedes cambiar de plan o cerrar la cuenta cuando quieras.
           </p>
 
           <ul className="mt-8 space-y-4">

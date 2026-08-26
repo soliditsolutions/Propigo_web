@@ -214,6 +214,37 @@ mal supuesto era el escenario del test.
 
 ---
 
+### El copy también se verifica
+
+Auditoría del 2026-08-26. La guía de estilo ya prohibía los moldes de folleto,
+pero **nadie había contrastado el sitio contra ella**: el mismo párrafo estaba
+copiado en cuatro pantallas. Tener la regla escrita no sirve si no hay un
+barrido que la aplique.
+
+Lo que delata un texto generado no es una palabra, es la **acumulación**: un
+guion largo no dice nada, pero un guion largo más una enumeración de tres más un
+cierre vacío («sin complicaciones»), repetidos pantalla por pantalla, sí.
+
+**La regla de fondo: un texto es profesional cuando se puede verificar.** Y si se
+puede verificar y es falso, deja de ser un problema de estilo. El registro
+anunciaba «seguridad de nivel bancario con cifrado de extremo a extremo»: no
+existe tal cifrado —el servidor renderiza los datos, así que no puede haberlo— y
+publicitar una protección inexistente es publicidad engañosa (Ley 19.496). Lo
+que sí hay es TLS en tránsito, PBKDF2-SHA256 para contraseñas y RLS separando
+corredoras; eso es lo que se puede decir.
+
+Durante la misma corrección se reemplazó una afirmación falsa **por otra**: se
+escribió «hasta tres propiedades» y el plan Gratuito en realidad cae en el tier
+bronze, que permite diez. Se detectó al ir a comprobarla en el código, que es
+justamente el paso que hay que dar antes de publicar cualquier cifra.
+
+El detalle de patrones, la estructura de página y las búsquedas de regresión
+están en `Docs/referencias/guia-de-estilo-editorial.md` §3. Ojo: la enumeración
+de tres y los encabezados vagos **no se detectan con `rg`** — de siete
+hallazgos automáticos, el resto salió leyendo las pantallas una por una.
+
+---
+
 ## 8. Errores y soluciones destacados (histórico)
 
 | Problema | Causa raíz | Solución |
@@ -246,6 +277,9 @@ mal supuesto era el escenario del test.
 | **Panel y portal abiertos a la vez en el mismo navegador** (2026-08-26, reportado por el cliente) | `hw_session` y `hw_portal` son cookies independientes y nada cerraba una al abrir la otra. En el computador de la oficina, donde el arrendatario firma, el navegador quedaba con dos identidades: volver atrás mostraba el panel del corredor y avanzar entraba al portal del arrendatario | Los setters de cookie cierran la sesión contraria, y el proxy la barre en cada request para las sesiones ya abiertas. Verificado en los dos sentidos en el navegador |
 | **Sesiones sin caducidad por inactividad** (2026-08-26) | El panel duraba 8 h y el portal 30 min, ambas **absolutas**: dejar la pantalla abierta no costaba nada. El comentario del módulo prometía un "refresh pasivo en cada request" que nunca se implementó | Inactividad de 30 min (panel) y 15 min (portal) como `exp` del JWT, con renovación en el proxy mientras haya navegación, más el tope absoluto anterior medido contra un claim `ini` nuevo. Comprobado acortando la ventana a 10 s: con actividad cada 4 s sobrevive, tras 14 s de silencio expulsa |
 | **La cookie del portal habría sido rechazada en producción** (2026-08-26, latente) | Usaba `path: "/portal"` junto al prefijo `__Host-`. Ese prefijo **exige `Path=/`**, así que el navegador habría descartado la cookie entera y el portal no habría funcionado. En local nunca se vio porque el prefijo solo se aplica cuando `NODE_ENV` es production | La cookie pasa a `path: "/"`, que además es lo que permite cerrarla desde el panel. `clearPortalCookie` borra también el path antiguo, para las sesiones que quedaron vivas |
+
+| **El sitio anunciaba un cifrado que no existe** (2026-08-26) | La página de registro decía "seguridad de nivel bancario con cifrado de extremo a extremo". No hay tal cifrado y no puede haberlo: el servidor renderiza los datos. Lo que sí hay es TLS en tránsito, PBKDF2-SHA256 en contraseñas y RLS separando corredoras | Se reemplaza por capacidades comprobables. Deja de ser un problema de estilo: publicitar una protección inexistente es publicidad engañosa (Ley 19.496) |
+| **El mismo párrafo de folleto copiado en cuatro pantallas** (2026-08-26) | Home, footer, marketplace y metadatos repetían "gestión de arriendos, cobros automáticos y marketplace público en una sola plataforma". La guía de estilo ya prohibía el molde —enumeración de tres decorativa + relleno—, pero nunca se había contrastado el sitio contra ella | Cada superficie dice algo distinto y verificable. Se agregan búsquedas de regresión a la guía, con la advertencia de que la enumeración de tres y los encabezados vagos no se detectan con `rg` |
 
 > ⚠️ **Lección de método:** los datos de `seed.ts` fabrican a mano estados (`atrasado`, `pagado`, `liquidado`) que la aplicación en producción real nunca genera por sí sola. Cualquier verificación E2E debe crear datos **desde cero por la UI** (no confiar en el seed) para detectar transiciones de estado faltantes — así se encontró AUD-09, invisible en todas las sesiones anteriores que trabajaron sobre datos ya sembrados.
 

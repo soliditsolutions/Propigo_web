@@ -137,6 +137,58 @@ dos.
 
 ---
 
+### Rastros de texto generado con IA
+
+Auditoría del 2026-08-26. La guía ya prohibía estos moldes, pero nadie había
+contrastado el sitio contra ella: el mismo párrafo de folleto estaba copiado en
+cuatro pantallas.
+
+El diagnóstico no es una palabra suelta, es la **acumulación**. Un guion largo
+no delata nada; un guion largo más una enumeración de tres más un cierre vacío,
+repetidos pantalla por pantalla, sí.
+
+| Molde | Por qué se nota | En vez de |
+|---|---|---|
+| Enumeración de tres decorativa | Cuando los tres elementos no aportan datos distintos, el patrón es la forma y no el contenido | Nombrar una cosa concreta, o tres que de verdad se diferencien |
+| «…en una sola plataforma», «…en un solo lugar» | No dice nada: toda aplicación reúne sus funciones | Decir qué reúne y para qué le sirve a quien lee |
+| Cierres vacíos: «Sin complicaciones», «de forma simple», «en minutos» | Adjetiva la experiencia en vez de describirla | Borrarlo. Si sobra, sobra |
+| «Pensado para…», «Diseñado para…» | Halaga al lector y no informa del producto | Decir qué hace el producto |
+| Superlativos sin respaldo: «Lo mejor», «completa», «de nivel bancario» | Es un juicio que el producto no puede sostener | El criterio real: «Las publicaciones más recientes» |
+| Paralelismo negativo: «no solo X, sino Y» | Muy frecuente en texto generado | Una afirmación directa |
+| Cola de gerundio: «…, permitiendo/garantizando…» | Cuelga una consecuencia vaga del final de la oración | Punto y oración nueva, si la consecuencia importa |
+| Evitar el verbo «ser»: «se posiciona como», «constituye una» | Rodeo para no decir «es» | «Es» |
+
+**La regla de fondo: un texto es profesional cuando se puede verificar.** Si una
+frase no se puede confirmar mirando el producto o la base de datos, no es copy,
+es relleno. Y si se puede confirmar y es falsa, es peor: el registro anunciaba
+«cifrado de extremo a extremo», que este sistema no tiene ni puede tener porque
+el servidor renderiza los datos. Eso deja de ser un problema de estilo y pasa a
+ser publicidad engañosa (Ley 19.496).
+
+**Corolario para quien escriba copy nuevo:** antes de publicar una cifra o una
+capacidad, búscala en el código. En esta misma auditoría se reemplazó una
+afirmación falsa por otra —«hasta tres propiedades», cuando el plan Gratuito
+cae en el tier bronze y permite diez— y se detectó al ir a comprobarla.
+
+### Estructura de una página según su texto
+
+De [ONS](https://service-manual.ons.gov.uk/content/writing-for-users/structuring-content)
+y [NN/g](https://www.nngroup.com/articles/layer-cake-pattern-scanning/).
+
+- **Pirámide invertida.** Lo más importante primero. La gente no lee de corrido:
+  escanea encabezados y se detiene donde algo le sirve (el «patrón de torta»).
+- **Los encabezados de una página son su índice.** Leídos en fila, deben contar
+  de qué trata la página sin el cuerpo. Un encabezado que dice «Todo lo que
+  necesitas» no aporta ninguna fila a ese índice.
+- **Un solo H1 por página**, y sin saltarse niveles: la jerarquía también la usa
+  quien navega con lector de pantalla.
+- **Un encabezado dice QUÉ hay en la sección**, no en qué estado está ni lo
+  buena que es.
+- **Trocear.** Párrafos cortos y listas donde haya enumeración real; un bloque
+  de texto seguido no se escanea.
+
+---
+
 ## 4. Números, plurales y unidades
 
 ### Prohibido el plural entre paréntesis
@@ -272,6 +324,10 @@ anglicismos se traduce.
 6. ¿Los errores dicen qué hacer?
 7. ¿Algún término está fuera del glosario?
 8. ¿Hay algún «ha sido» o «ha expirado» donde cabría el pretérito simple?
+9. ¿Cada cifra y cada capacidad que afirma el texto se puede comprobar en el código?
+10. Leídos en fila, ¿los encabezados de la página cuentan de qué trata sin leer el cuerpo?
+11. ¿Queda alguna enumeración de tres cuyos elementos no aporten datos distintos?
+12. ¿Sobrevive alguna frase que se pueda borrar sin que la página pierda información?
 
 ### Búsquedas de regresión
 
@@ -287,7 +343,23 @@ rg 'Collection Rate|[Ss]tress-test|turnover|credit score' apps/web/src
 
 # Pretérito compuesto en mensajes
 rg 'ha expirado|ha sido bloquead|han sido' apps/web/src
+
+# Relleno de folleto
+rg -i 'en una sola plataforma|en un solo lugar|sin complicaciones|de forma (simple|sencilla)|en minutos' apps/web/src
+
+# Superlativos y adjetivos sin respaldo
+rg -i 'lo mejor|nivel bancario|gestión completa|solución completa|potente|robusto|intuitiv|de vanguardia' apps/web/src
+
+# Moldes de folleto
+rg -i '(diseñad|pensad|cread)[oa] para|no s[oó]lo .{0,60} sino|se posiciona como|constituye una' apps/web/src
+
+# Colas de gerundio
+rg -i ', (permitiendo|optimizando|garantizando|asegurando|brindando|ofreciendo|facilitando)' apps/web/src
 ```
+
+> La enumeración de tres decorativa y los encabezados vagos **no se detectan con
+> `rg`**: hay que leer. El barrido de 2026-08-26 encontró siete textos por
+> patrón automático y el resto leyendo las pantallas una por una.
 
 ---
 
@@ -299,3 +371,16 @@ rg 'ha expirado|ha sido bloquead|han sido' apps/web/src
 - Real Academia Española y ASALE. *Diccionario panhispánico de dudas*. https://www.rae.es/dpd
 - Real Academia Española. *Las mayúsculas en los títulos*.
   https://www.rae.es/buen-uso-español/las-mayúsculas-en-los-títulos
+- Office for National Statistics. *Content style guide — Structuring content*.
+  https://service-manual.ons.gov.uk/content/writing-for-users/structuring-content
+- Nielsen Norman Group. *The Layer-Cake Pattern of Scanning Content on the Web*.
+  https://www.nngroup.com/articles/layer-cake-pattern-scanning/
+- Nielsen Norman Group. *Visual Hierarchy in UX*.
+  https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
+- U.S. Web Design System. *Typography*.
+  https://designsystem.digital.gov/components/typography/
+- Wikipedia. *Signs of AI writing*.
+  https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+- Biblioteca del Congreso Nacional de Chile. *Ley 19.496, sobre protección de
+  los derechos de los consumidores* — publicidad engañosa.
+  https://www.bcn.cl/leychile/navegar?idNorma=61438

@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 };
 
 const features = [
-  { icon: Building2, text: "Gestión completa de propiedades y contratos" },
-  { icon: Wallet,    text: "Cobros automáticos con calendario de pagos"  },
-  { icon: FileText,  text: "Contabilidad auditable y documentos legales"  },
-  { icon: ShieldCheck, text: "Cumplimiento Ley 21.719 · Chile 2026"     },
+  { icon: Building2,   text: "Tus propiedades y contratos en un solo inventario"        },
+  { icon: Wallet,      text: "El calendario de pagos de cada contrato, mes a mes"       },
+  { icon: FileText,    text: "Comprobantes y liquidaciones que no se pueden alterar"    },
+  { icon: ShieldCheck, text: "Trato de datos conforme a la Ley 21.719"                  },
 ];
 
 export default async function LoginPage({
@@ -95,8 +95,8 @@ export default async function LoginPage({
             </span>
           </p>
           <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--hw-sidebar-muted)" }}>
-            Detecta pagos, reajusta el IPC y mantén una contabilidad auditable.
-            Pensado para quienes no quieren pelear con la tecnología.
+            Detecta los pagos, aplica el reajuste del IPC y deja el respaldo
+            listo para rendirle al propietario.
           </p>
 
           {/* Features */}

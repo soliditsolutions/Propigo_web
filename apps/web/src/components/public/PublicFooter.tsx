@@ -47,9 +47,8 @@ export function PublicFooter({ className = "" }: { className?: string }) {
               <Logo size="md" />
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed" style={{ color: "var(--pf-text-body)" }}>
-              PropTech para corredores de propiedades en Chile — gestión de
-              arriendos, cobros automáticos y marketplace público en una sola
-              plataforma.
+              Software de administración de arriendos para corredores de
+              propiedades en Chile.
             </p>
             <div
               className="mt-4 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs"

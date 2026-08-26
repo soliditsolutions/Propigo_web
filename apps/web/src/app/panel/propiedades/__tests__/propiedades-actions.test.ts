@@ -51,6 +51,8 @@ const mockUsuarioFindFirst    = vi.fn();
 const mockAuditoriaCreate     = vi.fn();
 const mockImagenDeleteMany    = vi.fn().mockResolvedValue(undefined);
 const mockImagenCreateMany    = vi.fn().mockResolvedValue(undefined);
+const mockCuentaCreateMany   = vi.fn().mockResolvedValue({});
+const mockRolCompCreateMany  = vi.fn().mockResolvedValue({});
 const mockPublicacionFindFirst  = vi.fn();
 const mockPublicacionUpdate     = vi.fn().mockResolvedValue({});
 const mockPublicacionCreate     = vi.fn().mockResolvedValue({});
@@ -65,6 +67,8 @@ vi.mock("@/lib/db", () => {
     persona:         { upsert: mockPersonaUpsert, findFirst: mockPersonaFindFirst, create: mockPersonaCreate },
     propiedad:       { create: mockPropiedadCreate, update: mockPropiedadUpdate, findFirst: mockPropiedadFindFirst, findMany: vi.fn(), count: mockPropiedadCount },
     imagenPropiedad: { deleteMany: mockImagenDeleteMany, createMany: mockImagenCreateMany },
+    cuentaServicio:    { createMany: mockCuentaCreateMany, deleteMany: vi.fn().mockResolvedValue({}) },
+    rolComplementario: { createMany: mockRolCompCreateMany, deleteMany: vi.fn().mockResolvedValue({}) },
     usuario:         { findFirst: mockUsuarioFindFirst },
     auditoriaEquipo: { create: mockAuditoriaCreate },
     publicacion:     { findFirst: mockPublicacionFindFirst, update: mockPublicacionUpdate, create: mockPublicacionCreate, updateMany: mockPublicacionUpdateMany },
@@ -346,9 +350,19 @@ describe("actualizarPropiedad — asignadoAId (ROL-UI-5 / ROL-SEC-3)", () => {
 
 // ── ADR-0013 (Fase C) — asignadoAId en crearPropiedad ───────────────────────────
 
+/** Las 4 cuentas obligatorias, declaradas (G-02 + G-05). */
+const CUENTAS_OK = [
+  { tipo: "agua"           as const, estado: "registrada" as const, numero: "1", paga: "arrendatario" as const },
+  { tipo: "luz"            as const, estado: "registrada" as const, numero: "2", paga: "arrendatario" as const },
+  { tipo: "gas"            as const, estado: "no_aplica"  as const, numero: null, paga: "arrendatario" as const },
+  { tipo: "gastos_comunes" as const, estado: "registrada" as const, numero: "4", paga: "propietario"  as const },
+];
+
 const DATA_CREAR_BASE = {
   tipo: "casa",
   direccion: "Av. Siempre Viva 742",
+  rol: "573-24",
+  cuentas: CUENTAS_OK,
   esCondominio: false,
   pagaGastosComunes: false,
   aceptaMascotas: false,
@@ -356,6 +370,93 @@ const DATA_CREAR_BASE = {
   propietarioNombre: "Juan Propietario",
   propietarioRut: "11.111.111-1",
 };
+
+describe("crearPropiedad — rol y cuentas obligatorios (grupo 1)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockValidarRut.mockReturnValue(true);
+    mockPersonaFindFirst.mockResolvedValue({ id: "persona-1" });
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: {} });
+    mockPropiedadCreate.mockResolvedValue({ id: "prop-1" });
+    mockCuentaCreateMany.mockResolvedValue({});
+    mockRolCompCreateMany.mockResolvedValue({});
+  });
+
+  it("guarda el rol normalizado, no como lo escribió el corredor", async () => {
+    await crearPropiedad({ ...DATA_CREAR_BASE, rol: " 573 - 24 " });
+
+    expect(mockPropiedadCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ rol: "573-24" }) }),
+    );
+  });
+
+  it("rechaza un rol inválido SIN tocar la base", async () => {
+    const r = await crearPropiedad({ ...DATA_CREAR_BASE, rol: "no-es-rol" });
+
+    expect(r.ok).toBe(false);
+    expect(mockPropiedadCreate).not.toHaveBeenCalled();
+    expect(mockCuentaCreateMany).not.toHaveBeenCalled();
+  });
+
+  it("rechaza si falta declarar un servicio obligatorio", async () => {
+    const sinLuz = CUENTAS_OK.filter((c) => c.tipo !== "luz");
+    const r = await crearPropiedad({ ...DATA_CREAR_BASE, cuentas: sinLuz });
+
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/luz/i);
+    expect(mockPropiedadCreate).not.toHaveBeenCalled();
+  });
+
+  it("persiste las cuatro cuentas en la misma transacción que la propiedad", async () => {
+    await crearPropiedad({ ...DATA_CREAR_BASE });
+
+    expect(mockCuentaCreateMany).toHaveBeenCalledTimes(1);
+    const filas = mockCuentaCreateMany.mock.calls[0][0].data;
+    expect(filas).toHaveLength(4);
+    expect(filas.every((f: { propiedadId: string }) => f.propiedadId === "prop-1")).toBe(true);
+  });
+
+  it("un servicio 'no aplica' se guarda sin número", async () => {
+    // Un número huérfano bajo un "no aplica" lo lee alguien después como dato bueno.
+    await crearPropiedad({
+      ...DATA_CREAR_BASE,
+      cuentas: CUENTAS_OK.map((c) =>
+        c.tipo === "gas" ? { ...c, estado: "no_aplica" as const, numero: "123" } : c),
+    });
+
+    const gas = mockCuentaCreateMany.mock.calls[0][0].data.find((f: { tipo: string }) => f.tipo === "gas");
+    expect(gas.numero).toBeNull();
+  });
+
+  it("sin roles complementarios no se escribe esa tabla", async () => {
+    await crearPropiedad({ ...DATA_CREAR_BASE });
+    expect(mockRolCompCreateMany).not.toHaveBeenCalled();
+  });
+
+  it("guarda los roles complementarios normalizados cuando se declaran", async () => {
+    await crearPropiedad({
+      ...DATA_CREAR_BASE,
+      rolesComplementarios: [{ tipo: "bodega" as const, rol: " 573 - 26 ", descripcion: "Bodega 7" }],
+    });
+
+    const filas = mockRolCompCreateMany.mock.calls[0][0].data;
+    expect(filas[0].rol).toBe("573-26");
+    expect(filas[0].tipo).toBe("bodega");
+  });
+
+  it("rechaza dos complementos con el mismo rol", async () => {
+    const r = await crearPropiedad({
+      ...DATA_CREAR_BASE,
+      rolesComplementarios: [
+        { tipo: "bodega" as const,          rol: "573-26" },
+        { tipo: "estacionamiento" as const, rol: "573-26" },
+      ],
+    });
+
+    expect(r.ok).toBe(false);
+    expect(mockPropiedadCreate).not.toHaveBeenCalled();
+  });
+});
 
 describe("crearPropiedad — asignadoAId (ROL-UI-5 / ROL-SEC-3)", () => {
   beforeEach(() => {

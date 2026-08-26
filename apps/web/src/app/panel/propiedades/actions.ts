@@ -10,6 +10,11 @@ import { logError } from "@/lib/logger";
 import { geocodificarDireccion } from "@/lib/geocoding";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verificarCupoPropiedades } from "@/lib/plan-limits";
+import {
+  normalizarRol, validarRol, validarCuentas, normalizarCuenta,
+  validarRolesComplementarios, SERVICIOS_OBLIGATORIOS,
+  type EntradaCuenta, type EntradaRolComplementario,
+} from "@/lib/propiedad-datos";
 import { getClientIpFromHeaders } from "@/lib/ip";
 
 export type ResultadoCrear =
@@ -124,6 +129,12 @@ export async function buscarOCrearPersona(data: {
 export async function crearPropiedad(data: {
   tipo: string;
   direccion: string;
+  /** Rol de Avalúo del SII de la unidad habitacional. Obligatorio (G-01). */
+  rol: string;
+  /** Los 4 servicios básicos, cada uno con datos o marcado "no aplica" (G-05). */
+  cuentas: EntradaCuenta[];
+  /** Estacionamientos y bodegas con rol propio. Opcional (G-06). */
+  rolesComplementarios?: EntradaRolComplementario[];
   comuna?: string;
   region?: string;
   piezas?: number;
@@ -149,6 +160,21 @@ export async function crearPropiedad(data: {
   /** Colaborador a cargo (ADR-0013). "" = sin asignar. Ignorado si no viene (Colaborador). */
   asignadoAId?: string;
 }): Promise<ResultadoCrear> {
+  // El rol y las cuentas se validan ANTES de tocar la base: son datos del
+  // formulario, y un rechazo acá no deja nada a medio escribir.
+  {
+    const e = validarRol(data.rol);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarCuentas(data.cuentas ?? []);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarRolesComplementarios(data.rolesComplementarios ?? []);
+    if (e) return { ok: false, error: e };
+  }
+
   if (!["casa", "departamento", "cabana"].includes(data.tipo))
     return { ok: false, error: "Tipo de propiedad inválido." };
   if (!data.direccion.trim())
@@ -255,6 +281,7 @@ export async function crearPropiedad(data: {
           tipo:        data.tipo as "casa" | "departamento" | "cabana",
           estado:      "borrador",          // ← siempre borrador al crear
           direccion:   data.direccion.trim(),
+          rol:         normalizarRol(data.rol),
           comuna:      data.comuna?.trim()  || null,
           region:      data.region?.trim()  || null,
           piezas:      data.piezas    ?? null,
@@ -279,6 +306,34 @@ export async function crearPropiedad(data: {
           asignadoAId,
         },
       });
+
+      // Cuentas de servicios y roles complementarios, en la MISMA transacción
+      // que la propiedad: una propiedad a medio cargar es exactamente lo que
+      // la obligatoriedad pretende evitar.
+      await tx.cuentaServicio.createMany({
+        data: (data.cuentas ?? []).map(normalizarCuenta).map((c) => ({
+          tenantId:    actor.tenantId,
+          propiedadId: p.id,
+          tipo:        c.tipo,
+          estado:      c.estado,
+          numero:      c.numero  ?? null,
+          empresa:     c.empresa ?? null,
+          titular:     c.titular ?? null,
+          paga:        c.paga,
+        })),
+      });
+
+      if ((data.rolesComplementarios ?? []).length > 0) {
+        await tx.rolComplementario.createMany({
+          data: data.rolesComplementarios!.map((r) => ({
+            tenantId:    actor.tenantId,
+            propiedadId: p.id,
+            tipo:        r.tipo,
+            rol:         normalizarRol(r.rol),
+            descripcion: r.descripcion?.trim() || null,
+          })),
+        });
+      }
 
       // Guardar imágenes si hay
       if (imagenesValidas.length > 0) {

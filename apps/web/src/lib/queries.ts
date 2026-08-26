@@ -571,6 +571,8 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
       propietario: { select: { nombre: true, email: true, rut: true } },
       imagenes: { orderBy: { orden: "asc" } },
       asignadoA: { select: { id: true, nombre: true } },
+      cuentasServicio: { select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true } },
+      rolesComplementarios: { select: { tipo: true, rol: true, descripcion: true } },
       _count: { select: { contratos: true, publicaciones: true } },
     },
   }));
@@ -579,6 +581,9 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
     tipo: p.tipo,
     estado: p.estado,
     direccion: p.direccion,
+    rol: p.rol,
+    cuentasServicio: p.cuentasServicio,
+    rolesComplementarios: p.rolesComplementarios,
     comuna: p.comuna,
     region: p.region,
     orientacion: p.orientacion,

@@ -9,6 +9,9 @@ import {
   Lock, ArrowRight, RotateCcw, UploadCloud,
 } from "lucide-react";
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
+import {
+  SERVICIOS_OBLIGATORIOS, type EntradaCuenta, type EntradaRolComplementario,
+} from "@/lib/propiedad-datos";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { type DateFilterState } from "@/components/panel/date-filter";
@@ -29,6 +32,9 @@ type Propiedad = {
   tipo: string;
   estado: string;
   direccion: string;
+  rol: string;
+  cuentasServicio?: EntradaCuenta[];
+  rolesComplementarios?: EntradaRolComplementario[];
   comuna: string | null;
   region: string | null;
   orientacion: string | null;
@@ -120,6 +126,10 @@ type FormProp = {
   imagenes: string[];
   /** "" = sin asignar. Solo se envía al servidor cuando esManager. */
   asignadoAId: string;
+  /** Rol de Avalúo del SII de la unidad habitacional (obligatorio). */
+  rol: string;
+  cuentas: EntradaCuenta[];
+  rolesComplementarios: EntradaRolComplementario[];
 };
 
 type FormCrear = FormProp & {
@@ -127,6 +137,13 @@ type FormCrear = FormProp & {
   propietarioRut: string;
   propietarioEmail: string;
 };
+
+/** Las 4 cuentas arrancan declaradas como "registrada" y vacías: el corredor
+ *  llena el número o marca "no aplica", pero no puede dejarlas sin responder. */
+const CUENTAS_INICIALES: EntradaCuenta[] = SERVICIOS_OBLIGATORIOS.map((s) => ({
+  tipo: s.tipo, estado: "registrada", numero: "", empresa: "", titular: "",
+  paga: s.tipo === "gastos_comunes" ? "propietario" : "arrendatario",
+}));
 
 const FORM_CREAR_INICIAL: FormCrear = {
   tipo: "departamento",
@@ -141,12 +158,18 @@ const FORM_CREAR_INICIAL: FormCrear = {
   propietarioNombre: "", propietarioRut: "", propietarioEmail: "",
   imagenes: [""],
   asignadoAId: "",
+  rol: "",
+  cuentas: CUENTAS_INICIALES,
+  rolesComplementarios: [],
 };
 
 function formDesdePropiedad(p: Propiedad): FormProp {
   return {
     tipo:               p.tipo,
     direccion:          p.direccion,
+    rol:                p.rol ?? "",
+    cuentas:            (p.cuentasServicio as EntradaCuenta[] | undefined) ?? CUENTAS_INICIALES,
+    rolesComplementarios: (p.rolesComplementarios as EntradaRolComplementario[] | undefined) ?? [],
     comuna:             p.comuna ?? "",
     region:             p.region ?? "",
     piezas:             p.piezas != null ? String(p.piezas) : "",
@@ -413,6 +436,23 @@ function CamposProp({
             );
           })}
         </div>
+      </div>
+
+      {/* Rol de Avalúo — identifica el inmueble ante el SII y va en el contrato */}
+      <div>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Rol de avalúo (SII) *</p>
+        <input
+          type="text"
+          value={form.rol}
+          onChange={(e) => onChangeField("rol", e.target.value)}
+          placeholder="573-24"
+          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
+          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+        />
+        <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+          Manzana y predio, como aparece en las contribuciones. Si lo tienes con el
+          código de comuna, también sirve: 13101-573-24.
+        </p>
       </div>
 
       {/* Dirección */}
@@ -913,6 +953,7 @@ export function PropiedadesClient({
   // Dialog "Editar propiedad"
   const [openEditar, setOpenEditar]   = useState(false);
   const [formEditar, setFormEditar]   = useState<FormProp>({
+    rol: "", cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
     tipo: "departamento", direccion: "", comuna: "", region: "",
     piezas: "", banos: "", m2Totales: "",
     m2Construidos: "", estacionamientos: "", plantas: "",
@@ -955,6 +996,9 @@ export function PropiedadesClient({
       const res = await crearPropiedad({
         tipo:              formCrear.tipo,
         direccion:         formCrear.direccion.trim(),
+        rol:               formCrear.rol,
+        cuentas:           formCrear.cuentas,
+        rolesComplementarios: formCrear.rolesComplementarios,
         comuna:            formCrear.comuna.trim()  || undefined,
         region:            formCrear.region.trim()  || undefined,
         piezas:            formCrear.piezas    ? parseInt(formCrear.piezas, 10)    : undefined,

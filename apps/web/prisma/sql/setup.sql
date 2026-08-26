@@ -79,7 +79,10 @@ begin
     'alerta_personalizada',
     -- Preferencia de notificaciones: una corredora no debe ver ni alterar
     -- las bajas que las personas dieron ante otra.
-    'preferencia_notificacion'
+    'preferencia_notificacion',
+    -- Datos sensibles de la propiedad: números de cuenta de servicios y roles
+    -- de avalúo. Una corredora no debe ver los de otra.
+    'cuenta_servicio','rol_complementario'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.

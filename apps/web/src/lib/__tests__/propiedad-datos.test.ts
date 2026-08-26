@@ -13,6 +13,8 @@ import {
   validarCuentas,
   normalizarCuenta,
   validarRolesComplementarios,
+  esCuentaObligatoria,
+  nombreCuenta,
   SERVICIOS_OBLIGATORIOS,
   type EntradaCuenta,
 } from "../propiedad-datos";
@@ -171,5 +173,167 @@ describe("validarRolesComplementarios", () => {
       { tipo: "bodega",          rol: " 573 - 25 " },
     ]);
     expect(r).toMatch(/repetido/i);
+  });
+});
+
+describe("validarRol — hallazgos del barrido QA de 2026-08-26", () => {
+  it("reconoce un RUT pegado por error, no solo los terminados en K", () => {
+    // El mensaje sobre el RUT existía, pero solo se disparaba si había letras,
+    // o sea únicamente con el dígito verificador K: uno de cada once. Con
+    // cualquier otro RUT el corredor recibía el mensaje genérico de formato,
+    // que no le dice qué confundió.
+    for (const rut of ["13.579.246-8", "9.876.543-3", "16358920-6", "12345678-K"]) {
+      expect(validarRol(rut), rut).toMatch(/parece un RUT|es otro dato/i);
+    }
+  });
+
+  it("sigue aceptando roles válidos que se parecen a un RUT por el largo", () => {
+    // Un rol con código de comuna tiene tres bloques, no dos: no debe caer en
+    // la detección de RUT.
+    expect(validarRol("13101-573-24")).toBeNull();
+    expect(validarRol("12345-67890")).toBeNull();
+  });
+
+  it("rechaza un bloque en cero", () => {
+    // `0-0` fue el valor con que la migración rellenó las filas existentes.
+    // Aceptarlo hace que el relleno técnico sea indistinguible de un rol real.
+    expect(validarRol("0-0")).toMatch(/cero/i);
+    expect(validarRol("00-00")).toMatch(/cero/i);
+    expect(validarRol("573-0")).toMatch(/cero/i);
+    expect(validarRol("0-24")).toMatch(/cero/i);
+  });
+
+  it("no confunde un cero interior con un bloque en cero", () => {
+    expect(validarRol("100-205")).toBeNull();
+    expect(validarRol("10-20")).toBeNull();
+  });
+
+  it("normaliza los guiones que aparecen al copiar desde un PDF", () => {
+    // De no separación (U+2011) y de unión (U+2010): a simple vista son
+    // idénticos al guión común, así que el corredor no entendería el rechazo.
+    expect(validarRol("573‑ 24")).toBeNull();
+    expect(validarRol("573‐24")).toBeNull();
+    expect(validarRol("573‒24")).toBeNull();
+    expect(normalizarRol("573‑24")).toBe("573-24");
+  });
+});
+
+describe("validarCuentas — tipo fuera del enum", () => {
+  it("rechaza un tipo de servicio que la base no conoce", () => {
+    // Sin esto llegaba tal cual a Prisma y reventaba con un error de enum en
+    // vez de un mensaje que el corredor pueda entender.
+    const conBasura = [...COMPLETO, {
+      tipo: "internet" as never, estado: "registrada" as const,
+      numero: "1", paga: "arrendatario" as const,
+    }];
+    expect(validarCuentas(conBasura)).toMatch(/no reconocemos/i);
+  });
+});
+
+describe("validarRolesComplementarios — rol repetido del principal", () => {
+  it("rechaza que una bodega use el mismo rol que la propiedad", () => {
+    // Confirmado en la base durante el barrido QA: se pudo crear desde la UI
+    // una propiedad con rol 573-24 y una bodega con rol 573-24. En el borrador
+    // de contrato eso nombra dos inmuebles distintos con un solo rol.
+    const e = validarRolesComplementarios(
+      [{ tipo: "bodega", rol: "573-24", descripcion: "Bodega 5" }],
+      "573-24",
+    );
+    expect(e).toMatch(/es el de la propiedad/i);
+  });
+
+  it("lo detecta aunque se escriba con otro formato", () => {
+    expect(validarRolesComplementarios([{ tipo: "bodega", rol: "573 – 24" }], "573-24"))
+      .toMatch(/es el de la propiedad/i);
+  });
+
+  it("acepta un complemento con rol distinto", () => {
+    expect(validarRolesComplementarios([{ tipo: "bodega", rol: "573-25" }], "573-24")).toBeNull();
+  });
+
+  it("sin rol principal se comporta como antes", () => {
+    // La comprobación es opcional para no romper a quien llame sin el dato.
+    expect(validarRolesComplementarios([{ tipo: "bodega", rol: "573-24" }])).toBeNull();
+  });
+
+  it("rechaza un tipo de unidad fuera del enum", () => {
+    expect(validarRolesComplementarios([{ tipo: "piscina" as never, rol: "573-25" }]))
+      .toMatch(/no reconocemos/i);
+  });
+});
+
+describe("cuentas adicionales y visibilidad (2026-08-26)", () => {
+  const extra = (over: Partial<EntradaCuenta> = {}): EntradaCuenta => ({
+    tipo: "otro", estado: "registrada", etiqueta: "Internet",
+    numero: "VTR-1", paga: "arrendatario", ...over,
+  });
+
+  it("acepta una cuenta adicional con nombre y número", () => {
+    expect(validarCuentas([...COMPLETO, extra()])).toBeNull();
+  });
+
+  it("exige nombre en la cuenta adicional", () => {
+    // Los cuatro básicos se identifican por su tipo; una adicional sin nombre
+    // es una fila que después nadie sabe leer.
+    expect(validarCuentas([...COMPLETO, extra({ etiqueta: "" })])).toMatch(/nombre/i);
+    expect(validarCuentas([...COMPLETO, extra({ etiqueta: "   " })])).toMatch(/nombre/i);
+  });
+
+  it("exige número en la cuenta adicional, y lo dice por su nombre", () => {
+    // A diferencia de los básicos, acá no existe "no aplica": si no aplica,
+    // se quita.
+    const e = validarCuentas([...COMPLETO, extra({ numero: "" })]);
+    expect(e).toMatch(/Internet/);
+  });
+
+  it("rechaza un nombre desmedido", () => {
+    expect(validarCuentas([...COMPLETO, extra({ etiqueta: "x".repeat(41) })]))
+      .toMatch(/demasiado largo/i);
+  });
+
+  it("no le exige nombre a los cuatro básicos", () => {
+    // Se nombran solos por su tipo; pedirles etiqueta sería ruido.
+    expect(validarCuentas(COMPLETO)).toBeNull();
+  });
+});
+
+describe("esCuentaObligatoria y nombreCuenta", () => {
+  it("los cuatro básicos son obligatorios y el resto no", () => {
+    for (const t of ["agua", "luz", "gas", "gastos_comunes"] as const) {
+      expect(esCuentaObligatoria(t), t).toBe(true);
+    }
+    expect(esCuentaObligatoria("otro")).toBe(false);
+  });
+
+  it("nombra los básicos por su tipo y las adicionales por su etiqueta", () => {
+    expect(nombreCuenta({ tipo: "gastos_comunes", estado: "registrada", paga: "propietario" }))
+      .toBe("Gastos comunes");
+    expect(nombreCuenta({ tipo: "otro", estado: "registrada", etiqueta: "Alarma", paga: "propietario" }))
+      .toBe("Alarma");
+  });
+
+  it("una adicional sin etiqueta no queda sin nombre en pantalla", () => {
+    // Es un caso que la validación impide guardar, pero los datos viejos o una
+    // fila a medio cargar no deben renderizar un hueco.
+    expect(nombreCuenta({ tipo: "otro", estado: "registrada", paga: "propietario" }))
+      .toBe("Otro servicio");
+  });
+});
+
+describe("normalizarCuenta — etiqueta", () => {
+  it("descarta la etiqueta en los básicos: su tipo ya los nombra", () => {
+    const r = normalizarCuenta({
+      tipo: "agua", estado: "registrada", numero: "1",
+      etiqueta: "Agua potable", paga: "arrendatario",
+    });
+    expect(r.etiqueta).toBeNull();
+  });
+
+  it("conserva y recorta la etiqueta en las adicionales", () => {
+    const r = normalizarCuenta({
+      tipo: "otro", estado: "registrada", numero: "1",
+      etiqueta: "  Internet  ", paga: "arrendatario",
+    });
+    expect(r.etiqueta).toBe("Internet");
   });
 });

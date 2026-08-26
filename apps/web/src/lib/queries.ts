@@ -571,8 +571,11 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
       propietario: { select: { nombre: true, email: true, rut: true } },
       imagenes: { orderBy: { orden: "asc" } },
       asignadoA: { select: { id: true, nombre: true } },
-      cuentasServicio: { select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true } },
-      rolesComplementarios: { select: { tipo: true, rol: true, descripcion: true } },
+      // El panel trae TODO, incluida la marca de visibilidad: el corredor ve
+      // sus datos completos y además necesita saber cuáles está compartiendo.
+      // El filtrado por visibilidad ocurre solo en el portal.
+      cuentasServicio: { select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true, etiqueta: true, visibleEnPortal: true } },
+      rolesComplementarios: { select: { tipo: true, rol: true, descripcion: true, visibleEnPortal: true } },
       _count: { select: { contratos: true, publicaciones: true } },
     },
   }));
@@ -582,6 +585,7 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
     estado: p.estado,
     direccion: p.direccion,
     rol: p.rol,
+    rolVisibleEnPortal: p.rolVisibleEnPortal,
     cuentasServicio: p.cuentasServicio,
     rolesComplementarios: p.rolesComplementarios,
     comuna: p.comuna,

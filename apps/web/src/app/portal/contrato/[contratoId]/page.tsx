@@ -11,6 +11,7 @@ import { PreferenciasAvisos } from "./preferencias-avisos";
 import { DatosPrivadosPropiedad } from "@/components/propiedad/datos-privados";
 import { puedeRecibir, describirPreferencia } from "@/lib/notificacion-preferencias";
 import { marcarPeriodosAtrasados } from "@/lib/queries";
+import { idFiltro } from "@/lib/busqueda";
 import {
   Building2, Calendar, CreditCard, Download, FileText,
   Home, LogOut, ShieldCheck, Star, User,
@@ -61,6 +62,13 @@ export default async function PortalContratoPage({
   const session = await getPortalSession();
   if (!session) redirect("/portal");
 
+  // SEC: el id viene de la URL. Sin sesión el guard de arriba corta antes, pero
+  // con sesión abierta cualquier texto que no sea uuid llegaba a Postgres y
+  // devolvía un 500 en vez de un 404. Se detectó probando el portal ya
+  // autenticado; sin sesión el problema no se ve.
+  const idContrato = idFiltro(contratoId);
+  if (!idContrato) notFound();
+
   const { personaId, tenantId, rol } = session;
 
   // AUD-09: promover a "atrasado" antes de leer, para que el arrendatario vea
@@ -68,8 +76,8 @@ export default async function PortalContratoPage({
   await marcarPeriodosAtrasados(tenantId);
 
   const whereContrato = rol === "arrendatario"
-    ? { id: contratoId, tenantId, arrendatarioId: personaId }
-    : { id: contratoId, tenantId, propietarioId: personaId };
+    ? { id: idContrato, tenantId, arrendatarioId: personaId }
+    : { id: idContrato, tenantId, propietarioId: personaId };
 
   const contrato = await withTenant(tenantId, (tx) => tx.contrato.findFirst({
     where: whereContrato,
@@ -85,9 +93,9 @@ export default async function PortalContratoPage({
         select: {
           direccion: true, tipo: true, comuna: true, region: true, estado: true,
           m2Construidos: true, piezas: true, banos: true, latitud: true, longitud: true,
-          rol: true,
-          cuentasServicio:      { select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true } },
-          rolesComplementarios: { select: { tipo: true, rol: true, descripcion: true } },
+          rol: true, rolVisibleEnPortal: true,
+          cuentasServicio:      { where: { visibleEnPortal: true }, select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true, etiqueta: true } },
+          rolesComplementarios: { where: { visibleEnPortal: true }, select: { tipo: true, rol: true, descripcion: true } },
         },
       },
       arrendatario: { select: { nombre: true, rut: true, email: true, telefono: true } },
@@ -493,11 +501,23 @@ export default async function PortalContratoPage({
           </div>
         )}
 
-        <div className="pb-4">
+        {/* Misma tarjeta que el resto de las secciones del portal. Sin ella el
+            bloque quedaba suelto sobre el fondo mientras sus vecinos tenían
+            marco, y se leía como un pie de página y no como una sección. */}
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+        >
           <DatosPrivadosPropiedad
-            rol={p.rol}
+            /* Si el corredor no lo comparte, no llega ningún valor: el bloque
+               no aparece en vez de anunciar que hay algo escondido. */
+            rol={p.rolVisibleEnPortal ? p.rol : null}
             cuentas={p.cuentasServicio}
             complementos={p.rolesComplementarios}
+            /* El portal se abre en cualquier parte —una oficina, un café— y
+               estos números identifican a personas. Se muestran cuando quien
+               mira decide mostrarlos, no antes. */
+            enmascarar
             /* Al arrendatario y al propietario, quién paga ya se lo dice el
                contrato; repetirlo acá invitaría a discutir con la ficha en vez
                de con la cláusula. */
@@ -519,7 +539,11 @@ export default async function PortalContratoPage({
             <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--hw-success)" }} aria-hidden />
             Información confidencial — Acceso personal y no transferible
           </div>
-          <p>Sesión válida por 30 minutos · Housing SOLIDIT · Ley 21.719</p>
+          {/* El texto anterior decía "válida por 30 minutos" a secas, y ahora
+              hay dos relojes: se cierra a los 15 minutos sin uso y a los 30 en
+              total. Decir solo el segundo haría creer que se puede dejar la
+              pantalla abierta media hora. */}
+          <p>Se cierra sola a los 15 minutos sin uso · Housing SOLIDIT · Ley 21.719</p>
         </div>
 
       </main>

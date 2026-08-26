@@ -381,6 +381,9 @@ model Propiedad {
   /// manzana-predio, con la comuna opcional: "573-24" o "13101-573-24".
   /// Obligatorio: identifica el inmueble ante el SII y va en el contrato.
   rol                String
+  /// Si las partes del contrato pueden ver el rol en el portal. El corredor lo
+  /// ve siempre y el contrato lo lleva igual: esto decide qué se comparte.
+  rolVisibleEnPortal Boolean         @default(true) @map("rol_visible_en_portal")
   direccion          String
   comuna             String?
   region             String?
@@ -794,6 +797,12 @@ model CuentaServicio {
   empresa     String?
   titular     String?
   paga        PagadorServicio      @default(arrendatario)
+  /// Nombre del servicio cuando tipo = otro ("Internet", "Alarma", "TV cable").
+  /// Los cuatro básicos se nombran solos, así que no lo usan.
+  etiqueta    String?
+  /// Si el arrendatario y el propietario pueden verla en el portal. El corredor
+  /// la ve siempre: esto decide qué comparte, no qué guarda.
+  visibleEnPortal Boolean          @default(true) @map("visible_en_portal")
   notas       String?
   createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -819,6 +828,8 @@ model RolComplementario {
   rol         String
   /// Identificación para el humano: "Estacionamiento 42", "Bodega B-7".
   descripcion String?
+  /// Mismo criterio que en CuentaServicio: decide qué ve el portal.
+  visibleEnPortal Boolean           @default(true) @map("visible_en_portal")
   createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant    Tenant    @relation(fields: [tenantId], references: [id])

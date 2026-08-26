@@ -214,6 +214,12 @@ describe("buscarOCrearPersona — BL-RC3 (upsert en lugar de findFirst+create)",
 const DATA_EDITAR_BASE = {
   tipo: "casa",
   direccion: "Av. Siempre Viva 742",
+  // El rol y las cuentas son obligatorios también al editar: editar no puede
+  // dejar una propiedad en un estado que el alta no habría aceptado.
+  rol: "573-24",
+  cuentas: (["agua", "luz", "gas", "gastos_comunes"] as const).map((tipo) => ({
+    tipo, estado: "no_aplica" as const, paga: "arrendatario" as const,
+  })),
   esCondominio: false,
   pagaGastosComunes: false,
   aceptaMascotas: false,
@@ -567,5 +573,83 @@ describe("activarPropiedad / desactivarPropiedad — ownership (Fase D)", () => 
 
     expect(result).toEqual({ ok: true });
     expect(mockPropiedadUpdate).toHaveBeenCalled();
+  });
+});
+
+describe("actualizarPropiedad — rol y cuentas (hallazgo QA 2026-08-26)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPropiedadUpdate.mockResolvedValue({});
+    mockCuentaCreateMany.mockResolvedValue({});
+    mockRolCompCreateMany.mockResolvedValue({});
+    mockGetActor.mockResolvedValue({ usuarioId: "manager-1", tenantId: "tenant-abc", rol: "manager", tenant: {} });
+    mockPropiedadFindFirst.mockResolvedValue({ id: "prop-1", asignadoAId: null });
+  });
+
+  it("guarda el rol editado", async () => {
+    // Se comprobó en el navegador: el formulario de edición mostraba el rol
+    // nuevo, el guardado decía que había salido bien, y la base conservaba el
+    // valor anterior. La acción ni siquiera recibía el campo.
+    const r = await actualizarPropiedad("prop-1", { ...DATA_EDITAR_BASE, rol: "4242-99" });
+
+    expect(r).toEqual({ ok: true });
+    expect(mockPropiedadUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ rol: "4242-99" }) }),
+    );
+  });
+
+  it("normaliza el rol antes de guardarlo, igual que al crear", async () => {
+    await actualizarPropiedad("prop-1", { ...DATA_EDITAR_BASE, rol: " 4242 – 99 " });
+    expect(mockPropiedadUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ rol: "4242-99" }) }),
+    );
+  });
+
+  it("reemplaza las cuentas de servicios", async () => {
+    await actualizarPropiedad("prop-1", {
+      ...DATA_EDITAR_BASE,
+      cuentas: [
+        { tipo: "agua", estado: "registrada", numero: "AA-1", paga: "arrendatario" },
+        { tipo: "luz",  estado: "no_aplica",  paga: "propietario" },
+        { tipo: "gas",  estado: "no_aplica",  paga: "arrendatario" },
+        { tipo: "gastos_comunes", estado: "no_aplica", paga: "propietario" },
+      ],
+    });
+
+    const guardadas = mockCuentaCreateMany.mock.calls[0][0].data;
+    expect(guardadas).toHaveLength(4);
+    expect(guardadas[0]).toMatchObject({ tipo: "agua", numero: "AA-1" });
+    // El "no aplica" no arrastra número, ni siquiera si venía en la petición.
+    expect(guardadas[1]).toMatchObject({ tipo: "luz", numero: null });
+  });
+
+  it("rechaza un rol inválido sin tocar la base", async () => {
+    const r = await actualizarPropiedad("prop-1", { ...DATA_EDITAR_BASE, rol: "0-0" });
+
+    expect(r).toEqual({ ok: false, error: expect.stringMatching(/cero/i) });
+    expect(mockPropiedadUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rechaza dejar una propiedad sin la cuenta de gas al editar", async () => {
+    // Editar no puede ser la puerta de atrás para un estado que el alta habría
+    // rechazado.
+    const r = await actualizarPropiedad("prop-1", {
+      ...DATA_EDITAR_BASE,
+      cuentas: DATA_EDITAR_BASE.cuentas.filter((c) => c.tipo !== "gas"),
+    });
+
+    expect(r).toEqual({ ok: false, error: expect.stringMatching(/gas/i) });
+    expect(mockPropiedadUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rechaza un complemento con el mismo rol que la propiedad", async () => {
+    const r = await actualizarPropiedad("prop-1", {
+      ...DATA_EDITAR_BASE,
+      rol: "573-24",
+      rolesComplementarios: [{ tipo: "bodega", rol: "573-24" }],
+    });
+
+    expect(r).toEqual({ ok: false, error: expect.stringMatching(/es el de la propiedad/i) });
+    expect(mockPropiedadUpdate).not.toHaveBeenCalled();
   });
 });

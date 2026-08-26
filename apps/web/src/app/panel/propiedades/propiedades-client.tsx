@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
 import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
-import { CuentasServicioFields, RolesComplementariosFields } from "./cuentas-servicio-fields";
+import { CuentasServicioFields, RolesComplementariosFields, VisibilidadRolPrincipal } from "./cuentas-servicio-fields";
 import { DatosPrivadosPropiedad } from "@/components/propiedad/datos-privados";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
@@ -33,6 +33,7 @@ type Propiedad = {
   estado: string;
   direccion: string;
   rol: string;
+  rolVisibleEnPortal?: boolean;
   cuentasServicio?: EntradaCuenta[];
   rolesComplementarios?: EntradaRolComplementario[];
   comuna: string | null;
@@ -128,6 +129,8 @@ type FormProp = {
   asignadoAId: string;
   /** Rol de Avalúo del SII de la unidad habitacional (obligatorio). */
   rol: string;
+  /** Si las partes del contrato ven el rol en el portal. */
+  rolVisibleEnPortal: boolean;
   cuentas: EntradaCuenta[];
   rolesComplementarios: EntradaRolComplementario[];
 };
@@ -163,6 +166,8 @@ const FORM_CREAR_INICIAL: FormCrear = {
   imagenes: [""],
   asignadoAId: "",
   rol: "",
+  // Se comparte por omisión: ocultar es la excepción, no el punto de partida.
+  rolVisibleEnPortal: true,
   cuentas: CUENTAS_INICIALES,
   rolesComplementarios: [],
 };
@@ -172,6 +177,7 @@ function formDesdePropiedad(p: Propiedad): FormProp {
     tipo:               p.tipo,
     direccion:          p.direccion,
     rol:                p.rol ?? "",
+    rolVisibleEnPortal: p.rolVisibleEnPortal ?? true,
     cuentas:            (p.cuentasServicio as EntradaCuenta[] | undefined) ?? CUENTAS_INICIALES,
     rolesComplementarios: (p.rolesComplementarios as EntradaRolComplementario[] | undefined) ?? [],
     comuna:             p.comuna ?? "",
@@ -444,7 +450,15 @@ function CamposProp({
 
       {/* Rol de Avalúo — identifica el inmueble ante el SII y va en el contrato */}
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Rol de avalúo (SII) *</p>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Rol de avalúo (SII) *</p>
+          {/* El rol se guarda y va al contrato igual; esto solo decide si las
+              partes lo ven en el portal. */}
+          <VisibilidadRolPrincipal
+            visible={form.rolVisibleEnPortal}
+            onToggle={() => onChangeField("rolVisibleEnPortal", !form.rolVisibleEnPortal)}
+          />
+        </div>
         <input
           type="text"
           value={form.rol}
@@ -489,6 +503,7 @@ function CamposProp({
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Región</p>
           <select
+            aria-label="Región"
             value={form.region}
             onChange={(e) => { onChangeField("region", e.target.value); onChangeField("comuna", ""); }}
             className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
@@ -503,6 +518,7 @@ function CamposProp({
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Comuna</p>
           <select
+            aria-label="Comuna"
             value={form.comuna}
             onChange={(e) => {
               onChangeField("comuna", e.target.value);
@@ -613,6 +629,7 @@ function CamposProp({
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Orientación</p>
           <select
+            aria-label="Orientación"
             value={form.orientacion}
             onChange={(e) => onChangeField("orientacion", e.target.value)}
             className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
@@ -730,6 +747,7 @@ function CamposProp({
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Colaborador asignado</p>
           <select
+            aria-label="Colaborador asignado"
             value={form.asignadoAId}
             onChange={(e) => onChangeField("asignadoAId", e.target.value)}
             className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
@@ -967,7 +985,7 @@ export function PropiedadesClient({
   // Dialog "Editar propiedad"
   const [openEditar, setOpenEditar]   = useState(false);
   const [formEditar, setFormEditar]   = useState<FormProp>({
-    rol: "", cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
+    rol: "", rolVisibleEnPortal: true, cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
     tipo: "departamento", direccion: "", comuna: "", region: "",
     piezas: "", banos: "", m2Totales: "",
     m2Construidos: "", estacionamientos: "", plantas: "",
@@ -1011,6 +1029,7 @@ export function PropiedadesClient({
         tipo:              formCrear.tipo,
         direccion:         formCrear.direccion.trim(),
         rol:               formCrear.rol,
+        rolVisibleEnPortal: formCrear.rolVisibleEnPortal,
         cuentas:           formCrear.cuentas,
         rolesComplementarios: formCrear.rolesComplementarios,
         comuna:            formCrear.comuna.trim()  || undefined,
@@ -1069,6 +1088,12 @@ export function PropiedadesClient({
     startEditar(async () => {
       const res = await actualizarPropiedad(seleccionada.id, {
         tipo:              formEditar.tipo,
+        // El formulario de edición muestra estos tres campos; si no se mandan,
+        // la corredora los cambia, ve "guardado" y nada cambia en la base.
+        rol:               formEditar.rol,
+        rolVisibleEnPortal: formEditar.rolVisibleEnPortal,
+        cuentas:           formEditar.cuentas,
+        rolesComplementarios: formEditar.rolesComplementarios,
         direccion:         formEditar.direccion.trim(),
         comuna:            formEditar.comuna.trim()  || undefined,
         region:            formEditar.region.trim()  || undefined,
@@ -1363,6 +1388,11 @@ export function PropiedadesClient({
                     rol={seleccionada.rol}
                     cuentas={seleccionada.cuentasServicio}
                     complementos={seleccionada.rolesComplementarios}
+                    /* El corredor ve todo, y además cuáles está compartiendo:
+                       sin la marca, el interruptor de visibilidad sería a
+                       ciegas hasta abrir el formulario de edición. */
+                    marcarOcultos
+                    rolCompartido={seleccionada.rolVisibleEnPortal}
                   />
                 </div>
 

@@ -182,12 +182,33 @@ async function main() {
                                        empresaLuz: "CGE" });
   await mkCuentas(deptoReservado.id);
 
+  // Datos que ejercitan la visibilidad y las cuentas adicionales (2026-08-26):
+  // sin una fila oculta y otra adicional, la marca "Oculto" del panel y el
+  // filtrado del portal nunca se ven al probar a mano.
+  await prisma.cuentaServicio.createMany({
+    data: [
+      {
+        tenantId: tenant.id, propiedadId: deptoUF.id, tipo: "otro", estado: "registrada",
+        etiqueta: "Internet", numero: "VTR-4471902", empresa: "VTR", paga: "arrendatario",
+      },
+      {
+        tenantId: tenant.id, propiedadId: deptoUF.id, tipo: "otro", estado: "registrada",
+        etiqueta: "Alarma", numero: "SEG-88120", empresa: "Verisure",
+        titular: "Marta Propietaria", paga: "propietario",
+        // El propietario no quiere que el arrendatario vea esta cuenta.
+        visibleEnPortal: false,
+      },
+    ] as never,
+  });
+
   // En edificios cada unidad tiene rol propio (G-06): el depto uno, el
   // estacionamiento otro, la bodega otro — de ahí la manzana compartida.
   await prisma.rolComplementario.createMany({
     data: [
       { tenantId: tenant.id, propiedadId: deptoUF.id,        tipo: "estacionamiento", rol: "871-143",  descripcion: "Estacionamiento 43" },
-      { tenantId: tenant.id, propiedadId: deptoUF.id,        tipo: "bodega",          rol: "871-244",  descripcion: "Bodega B-12" },
+      // Bodega que la corredora no comparte en el portal: sigue en el contrato
+      // y en el panel, pero las partes no la ven en su ficha.
+      { tenantId: tenant.id, propiedadId: deptoUF.id,        tipo: "bodega",          rol: "871-244",  descripcion: "Bodega B-12", visibleEnPortal: false },
       { tenantId: tenant.id, propiedadId: deptoReservado.id, tipo: "estacionamiento", rol: "3390-216", descripcion: "Estacionamiento 216" },
     ] as never,
   });

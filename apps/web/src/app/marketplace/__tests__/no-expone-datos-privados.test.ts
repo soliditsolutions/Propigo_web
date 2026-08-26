@@ -69,3 +69,41 @@ describe("superficies públicas — datos privados de la propiedad", () => {
     expect(portal).toContain("rolesComplementarios");
   });
 });
+
+/**
+ * Visibilidad hacia el portal (2026-08-26).
+ *
+ * El corredor puede marcar una cuenta o un rol como "no compartir". Eso decide
+ * lo que ven el propietario y el arrendatario en el portal — y **nada más**.
+ * El borrador de contrato tiene que seguir nombrando todas las unidades: un
+ * contrato que omite la bodega deja esa bodega sin cubrir, y la visibilidad es
+ * una preferencia de la corredora, no un cambio en lo que se arrienda.
+ */
+describe("visibilidad en el portal", () => {
+  const leer = (rel: string) => readFileSync(join(RAIZ, rel), "utf8");
+
+  it("el portal filtra por visibleEnPortal", () => {
+    const portal = leer(join("portal", "contrato", "[contratoId]", "page.tsx"));
+    expect(portal).toMatch(/cuentasServicio:\s*\{\s*where:\s*\{\s*visibleEnPortal:\s*true/);
+    expect(portal).toMatch(/rolesComplementarios:\s*\{\s*where:\s*\{\s*visibleEnPortal:\s*true/);
+    // Y el rol principal se anula cuando no se comparte, en vez de mostrarse.
+    expect(portal).toContain("rolVisibleEnPortal ? p.rol : null");
+  });
+
+  it("el borrador de contrato NO filtra: nombra todas las unidades", () => {
+    // Si alguien agregara el mismo `where` acá "por consistencia", el contrato
+    // dejaría de mencionar la bodega que el corredor decidió no publicar en el
+    // portal. Son dos cosas distintas y este test las mantiene separadas.
+    const pdf = leer(join("api", "contratos", "[id]", "pdf", "route.ts"));
+    expect(pdf).toContain("rolesComplementarios");
+    expect(pdf).not.toContain("visibleEnPortal");
+  });
+
+  it("el panel NO filtra: el corredor ve sus propios datos completos", () => {
+    const queries = readFileSync(join(process.cwd(), "src", "lib", "queries.ts"), "utf8");
+    const bloque = queries.slice(queries.indexOf("export async function getPropiedades"));
+    const select = bloque.slice(0, bloque.indexOf("_count"));
+    expect(select).toContain("cuentasServicio");
+    expect(select).not.toContain("where: { visibleEnPortal");
+  });
+});

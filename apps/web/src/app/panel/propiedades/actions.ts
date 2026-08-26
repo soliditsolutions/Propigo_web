@@ -134,6 +134,7 @@ export async function crearPropiedad(data: {
   /** Los 4 servicios básicos, cada uno con datos o marcado "no aplica" (G-05). */
   cuentas: EntradaCuenta[];
   /** Estacionamientos y bodegas con rol propio. Opcional (G-06). */
+  rolVisibleEnPortal?: boolean;
   rolesComplementarios?: EntradaRolComplementario[];
   comuna?: string;
   region?: string;
@@ -171,7 +172,7 @@ export async function crearPropiedad(data: {
     if (e) return { ok: false, error: e };
   }
   {
-    const e = validarRolesComplementarios(data.rolesComplementarios ?? []);
+    const e = validarRolesComplementarios(data.rolesComplementarios ?? [], data.rol);
     if (e) return { ok: false, error: e };
   }
 
@@ -282,6 +283,7 @@ export async function crearPropiedad(data: {
           estado:      "borrador",          // ← siempre borrador al crear
           direccion:   data.direccion.trim(),
           rol:         normalizarRol(data.rol),
+          rolVisibleEnPortal: data.rolVisibleEnPortal !== false,
           comuna:      data.comuna?.trim()  || null,
           region:      data.region?.trim()  || null,
           piezas:      data.piezas    ?? null,
@@ -320,6 +322,9 @@ export async function crearPropiedad(data: {
           empresa:     c.empresa ?? null,
           titular:     c.titular ?? null,
           paga:        c.paga,
+          etiqueta:    c.etiqueta ?? null,
+          // Se comparte salvo que el corredor diga lo contrario.
+          visibleEnPortal: c.visibleEnPortal !== false,
         })),
       });
 
@@ -331,6 +336,7 @@ export async function crearPropiedad(data: {
             tipo:        r.tipo,
             rol:         normalizarRol(r.rol),
             descripcion: r.descripcion?.trim() || null,
+            visibleEnPortal: r.visibleEnPortal !== false,
           })),
         });
       }
@@ -378,6 +384,17 @@ export async function actualizarPropiedad(
   propiedadId: string,
   data: {
     tipo: string;
+    /**
+     * El rol y las cuentas son editables por el corredor a cargo o el
+     * administrador. Antes no llegaban hasta acá: el formulario de edición los
+     * mostraba, la corredora los cambiaba, el guardado decía que había salido
+     * bien y el valor anterior seguía en la base. Un dato que se pierde en
+     * silencio es peor que un campo que no se ofrece.
+     */
+    rol: string;
+    rolVisibleEnPortal?: boolean;
+    cuentas: EntradaCuenta[];
+    rolesComplementarios?: EntradaRolComplementario[];
     direccion: string;
     comuna?: string;
     region?: string;
@@ -402,6 +419,20 @@ export async function actualizarPropiedad(
 ): Promise<ResultadoOk> {
   if (!propiedadId)
     return { ok: false, error: "ID de propiedad requerido." };
+  // Mismas reglas que al dar de alta: editar no es una puerta de atrás para
+  // dejar una propiedad en un estado que el alta no habría aceptado.
+  {
+    const e = validarRol(data.rol);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarCuentas(data.cuentas ?? []);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarRolesComplementarios(data.rolesComplementarios ?? [], data.rol);
+    if (e) return { ok: false, error: e };
+  }
   if (!["casa", "departamento", "cabana"].includes(data.tipo))
     return { ok: false, error: "Tipo de propiedad inválido." };
   if (!data.direccion.trim())
@@ -479,6 +510,8 @@ export async function actualizarPropiedad(
         where: { id: propiedadId, tenantId: actor.tenantId },
         data: {
           tipo:        data.tipo as "casa" | "departamento" | "cabana",
+          rol:         normalizarRol(data.rol),
+          rolVisibleEnPortal: data.rolVisibleEnPortal !== false,
           direccion:   data.direccion.trim(),
           comuna:      data.comuna?.trim()  || null,
           region:      data.region?.trim()  || null,
@@ -503,6 +536,40 @@ export async function actualizarPropiedad(
           asignadoAId,
         },
       });
+
+      /* Cuentas y complementos: se reemplazan enteros, igual que las imágenes.
+         Cuadrar altas, bajas y cambios fila por fila daría el mismo resultado
+         con más formas de equivocarse, y todo ocurre dentro de la transacción. */
+      await tx.cuentaServicio.deleteMany({ where: { propiedadId, tenantId: actor.tenantId } });
+      await tx.cuentaServicio.createMany({
+        data: (data.cuentas ?? []).map(normalizarCuenta).map((c) => ({
+          tenantId:    actor.tenantId,
+          propiedadId,
+          tipo:        c.tipo,
+          estado:      c.estado,
+          numero:      c.numero  ?? null,
+          empresa:     c.empresa ?? null,
+          titular:     c.titular ?? null,
+          paga:        c.paga,
+          etiqueta:    c.etiqueta ?? null,
+          // Se comparte salvo que el corredor diga lo contrario.
+          visibleEnPortal: c.visibleEnPortal !== false,
+        })),
+      });
+
+      await tx.rolComplementario.deleteMany({ where: { propiedadId, tenantId: actor.tenantId } });
+      if ((data.rolesComplementarios ?? []).length > 0) {
+        await tx.rolComplementario.createMany({
+          data: data.rolesComplementarios!.map((r) => ({
+            tenantId:    actor.tenantId,
+            propiedadId,
+            tipo:        r.tipo,
+            rol:         normalizarRol(r.rol),
+            descripcion: r.descripcion?.trim() || null,
+            visibleEnPortal: r.visibleEnPortal !== false,
+          })),
+        });
+      }
 
       /* Reemplazar imágenes (delete-all + insert-new) */
       await tx.imagenPropiedad.deleteMany({

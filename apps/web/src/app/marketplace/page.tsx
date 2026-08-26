@@ -4,7 +4,11 @@
  */
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import type { TipoPropiedad } from "@/generated/prisma/enums";
+import { terminoBusqueda, numeroFiltro, enteroFiltro, idFiltro, opcionFiltro } from "@/lib/busqueda";
+import { TipoPropiedad } from "@/generated/prisma/enums";
+
+/** Lista cerrada contra la que se valida `?tipo=`. */
+const TIPOS_PROPIEDAD = Object.values(TipoPropiedad);
 import {
   BedDouble, Bath, Car, MapPin,
   Search, ArrowRight, CheckCircle2, PawPrint, Calendar,
@@ -30,33 +34,60 @@ type SP = {
   publicadaDias?: string;
 };
 
-async function getPublicaciones(sp: SP) {
-  const q        = sp.q?.trim() ?? "";
-  const tipo     = sp.tipo ?? "todas";
-  const diasStr  = sp.publicadaDias;
-  const fechaMin = diasStr
-    ? new Date(Date.now() - parseInt(diasStr, 10) * 86_400_000)
-    : undefined;
+/**
+ * Filtros de la URL, ya validados.
+ *
+ * SEC: esta página es pública y sin sesión, así que cada parámetro es texto que
+ * escribe cualquiera. Antes pasaban directo a Prisma: `?precioMin=abc` llegaba
+ * como NaN, `?corredor=x` como uuid inválido y `?tipo=x` como un enum que no
+ * existe — los tres tumbaban la página con un 500. Un filtro que no se entiende
+ * ahora simplemente no se aplica.
+ */
+function filtros(sp: SP) {
+  return {
+    q:        terminoBusqueda(sp.q),
+    tipo:     opcionFiltro<TipoPropiedad>(sp.tipo, TIPOS_PROPIEDAD),
+    corredor: idFiltro(sp.corredor),
+    dias:     enteroFiltro(sp.publicadaDias, { min: 1, max: 3650 }),
+    precioMin: numeroFiltro(sp.precioMin, { max: 1e12 }),
+    precioMax: numeroFiltro(sp.precioMax, { max: 1e12 }),
+    piezasMin: enteroFiltro(sp.piezasMin, { max: 100 }),
+    piezasMax: enteroFiltro(sp.piezasMax, { max: 100 }),
+    banosMin:  enteroFiltro(sp.banosMin,  { max: 100 }),
+    m2TotMin:  numeroFiltro(sp.m2TotMin,  { max: 1e7 }),
+    m2TotMax:  numeroFiltro(sp.m2TotMax,  { max: 1e7 }),
+    m2ConMin:  numeroFiltro(sp.m2ConMin,  { max: 1e7 }),
+    m2ConMax:  numeroFiltro(sp.m2ConMax,  { max: 1e7 }),
+  };
+}
 
-  const num = (v?: string) => (v ? parseFloat(v) : undefined);
+async function getPublicaciones(sp: SP) {
+  // SEC: el término pasa por terminoBusqueda y no crudo. Prisma entrega el
+  // texto de `contains` al LIKE sin escapar, así que `?q=%` traía el catálogo
+  // completo desde una ruta pública y sin sesión.
+  const f = filtros(sp);
+  const q = f.q;
+  const fechaMin = f.dias !== null
+    ? new Date(Date.now() - f.dias * 86_400_000)
+    : undefined;
 
   return prisma.publicacion.findMany({
     where: {
       estado: "publicada",
-      ...(sp.corredor ? { tenantId: sp.corredor } : {}),
+      ...(f.corredor ? { tenantId: f.corredor } : {}),
       ...(fechaMin ? { publicadaEn: { gte: fechaMin } } : {}),
-      ...(sp.precioMin || sp.precioMax
+      ...(f.precioMin !== null || f.precioMax !== null
         ? {
             denominacionPrecio: "CLP",
             precioReferencia: {
-              ...(sp.precioMin ? { gte: num(sp.precioMin) } : {}),
-              ...(sp.precioMax ? { lte: num(sp.precioMax) } : {}),
+              ...(f.precioMin !== null ? { gte: f.precioMin } : {}),
+              ...(f.precioMax !== null ? { lte: f.precioMax } : {}),
             },
           }
         : {}),
       propiedad: {
         estado: "disponible",
-        ...(tipo && tipo !== "todas" ? { tipo: tipo as TipoPropiedad } : {}),
+        ...(f.tipo ? { tipo: f.tipo } : {}),
         ...(q ? {
           OR: [
             // SEC: solo se busca por dirección exacta si el corredor autorizó
@@ -74,16 +105,16 @@ async function getPublicaciones(sp: SP) {
         // exacta en vez de substring.
         ...(sp.region  ? { region: { equals: sp.region } } : {}),
         ...(sp.comuna  ? { comuna: { equals: sp.comuna } } : {}),
-        ...(sp.piezasMin || sp.piezasMax
-          ? { piezas: { ...(sp.piezasMin ? { gte: parseInt(sp.piezasMin, 10) } : {}), ...(sp.piezasMax ? { lte: parseInt(sp.piezasMax, 10) } : {}) } }
+        ...(f.piezasMin !== null || f.piezasMax !== null
+          ? { piezas: { ...(f.piezasMin !== null ? { gte: f.piezasMin } : {}), ...(f.piezasMax !== null ? { lte: f.piezasMax } : {}) } }
           : {}),
-        ...(sp.banosMin ? { banos: { gte: parseInt(sp.banosMin, 10) } } : {}),
+        ...(f.banosMin !== null ? { banos: { gte: f.banosMin } } : {}),
         ...(sp.estacionamiento === "1" ? { estacionamientos: { gte: 1 } } : {}),
-        ...(sp.m2TotMin || sp.m2TotMax
-          ? { m2Totales: { ...(sp.m2TotMin ? { gte: num(sp.m2TotMin) } : {}), ...(sp.m2TotMax ? { lte: num(sp.m2TotMax) } : {}) } }
+        ...(f.m2TotMin !== null || f.m2TotMax !== null
+          ? { m2Totales: { ...(f.m2TotMin !== null ? { gte: f.m2TotMin } : {}), ...(f.m2TotMax !== null ? { lte: f.m2TotMax } : {}) } }
           : {}),
-        ...(sp.m2ConMin || sp.m2ConMax
-          ? { m2Construidos: { ...(sp.m2ConMin ? { gte: num(sp.m2ConMin) } : {}), ...(sp.m2ConMax ? { lte: num(sp.m2ConMax) } : {}) } }
+        ...(f.m2ConMin !== null || f.m2ConMax !== null
+          ? { m2Construidos: { ...(f.m2ConMin !== null ? { gte: f.m2ConMin } : {}), ...(f.m2ConMax !== null ? { lte: f.m2ConMax } : {}) } }
           : {}),
         ...(sp.pagaGC    === "1" ? { pagaGastosComunes: false } : {}),
         ...(sp.mascotas  === "1" ? { aceptaMascotas: true } : {}),
@@ -143,8 +174,10 @@ export default async function MarketplacePage({
 
   const [publicaciones, corredorFiltro] = await Promise.all([
     getPublicaciones(sp),
-    sp.corredor
-      ? prisma.tenant.findUnique({ where: { id: sp.corredor }, select: { nombre: true } })
+    // Mismo motivo que en filtros(): sin validar, un `?corredor=x` cualquiera
+    // llegaba a una columna uuid y tumbaba la página.
+    idFiltro(sp.corredor)
+      ? prisma.tenant.findUnique({ where: { id: idFiltro(sp.corredor)! }, select: { nombre: true } })
       : Promise.resolve(null),
   ]);
 

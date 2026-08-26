@@ -7,6 +7,7 @@ import { generarCalendario, validarRut } from "@housing/core";
 import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
+import { terminoBusqueda } from "@/lib/busqueda";
 
 /** Error de dominio controlado: el mensaje se devuelve al cliente tal cual. */
 class DomainError extends Error {
@@ -26,8 +27,10 @@ export type PersonaBusqueda = {
 };
 
 export async function buscarPersonas(query: string): Promise<PersonaBusqueda[]> {
-  const q = query.trim();
-  if (q.length < 2) return [];
+  // SEC: sin escapar, un `%` escrito en el buscador devolvía todas las personas
+  // de la corredora en vez de las que calzan.
+  const q = terminoBusqueda(query);
+  if (!q || query.trim().length < 2) return [];
   try {
     const tenant = await getTenant();
     const personas = await withTenant(tenant.id, (tx) => tx.persona.findMany({

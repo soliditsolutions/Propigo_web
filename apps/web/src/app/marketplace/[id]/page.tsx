@@ -16,6 +16,7 @@ import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { clpOrUf, plural } from "@/lib/format";
 import { tipoMeta } from "@/lib/propiedad-meta";
+import { idFiltro } from "@/lib/busqueda";
 import { geocodificarDireccion, ubicacionAproximada } from "@/lib/geocoding";
 
 export default async function MarketplaceFichaPage({
@@ -25,8 +26,14 @@ export default async function MarketplaceFichaPage({
 }) {
   const { id } = await params;
 
+  // SEC: el id viene de la URL en una ruta pública. Sin validarlo, cualquier
+  // texto que no sea uuid llegaba a Postgres y devolvía un 500 en vez de un
+  // 404 — un enlace mal copiado bastaba para romper la ficha.
+  const idPublicacion = idFiltro(id);
+  if (!idPublicacion) notFound();
+
   const pub = await prisma.publicacion.findFirst({
-    where: { id, estado: "publicada" },
+    where: { id: idPublicacion, estado: "publicada" },
     include: {
       propiedad: {
         select: {

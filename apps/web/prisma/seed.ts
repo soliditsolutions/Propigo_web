@@ -89,8 +89,50 @@ async function main() {
   const mkProp = (data: Record<string, unknown>) =>
     prisma.propiedad.create({ data: { tenantId: tenant.id, ...data } as never });
 
+  /**
+   * Cuentas de servicios básicos de una propiedad.
+   *
+   * Los 4 servicios del set canónico quedan SIEMPRE declarados, que es lo que
+   * exige el alta real (G-02 + G-05). Los datos demo ejercitan a propósito el
+   * caso "no aplica" —la cabaña sin gas de red, la casa sin gastos comunes—
+   * para que ese camino no quede sin probar nunca.
+   */
+  const mkCuentas = (
+    propiedadId: string,
+    opts: { sinGas?: boolean; sinGC?: boolean; empresaLuz?: string; empresaAgua?: string } = {},
+  ) =>
+    prisma.cuentaServicio.createMany({
+      data: [
+        {
+          tenantId: tenant.id, propiedadId, tipo: "agua", estado: "registrada",
+          numero: String(10_000_000 + Math.floor(Math.random() * 8_999_999)),
+          empresa: opts.empresaAgua ?? "Aguas Andinas", paga: "arrendatario",
+        },
+        {
+          tenantId: tenant.id, propiedadId, tipo: "luz", estado: "registrada",
+          numero: String(20_000_000 + Math.floor(Math.random() * 8_999_999)),
+          empresa: opts.empresaLuz ?? "Enel Distribución", paga: "arrendatario",
+        },
+        opts.sinGas
+          ? { tenantId: tenant.id, propiedadId, tipo: "gas" as const, estado: "no_aplica" as const, paga: "arrendatario" as const }
+          : {
+              tenantId: tenant.id, propiedadId, tipo: "gas" as const, estado: "registrada" as const,
+              numero: String(30_000_000 + Math.floor(Math.random() * 8_999_999)),
+              empresa: "Metrogas", paga: "arrendatario" as const,
+            },
+        opts.sinGC
+          ? { tenantId: tenant.id, propiedadId, tipo: "gastos_comunes" as const, estado: "no_aplica" as const, paga: "propietario" as const }
+          : {
+              tenantId: tenant.id, propiedadId, tipo: "gastos_comunes" as const, estado: "registrada" as const,
+              numero: String(Math.floor(Math.random() * 900) + 100),
+              empresa: "Administración del edificio", paga: "propietario" as const,
+            },
+      ] as never,
+    });
+
   const casaCLP = await mkProp({
     propietarioId: prop1.id, tipo: "casa", estado: "arrendada",
+    rol: "2145-18",
     direccion: "Los Aromos 1234", comuna: "Ñuñoa", region: "Región Metropolitana de Santiago",
     orientacion: "NP", antiguedadAnios: 12, m2Construidos: 120, m2Totales: 200,
     esCondominio: false, plantas: 2, piezas: 4, banos: 2, estacionamientos: 1,
@@ -98,6 +140,7 @@ async function main() {
   });
   const deptoUF = await mkProp({
     propietarioId: prop2.id, tipo: "departamento", estado: "arrendada",
+    rol: "871-42",
     direccion: "Av. Providencia 2020, depto 805", comuna: "Providencia",
     region: "Región Metropolitana de Santiago", orientacion: "SP", antiguedadAnios: 5,
     m2Construidos: 65, m2Totales: 72, esCondominio: true, plantas: 1,
@@ -106,6 +149,7 @@ async function main() {
   });
   const cabanaDisp = await mkProp({
     propietarioId: prop1.id, tipo: "cabana", estado: "disponible",
+    rol: "1502-7",
     direccion: "Camino al Lago km 4", comuna: "Pucón", region: "Región de la Araucanía",
     orientacion: "P", antiguedadAnios: 8, m2Construidos: 90, m2Totales: 5000,
     esCondominio: false, plantas: 1, piezas: 3, banos: 2, estacionamientos: 2,
@@ -113,11 +157,30 @@ async function main() {
   });
   const deptoReservado = await mkProp({
     propietarioId: prop2.id, tipo: "departamento", estado: "reservada",
+    rol: "3390-115",
     direccion: "Av. Apoquindo 5500, depto 1502", comuna: "Las Condes",
     region: "Región Metropolitana de Santiago", orientacion: "N", antiguedadAnios: 3,
     m2Construidos: 80, m2Totales: 90, esCondominio: true, plantas: 1,
     piezas: 3, banos: 2, estacionamientos: 2,
     pagaGastosComunes: true, valorGastosComunes: 120000,
+  });
+
+  // ── Cuentas de servicios y roles complementarios ────────────────
+  await mkCuentas(casaCLP.id,        { sinGC: true });                    // casa: no hay GC
+  await mkCuentas(deptoUF.id);
+  await mkCuentas(cabanaDisp.id,     { sinGas: true, sinGC: true,        // rural: gas de balón
+                                       empresaAgua: "Aguas Araucanía",
+                                       empresaLuz: "CGE" });
+  await mkCuentas(deptoReservado.id);
+
+  // En edificios cada unidad tiene rol propio (G-06): el depto uno, el
+  // estacionamiento otro, la bodega otro — de ahí la manzana compartida.
+  await prisma.rolComplementario.createMany({
+    data: [
+      { tenantId: tenant.id, propiedadId: deptoUF.id,        tipo: "estacionamiento", rol: "871-143",  descripcion: "Estacionamiento 43" },
+      { tenantId: tenant.id, propiedadId: deptoUF.id,        tipo: "bodega",          rol: "871-244",  descripcion: "Bodega B-12" },
+      { tenantId: tenant.id, propiedadId: deptoReservado.id, tipo: "estacionamiento", rol: "3390-216", descripcion: "Estacionamiento 216" },
+    ] as never,
   });
 
   // ── Publicaciones ───────────────────────────────────────────────

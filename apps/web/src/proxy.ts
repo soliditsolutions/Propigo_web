@@ -5,12 +5,21 @@
  *  1. Sesión JWT válida para /panel/* y /verificar-dispositivo
  *  2. Dispositivo confiable verificado para /panel/*
  *     (cookie hw_device debe coincidir con deviceToken embebido en JWT)
- *  3. Sesión JWT portal para /portal/contrato/* (solo lectura, 30 min)
+ *  3. Sesión JWT portal para /portal/contrato/* (solo lectura)
  *  4. CSP con nonce por request (script-src nonce-based, sin 'unsafe-inline')
+ *  5. Caducidad por inactividad y tope absoluto de ambas sesiones
+ *
+ * El punto 5 vive acá porque un Server Component no puede escribir cookies: la
+ * renovación tiene que ocurrir mientras el request todavía se puede responder.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, COOKIE_NAME, DEVICE_COOKIE_NAME } from "@/lib/auth";
-import { verifyPortalToken, PORTAL_COOKIE_NAME } from "@/lib/portal-auth";
+import { verifyToken, signSession, sesionAgotada, COOKIE_NAME, DEVICE_COOKIE_NAME } from "@/lib/auth";
+import {
+  verifyPortalToken, signPortalSession, sesionPortalAgotada, PORTAL_COOKIE_NAME,
+} from "@/lib/portal-auth";
+import {
+  COOKIE_BASE, PANEL_INACTIVIDAD, PORTAL_INACTIVIDAD, tocaRefrescar,
+} from "@/lib/sesion-cookies";
 
 /** Genera un nonce criptográfico aleatorio para CSP por request. */
 function generarNonce(): string {
@@ -40,6 +49,47 @@ function buildCsp(nonce: string): string {
     "frame-ancestors 'none'",
     isProd ? "upgrade-insecure-requests" : "",
   ].filter(Boolean).join("; ");
+}
+
+/**
+ * Corre la ventana de inactividad de la sesión activa y borra la contraria.
+ *
+ * El `exp` del JWT es lo que hace caducar la sesión sola, así que mantenerla
+ * viva es re-firmarla mientras haya navegación. Se re-firma como mucho una vez
+ * por minuto (`tocaRefrescar`) para no pagar una firma por cada request.
+ *
+ * El borrado de la contraria es red de seguridad: los setters de cookie ya la
+ * cierran al abrir sesión, pero las sesiones que quedaron abiertas antes de ese
+ * cambio siguen en los navegadores y hay que barrerlas.
+ */
+async function conSesionRenovada(
+  res: NextResponse,
+  panel: Awaited<ReturnType<typeof verifyToken>>,
+  portal: Awaited<ReturnType<typeof verifyPortalToken>>,
+): Promise<NextResponse> {
+  if (panel) {
+    res.cookies.set(PORTAL_COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
+    if (tocaRefrescar(panel)) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- se excluyen de `rest`, no se usan
+      const { iat: _iat, exp: _exp, ...rest } = panel;
+      res.cookies.set(COOKIE_NAME, await signSession(rest), {
+        ...COOKIE_BASE, maxAge: PANEL_INACTIVIDAD,
+      });
+    }
+  }
+
+  if (portal) {
+    res.cookies.set(COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
+    if (tocaRefrescar(portal)) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- se excluyen de `rest`, no se usan
+      const { iat: _iat, exp: _exp, ...rest } = portal;
+      res.cookies.set(PORTAL_COOKIE_NAME, await signPortalSession(rest), {
+        ...COOKIE_BASE, maxAge: PORTAL_INACTIVIDAD,
+      });
+    }
+  }
+
+  return res;
 }
 
 export async function proxy(request: NextRequest) {
@@ -92,9 +142,11 @@ export async function proxy(request: NextRequest) {
 
   // ── Rutas del panel ──────────────────────────────────────────────────────
   if (pathname.startsWith("/panel")) {
-    if (!session) {
+    // Sin sesión, o con una que ya superó su tope absoluto. El JWT caducado por
+    // inactividad ya llega como `session === null` desde verifyToken.
+    if (!session || sesionAgotada(session)) {
       const response = NextResponse.redirect(new URL("/login", request.url));
-      if (token) response.cookies.set(COOKIE_NAME, "", { maxAge: 0, path: "/" });
+      if (token) response.cookies.set(COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
       return response;
     }
 
@@ -128,12 +180,15 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/portal/contrato")) {
     const portalToken   = request.cookies.get(PORTAL_COOKIE_NAME)?.value;
     const portalSession = portalToken ? await verifyPortalToken(portalToken) : null;
-    if (!portalSession) {
-      return NextResponse.redirect(new URL("/portal", request.url));
+    if (!portalSession || sesionPortalAgotada(portalSession)) {
+      const response = NextResponse.redirect(new URL("/portal", request.url));
+      if (portalToken) response.cookies.set(PORTAL_COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
+      return response;
     }
+    return await conSesionRenovada(nextWithNonce(), null, portalSession);
   }
 
-  return nextWithNonce();
+  return await conSesionRenovada(nextWithNonce(), session, null);
 }
 
 export const config = {

@@ -1,10 +1,20 @@
 /**
  * Gestión de sesión JWT — firmado con HS256 vía jose.
  * Cookie: __Host-hw_session (prod) / hw_session (dev).
- * Duración: 8 horas con refresh pasivo en cada request.
+ *
+ * Caduca por inactividad (el `exp` del JWT) y tiene además un tope absoluto
+ * desde el login. El proxy la renueva mientras haya actividad; los tiempos y el
+ * porqué están en `sesion-cookies.ts`.
+ *
+ * Abrir esta sesión cierra la del portal: son personas distintas y el navegador
+ * no puede quedar con dos identidades a la vez.
  */
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
+import {
+  COOKIE_PANEL, COOKIE_PORTAL, COOKIE_DEVICE, COOKIE_BASE,
+  PANEL_INACTIVIDAD, PANEL_MAXIMO, superaMaximo,
+} from "./sesion-cookies";
 
 export type SessionPayload = JWTPayload & {
   sub:            string; // usuarioId
@@ -14,11 +24,12 @@ export type SessionPayload = JWTPayload & {
   email:          string;
   perfilCompleto: boolean;
   deviceToken?:   string; // UUID del dispositivo confiable (en plano — comparado contra hw_device cookie)
+  /** Instante del login original. Sobrevive a las renovaciones (ver sesion-cookies). */
+  ini?:           number;
 };
 
-const IS_PROD   = process.env.NODE_ENV === "production";
-export const COOKIE_NAME = IS_PROD ? "__Host-hw_session" : "hw_session";
-const SESSION_TTL = 8 * 60 * 60; // 8 horas en segundos
+export const COOKIE_NAME = COOKIE_PANEL;
+const SESSION_TTL = PANEL_INACTIVIDAD;
 
 function getSecret(): Uint8Array {
   const raw = process.env.AUTH_SECRET;
@@ -29,11 +40,21 @@ function getSecret(): Uint8Array {
 }
 
 export async function signSession(payload: Omit<SessionPayload, "iat" | "exp">): Promise<string> {
-  return new SignJWT(payload)
+  return new SignJWT({
+    ...payload,
+    // Si el llamador no trae `ini`, esto es un login nuevo y el tope absoluto
+    // empieza a correr ahora.
+    ini: payload.ini ?? Math.floor(Date.now() / 1000),
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_TTL}s`)
     .sign(getSecret());
+}
+
+/** True si la sesión agotó su tope absoluto, por mucha actividad que haya habido. */
+export function sesionAgotada(session: SessionPayload, ahora = Date.now()): boolean {
+  return superaMaximo(session, PANEL_MAXIMO, ahora);
 }
 
 export async function verifyToken(token: string): Promise<SessionPayload | null> {
@@ -56,54 +77,33 @@ export async function getSession(): Promise<SessionPayload | null> {
 /** Escribe la cookie de sesión respetando las directivas de seguridad del doc. */
 export async function setSessionCookie(token: string): Promise<void> {
   const jar = await cookies();
-  jar.set(COOKIE_NAME, token, {
-    httpOnly:  true,
-    secure:    IS_PROD,      // __Host- requiere Secure en prod; en dev HTTP lo omite
-    sameSite:  "strict",     // Mitiga CSRF al 100%
-    path:      "/",
-    maxAge:    SESSION_TTL,
-  });
+  jar.set(COOKIE_NAME, token, { ...COOKIE_BASE, maxAge: SESSION_TTL });
+  // Entrar como corredor cierra la sesión del portal. Va acá y no en cada
+  // pantalla de login para que una entrada nueva no pueda olvidarse.
+  jar.set(COOKIE_PORTAL, "", { ...COOKIE_BASE, maxAge: 0 });
 }
 
 /** Borra la cookie de sesión (Server Action / API Route). */
 export async function clearSessionCookie(): Promise<void> {
   const jar = await cookies();
-  jar.set(COOKIE_NAME, "", {
-    httpOnly: true,
-    secure:   IS_PROD,
-    sameSite: "strict",
-    path:     "/",
-    maxAge:   0,
-  });
+  jar.set(COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
 }
 
 // ── Dispositivo confiable ────────────────────────────────────────────────────
 
-export const DEVICE_COOKIE_NAME = IS_PROD ? "__Host-hw_device" : "hw_device";
+export const DEVICE_COOKIE_NAME = COOKIE_DEVICE;
 const DEVICE_TTL = 365 * 24 * 60 * 60; // 1 año en segundos
 
 /** Escribe la cookie de dispositivo confiable (httpOnly, 1 año). */
 export async function setDeviceCookie(token: string): Promise<void> {
   const jar = await cookies();
-  jar.set(DEVICE_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure:   IS_PROD,
-    sameSite: "strict",
-    path:     "/",
-    maxAge:   DEVICE_TTL,
-  });
+  jar.set(DEVICE_COOKIE_NAME, token, { ...COOKIE_BASE, maxAge: DEVICE_TTL });
 }
 
 /** Borra la cookie de dispositivo (fuerza re-verificación al próximo login). */
 export async function clearDeviceCookie(): Promise<void> {
   const jar = await cookies();
-  jar.set(DEVICE_COOKIE_NAME, "", {
-    httpOnly: true,
-    secure:   IS_PROD,
-    sameSite: "strict",
-    path:     "/",
-    maxAge:   0,
-  });
+  jar.set(DEVICE_COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
 }
 
 /** Refresca el JWT embebiendo el deviceToken confirmado. */
@@ -111,6 +111,8 @@ export async function refreshSessionWithDevice(
   session: SessionPayload,
   deviceToken: string,
 ): Promise<string> {
+  // `ini` NO se descarta: el tope absoluto cuenta desde el login original,
+  // no desde la verificación del dispositivo.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- se destructuran para excluirlos de `rest`, no para usarlos
   const { iat: _iat, exp: _exp, ...rest } = session;
   return signSession({ ...rest, deviceToken });

@@ -106,6 +106,30 @@ hay dos salidas mejores: una segunda oración, o un paréntesis si el dato es se
 - Hasta 140 caracteres.
 - Con punto final (a diferencia de los títulos).
 
+### La etiqueta nombra; la oración explica
+
+Variante del defecto anterior, aparecida al etiquetar secciones con datos
+sensibles. El molde «Etiqueta — condición del sistema» describe cómo funciona
+el software, no qué está mirando la persona.
+
+| En vez de | Escribir |
+|-----------|----------|
+| `Datos privados — no se publican` | `Servicios y rol de avalúo` + una oración aparte: `Solo los ve tu equipo y las partes del contrato.` |
+| `Sin servicio: Gas.` | `La propiedad no tiene gas.` |
+| `Estado: pendiente de envío` | `Todavía no se envía.` |
+
+Dos reglas que se desprenden:
+
+- **El encabezado dice QUÉ es**, no en qué estado está ni quién lo ve. Eso va
+  en la bajada, como oración.
+- **Nada de `Etiqueta: valor` en prosa.** Los dos puntos sirven en una ficha de
+  datos, donde la etiqueta y el valor están separados visualmente. En medio de
+  un párrafo se leen como un volcado de base de datos.
+
+La misma frase cambia según quién la lee: al corredor se le dice «solo los ve tu
+equipo», al arrendatario «esta información es solo para ti y tu corredora». Un
+texto único para ambos termina siendo cierto para ninguno.
+
 ### Prohibida la coordinación tripartita decorativa
 
 «Rápido, simple y confiable» no informa. Si los tres elementos no aportan datos distintos, sobran

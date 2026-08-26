@@ -11,6 +11,7 @@ import {
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
 import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
 import { CuentasServicioFields, RolesComplementariosFields } from "./cuentas-servicio-fields";
+import { DatosPrivadosPropiedad } from "@/components/propiedad/datos-privados";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { type DateFilterState } from "@/components/panel/date-filter";
@@ -453,8 +454,8 @@ function CamposProp({
           style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
         />
         <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
-          Manzana y predio, como aparece en las contribuciones. Si lo tienes con el
-          código de comuna, también sirve: 13101-573-24.
+          Manzana y predio, como aparece en las contribuciones. También sirve con el
+          código de comuna adelante.
         </p>
       </div>
 
@@ -1340,6 +1341,7 @@ export function PropiedadesClient({
                 <dl className="mb-5 grid grid-cols-2 gap-2.5">
                   {[
                     { label: "Propietario",    value: seleccionada.propietario.nombre },
+                    { label: "Rol de avalúo",  value: seleccionada.rol },
                     { label: "Orientación",    value: seleccionada.orientacion ?? "—" },
                     { label: "M² construidos", value: seleccionada.m2Construidos != null ? `${seleccionada.m2Construidos} m²` : "—" },
                     { label: "M² totales",     value: seleccionada.m2Totales != null ? `${seleccionada.m2Totales} m²` : "—" },
@@ -1355,6 +1357,14 @@ export function PropiedadesClient({
                     </div>
                   ))}
                 </dl>
+
+                <div className="mb-5">
+                  <DatosPrivadosPropiedad
+                    rol={seleccionada.rol}
+                    cuentas={seleccionada.cuentasServicio}
+                    complementos={seleccionada.rolesComplementarios}
+                  />
+                </div>
 
                 {/* GC */}
                 {seleccionada.pagaGastosComunes && seleccionada.valorGastosComunes != null && (

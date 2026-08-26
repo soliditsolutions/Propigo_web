@@ -8,6 +8,7 @@ import { redirect, notFound } from "next/navigation";
 import { withTenant } from "@/lib/tenant-db";
 import { getPortalSession } from "@/lib/portal-auth";
 import { PreferenciasAvisos } from "./preferencias-avisos";
+import { DatosPrivadosPropiedad } from "@/components/propiedad/datos-privados";
 import { puedeRecibir, describirPreferencia } from "@/lib/notificacion-preferencias";
 import { marcarPeriodosAtrasados } from "@/lib/queries";
 import {
@@ -78,7 +79,16 @@ export default async function PortalContratoPage({
         // `mostrarUbicacionExacta` NO se consulta a propósito: ese flag
         // protege una propiedad publicada frente a desconocidos del
         // marketplace, y aquí quien mira es quien vive en ella.
-        select: { direccion: true, tipo: true, comuna: true, region: true, estado: true, m2Construidos: true, piezas: true, banos: true, latitud: true, longitud: true },
+        // rol y cuentas: datos privados que las partes del contrato SÍ pueden
+        // consultar (decisión 2026-08-19). Lo que nunca los ve es el
+        // marketplace público.
+        select: {
+          direccion: true, tipo: true, comuna: true, region: true, estado: true,
+          m2Construidos: true, piezas: true, banos: true, latitud: true, longitud: true,
+          rol: true,
+          cuentasServicio:      { select: { tipo: true, estado: true, numero: true, empresa: true, titular: true, paga: true } },
+          rolesComplementarios: { select: { tipo: true, rol: true, descripcion: true } },
+        },
       },
       arrendatario: { select: { nombre: true, rut: true, email: true, telefono: true } },
       propietario:  { select: { nombre: true, rut: true, email: true } },
@@ -482,6 +492,19 @@ export default async function PortalContratoPage({
             <ValoracionButton token={contrato.tokenValoracion} />
           </div>
         )}
+
+        <div className="pb-4">
+          <DatosPrivadosPropiedad
+            rol={p.rol}
+            cuentas={p.cuentasServicio}
+            complementos={p.rolesComplementarios}
+            /* Al arrendatario y al propietario, quién paga ya se lo dice el
+               contrato; repetirlo acá invitaría a discutir con la ficha en vez
+               de con la cláusula. */
+            mostrarPagador={false}
+            visibilidad="Esta información es solo para ti y tu corredora."
+          />
+        </div>
 
         <div className="pb-4">
           <PreferenciasAvisos

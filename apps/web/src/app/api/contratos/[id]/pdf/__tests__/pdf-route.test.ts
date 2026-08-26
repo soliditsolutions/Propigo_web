@@ -38,7 +38,11 @@ const CONTRATO_BASE = {
   reajuste: "anual", moraTasaPct: "3", moraDiasGracia: 5,
   garantiaMeses: "0", garantiaDenominacion: null, garantiaMontoBase: null,
   fechaInicio: new Date("2026-01-01"), fechaFin: null,
-  propiedad: { direccion: "Av. Test 123", comuna: "Ñuñoa", region: "RM", tipo: "departamento", asignadoAId: "colab-owner" },
+  propiedad: {
+    direccion: "Av. Test 123", comuna: "Ñuñoa", region: "RM", tipo: "departamento",
+    asignadoAId: "colab-owner", rol: "573-24",
+    rolesComplementarios: [{ tipo: "estacionamiento", rol: "573-118", descripcion: "43" }],
+  },
   arrendatario: { nombre: "Juan Arrendatario", rut: "11111111-1", email: null },
   propietario:  { nombre: "Ana Propietaria",  rut: "22222222-2", email: null },
 };
@@ -92,4 +96,43 @@ describe("GET /api/contratos/[id]/pdf", () => {
     const res = await req();
     expect(res.status).toBe(409);
   });
+
+  it("el rol y los complementos llegan desde la consulta hasta el documento", async () => {
+    // Cierra el circuito que ninguno de los otros tests cubre: contrato-pdf
+    // sabe pintar el rol y la ruta sabe pedirlo, pero nada comprobaba que el
+    // valor recorriera el camino completo. Se inspecciona el árbol que la ruta
+    // le entrega a renderToBuffer.
+    mockGetActor.mockResolvedValue({ usuarioId: "manager-1", tenantId: "tenant-1", rol: "manager", tenant: { nombre: "Corredora" } });
+    mockContratoFindFirst.mockResolvedValue(CONTRATO_BASE);
+    await req();
+
+    const { renderToBuffer } = await import("@react-pdf/renderer");
+    const arbol = vi.mocked(renderToBuffer).mock.calls[0][0];
+    const texto = textoDe(arbol);
+
+    expect(texto).toContain("Rol de Avalúo N° 573-24");
+    expect(texto).toContain("el estacionamiento 43, Rol de Avalúo N° 573-118.");
+  });
+
+  it("pide los roles complementarios en la consulta", async () => {
+    // Sin el `include`, la propiedad llega sin ellos y la cláusula deja fuera
+    // el estacionamiento y la bodega sin que nada falle a la vista.
+    mockGetActor.mockResolvedValue({ usuarioId: "manager-1", tenantId: "tenant-1", rol: "manager", tenant: { nombre: "Corredora" } });
+    mockContratoFindFirst.mockResolvedValue(CONTRATO_BASE);
+    await req();
+
+    const include = mockContratoFindFirst.mock.calls.at(-1)?.[0]?.include;
+    expect(include?.propiedad?.include?.rolesComplementarios).toBeTruthy();
+  });
 });
+
+/** Junta el texto de un árbol de elementos de @react-pdf. */
+function textoDe(nodo: unknown): string {
+  if (nodo === null || nodo === undefined || typeof nodo === "boolean") return "";
+  if (typeof nodo === "string" || typeof nodo === "number") return String(nodo);
+  if (Array.isArray(nodo)) return nodo.map(textoDe).join("");
+  if (typeof nodo === "object" && "props" in (nodo as { props?: unknown })) {
+    return textoDe((nodo as { props?: { children?: unknown } }).props?.children);
+  }
+  return "";
+}

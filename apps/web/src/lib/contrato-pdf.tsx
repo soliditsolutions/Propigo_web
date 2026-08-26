@@ -30,6 +30,10 @@ export interface ContratoPdfData {
     comuna: string | null;
     region: string | null;
     tipo: "casa" | "departamento" | "cabana";
+    /** Rol de avalúo del SII. Identifica el inmueble ante Tesorería. */
+    rol: string;
+    /** Estacionamientos, bodegas u otras unidades con rol propio. */
+    complementos: { tipo: "estacionamiento" | "bodega" | "otro"; rol: string; descripcion: string | null }[];
   };
   denominacion: "UF" | "CLP";
   valorArriendo: number;
@@ -61,6 +65,58 @@ function fechaCorta(d: Date): string {
 const TIPO_LABEL: Record<ContratoPdfData["propiedad"]["tipo"], string> = {
   casa: "casa", departamento: "departamento", cabana: "cabaña",
 };
+
+type Complemento = ContratoPdfData["propiedad"]["complementos"][number];
+
+/** Cómo se nombra cada unidad accesoria dentro de la cláusula. */
+const COMPLEMENTO_NOMBRE: Record<Complemento["tipo"], { articulo: string; sustantivo: string }> = {
+  estacionamiento: { articulo: "el", sustantivo: "estacionamiento" },
+  bodega:          { articulo: "la", sustantivo: "bodega" },
+  otro:            { articulo: "la", sustantivo: "unidad" },
+};
+
+/**
+ * Nombra una unidad accesoria en prosa: "el estacionamiento 43", "la bodega".
+ *
+ * La descripción la escribe el corredor y el formulario le sugiere justamente
+ * "Estacionamiento 43", así que lo normal es que ya traiga el sustantivo. Sin
+ * este ajuste la cláusula queda "el estacionamiento Estacionamiento 43" — un
+ * error que no se ve en los datos de ejemplo y sí en los reales.
+ */
+function nombrarComplemento(c: Complemento): string {
+  const { articulo, sustantivo } = COMPLEMENTO_NOMBRE[c.tipo];
+  const desc = c.descripcion?.trim() ?? "";
+  if (!desc) return `${articulo} ${sustantivo}`;
+  if (desc.toLowerCase().startsWith(sustantivo)) {
+    // Va en minúscula porque queda a mitad de una oración, no al inicio.
+    return `${articulo} ${desc[0].toLowerCase()}${desc.slice(1)}`;
+  }
+  return `${articulo} ${sustantivo} ${desc}`;
+}
+
+/**
+ * Enumera en castellano: "a", "a y b", "a, b y c".
+ *
+ * El texto va dentro de una cláusula que puede leer un abogado o un juez, así
+ * que una lista separada por comas hasta el final se leería como un descuido.
+ */
+function enumerar(partes: string[]): string {
+  if (partes.length <= 1) return partes[0] ?? "";
+  return `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}`;
+}
+
+/**
+ * Frase que suma las unidades accesorias al objeto del arriendo.
+ *
+ * En un edificio, el departamento, el estacionamiento y la bodega son inmuebles
+ * distintos con rol propio. Un contrato que solo nombra el departamento deja sin
+ * cubrir lo demás, y ahí es donde después aparece la discusión.
+ */
+function frasesComplementos(cs: ContratoPdfData["propiedad"]["complementos"]): string | null {
+  if (cs.length === 0) return null;
+  const partes = cs.map((c) => `${nombrarComplemento(c)}, Rol de Avalúo N° ${c.rol}`);
+  return `Forma${cs.length > 1 ? "n" : ""} parte del arrendamiento ${enumerar(partes)}.`;
+}
 
 function montoTexto(valor: number, denom: "UF" | "CLP"): string {
   return denom === "UF"
@@ -113,6 +169,7 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
   const garantiaTexto = d.garantiaMeses > 0 && d.garantiaMontoBase !== null
     ? montoTexto(d.garantiaMontoBase, d.garantiaDenominacion ?? d.denominacion)
     : null;
+  const complementos = frasesComplementos(d.propiedad.complementos);
 
   return (
     <Document title={`Borrador de contrato de arriendo — ${d.propiedad.direccion}`}>
@@ -145,11 +202,16 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
           La parte Arrendadora es dueña del inmueble tipo {TIPO_LABEL[d.propiedad.tipo]} ubicado en{" "}
           {d.propiedad.direccion}
           {d.propiedad.comuna ? `, comuna de ${d.propiedad.comuna}` : ""}
-          {d.propiedad.region ? `, ${d.propiedad.region}` : ""}, inscrito a su nombre en el
+          {d.propiedad.region ? `, ${d.propiedad.region}` : ""}
+          {/* El rol de avalúo es lo que identifica al inmueble ante el SII y la
+              Tesorería. Sin él, la cláusula describe una dirección y no un
+              predio determinado, que es lo que un contrato necesita fijar. */}
+          , Rol de Avalúo N° {d.propiedad.rol}, inscrito a su nombre en el
           Conservador de Bienes Raíces según <P>inscripción CBR no registrada</P>, en adelante
-          &quot;el Inmueble&quot;. Por este acto la parte Arrendadora entrega en arrendamiento el
-          Inmueble a la parte Arrendataria, quien lo recibe a su entera conformidad, para uso
-          habitacional exclusivamente, quedando prohibido cualquier otro destino.
+          &quot;el Inmueble&quot;. {complementos ? `${complementos} ` : ""}Por este acto la parte
+          Arrendadora entrega en arrendamiento el Inmueble a la parte Arrendataria, quien lo recibe
+          a su entera conformidad, para uso habitacional exclusivamente, quedando prohibido
+          cualquier otro destino.
         </Clausula>
 
         <Clausula n="SEGUNDO">

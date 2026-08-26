@@ -29,7 +29,10 @@ export async function GET(
   const contrato = await withTenant(actor.tenantId, (tx) => tx.contrato.findFirst({
     where: { id, tenantId: actor.tenantId },
     include: {
-      propiedad:    true,
+      // El rol viene en `propiedad`; los complementos son tabla aparte y hay
+      // que pedirlos, o la cláusula PRIMERO deja fuera el estacionamiento y la
+      // bodega del contrato.
+      propiedad:    { include: { rolesComplementarios: { orderBy: { tipo: "asc" } } } },
       arrendatario: true,
       propietario:  true,
     },
@@ -72,6 +75,10 @@ export async function GET(
       comuna:    contrato.propiedad.comuna,
       region:    contrato.propiedad.region,
       tipo:      contrato.propiedad.tipo,
+      rol:       contrato.propiedad.rol,
+      complementos: contrato.propiedad.rolesComplementarios.map((r) => ({
+        tipo: r.tipo, rol: r.rol, descripcion: r.descripcion,
+      })),
     },
     denominacion:         contrato.denominacion,
     valorArriendo:        Number(contrato.valorArriendo),

@@ -2,7 +2,9 @@
 
 > Checklist que actualizamos en cada etapa. `[x]` hecho · `[~]` en curso · `[ ]` pendiente.
 
-_Última actualización: 2026-08-19 — **Etapa 7**: Fase A de billing (puerto, webhook, modelos) y Fase B0 completas — los cupos que venden los planes ahora se aplican de verdad, verificado con 10 consumos en paralelo contra Postgres real. Se encontraron y corrigieron dos fallos que llevaban meses invisibles: **cinco de ocho notificaciones nunca se enviaban** (se creaban como `simulada` y el despachador solo toma las `pendiente`) y **HTML sin escapar en los correos**, alcanzable desde los formularios públicos del marketplace. Precios en UF validados contra costo: se mantienen, con 96 % de margen de contribución. Detalle en Etapa 7 al final._
+_Última actualización: 2026-08-26 — **Etapa 8**: Grupo 1 cerrado (rol de avalúo SII, cuentas de servicios y roles complementarios, visibles al corredor y a las partes del contrato, nunca al público) y blindaje del sitio público: se encontraron atacando la aplicación corriendo tres fallos reales — `?q=%` devolvía el catálogo completo porque Prisma no escapa los comodines de `LIKE`, doce parámetros del marketplace lo tumbaban con un 500, y la ficha daba 500 en vez de 404 con un id no válido. Ninguno ejecutó SQL. Cerrado el Grupo 1, un barrido de QA manejando la aplicación encontró **siete defectos más**, el peor: editar una propiedad descartaba el rol y las cuentas en silencio, con el diálogo cerrándose sin error. Además, los datos privados ahora salen **tapados** en el portal (se muestran con un botón) y el corredor decide cuáles comparte, con cuentas adicionales que puede agregar y quitar. Y un bug que reportó el cliente: el panel del corredor y el portal del arrendatario quedaban abiertos a la vez en el mismo navegador — ahora abrir una sesión cierra la otra, y ambas caducan por inactividad. Detalle en Etapa 8. 
+
+_Etapa anterior: 2026-08-19 — **Etapa 7**: Fase A de billing (puerto, webhook, modelos) y Fase B0 completas — los cupos que venden los planes ahora se aplican de verdad, verificado con 10 consumos en paralelo contra Postgres real. Se encontraron y corrigieron dos fallos que llevaban meses invisibles: **cinco de ocho notificaciones nunca se enviaban** (se creaban como `simulada` y el despachador solo toma las `pendiente`) y **HTML sin escapar en los correos**, alcanzable desde los formularios públicos del marketplace. Precios en UF validados contra costo: se mantienen, con 96 % de margen de contribución. Detalle en Etapa 7 al final._
 
 _Actualización anterior: 2026-07-30 — Cuentas multi-usuario Fases B-E completas (ver ADR-0013); revisión legal de las cláusulas de contrato contra la Ley 18.101 vigente y un contrato de arriendo real de referencia — se encontró y corrigió una cita legal fabricada ("art. 46, Ley 18.101" no existe) presente en 6 lugares del código/UI, y se rediseñó el término anticipado (renta del período faltante, Art. 1489 CC, en vez de una "multa" fija sin respaldo legal ni real — ver ADR-0009). **Ítem 9 completo**: borrador de contrato de arriendo descargable en PDF (plantilla fija + datos reales, sin redacción libre de IA — ver detalle abajo). Detalle en Etapa 6 al final._
 
@@ -344,6 +346,246 @@ de ruta. El `key` se mantiene como defensa explícita, pero el comentario en el
 código se corrigió para no afirmar algo que no se pudo demostrar. Queda anotado
 en BRAIN.md §2 para que nadie "arregle" un problema inexistente.
 
+
+
+## Etapa 8 — Grupo 1: rol de avalúo, cuentas de servicios y blindaje del sitio público (2026-08-25 → 2026-08-26)
+
+**Grupo 1 cerrado por completo** (P-PR1 a P-PR10). La propiedad ahora exige el
+rol de avalúo del SII y las cuatro cuentas de servicios básicos, ambos editables
+por el corredor a cargo o el administrador, y ambos visibles para el corredor, el
+propietario y el arrendatario — nunca para el público.
+
+### Qué se construyó
+- **Rol de avalúo obligatorio** en `Propiedad`, con validación compartida entre
+  servidor y cliente (`lib/propiedad-datos.ts`). El formato oficial es
+  `comuna–manzana–predio`; no lleva dígito verificador, eso es el RUT.
+- **Cuentas de servicios obligatorias**: agua, luz, gas y gastos comunes se
+  muestran siempre, y "no aplica" es una respuesta válida y distinta de dejar en
+  blanco — una cabaña sin gas de red es el caso normal, no un dato faltante.
+- **Roles complementarios** (estacionamiento, bodega, otras unidades), opcionales:
+  en un edificio cada unidad tiene rol propio.
+- **Presentación compartida** entre panel y portal (`components/propiedad/datos-privados.tsx`),
+  con el texto de visibilidad distinto según quién mira. Un componente y no dos
+  copias, para que no ocurra que una superficie muestre lo que la otra decidió
+  ocultar.
+- **Rol en el borrador de contrato** (P-PR7): la cláusula PRIMERO individualiza el
+  inmueble por rol antes de remitir al Conservador, y suma las unidades accesorias
+  al objeto del arriendo cuando existen.
+
+### Seguridad: tres fallos reales encontrados atacando el sitio
+El barrido no fue una revisión de código, fue un ataque a la aplicación corriendo.
+
+1. **`?q=%` devolvía el catálogo completo del marketplace.** Prisma entrega el
+   texto de `contains` al `LIKE` de Postgres **sin escapar**, así que el `%` del
+   usuario dejaba de ser un carácter y pasaba a ser un comodín. Comprobado contra
+   la base: sin escapar, buscar `Zeta%Zeta` calzaba con `Zeta%Zeta` **y** con
+   `ZetaXZeta`. Afectaba también al buscador de personas del panel.
+2. **Doce parámetros tumbaban el marketplace público con un 500.**
+   `?precioMin=abc` llegaba a Prisma como `NaN`; `?corredor=x` a una columna
+   `uuid`; `?tipo=x` a un enum inexistente, vía un `as` que `tsc` daba por bueno.
+   Ruta pública y sin sesión.
+3. **`/marketplace/<texto-no-uuid>` daba 500 en vez de 404.** Un enlace mal
+   copiado bastaba.
+
+Ninguno llegó a ejecutar SQL — las tablas quedaron intactas en cada barrido. Eran
+caída de disponibilidad y, en desarrollo, exposición del error de Prisma.
+
+**Arreglo:** `lib/busqueda.ts` (`terminoBusqueda`, `numeroFiltro`, `enteroFiltro`,
+`idFiltro`, `opcionFiltro`). Lo que no se entiende, no se aplica.
+
+**Dónde estaba el hueco, que es la parte que generaliza:** las rutas de API ya
+tenían su capa de validación (Zod + rate limit) y aguantaron todo lo que se les
+tiró — inyección, JSON roto, anidamiento raro — devolviendo 400/422/429 y nunca un
+500. El hueco estaba entero en las **páginas Server Component**, que leen
+`searchParams` y `params` sin pasar por ningún esquema. Una API sin validar se
+nota enseguida; una página sin validar no, porque el 500 se lee como "se cayó el
+sitio" y no como "falta validar un parámetro".
+
+### Verificación
+- **Aislamiento entre corredoras contra Postgres real** (28 casos): fila señuelo
+  con un valor inconfundible; otra corredora no la lee, no la modifica, no la
+  borra, ni sin contexto de tenant ni con un tenant inventado. Las consultas van a
+  propósito **sin filtrar por `tenantId`**: si algo apareciera, el aislamiento lo
+  estaría dando el código y no la base.
+- **Rol y cuentas en el HTML servido**: se pidieron las 9 páginas públicas reales
+  y se buscaron los 10 roles y 13 números de cuenta del seed en el cuerpo de la
+  respuesta. Cero apariciones. Los 7 endpoints privados devuelven 401; panel y
+  portal cortan en el guard antes de tocar la base.
+- **180 combinaciones de basura e inyección** en todos los parámetros públicos →
+  cero respuestas distintas de 200. Y los filtros legítimos comprobados en
+  positivo **y en negativo** (`tipo=cabana`→1 / `tipo=casa`→0), para no haberlos
+  anulado al blindarlos.
+- **PDF real generado desde la base**, con el texto extraído del binario: el rol
+  aparece en la cláusula, con el valor exacto de la propiedad.
+
+694 tests verdes, `tsc` y `eslint` limpios.
+
+
+### Sesiones privadas únicas y con caducidad (2026-08-26)
+
+Reportado por el cliente: en el mismo navegador quedaban vivas la sesión del
+corredor y la del arrendatario. Volver atrás mostraba el panel y avanzar entraba
+al portal, sin que ninguna se cerrara. Reproducido: `/panel` y
+`/portal/contrato/…` devolvían 200 desde el mismo navegador.
+
+**La causa.** `hw_session` y `hw_portal` son cookies independientes por diseño
+—dominios de autenticación separados, ADR-0007— y nada cerraba una al abrir la
+otra. En el computador de la oficina, donde el arrendatario firma, eso deja dos
+identidades activas.
+
+**El arreglo va en los setters de cookie**, no en cada pantalla de login. Hay
+cuatro entradas al panel (login, registro, invitación, confirmación de
+dispositivo) y una al portal: repartir la regla entre las cinco es cinco
+oportunidades de olvidarla, y la sexta que alguien agregue nace rota. El proxy
+además barre la cookie contraria en cada request, para las sesiones que ya
+estaban abiertas.
+
+Detalle que importa: **cerrar una sesión no cierra la otra**. La exclusión es al
+entrar. Si salir del portal cerrara también el panel, un corredor que nunca
+estuvo en el portal quedaría fuera de su propio panel.
+
+**Caducidad por inactividad.** Antes el panel duraba 8 horas y el portal 30
+minutos, ambas absolutas: dejar la pantalla abierta no costaba nada. El
+comentario del módulo prometía un "refresh pasivo en cada request" que nunca se
+había implementado.
+
+| | Inactividad | Máximo absoluto |
+|---|---|---|
+| Panel | 30 min | 8 h |
+| Portal | 15 min | 30 min |
+
+La inactividad es el `exp` del JWT, así que la sesión muere sola. El proxy la
+re-firma mientras haya navegación, como mucho una vez por minuto. El tope
+absoluto se mide contra un claim `ini` nuevo, que sobrevive a las renovaciones
+—`iat` se mueve con cada una y por eso no servía—. La renovación vive en el
+proxy porque un Server Component no puede escribir cookies.
+
+**Un fallo latente encontrado de paso.** La cookie del portal usaba
+`path: "/portal"` junto al prefijo `__Host-`. Ese prefijo exige `Path=/`, así que
+en producción el navegador habría rechazado la cookie entera y el portal no
+habría funcionado. Nunca se vio en local porque el prefijo solo se aplica cuando
+`NODE_ENV` es production.
+
+#### Verificación
+- **Los dos sentidos, en el navegador**: entrar al panel deja el portal
+  redirigiendo; entrar al portal deja `/panel`, `/panel/perfil` y `/panel/cobros`
+  redirigiendo.
+- **Inactividad, acortando la ventana a 10 s**: con actividad cada 4 s la sesión
+  sobrevive; tras 14 s de silencio expulsa. Medido en una sola corrida, y luego
+  restaurados los valores reales.
+- Prueba de mutación: al quitar el cierre cruzado fallan exactamente los dos
+  tests que lo cubren.
+- 694 tests verdes, `tsc` y `eslint` limpios.
+
+**Fuera de alcance.** La unicidad es por navegador. Que un mismo corredor tenga
+sesión abierta en dos equipos distintos sigue siendo posible: eso requiere un
+registro de sesiones en el servidor y no se abordó acá.
+
+### Visibilidad de los datos privados (2026-08-26)
+
+Mirando el portal quedó claro que los datos quedaban a la vista de cualquiera
+que pasara por detrás de la pantalla, y que el corredor no tenía forma de
+decidir qué compartía. Se resolvieron las dos cosas.
+
+**En el portal, los datos salen tapados.** El rol, los roles de las unidades,
+los números de cuenta y el titular aparecen como `••••••••` hasta que la persona
+pulsa **Mostrar**. La empresa queda a la vista porque "Aguas Andinas" no
+identifica a nadie. El relleno conserva el ancho a propósito: un bloque que
+salta al mostrar y ocultar delata tanto como el dato.
+
+**En el panel, el corredor decide qué comparte.** Hay un interruptor
+Visible/Oculto en cada cuenta, cada rol complementario y el rol principal. Dice
+el estado en palabras y no solo con un ícono, porque un ojo tachado es ambiguo:
+¿está oculto, o hago clic para ocultarlo? Además puede agregar y quitar cuentas
+adicionales con nombre propio —internet, alarma, TV cable—; las cuatro básicas
+siguen fijas y se marcan "no aplica", como se decidió al abrir el Grupo 1.
+
+En el detalle, cada dato que no se comparte lleva un distintivo **Oculto**. Sin
+eso el interruptor sería a ciegas: habría que abrir el formulario de edición
+para saber qué se está compartiendo.
+
+**Ocultar afecta solo al portal.** El borrador de contrato sigue nombrando todas
+las unidades —uno que omite la bodega deja esa bodega sin cubrir—, y el panel
+tampoco filtra: el corredor ve sus propios datos completos. Hay un test que
+comprueba las tres cosas por separado, para que nadie agregue el filtro al PDF
+"por consistencia".
+
+Cuando un dato está oculto, en el portal **no aparece nada**: ni el valor ni la
+fila. Se eligió así para no revelar siquiera que existe algo escondido. Tiene
+una consecuencia conocida: si el arrendatario lo había visto antes, va a notar
+que desapareció sin explicación.
+
+#### Verificación
+- **El filtro es del servidor, no cosmético.** Se pidió el HTML crudo de la
+  página del portal y los datos ocultos (`871-244`, `Bodega B-12`, `SEG-88120`,
+  `Alarma`) **no viajan en la respuesta**. El tapado con puntos es contra
+  miradas ajenas; el filtrado es el límite real.
+- **Viaje completo por la interfaz**: se creó una propiedad desde el panel con
+  una cuenta adicional y tres elementos ocultos, se comprobó en la base, se
+  reabrió la edición —los interruptores llegaron con su estado guardado—, se
+  invirtieron dos y se volvió a comprobar en la base.
+- 678 tests verdes, `tsc` y `eslint` limpios, sin fugas en las cinco superficies
+  públicas y sin errores de Prisma en el log del servidor.
+
+#### Nota de método
+`prisma generate` con el dev server arriba deja el proceso sirviendo el cliente
+anterior, y el síntoma es un 500 con `Unknown field` que parece un error de
+código. Es la trampa que ya está en BRAIN.md §2. Se intentó esquivarla
+levantando un segundo servidor en otro puerto: **Next.js no lo permite** —
+rechaza un segundo `next dev` sobre el mismo directorio e imprime él mismo el
+`taskkill` necesario. No hay atajo: hay que reiniciar el proceso.
+
+### Barrido de QA sobre la aplicación corriendo (2026-08-26)
+
+Después de cerrar el Grupo 1 se hizo un barrido manejando la aplicación —
+seguridad, interfaz, flujo y búsqueda de errores—. Aparecieron **siete
+defectos**, y el más grave no lo habría encontrado ningún test.
+
+**Editar una propiedad descartaba el rol y las cuentas en silencio.** La acción
+de actualizar no recibía esos campos. El formulario sí los mostraba, la
+corredora los cambiaba, el diálogo se cerraba **sin error** y la base conservaba
+el valor anterior. Contradecía el requisito explícito de que ambos son editables
+por el corredor a cargo o el administrador. Los tests de esa acción existían
+desde antes y tampoco los cubrían: el fixture omitía los mismos campos, así que
+el test estaba de acuerdo con el error.
+
+Los otros seis:
+
+- Una bodega podía llevar **el mismo rol que la propiedad**. Se creó así desde
+  la UI, sin manipular nada.
+- El aviso "eso parece un RUT" solo se disparaba con los RUT terminados en K —
+  uno de cada once—; con el resto llegaba el mensaje genérico.
+- `0-0` se aceptaba como rol, y `0-0` es justamente el valor con que la
+  migración rellenó las filas existentes.
+- El portal devolvía **500 con un id inválido, pero solo estando autenticado**:
+  sin sesión el guard corta antes y el problema no se ve.
+- Cuatro campos del formulario de propiedad (Región, Comuna, Orientación,
+  Colaborador asignado) sin nombre accesible, preexistentes.
+- La sección de servicios y rol quedaba sin tarjeta en el portal mientras sus
+  cuatro vecinas sí la tenían.
+
+**Lo que se midió, no se estimó:** cero desbordes horizontales en 375 px, cero
+textos bajo 4,5:1 de contraste en tema claro y oscuro, cero errores de consola,
+42 combinaciones de basura e inyección en el marketplace público sin una sola
+respuesta distinta de 200, y el aislamiento del portal comprobado pidiendo los
+contratos de otras dos corredoras (404, sin filtrar nada).
+
+**Una regla que se propuso y se retiró.** Se agregó una validación que rechazaba
+dos cuentas del mismo servicio; un test existente falló y explicaba por qué:
+*una propiedad subdividida tiene dos medidores*. La decisión previa estaba
+documentada y era correcta, así que la regla se quitó y quedó solo la validación
+del tipo contra el enum.
+
+### Nota de método
+Dos hallazgos salieron de investigar un fallo en vez de ajustar lo esperado:
+
+- Un test de seguridad falló con 3 filas donde esperaba 0. **No era una fuga** —
+  eran filas propias de esa corredora, y lo mal supuesto era el escenario del
+  test. La conclusión real estaba al lado: Prisma no escapa `%`.
+- Generar un PDF con datos reales mostró la cláusula diciendo "el estacionamiento
+  **Estacionamiento 216**". El formulario sugiere escribir "Estacionamiento 43" en
+  la descripción, así que la duplicación estaba garantizada en producción. Con los
+  datos inventados del test nunca habría aparecido.
 
 ## Notas / decisiones pendientes
 - Proveedor de identidad para producción (sin definir).

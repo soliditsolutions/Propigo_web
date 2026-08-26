@@ -29,10 +29,10 @@ contrato y de administración de cuentas de servicios.
 | **P-PR4** | Agregar `cuenta_servicio` al arreglo de RLS en `setup.sql` | P-PR3 | — | `[x]` |
 | **P-PR5** | Rol obligatorio en los formularios de crear y editar propiedad | P-PR2 | — | `[x]` |
 | **P-PR6** | Sub-formulario de cuentas y de roles complementarios | P-PR3 | G-02 ✅, G-05 ✅ | `[x]` |
-| **P-PR7** | Incluir el Rol en el borrador PDF del contrato | P-PR1 | — | `[ ]` |
-| **P-PR8** | Test de aislamiento: un tenant no ve las cuentas de otro | P-PR4 | — | `[ ]` |
-| **P-PR9** | Exponer Rol y cuentas en el **portal** al arrendatario y al propietario del contrato | P-PR3 | — | `[ ]` |
-| **P-PR10** | Test negativo: la ficha pública del marketplace **no** devuelve Rol ni cuentas | P-PR1, P-PR3 | — | `[ ]` |
+| **P-PR7** | Incluir el Rol en el borrador PDF del contrato | P-PR1 | — | `[x]` |
+| **P-PR8** | Test de aislamiento: un tenant no ve las cuentas de otro | P-PR4 | — | `[x]` |
+| **P-PR9** | Exponer Rol y cuentas en el **portal** al arrendatario y al propietario del contrato | P-PR3 | — | `[x]` |
+| **P-PR10** | Test negativo: la ficha pública del marketplace **no** devuelve Rol ni cuentas | P-PR1, P-PR3 | — | `[x]` |
 
 **Restricción de privacidad que NO debe romperse.** El marketplace público arma su
 consulta con un `select` explícito de campos (`marketplace/[id]/page.tsx`). El Rol
@@ -158,7 +158,7 @@ contra una constante escrita a mano en el test.
 | **P-NT1** | Nuevos valores en `TipoNotificacion`: reajuste, cargo adicional, rebaja | — | **G-04** | `[!]` |
 | **P-NT2** | Generación **anticipada** del aviso de reajuste en `generarRecordatorios()` | P-NT1 | **G-04** | `[!]` |
 | **P-NT3** | Plantilla con el antes/después del monto | P-NT2 | — | `[ ]` |
-| **P-NT4** | Subir el lote de `enviarNotificacionesPendientes` (hoy `take: 50`) | — | — | `[ ]` |
+| **P-NT4** | Subir el lote de `enviarNotificacionesPendientes` (de 50 a 200) | — | — | `[x]` |
 
 **Hallazgo que define el diseño.** El reajuste IPC se aplica **dentro de
 `simularPago()`** (`cobros/actions.ts:109-128`), o sea al registrar el pago.

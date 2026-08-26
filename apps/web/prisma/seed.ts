@@ -22,7 +22,16 @@ async function hashPassword(password: string): Promise<string> {
   return `pbkdf2v1$${Buffer.from(salt).toString("base64")}$${Buffer.from(bits).toString("base64")}`;
 }
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+/**
+ * El seed es una herramienta de desarrollo, no la aplicación: necesita
+ * TRUNCATE, que el rol de runtime (housing_app) no puede hacer por diseño
+ * (ADR-0011). Por eso usa la conexión de administrador cuando está definida.
+ *
+ * Sin esta distinción `db:seed` fallaba con "permission denied for table
+ * tenant" y no había forma de resembrar sin editar el .env a mano.
+ */
+const seedUrl = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_URL;
+const adapter = new PrismaPg({ connectionString: seedUrl });
 const prisma = new PrismaClient({ adapter });
 
 const HOY = new Date(Date.UTC(2026, 5, 4)); // referencia: 2026-06-04

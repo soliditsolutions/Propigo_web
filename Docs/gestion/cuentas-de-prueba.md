@@ -50,6 +50,12 @@ npm run db:seed-cuenta -w @housing/web     # 4. cuenta de prueba — siempre al 
 
 El paso 2 es obligatorio: `prisma migrate reset` no reaplica `setup.sql`.
 
+**El paso 3 necesita `DATABASE_ADMIN_URL` en el `.env`** (rol dueño de las
+tablas). El seed arranca con un TRUNCATE y `housing_app` no puede hacerlo por
+diseño (ADR-0011): sin esa variable falla con `permission denied for table
+tenant`. El `.env` no se versiona, así que en una máquina nueva hay que
+agregarla — la URL del rol dueño ya viene comentada en el propio archivo.
+
 ## Iniciar sesión
 
 1. Ir a `/login` y entrar con las credenciales de arriba.

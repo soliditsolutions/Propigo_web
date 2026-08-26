@@ -168,6 +168,48 @@ enum DestinatarioAlerta {
  * vencimientos, atrasos, término de contrato, comprobantes, liquidaciones—;
  * los opcionales son comunicación de la corredora que no altera nada de eso.
  */
+/**
+ * Servicios básicos cuya cuenta se registra por propiedad.
+ *
+ * Es el set canónico: al dar de alta una propiedad, TODOS deben quedar
+ * declarados — con sus datos o marcados "no aplica" (decisión G-05). Un
+ * campo en blanco no es una respuesta: no distingue "no lo sé todavía" de
+ * "esta casa no tiene gas de red".
+ */
+enum TipoServicioBasico {
+  agua
+  luz
+  gas
+  gastos_comunes
+  otro
+}
+
+/** Si la cuenta existe y se registró, o si el servicio no aplica al inmueble. */
+enum EstadoCuentaServicio {
+  registrada
+  no_aplica
+}
+
+/** Quién paga la cuenta. Es lo que se discute al cerrar un contrato. */
+enum PagadorServicio {
+  arrendatario
+  propietario
+}
+
+/**
+ * Tipo de unidad accesoria con rol propio.
+ *
+ * En edificios y condominios cada unidad tiene su propio Rol de Avalúo: el
+ * departamento uno, el estacionamiento otro, la bodega otro (hallazgo del
+ * levantamiento de G-01). El rol habitacional vive en Propiedad.rol; estos
+ * son los complementos, y son opcionales.
+ */
+enum TipoRolComplementario {
+  estacionamiento
+  bodega
+  otro
+}
+
 enum AlcanceBaja {
   /// Deja de recibir solo los avisos informativos. Es el alcance recomendado.
   solo_opcionales
@@ -228,6 +270,8 @@ model Tenant {
   notificaciones   Notificacion[]
   alertas          AlertaPersonalizada[]
   preferenciasNotif PreferenciaNotificacion[]
+  cuentasServicio   CuentaServicio[]
+  rolesComplementarios RolComplementario[]
   documentos       Documento[]
   accesosOtp       AccesoOtp[]
   accesosLog       AccesoLog[]
@@ -333,6 +377,10 @@ model Propiedad {
   propietarioId      String          @map("propietario_id") @db.Uuid
   tipo               TipoPropiedad
   estado             EstadoPropiedad @default(borrador)
+  /// Rol de Avalúo del SII de la unidad habitacional (G-01). Formato
+  /// manzana-predio, con la comuna opcional: "573-24" o "13101-573-24".
+  /// Obligatorio: identifica el inmueble ante el SII y va en el contrato.
+  rol                String
   direccion          String
   comuna             String?
   region             String?
@@ -365,6 +413,8 @@ model Propiedad {
   publicaciones Publicacion[]
   reservas      Reserva[]
   contratos     Contrato[]
+  cuentasServicio      CuentaServicio[]
+  rolesComplementarios RolComplementario[]
   documentos    Documento[]
   accesosOtp    AccesoOtp[]
   auditorias    AuditoriaEquipo[]
@@ -718,6 +768,65 @@ model PreferenciaNotificacion {
   @@unique([tenantId, personaId])
   @@index([tenantId])
   @@map("preferencia_notificacion")
+}
+
+/**
+ * Cuenta de un servicio básico asociada a una propiedad.
+ *
+ * Tabla relacionada y no columnas en Propiedad porque cada cuenta necesita
+ * más que un número: la empresa proveedora, el titular y **quién paga**, que
+ * es justamente lo que se discute al cerrar un contrato.
+ *
+ * NO lleva unique (propiedad, tipo): una propiedad subdividida puede tener
+ * dos medidores de luz legítimamente.
+ *
+ * El titular es texto libre y no una FK a Persona: muchas veces la cuenta
+ * sigue a nombre de un dueño anterior que no está en el sistema.
+ */
+model CuentaServicio {
+  id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String               @map("tenant_id") @db.Uuid
+  propiedadId String               @map("propiedad_id") @db.Uuid
+  tipo        TipoServicioBasico
+  estado      EstadoCuentaServicio @default(registrada)
+  /// Null cuando estado = no_aplica.
+  numero      String?
+  empresa     String?
+  titular     String?
+  paga        PagadorServicio      @default(arrendatario)
+  notas       String?
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  propiedad Propiedad @relation(fields: [propiedadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([propiedadId])
+  @@map("cuenta_servicio")
+}
+
+/**
+ * Rol de Avalúo de una unidad accesoria (estacionamiento, bodega).
+ *
+ * Opcional por diseño: la mayoría de las casas no tiene ninguno, y obligar a
+ * llenarlos convertiría el caso común en el caso incómodo.
+ */
+model RolComplementario {
+  id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String                @map("tenant_id") @db.Uuid
+  propiedadId String                @map("propiedad_id") @db.Uuid
+  tipo        TipoRolComplementario
+  rol         String
+  /// Identificación para el humano: "Estacionamiento 42", "Bodega B-7".
+  descripcion String?
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  propiedad Propiedad @relation(fields: [propiedadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([propiedadId])
+  @@map("rol_complementario")
 }
 
 model Documento {

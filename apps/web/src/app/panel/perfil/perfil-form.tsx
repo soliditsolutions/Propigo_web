@@ -516,7 +516,7 @@ function TwoFASection() {
 
       <div className="grid gap-3 sm:grid-cols-2 mb-5">
         {[
-          { title: "Aplicación TOTP",   desc: "Compatibilidad con Google Authenticator, Authy y cualquier app TOTP estándar (RFC 6238)." },
+          { title: "Aplicación de códigos", desc: "Funciona con Google Authenticator, Authy o la que ya tengas instalada." },
           { title: "Códigos de respaldo", desc: "Recibe 8 códigos de un solo uso para recuperar el acceso si pierdes tu dispositivo." },
         ].map((item) => (
           <div

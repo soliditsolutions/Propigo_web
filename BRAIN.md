@@ -214,6 +214,32 @@ mal supuesto era el escenario del test.
 
 ---
 
+### Las notas del desarrollador van en el código
+
+Barrido del 2026-08-26. Se revisaron 189 archivos y las nueve rutas del panel
+buscando texto escrito para nosotros que hubiera terminado en pantalla.
+
+La distinción que importa: **un comentario con `ADR-0014` o `AUD-09` está bien
+donde está** —es documentación para quien lee el código— y lo que no puede pasar
+es que esa jerga cruce a la interfaz. En este barrido cruzó una vez: la sección
+de 2FA le ofrecía a un corredor "Aplicación TOTP … compatible con cualquier app
+TOTP estándar (RFC 6238)".
+
+**Una ayuda de desarrollo condicionada al entorno no es una filtración.** La
+pista del código de verificación en la consola vive tras
+`NODE_ENV === "development"`, así que el compilador la elimina del build de
+producción; los correos "simulados" son `console.log` con el mismo condicional.
+Borrarlas dejaría al equipo sin forma de probar el 2FA y el envío en local, y no
+le ahorraría nada a ningún usuario.
+
+Dos veces seguidas el instrumento estuvo mal antes que el código, así que
+conviene repetirlo (ver arriba): `TODO` sin distinguir mayúsculas calza con
+"todo" y "todos" —doce falsos positivos—, y extraer texto de un HTML traído con
+`fetch` en vez del DOM vivo se pierde todo lo que vive detrás de una pestaña.
+El barrido estático del fuente es el que manda; el renderizado es complemento.
+
+---
+
 ### El copy también se verifica
 
 Auditoría del 2026-08-26. La guía de estilo ya prohibía los moldes de folleto,

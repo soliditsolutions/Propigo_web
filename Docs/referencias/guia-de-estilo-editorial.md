@@ -170,6 +170,25 @@ capacidad, búscala en el código. En esta misma auditoría se reemplazó una
 afirmación falsa por otra —«hasta tres propiedades», cuando el plan Gratuito
 cae en el tier bronze y permite diez— y se detectó al ir a comprobarla.
 
+### Nada de notas para el desarrollador en la interfaz
+
+Barrido del 2026-08-26. La regla es simple: **una nota para el desarrollador va
+en un comentario de código, no en la pantalla.**
+
+- **Jerga fuera.** La sección de 2FA le ofrecía a un corredor "Aplicación TOTP"
+  con "compatibilidad con cualquier app TOTP estándar (RFC 6238)". A quien
+  administra arriendos eso no le dice nada: se escribe "Aplicación de códigos" y
+  se nombran las apps que conoce.
+- **Los códigos internos no salen.** `ADR-0014`, `AUD-09`, `P-PR7` y las fases
+  del roadmap son nuestros; en un mensaje de error o una etiqueta no significan
+  nada para quien los lee.
+- **Las ayudas de desarrollo van condicionadas al entorno.** La pista del código
+  de verificación en la consola es legítima y útil, pero vive tras
+  `NODE_ENV === "development"`, así que el compilador la elimina del build de
+  producción. Sin ese condicional sería una filtración.
+- **Los correos "simulados" son `console.log`,** nunca un correo que salga. Ese
+  bloque también está condicionado a que el entorno no sea producción.
+
 ### Estructura de una página según su texto
 
 De [ONS](https://service-manual.ons.gov.uk/content/writing-for-users/structuring-content)
@@ -355,6 +374,10 @@ rg -i '(diseñad|pensad|cread)[oa] para|no s[oó]lo .{0,60} sino|se posiciona co
 
 # Colas de gerundio
 rg -i ', (permitiendo|optimizando|garantizando|asegurando|brindando|ofreciendo|facilitando)' apps/web/src
+
+# Jerga técnica en texto visible — TODO en mayúsculas, o calza con "todo"
+rg 'RFC [0-9]{4}|TOTP|API|JSON|JWT|UUID|TODO|FIXME|ADR-[0-9]' apps/web/src --glob '!**/__tests__/**'
+rg -i 'endpoint|backend|webhook|middleware|prisma|postgres|npm run|localhost' apps/web/src --glob '*.tsx'
 ```
 
 > La enumeración de tres decorativa y los encabezados vagos **no se detectan con

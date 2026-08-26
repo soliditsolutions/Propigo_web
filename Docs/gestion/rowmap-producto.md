@@ -206,13 +206,67 @@ avisar dos veces del mismo reajuste.
 
 | ID | Pregunta | Sev. | Bloquea | Recomendación por defecto | Estado |
 |---|---|---|---|---|---|
-| **G-01** | Formato del Rol: ¿se acepta solo `NNNN-NN`, o también roles de mayor longitud y con letra que existen en algunas comunas? | 🟡 | P-PR2 | Validar `\d{1,5}-[\dkK]` (permisivo), normalizando a mayúscula. Un validador demasiado estricto bloquea propiedades legítimas, y el costo de un rol mal tipeado es bajo comparado con no poder cargar la propiedad. | **Abierta** |
+| **G-01** | Formato del Rol de Avalúo | 🟡 | P-PR2 | *(recomendación inicial descartada: proponía un dígito verificador `K` que el rol NO tiene — ver investigación abajo)* | ✅ **Resuelta** 2026-08-25 con investigación |
 | **G-02** | ¿Las cuentas de servicio son **obligatorias** también, o solo el Rol? | 🔴 | P-PR3, P-PR6 | *(recomendación no adoptada: se sugería exigirlas recién al activar)* | ✅ **Resuelta** 2026-08-19 — **obligatorias al registrar**, igual que el Rol. Decisión del cliente |
 | **G-05** | "Obligatorias" no puede significar "las cuatro con número": una propiedad sin gas de red no tiene cuenta de gas. ¿Cómo se cumple la obligatoriedad sin exigir lo imposible? | 🟡 | P-PR6 | Cada servicio del set canónico (agua, luz, gas, gastos comunes) debe quedar **declarado explícitamente**: con sus datos, o marcado **"no aplica"**. Se prohíbe dejarlo en blanco. Preserva la intención —que no queden propiedades a medio cargar— sin bloquear casos legítimos. | ✅ **Resuelta** 2026-08-19 — default aplicado |
+| **G-06** | Una propiedad de edificio tiene **varios** roles (depto, estacionamiento, bodega). ¿`Propiedad.rol` es un campo único, o una lista? | 🔴 | P-PR1, P-PR7 | Campo único obligatorio para el rol **principal** (el de la unidad habitacional, que es el que va al contrato) y, si más adelante se necesita, una tabla aparte para los accesorios. Modelar la lista ahora, sin un caso de uso que la exija, agrega complejidad al formulario para un dato que casi nunca se usa. | **Abierta** |
 | **G-03** | Al corregir `Voucher`: ¿se agrega `propietarioId` opcional, o se reemplaza por un `personaId` genérico con el rol del destinatario? | 🟡 | P-GA2 | `personaId` + `destinatario` (arrendatario/propietario). Un voucher siempre tiene exactamente un destinatario; dos FK opcionales invitan a que ambas queden nulas o ambas llenas. | **Abierta** |
 | **G-04** | ¿Con cuánta anticipación se avisa un reajuste? | 🟡 | P-NT1, P-NT2 | 30 días antes del período reajustado, reutilizando la cadencia que ya usa `recordatorio_vencimiento`. Menos que eso no le da tiempo al arrendatario de organizarse, que es el punto del aviso. | **Abierta** |
 
 ---
+
+### Investigación — formato del Rol de Avalúo (2026-08-25)
+
+**Qué es.** El identificador que el SII asigna a cada predio. Es **tributario**,
+no registral: sirve para las contribuciones, y es distinto de la inscripción en
+el Conservador de Bienes Raíces (fojas/número/año).
+
+**Estructura confirmada:** `comuna – manzana – predio`.
+
+| Forma | Ejemplo | Cuándo se usa |
+|---|---|---|
+| Comunal (2 bloques) | `573-24`, `308-61`, `1-1` | La habitual: la comuna se sobreentiende |
+| Nacional (3 bloques) | `13101-308-61` | Cuando hace falta desambiguar entre comunas |
+
+En la forma nacional el primer bloque es el **código SII de comuna**, de 5
+dígitos (13101 = Santiago Centro).
+
+**Tres cosas que la investigación corrigió respecto de lo que se había supuesto:**
+
+1. **El rol NO tiene dígito verificador.** La recomendación inicial de este
+   rowMap proponía aceptar una `K` final — eso es del **RUT**, no del rol. Se
+   descartó.
+2. **Los bloques NO tienen largo fijo.** `1-1` es un rol real y válido en
+   Santiago Centro. Exigir `NNNN-NN` habría rechazado propiedades legítimas.
+3. **Todos los ejemplos hallados son puramente numéricos.** No se encontró
+   ninguna fuente que documente roles con letras.
+
+**Límite honesto de esta investigación:** el SII no publica un diccionario de
+datos accesible con los largos máximos por bloque. La estructura viene de
+fuentes secundarias coincidentes (Tinsa, TGR, servicios de consulta) y de los
+ejemplos que todas ellas muestran. Los máximos de abajo son un margen amplio
+elegido por nosotros, no una cifra oficial.
+
+**Decisión (G-01).** Aceptar `manzana-predio` con **1 a 5 dígitos por bloque**,
+opcionalmente precedido por un bloque de comuna de 5 dígitos. Solo dígitos y
+guiones. Se normaliza quitando espacios y puntos antes de validar.
+
+Si algún día un corredor trae un rol legítimo que este validador rechaza, el
+reporte va a traer el ejemplo concreto — y ahí se relaja con evidencia, en vez
+de adivinar ahora un caso que ninguna fuente documenta.
+
+### 🔴 Hallazgo del mismo levantamiento: una propiedad puede tener VARIOS roles
+
+En edificios y condominios, **cada unidad tiene su propio rol**: el
+departamento uno, el estacionamiento otro, la bodega otro. Una misma dirección
+puede agrupar decenas.
+
+Eso choca con `P-PR1`, que modela **un** `rol` por `Propiedad`. Si la corredora
+administra un departamento con estacionamiento y bodega, son tres roles y el
+contrato debería poder nombrarlos todos.
+
+Queda como **G-06**, porque cambia el modelo y conviene resolverlo antes de
+escribir la migración.
 
 ## Bitácora de decisiones
 

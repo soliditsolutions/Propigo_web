@@ -9,9 +9,8 @@ import {
   Lock, ArrowRight, RotateCcw, UploadCloud,
 } from "lucide-react";
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
-import {
-  SERVICIOS_OBLIGATORIOS, type EntradaCuenta, type EntradaRolComplementario,
-} from "@/lib/propiedad-datos";
+import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
+import { CuentasServicioFields, RolesComplementariosFields } from "./cuentas-servicio-fields";
 import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { type DateFilterState } from "@/components/panel/date-filter";
@@ -140,9 +139,13 @@ type FormCrear = FormProp & {
 
 /** Las 4 cuentas arrancan declaradas como "registrada" y vacías: el corredor
  *  llena el número o marca "no aplica", pero no puede dejarlas sin responder. */
-const CUENTAS_INICIALES: EntradaCuenta[] = SERVICIOS_OBLIGATORIOS.map((s) => ({
-  tipo: s.tipo, estado: "registrada", numero: "", empresa: "", titular: "",
-  paga: s.tipo === "gastos_comunes" ? "propietario" : "arrendatario",
+const CUENTAS_INICIALES: EntradaCuenta[] = (
+  ["agua", "luz", "gas", "gastos_comunes"] as const
+).map((tipo) => ({
+  tipo, estado: "registrada", numero: "", empresa: "", titular: "",
+  // Los gastos comunes los paga el propietario salvo pacto en contrario; el
+  // resto suele ir por cuenta del arrendatario. Es solo el valor de partida.
+  paga: tipo === "gastos_comunes" ? "propietario" : "arrendatario",
 }));
 
 const FORM_CREAR_INICIAL: FormCrear = {
@@ -454,6 +457,16 @@ function CamposProp({
           código de comuna, también sirve: 13101-573-24.
         </p>
       </div>
+
+      <CuentasServicioFields
+        cuentas={form.cuentas}
+        onChange={(c) => onChangeField("cuentas", c)}
+      />
+
+      <RolesComplementariosFields
+        roles={form.rolesComplementarios}
+        onChange={(r) => onChangeField("rolesComplementarios", r)}
+      />
 
       {/* Dirección */}
       <div>

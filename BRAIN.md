@@ -101,6 +101,7 @@
 - **Validar en papel** antes de tocar código en cambios grandes o delicados.
 - **Documentar todo** lo que genere valor (aquí y en `Docs/`).
 - **Seguridad primero.**
+- **La base local es 100 % de prueba** *(autorizado 2026-08-25)*. Se puede borrar, resembrar y generar la data que haga falta para verificar algo, sin pedir permiso caso a caso — incluida la que el usuario creó a mano. Lo que sí se mantiene: decir qué se borró. Esto NO se extiende fuera de la base: archivos del repo, commits y servicios externos siguen con el cuidado habitual.
 - **No matar procesos del sistema:** si un puerto está ocupado, avisar al usuario con PID/puerto y pedirle que lo cierre él.
 - **Responder en español.**
 

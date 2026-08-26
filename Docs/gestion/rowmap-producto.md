@@ -23,12 +23,12 @@ contrato y de administración de cuentas de servicios.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **P-PR1** | Campo `rol` (Rol de Avalúo SII) en `Propiedad` + migración | — | — | `[ ]` |
-| **P-PR2** | Validación de formato del Rol (`1234-56`), reutilizable en servidor y cliente | P-PR1 | **G-01** | `[!]` |
-| **P-PR3** | Modelo `CuentaServicio` (tipo, número, empresa, titular, quién paga) + migración | — | G-02 ✅ | `[ ]` |
-| **P-PR4** | Agregar `cuenta_servicio` al arreglo de RLS en `setup.sql` | P-PR3 | — | `[ ]` |
-| **P-PR5** | Rol obligatorio en los formularios de crear y editar propiedad | P-PR2 | — | `[ ]` |
-| **P-PR6** | Sub-formulario repetible de cuentas de servicio, con cada servicio declarado o marcado "no aplica" | P-PR3 | G-02 ✅, G-05 ✅ | `[ ]` |
+| **P-PR1** | Campo `rol` (Rol de Avalúo SII) en `Propiedad` + migración | — | — | `[x]` |
+| **P-PR2** | Validación de formato del Rol, reutilizable en servidor y cliente | P-PR1 | G-01 ✅ | `[x]` |
+| **P-PR3** | Modelo `CuentaServicio` (tipo, número, empresa, titular, quién paga) + migración | — | G-02 ✅ | `[x]` |
+| **P-PR4** | Agregar `cuenta_servicio` al arreglo de RLS en `setup.sql` | P-PR3 | — | `[x]` |
+| **P-PR5** | Rol obligatorio en los formularios de crear y editar propiedad | P-PR2 | — | `[x]` |
+| **P-PR6** | Sub-formulario de cuentas y de roles complementarios | P-PR3 | G-02 ✅, G-05 ✅ | `[x]` |
 | **P-PR7** | Incluir el Rol en el borrador PDF del contrato | P-PR1 | — | `[ ]` |
 | **P-PR8** | Test de aislamiento: un tenant no ve las cuentas de otro | P-PR4 | — | `[ ]` |
 | **P-PR9** | Exponer Rol y cuentas en el **portal** al arrendatario y al propietario del contrato | P-PR3 | — | `[ ]` |

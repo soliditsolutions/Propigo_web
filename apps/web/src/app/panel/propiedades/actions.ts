@@ -12,7 +12,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { verificarCupoPropiedades } from "@/lib/plan-limits";
 import {
   normalizarRol, validarRol, validarCuentas, normalizarCuenta,
-  validarRolesComplementarios, SERVICIOS_OBLIGATORIOS,
+  validarRolesComplementarios,
   type EntradaCuenta, type EntradaRolComplementario,
 } from "@/lib/propiedad-datos";
 import { getClientIpFromHeaders } from "@/lib/ip";

@@ -92,6 +92,24 @@ Cosas que ya se investigaron y que es fácil "corregir" mal por sentido común.
   legaliza. El estándar es realismo y cero citas legales inventadas, no
   certificación legal. Ya hubo una cita fabricada ("art. 46, Ley 18.101", que no
   existe) en seis lugares del código y la UI.
+- **El arriendo de vivienda sin amoblar es EXENTO de IVA**, y el arrendador no
+  tiene obligación de emitir boleta. Solo se grava si el inmueble se arrienda
+  amoblado o con instalaciones para actividad comercial, y ahí la base rebaja el
+  11 % del avalúo fiscal. Por eso no hay documento tributario que emitir por la
+  renta habitacional: el comprobante de pago es respaldo civil, no tributario.
+- **La comisión del corredor tiene DOS tratamientos, no uno.** Persona jurídica
+  —o natural que emplea capital de forma preponderante— es primera categoría y
+  va **afecta a IVA**, con factura. Persona natural que vive de su trabajo
+  personal está **exenta** (Art. 12° letra E N°8 LIVS) y emite boleta de
+  honorarios. Sumarle IVA a la comisión de un corredor persona natural está mal,
+  y omitirlo para una SpA también. El sistema todavía no distingue el caso.
+- **Housing no puede emitir una boleta ni una factura.** Un DTE lo emite el
+  contribuyente autorizado por el SII con sus propios folios; la corredora es la
+  contribuyente, no nosotros. Lo que generamos es un comprobante de gestión y
+  tiene que decirlo. Imitar el formato de un DTE es peor que no tenerlo.
+- **La DJ 1835 obliga al corredor con facultad de administración.** Es anual,
+  sobre bienes raíces arrendados, y hoy se arma a mano aunque nosotros ya
+  tenemos los datos. Ver `Docs/funcional/documentos-de-pago-y-cumplimiento-sii.md`.
 - **El portal entrega como mucho 3 códigos OTP por persona cada 10 minutos, y
   al cuarto responde 200 sin enviar nada.** Es deliberado (anti-enumeración,
   ADR-0007): responder distinto revelaría si el RUT existe. Al probar a mano se

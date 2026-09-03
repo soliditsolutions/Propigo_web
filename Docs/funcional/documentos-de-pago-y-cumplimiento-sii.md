@@ -240,7 +240,167 @@ Ver §3.5. Requiere leer el formato oficial primero.
 
 ---
 
-## 5. Lo que NO hay que hacer
+## 5. Revisión de las cuatro definiciones (2026-09-03)
+
+### 1. Detalle completo de cobros fijos y extras — ✅ y más barato de lo que parece
+
+El modelo ya existe. `AjusteLiquidacion` guarda `tipo`
+(`cargo_arrendatario` / `descuento_propietario` / `retencion`), `montoCLP`,
+**`descripcion`** y quién lo creó.
+
+El hueco es de presentación, no de datos:
+
+- La **glosa del correo sí incluye** la descripción de cada ajuste.
+- El **snapshot del voucher la pierde**: guarda `ajustes.map(a => ({ tipo, montoCLP }))`,
+  sin `descripcion`. Un PDF generado desde ese snapshot mostraría montos sin
+  decir de qué son.
+- El voucher de liquidación **ni siquiera guarda los ajustes**: solo
+  `comisionCLP`, `descuentoCLP` y `netoCLP`.
+
+Arreglo: incluir `descripcion` y la lista completa de ajustes en ambos
+snapshots. Es un cambio chico y desbloquea los tres documentos.
+
+### 2. Doce meses de historia — ⚠️ como está redactado, incumple
+
+Dos normas lo contradicen:
+
+- **Art. 17 y 200 del Código Tributario:** la documentación se conserva
+  mientras corra el plazo de revisión del SII, **6 años**, y más si esos
+  antecedentes sirven de base a un período no prescrito.
+- **Ley 21.461 («Devuélveme mi casa»):** en el procedimiento monitorio *«se
+  presumirá que la renta es la que consta en los comprobantes de pago
+  entregados»*, y **si no hay comprobantes, se presume la que señale el
+  arrendatario**. Botar los comprobantes a los 12 meses es entregarle al
+  arrendatario la definición del monto adeudado.
+
+**La solución no es guardar todo como archivo.** Hay que separar el dato del
+archivo:
+
+| | Qué es | Cuánto se guarda |
+|---|---|---|
+| `Voucher` + `snapshot` | El dato, ya inmutable | **Permanente** |
+| PDF renderizado | Una vista del dato, regenerable | Caché de 12 meses |
+
+El PDF se vuelve a generar desde el snapshot cuando alguien lo pide. Se cumple
+el objetivo de no acumular archivos, sin perder la prueba. Y como el snapshot ya
+es inmutable, el documento regenerado es idéntico al original.
+
+Lo que sí conviene fijar: el snapshot debe guardar **todo lo que el PDF
+imprime**, incluidos los datos de la corredora y del inmueble del momento. Si
+mañana cambia la dirección o la comisión, el comprobante de 2024 tiene que
+seguir diciendo lo que decía.
+
+### 3. Cambios de renta en PDF descargable — ✅
+
+Correcto, y con una precisión que viene del documento de referencia: el aviso
+debe **mostrar el cálculo**, no solo el resultado. Los doce meses de variación
+del IPC uno por uno, la suma, la renta anterior, el monto del reajuste, la renta
+nueva y el período de vigencia. Es lo que evita la discusión.
+
+Aplica a cualquier cambio de renta, no solo al IPC: también a un reajuste
+pactado distinto, a una rebaja acordada o a la corrección de un error.
+
+### 4. Subsidio de arriendo — ❌ no es un descuento, y modelarlo así rompe la contabilidad
+
+El **DS 52 del MINVU** no rebaja la renta. La renta sigue siendo la misma y se
+paga **desde dos fuentes**:
+
+1. **SERVIU transfiere el subsidio directamente al arrendador** — hasta 4,2 UF
+   mensuales, con un tope total de 170 UF distribuibles en hasta 8 años.
+2. **El beneficiario paga el copago por su cuenta**, antes del día 5, por Caja
+   Vecina o ServiEstado con el convenio «Arriendo Subsidio Minvu» y su RUT —
+   **no a la cuenta de la corredora**.
+
+Consecuencias de diseño, todas distintas de una glosa de descuento:
+
+- El arrendatario **le debe a la plataforma solo el copago**, no la renta
+  completa. Un recordatorio que le cobre la renta entera está mal.
+- El propietario **recibe la renta completa**, pero de dos orígenes y en fechas
+  distintas. La conciliación tiene que aceptar un pago parcial esperado.
+- La pata del subsidio **puede fallar**: si el beneficiario acumula 3 cuotas de
+  copago impagas, SERVIU paga por última vez y suspende. Con 2 impagas sigue
+  pagando. Eso es un estado que el sistema debe poder representar.
+- El contrato se genera en `arriendoenlinea.minvu.cl` y se legaliza ante
+  notario, así que **no es nuestro borrador** el que se firma en esos casos.
+
+Modelarlo como «reducción de precio» haría que el ledger cuadre mal, que el
+propietario aparezca recibiendo menos de lo que recibe, y que la comisión se
+calcule sobre una base equivocada.
+
+Lo correcto es un **origen de pago por período**: cuánto se espera del
+arrendatario y cuánto de un tercero identificado. Sirve para el subsidio y
+también para cualquier caso de pago por un tercero (una empresa que arrienda
+para un empleado, un familiar que paga).
+
+---
+
+## 6. Otras consideraciones al comunicar
+
+### El aviso de término NO se notifica por correo
+
+Es el punto de mayor riesgo. Según la Ley 18.101, el desahucio del arrendador
+**solo puede hacerse judicialmente o por notificación personal de un notario**.
+Un correo de Housing no termina ningún contrato.
+
+Housing puede **preparar** el aviso —con las fechas y los plazos ya
+calculados— y dejarlo listo para llevar al notario. Lo que no puede es dar a
+entender que enviarlo surte efecto legal.
+
+Los plazos que el documento debe calcular:
+
+| Tipo de contrato | Plazo de restitución |
+|---|---|
+| Mes a mes o indefinido | **2 meses** desde la notificación, **+1 mes por cada año completo** ocupado, con tope de **6 meses** |
+| Plazo fijo de hasta 1 año | Solo judicialmente; 2 meses desde que se notifica la demanda |
+
+El arrendatario puede restituir antes y paga solo hasta el día de la entrega.
+
+### Todo lo que se comunique es prueba
+
+Por la Ley 21.461, los comprobantes que emitimos definen la renta ante el
+tribunal. Eso sube el estándar de tres cosas:
+
+- **Nada de montos aproximados ni redondeos silenciosos** en un comprobante.
+- **Fecha y hora de emisión y de envío**, guardadas.
+- El estado de cuenta para una demanda monitoria necesita, además de las
+  rentas, **los gastos comunes y las cuentas de consumo adeudadas**. Eso conecta
+  con las cuentas de servicios del Grupo 1: ya sabemos quién paga cada una.
+
+### Quién recibe qué
+
+El mismo hecho se comunica distinto según el destinatario, y hoy eso ya está
+resuelto para las notificaciones pero no para los documentos:
+
+| Hecho | Arrendatario | Propietario | Corredor |
+|---|---|---|---|
+| Pago recibido | Comprobante | — | Registro |
+| Liquidación | — | Detalle con comisión e IVA | Respaldo |
+| Reajuste | Aviso con el cálculo | Aviso informativo | Registro |
+| Mora | Aviso de cobro | Aviso de que no se pagó | Alerta |
+
+---
+
+## 7. Comunicaciones que faltan
+
+Ordenadas por riesgo de no tenerlas.
+
+| Comunicación | Por qué | Estado |
+|---|---|---|
+| **Estado de cuenta de deuda** | Es el documento que exige la demanda monitoria (Ley 21.461): rentas, gastos comunes y consumos adeudados, con forma, fecha y lugar en que se contrajeron | ❌ No existe |
+| **Aviso de término / no renovación** | Con los plazos calculados. Preparado por nosotros, notificado por notario | ❌ No existe |
+| **Devolución de garantía** | Detalle de retenciones y su motivo. Hoy es una línea de texto | ⚠️ Parcial (Grupo 2) |
+| **Aviso de reajuste** | Con el cálculo completo | ❌ Grupo 3 |
+| **Comprobante de pago en PDF** | Prueba de la renta | ❌ Solo pantalla |
+| **Aviso de cambio de titularidad** | Si la propiedad se vende, el arrendatario debe saber a quién pagar | ❌ No existe |
+| **Ejercicio de derechos Ley 21.719** | Acceso, rectificación, supresión y portabilidad de datos personales. Vigente desde el 2026-12-01 | ⚠️ Existe la baja de avisos, no los demás derechos |
+| **Baja de comunicaciones** | Art. 28 B Ley 19.496 | ✅ Hecho |
+
+La **Ley 21.719 entra en vigencia el 1 de diciembre de 2026**, con multas de
+hasta 20.000 UTM. Tener solo la baja de correos no alcanza: hacen falta los
+canales para que una persona pida sus datos, los corrija o los haga borrar. Es
+la fecha dura más cercana del proyecto.
+
+## 8. Lo que NO hay que hacer
 
 - **Emitir algo que parezca un DTE.** Sin folios del SII no es una boleta,
   aunque se le parezca.
@@ -252,18 +412,30 @@ Ver §3.5. Requiere leer el formato oficial primero.
 
 ---
 
-## 6. Orden sugerido
+## 9. Orden sugerido
 
-1. **`avaluoFiscal` y los datos de la corredora** — campos, sin lógica.
-2. **Resolver G-03** y corregir el destinatario de la liquidación (P-GA2).
-3. **IVA de la comisión** según naturaleza jurídica de la corredora.
-4. **Folio legible.**
-5. **PDF del comprobante y de la liquidación.**
-6. **Datos de transferencia en el recordatorio.**
-7. **Aviso de reajuste** (Grupo 3).
-8. **Exportador de la DJ 1835.**
+1. **Ajustes completos en el snapshot** (§5.1) — incluir `descripcion` y la
+   lista de ajustes en los dos vouchers. Es lo más barato y desbloquea los tres
+   documentos.
+2. **`avaluoFiscal` y los datos de la corredora** — campos, sin lógica.
+3. **Resolver G-03** y corregir el destinatario de la liquidación (P-GA2).
+4. **IVA de la comisión** según naturaleza jurídica de la corredora (§3.3).
+5. **Folio legible.**
+6. **PDF del comprobante y de la liquidación**, regenerables desde el snapshot
+   (§5.2) — no un archivo que se guarda y caduca.
+7. **Origen de pago por período** (§5.4): cuánto se espera del arrendatario y
+   cuánto de un tercero. Habilita el subsidio y el pago por terceros.
+8. **Datos de transferencia en el recordatorio.**
+9. **Aviso de reajuste** con el cálculo completo (Grupo 3).
+10. **Estado de cuenta de deuda** (§7) — el documento de la demanda monitoria.
+11. **Aviso de término** con los plazos calculados (§6).
+12. **Derechos de la Ley 21.719** — tiene fecha dura: 1 de diciembre de 2026.
+13. **Exportador de la DJ 1835.**
 
-Los tres primeros son datos y reglas; el resto se apoya en ellos.
+Los primeros cuatro son datos y reglas; el resto se apoya en ellos.
+
+> **La fecha que manda es el 1 de diciembre de 2026** (Ley 21.719). Es la única
+> con multa asociada —hasta 20.000 UTM— y hoy solo tenemos la baja de correos.
 
 ---
 
@@ -280,4 +452,16 @@ Los tres primeros son datos y reglas; el resto se apoya en ellos.
   https://www.sii.cl/ayudas/ayudas_por_servicios/renta/2026/instrucciones_dj1835.pdf
 - BCN. *Ley 18.101, fija normas especiales sobre arrendamiento de predios
   urbanos.* https://www.bcn.cl/leychile/navegar?idNorma=29526
+- SII. *¿Cuánto tiempo se deben guardar los libros contables?* (Arts. 17 y 200
+  del Código Tributario — 6 años).
+  https://www.sii.cl/preguntas_frecuentes/declaracion_renta/001_140_4628.htm
+- MINVU. *Subsidio de Arriendo D.S. 52 — información para el arrendador.*
+  https://www.minvu.gob.cl/beneficio/vivienda/informacion-para-el-arrendador/
+- ChileAtiende. *Subsidio de Arriendo de Vivienda.*
+  https://www.chileatiende.gob.cl/fichas/29888-subsidio-de-arriendo-de-vivienda
+- BCN. *Ley 21.461, «Devuélveme mi casa»* — procedimiento monitorio y
+  presunción de renta según los comprobantes de pago.
+  https://www.bcn.cl/leychile/Navegar?idNorma=1178004
+- BCN. *Ley de arriendo* (guía) — desahucio, plazos de restitución.
+  https://www.bcn.cl/portal/leyfacil/recurso/ley-de-arriendo
 - Documentos de referencia en `Docs/testFiles/` (Leasity / Fuhrer Group, 2026).

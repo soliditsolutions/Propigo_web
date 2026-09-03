@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { ShieldCheck, Eye, Database, Mail, Clock, Globe, AlertTriangle } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
+import { RETENCIONES } from "@/lib/retencion";
 
 export const metadata = {
   title: "Política de Privacidad · Housing SOLIDIT",
@@ -265,18 +266,19 @@ export default function PrivacidadPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ color: "var(--pf-text-body)" }}>
-                    {[
-                      ["Datos de cuenta (corredor)", "Mientras la cuenta esté activa + 5 años"],
-                      ["Contratos y documentos", "10 años desde término (Código Civil art. 2514)"],
-                      ["Registros de pagos y asientos contables", "7 años (Código Tributario art. 200)"],
-                      ["Audit log (accesos al portal)", "3 años (Ley 21.719 art. 3)"],
-                      ["Códigos OTP", "Eliminados automáticamente al expirar (10 min)"],
-                      ["Tokens de dispositivo", "Hasta revocación o cierre de cuenta"],
-                      ["Logs de IP y navegación", "90 días"],
-                    ].map(([cat, periodo]) => (
-                      <tr key={cat}>
-                        <td className="py-2.5 pr-4 font-medium">{cat}</td>
-                        <td className="py-2.5">{periodo}</td>
+                    {/* Los plazos se leen de lib/retencion.ts, que es el mismo
+                        módulo que usa el proceso de purga. Antes esta tabla era
+                        un arreglo escrito a mano y declaraba tres plazos que
+                        ningún código cumplía. */}
+                    {RETENCIONES.map((r) => (
+                      <tr key={r.clave}>
+                        <td className="py-2.5 pr-4 font-medium">{r.categoria}</td>
+                        <td className="py-2.5">
+                          {r.periodo}
+                          {r.fundamento && (
+                            <span style={{ color: "var(--pf-text-light)" }}> · {r.fundamento}</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

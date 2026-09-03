@@ -141,7 +141,7 @@ vigencia de la ley.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-DP1** | Trabajo de retención que **cumpla los plazos ya publicados**: OTP, logs de IP, audit log | — | — | `[ ]` |
+| **L-DP1** | Trabajo de retención que **cumpla los plazos ya publicados**: OTP, registros de acceso, auditoría | — | — | `[x]` |
 | **L-DP2** | Derecho de **acceso**: entregar copia de los datos de una persona | — | — | `[ ]` |
 | **L-DP3** | Derecho de **portabilidad**: exportar en formato estructurado y reutilizable | L-DP2 | — | `[ ]` |
 | **L-DP4** | Derecho de **rectificación** desde el portal | — | — | `[ ]` |
@@ -151,13 +151,15 @@ vigencia de la ley.
 | **L-DP8** | **Registro de actividades de tratamiento** | — | — | `[ ]` |
 | **L-DP9** | Procedimiento de **notificación de brechas** a la Agencia y a los afectados | — | **L-07** | `[!]` |
 | **L-DP10** | Revisar si corresponde **delegado de protección de datos** | — | **L-07** | `[!]` |
-| **L-DP11** | Corregir las **tres afirmaciones falsas** de `privacidad/page.tsx` (OTP, logs de IP, audit log) y el plazo del art. 200 | — | — | `[ ]` |
+| **L-DP11** | Corregir las **tres afirmaciones falsas** de `privacidad/page.tsx` (OTP, logs de IP, audit log) y el plazo del art. 200 | — | — | `[x]` |
 | **L-DP12** | Volver a alinear la política una vez implementadas las capacidades | L-DP1…L-DP8 | — | `[ ]` |
 
-> **L-DP11 es la fila más urgente de todo el rowMap**, y no por la ley de datos:
-> hay tres afirmaciones falsas publicadas en una página legal del sitio. O se
-> corrige el texto, o se implementa el borrado. Lo primero cuesta una tarde; lo
-> segundo, L-DP1. Cualquiera de las dos sirve, pero dejarlo como está no.
+> ✅ **Resueltas el 2026-09-03, y por el camino largo.** Se podía rebajar el texto
+> para que dijera menos; se implementó el borrado para que lo publicado fuera
+> cierto. La causa raíz no era el olvido de un `delete`: era que los plazos
+> vivían como texto dentro de la página, sin nada que los pudiera cumplir. Ahora
+> ambos leen de `lib/retencion.ts`, y un test falla si alguien declara una
+> categoría automática sin escribir su borrado.
 
 ---
 

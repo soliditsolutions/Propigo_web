@@ -18,6 +18,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generarRecordatorios, enviarNotificacionesPendientes } from "@/app/panel/notificaciones/actions";
 import { getAllTenantsForSystem } from "@/lib/queries";
+import { withTenant } from "@/lib/tenant-db";
+import { purgarDatosVencidos, purgaVacia, sumarPurgas } from "@/lib/retencion-purga";
 import { logError } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
@@ -49,7 +51,13 @@ export async function GET(req: NextRequest) {
           generarRecordatorios(tenant),
           enviarNotificacionesPendientes(tenant),
         ]);
-        return { tenantId: tenant.id, generados, enviados };
+        // Retención (L-DP1): aplica los plazos que la política de privacidad
+        // publica. Va después de notificar y en su propia transacción, para que
+        // un fallo acá no impida que salgan los avisos del día.
+        const purgado = await withTenant(tenant.id, (tx) =>
+          purgarDatosVencidos(tx, tenant.id),
+        );
+        return { tenantId: tenant.id, generados, enviados, purgado };
       }),
     );
 
@@ -58,9 +66,17 @@ export async function GET(req: NextRequest) {
       return { tenantId: tenants[i]?.id ?? "unknown", error: String(r.reason) };
     });
 
+    // Total de lo purgado, para poder verificar de un vistazo que el proceso
+    // de retención efectivamente está borrando algo.
+    const purgado = resultados.reduce(
+      (acc, r) => (r.status === "fulfilled" ? sumarPurgas(acc, r.value.purgado) : acc),
+      purgaVacia(),
+    );
+
     return NextResponse.json({
       ok:        true,
       tenants:   tenants.length,
+      purgado,
       resumen,
       timestamp: new Date().toISOString(),
     });

@@ -107,6 +107,21 @@ Cosas que ya se investigaron y que es fácil "corregir" mal por sentido común.
   contribuyente autorizado por el SII con sus propios folios; la corredora es la
   contribuyente, no nosotros. Lo que generamos es un comprobante de gestión y
   tiene que decirlo. Imitar el formato de un DTE es peor que no tenerlo.
+- **El comprobante de pago es prueba judicial, no un adorno.** Bajo la Ley
+  21.461, en el juicio monitorio «se presumirá que la renta es la que consta en
+  los comprobantes de pago entregados», y **si no hay comprobantes se presume la
+  que señale el arrendatario**. Cualquier política de retención que los borre le
+  entrega al arrendatario la definición del monto adeudado. La salida es separar
+  el dato del archivo: snapshot permanente, PDF regenerable.
+- **El subsidio de arriendo NO rebaja la renta.** El DS 52 del MINVU paga el
+  subsidio **directamente al arrendador**, y el beneficiario paga su copago
+  aparte por Caja Vecina o ServiEstado — no a la corredora. Modelarlo como
+  descuento descuadra el ledger y calcula la comisión sobre una base equivocada.
+  A las 3 cuotas de copago impagas SERVIU suspende; con 2 sigue pagando.
+- **El aviso de término no se notifica por correo.** La Ley 18.101 exige
+  notificación judicial o personal de notario. Housing puede preparar el aviso
+  con los plazos calculados —2 meses, +1 por año completo ocupado, tope 6— pero
+  enviarlo no surte efecto legal.
 - **La DJ 1835 obliga al corredor con facultad de administración.** Es anual,
   sobre bienes raíces arrendados, y hoy se arma a mano aunque nosotros ya
   tenemos los datos. Ver `Docs/funcional/documentos-de-pago-y-cumplimiento-sii.md`.

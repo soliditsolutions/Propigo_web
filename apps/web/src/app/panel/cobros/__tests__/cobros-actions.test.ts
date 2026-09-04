@@ -32,6 +32,12 @@ vi.mock("@housing/core", () => ({
   esPeriodoDeReajuste: vi.fn().mockReturnValue(false),
   aplicarReajusteIpc: vi.fn(),
   variacionIpc:       vi.fn(),
+  // Lo usa el snapshot de liquidación (IVA de comisión). Implementación real y
+  // simple: afecta si es persona jurídica, exenta si natural (DL 825 art. 12 E N°8).
+  ivaComision: (comisionClp: number, esPJ: boolean) => {
+    const ivaCLP = esPJ ? Math.round((comisionClp * 19) / 100) : 0;
+    return { afecto: esPJ, baseImponibleCLP: comisionClp, ivaCLP, totalCLP: comisionClp + ivaCLP, deduccionAvaluoCLP: 0 };
+  },
 }));
 
 // mockTx simula el objeto de transacción que Prisma pasa al callback interactivo.
@@ -48,6 +54,15 @@ const mockTx = {
   notificacion:      { create: vi.fn() },
   pagoEntrante:      { create: vi.fn() },
   ajusteLiquidacion: { create: vi.fn() },
+  folioCounter:      { upsert: vi.fn() },
+};
+
+// Datos del inmueble y las partes que el snapshot del comprobante congela
+// (L-CP3). Se agregan a los contratos mock para que datosDocumento() no falle.
+const partesMock = {
+  propiedad:    { asignadoAId: null, direccion: "Calle Falsa 123", comuna: "Santiago", rol: "573-24", avaluoFiscal: null },
+  arrendatario: { nombre: "Ana Arrendataria", rut: "11111111-1" },
+  propietario:  { nombre: "Pedro Propietario", rut: "22222222-2" },
 };
 
 // Período base para tests de simularPago (contrato CLP, sin reajuste)
@@ -68,6 +83,7 @@ const periodoBase = {
     propietarioId: "propietario-123",
     reajuste: "ninguna",
     fechaInicio: new Date("2025-05-01T00:00:00Z"),
+    ...partesMock,
   },
 };
 
@@ -100,11 +116,12 @@ describe("simularPago — validación de entrada (sin TX)", () => {
 describe("simularPago — BL-RC1 (idempotencia contra doble-submit)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc" } });
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
     // Simula TX interactiva llamando al callback con mockTx
     mockPrismaTransaction.mockImplementation(
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
+    mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockConciliar.mockReturnValue({
       estado: "conciliado", totalEsperado: 500000, diferencia: 0,
     });
@@ -172,10 +189,11 @@ describe("cerrarLiquidacion — validación de entrada (sin TX)", () => {
 describe("cerrarLiquidacion — BL-RC2 (idempotencia contra doble-submit)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc" } });
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
     mockPrismaTransaction.mockImplementation(
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
+    mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
       descuentoPropietarioCLP: 0,
@@ -192,6 +210,7 @@ describe("cerrarLiquidacion — BL-RC2 (idempotencia contra doble-submit)", () =
         comisionCorredorPct: "0.06",
         arrendatarioId: "arrendatario-123",
         propietarioId: "propietario-123",
+        ...partesMock,
       },
     });
     mockTx.asientoLedger.findFirst
@@ -234,10 +253,11 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
   // el fallo era invisible — esto lo deja fijado.
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc" } });
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
     mockPrismaTransaction.mockImplementation(
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
+    mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
       descuentoPropietarioCLP: 0,
@@ -251,6 +271,7 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
         comisionCorredorPct: "0.06",
         arrendatarioId: "arrendatario-123",
         propietarioId: "propietario-123",
+        ...partesMock,
       },
     });
     mockTx.asientoLedger.findFirst
@@ -291,11 +312,12 @@ describe("simularPago — ownership (ADR-0013, Fase D)", () => {
     mockPrismaTransaction.mockImplementation(
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
+    mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockConciliar.mockReturnValue({ estado: "conciliado", totalEsperado: 500000, diferencia: 0 });
   });
 
   it("rechaza si un Colaborador intenta conciliar el pago de una propiedad que no tiene asignada", async () => {
-    mockGetActor.mockResolvedValue({ usuarioId: "colab-x", tenantId: "tenant-abc", rol: "colaborador", tenant: { id: "tenant-abc" } });
+    mockGetActor.mockResolvedValue({ usuarioId: "colab-x", tenantId: "tenant-abc", rol: "colaborador", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
     mockTx.periodoPago.findFirst.mockResolvedValue({
       ...periodoBase,
       contrato: { ...periodoBase.contrato, propiedad: { asignadoAId: "colab-1" } },
@@ -308,7 +330,7 @@ describe("simularPago — ownership (ADR-0013, Fase D)", () => {
   });
 
   it("permite al Colaborador dueño de la propiedad conciliar su propio pago", async () => {
-    mockGetActor.mockResolvedValue({ usuarioId: "colab-1", tenantId: "tenant-abc", rol: "colaborador", tenant: { id: "tenant-abc" } });
+    mockGetActor.mockResolvedValue({ usuarioId: "colab-1", tenantId: "tenant-abc", rol: "colaborador", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
     mockTx.periodoPago.findFirst.mockResolvedValue({
       ...periodoBase,
       contrato: { ...periodoBase.contrato, propiedad: { asignadoAId: "colab-1" } },

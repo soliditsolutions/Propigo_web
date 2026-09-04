@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
+import { siguienteFolio } from "@/lib/folio";
+import {
+  construirSnapshotPago, construirSnapshotLiquidacion,
+  type EmisorSnapshot, type InmuebleSnapshot, type ParteSnapshot,
+} from "@/lib/comprobante";
 import {
   calcularMora,
   conciliar,
@@ -23,6 +28,35 @@ function primerDiaMes(fecha: Date): Date {
 /** Error de dominio controlado — el mensaje llega al cliente tal cual. */
 class DomainError extends Error {
   constructor(msg: string) { super(msg); this.name = "DomainError"; }
+}
+
+type ContratoConPartes = {
+  propiedad: { direccion: string; comuna: string | null; rol: string; avaluoFiscal: unknown | null };
+  arrendatario: { nombre: string; rut: string };
+  propietario:  { nombre: string; rut: string };
+};
+
+/**
+ * Congela emisor (corredora), inmueble y partes para el snapshot del documento
+ * (L-CP3). Los datos se copian al momento del hecho: el comprobante no debe
+ * cambiar si mañana cambia el RUT de la corredora o la dirección del inmueble.
+ */
+function datosDocumento(
+  tenant: { nombre: string; rut: string; giro: string | null; direccion: string | null; esPersonaJuridica: boolean },
+  c: ContratoConPartes,
+): { emisor: EmisorSnapshot; inmueble: InmuebleSnapshot; arrendatario: ParteSnapshot; propietario: ParteSnapshot } {
+  return {
+    emisor: {
+      nombre: tenant.nombre, rut: tenant.rut, giro: tenant.giro,
+      direccion: tenant.direccion, esPersonaJuridica: tenant.esPersonaJuridica,
+    },
+    inmueble: {
+      direccion: c.propiedad.direccion, comuna: c.propiedad.comuna, rol: c.propiedad.rol,
+      avaluoFiscalClp: c.propiedad.avaluoFiscal != null ? Number(c.propiedad.avaluoFiscal) : null,
+    },
+    arrendatario: { nombre: c.arrendatario.nombre, rut: c.arrendatario.rut },
+    propietario:  { nombre: c.propietario.nombre,  rut: c.propietario.rut },
+  };
 }
 
 // ─── Paso 1: conciliar un pago declarado ─────────────────────────────────────
@@ -64,7 +98,9 @@ export async function simularPago(
               comisionCorredorPct: true, cobraGastoComun: true,
               arrendatarioId: true, propietarioId: true,
               reajuste: true, fechaInicio: true,
-              propiedad: { select: { asignadoAId: true } },
+              propiedad: { select: { asignadoAId: true, direccion: true, comuna: true, rol: true, avaluoFiscal: true } },
+              arrendatario: { select: { nombre: true, rut: true } },
+              propietario:  { select: { nombre: true, rut: true } },
             },
           },
         },
@@ -236,19 +272,28 @@ export async function simularPago(
         });
       }
 
-      // BL-SNP1: snapshot incluye montoGastoComun para trazabilidad financiera completa
+      // Snapshot congelado del comprobante (L-CP1/3) + folio correlativo (L-CP4).
+      const folioPago = await siguienteFolio(tx, tenant.id, "pago", fechaPagoReal);
+      const docPago = datosDocumento(tenant, c);
+      const snapshotPago = construirSnapshotPago({
+        folio: folioPago, fecha: fechaPagoReal, periodoNumero: periodo.numero,
+        ...docPago,
+        arriendoClp: arriendoCLP,
+        interesClp: montoConciliado ? interesCLP : 0,
+        diasAtraso,
+        montoGastoComunClp: c.cobraGastoComun ? montoGastoComun : 0,
+        denominacion: c.denominacion,
+        ...(ufAplicada ? { ufAplicada } : {}),
+        totalClp: montoPagadoCLP,
+      });
       await tx.voucher.create({
         data: {
           tenantId: tenant.id, contratoId: c.id, periodoId: periodo.id,
           arrendatarioId: c.arrendatarioId, tipo: "pago",
           montoClp: montoPagadoCLP, fecha: fechaPagoReal,
+          folio: folioPago,
           snapshot: {
-            periodoNumero: periodo.numero, arriendoCLP,
-            interesCLP: montoConciliado ? interesCLP : 0,
-            diasAtraso,
-            montoGastoComun: c.cobraGastoComun ? montoGastoComun : 0,
-            denominacion: c.denominacion,
-            ...(ufAplicada ? { ufAplicada } : {}),
+            ...snapshotPago,
             ...(forzar && !montoConciliado ? { diferenciaAceptada: conciliado.diferencia } : {}),
           },
         },
@@ -326,7 +371,9 @@ export async function cerrarLiquidacion(
             select: {
               id: true, denominacion: true, comisionCorredorPct: true,
               arrendatarioId: true, propietarioId: true,
-              propiedad: { select: { asignadoAId: true } },
+              propiedad: { select: { asignadoAId: true, direccion: true, comuna: true, rol: true, avaluoFiscal: true } },
+              arrendatario: { select: { nombre: true, rut: true } },
+              propietario:  { select: { nombre: true, rut: true } },
             },
           },
         },
@@ -422,18 +469,26 @@ export async function cerrarLiquidacion(
         });
       }
 
-      // Voucher de liquidación al propietario
+      // Snapshot con el desglose COMPLETO: ajustes uno por uno (L-CP2) e IVA de
+      // la comisión según naturaleza jurídica de la corredora (L-IV2) + folio.
+      const folioLiq = await siguienteFolio(tx, tenant.id, "liquidacion", pagoAsiento.fechaEvento);
+      const docLiq = datosDocumento(tenant, c);
+      const snapshotLiq = construirSnapshotLiquidacion({
+        folio: folioLiq, fecha: pagoAsiento.fechaEvento, periodoNumero: periodo.numero,
+        ...docLiq,
+        arriendoClp: arriendoCLP,
+        comisionClp: liq.comisionCLP,
+        descuentoPropietarioClp: liq.descuentoPropietarioCLP,
+        netoPropietarioClp: liq.liquidacionNetaCLP,
+        ajustes: ajustes.map((a) => ({ tipo: a.tipo, descripcion: a.descripcion, montoClp: a.montoCLP })),
+      });
       await tx.voucher.create({
         data: {
           tenantId: tenant.id, contratoId: c.id, periodoId,
           arrendatarioId: c.arrendatarioId, tipo: "liquidacion",
           montoClp: liq.liquidacionNetaCLP, fecha: pagoAsiento.fechaEvento,
-          snapshot: {
-            periodoNumero: periodo.numero, arriendoCLP,
-            comisionCLP: liq.comisionCLP,
-            descuentoCLP: liq.descuentoPropietarioCLP,
-            netoCLP: liq.liquidacionNetaCLP,
-          },
+          folio: folioLiq,
+          snapshot: snapshotLiq,
         },
       });
 

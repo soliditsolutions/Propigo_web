@@ -95,7 +95,10 @@ begin
     -- Cuentas bancarias de la corredora y de los propietarios. Es el dato más
     -- sensible que guarda la plataforma: un número de cuenta filtrado entre
     -- corredoras es fraude, no una molestia.
-    'cuenta_bancaria'
+    'cuenta_bancaria',
+    -- Contador de folios: correlativo legal por corredora. Jamás debe verse ni
+    -- alterarse entre corredoras.
+    'folio_counter'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.

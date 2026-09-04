@@ -135,6 +135,28 @@ enum TipoVoucher {
   liquidacion
 }
 
+/**
+ * Contador de folios de documentos, uno por (corredora, tipo, año).
+ *
+ * Existe como tabla y no como un max()+1 sobre voucher porque el folio es un
+ * correlativo legal: no puede saltarse ni repetirse aunque dos emisiones ocurran
+ * a la vez. El upsert con increment sobre la fila única serializa a los
+ * concurrentes; el índice único (setup.sql) lo respalda.
+ */
+model FolioCounter {
+  id       String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String      @map("tenant_id") @db.Uuid
+  tipo     TipoVoucher
+  anio     Int         @db.SmallInt
+  /// Último número entregado. El siguiente folio es este + 1.
+  ultimo   Int         @default(0)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, tipo, anio])
+  @@map("folio_counter")
+}
+
 enum TipoAsiento {
   CARGO_ARRIENDO
   CARGO_GASTO_COMUN
@@ -335,6 +357,7 @@ model Tenant {
   cargosBilling    CargoBilling[]
   comisiones       ComisionPlataforma[]
   cuentasBancarias CuentaBancaria[]
+  foliosCounters   FolioCounter[]
 
   @@map("tenant")
 }
@@ -742,6 +765,10 @@ model Voucher {
   tipo           TipoVoucher
   montoClp       Decimal     @map("monto_clp") @db.Decimal(14, 0)
   fecha          DateTime    @db.Date
+  /// Folio legible del documento ("CP-2026-00042" pago, "LQ-2026-00042"
+  /// liquidación). Correlativo por corredora, tipo y año (L-CP4). Nullable solo
+  /// por los vouchers creados antes de existir el folio; todo voucher nuevo lo trae.
+  folio          String?
   snapshot       Json        @db.JsonB
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 

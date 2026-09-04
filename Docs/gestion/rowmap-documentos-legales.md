@@ -45,17 +45,16 @@ monto adeudado.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-CP1** | El `snapshot` del voucher de pago conserva la **descripción** de cada ajuste (hoy guarda solo `tipo` y `monto`) | — | — | `[ ]` |
-| **L-CP2** | El `snapshot` del voucher de liquidación guarda **la lista completa de ajustes** (hoy no guarda ninguno) | — | — | `[ ]` |
-| **L-CP3** | El `snapshot` guarda **todo lo que el PDF imprime**: datos de la corredora, del inmueble y de las partes al momento del hecho | L-CP1, L-CP2 | — | `[ ]` |
-| **L-CP4** | **Folio legible** por corredora y año (`LQ-2026-00042`), persistido, no calculado al vuelo | — | **L-01** | `[!]` |
-| **L-CP5** | Comprobante de pago en **PDF**, generado desde el snapshot | L-CP3, L-CP4 | — | `[ ]` |
-| **L-CP6** | Liquidación del propietario en **PDF**, con la distribución explícita | L-CP5, P-GA2 | **G-03** | `[!]` |
-| **L-CP7** | Los PDF se **regeneran desde el snapshot**; el archivo es caché de 12 meses, el dato es permanente | L-CP5 | — | `[ ]` |
-| **L-CP8** | Descarga del comprobante por mes desde el panel **y** desde el portal | L-CP5 | — | `[ ]` |
-| **L-CP9** | El **Rol de avalúo** aparece en el comprobante (ya existe en `Propiedad`, no se usa) | L-CP3 | — | `[ ]` |
-| **L-CP10** | Pie obligatorio: «Comprobante de gestión. No constituye documento tributario» | L-CP5 | — | `[ ]` |
-
+| **L-CP1** | El `snapshot` del voucher de pago conserva la **descripción** de cada ajuste (hoy guarda solo `tipo` y `monto`) | — | — | `[x]` |
+| **L-CP2** | El `snapshot` del voucher de liquidación guarda **la lista completa de ajustes** (hoy no guarda ninguno) | — | — | `[x]` |
+| **L-CP3** | El `snapshot` guarda **todo lo que el PDF imprime**: datos de la corredora, del inmueble y de las partes al momento del hecho | L-CP1, L-CP2 | — | `[x]` |
+| **L-CP4** | **Folio legible** por corredora y año (`LQ-2026-00042`), persistido, no calculado al vuelo | — | **L-01** | `[x]` |
+| **L-CP5** | Comprobante de pago en **PDF**, generado desde el snapshot | L-CP3, L-CP4 | — | `[x]` |
+| **L-CP6** | Liquidación del propietario en **PDF**, con la distribución explícita | L-CP5, P-GA2 | **G-03** | `[x]` |
+| **L-CP7** | Los PDF se **regeneran desde el snapshot**; el archivo es caché de 12 meses, el dato es permanente | L-CP5 | — | `[x]` |
+| **L-CP8** | Descarga del comprobante por mes desde el panel **y** desde el portal | L-CP5 | — | `[x]` |
+| **L-CP9** | El **Rol de avalúo** aparece en el comprobante (ya existe en `Propiedad`, no se usa) | L-CP3 | — | `[x]` |
+| **L-CP10** | Pie obligatorio: «Comprobante de gestión. No constituye documento tributario» | L-CP5 | — | `[x]` |
 ---
 
 ## Grupo B — Datos que faltan para poder emitir
@@ -85,8 +84,8 @@ sola** para todas las corredoras.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-IV1** | Cálculo del IVA de comisión según naturaleza jurídica: afecta si es persona jurídica; **exenta** si es persona natural por trabajo personal (Art. 12° E N°8 LIVS) | L-DT1 | — | `[ ]` |
-| **L-IV2** | `ivaComisionCLP` en el snapshot y en línea aparte del documento | L-IV1, L-CP2 | — | `[ ]` |
+| **L-IV1** | Cálculo del IVA de comisión según naturaleza jurídica: afecta si es persona jurídica; **exenta** si es persona natural por trabajo personal (Art. 12° E N°8 LIVS) | L-DT1 | — | `[x]` |
+| **L-IV2** | `ivaComisionCLP` en el snapshot y en línea aparte del documento | L-IV1, L-CP2 | — | `[x]` |
 | **L-IV3** | Tests del cuadre: `arrendatario = propietario + comisión + IVA` | L-IV2 | — | `[ ]` |
 | **L-IV4** | Si el inmueble es amoblado, la renta va afecta a IVA con base rebajada en 11 % del avalúo fiscal | L-DT3, L-DT4 | **L-04** | `[!]` |
 

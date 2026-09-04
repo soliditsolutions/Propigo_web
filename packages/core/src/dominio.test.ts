@@ -10,7 +10,7 @@ import {
   conciliar,
   calcularLiquidacion,
   esGarantiaValida, calcularTerminoGarantia, MAX_MESES_GARANTIA,
-  ivaArriendo, ivaComision, deduccionAvaluo, IVA_PCT, DEDUCCION_AVALUO_PCT_ANUAL,
+  ivaArriendo, ivaArriendoIncluido, ivaComision, deduccionAvaluo, IVA_PCT, DEDUCCION_AVALUO_PCT_ANUAL,
 } from "./index";
 
 // ─── Primitivas ───────────────────────────────────────────────────────────────
@@ -483,5 +483,46 @@ describe("ivaComision", () => {
 
   test("rechaza una comisión negativa", () => {
     assert.throws(() => ivaComision(-1, true));
+  });
+});
+
+describe("ivaArriendoIncluido — IVA dentro del valor pactado", () => {
+  test("no amoblado: todo es neto exento, sin IVA, total = renta", () => {
+    const r = ivaArriendoIncluido({ esAmoblado: false, rentaCLP: 800_000 });
+    assert.equal(r.afecto, false);
+    assert.equal(r.ivaCLP, 0);
+    assert.equal(r.netoCLP, 800_000);
+    assert.equal(r.totalCLP, 800_000);
+  });
+
+  test("amoblado: el total NO cambia; el IVA se extrae de adentro", () => {
+    // Avalúo 45.000.000 ⇒ deducción mensual 412.500 (exenta).
+    // Gravado con IVA = 800.000 − 412.500 = 387.500.
+    // neto = round(387.500 / 1,19) = 325.630; iva = 387.500 − 325.630 = 61.870.
+    const r = ivaArriendoIncluido({ esAmoblado: true, rentaCLP: 800_000, avaluoFiscalCLP: 45_000_000 });
+    assert.equal(r.totalCLP, 800_000);              // el arrendatario paga lo mismo
+    assert.equal(r.exentoCLP, 412_500);
+    assert.equal(r.netoCLP, 325_630);
+    assert.equal(r.ivaCLP, 61_870);
+    // Cuadre: exento + neto + iva = total.
+    assert.equal(r.exentoCLP + r.netoCLP + r.ivaCLP, r.totalCLP);
+  });
+
+  test("cuadre siempre: exento + neto + iva = renta", () => {
+    for (const [renta, avaluo] of [[800_000, 45_000_000], [650_000, 30_000_000], [1_200_000, 80_000_000]] as const) {
+      const r = ivaArriendoIncluido({ esAmoblado: true, rentaCLP: renta, avaluoFiscalCLP: avaluo });
+      assert.equal(r.exentoCLP + r.netoCLP + r.ivaCLP, renta, `cuadre falla ${renta}/${avaluo}`);
+    }
+  });
+
+  test("avalúo alto que cubre toda la renta: todo exento, IVA cero", () => {
+    const r = ivaArriendoIncluido({ esAmoblado: true, rentaCLP: 300_000, avaluoFiscalCLP: 45_000_000 });
+    assert.equal(r.exentoCLP, 300_000);
+    assert.equal(r.ivaCLP, 0);
+    assert.equal(r.totalCLP, 300_000);
+  });
+
+  test("amoblado sin avalúo: falla en vez de inventar la base", () => {
+    assert.throws(() => ivaArriendoIncluido({ esAmoblado: true, rentaCLP: 800_000 }), /avalúo fiscal/);
   });
 });

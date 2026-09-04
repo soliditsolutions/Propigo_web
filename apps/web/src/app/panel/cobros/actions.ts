@@ -96,6 +96,7 @@ export async function simularPago(
               id: true, denominacion: true, valorArriendo: true,
               moraTasaPct: true, moraDiasGracia: true,
               comisionCorredorPct: true, cobraGastoComun: true,
+              esAmoblado: true,
               arrendatarioId: true, propietarioId: true,
               reajuste: true, fechaInicio: true,
               propiedad: { select: { asignadoAId: true, direccion: true, comuna: true, rol: true, avaluoFiscal: true } },
@@ -285,6 +286,7 @@ export async function simularPago(
         denominacion: c.denominacion,
         ...(ufAplicada ? { ufAplicada } : {}),
         totalClp: montoPagadoCLP,
+        esAmoblado: c.esAmoblado,
       });
       await tx.voucher.create({
         data: {

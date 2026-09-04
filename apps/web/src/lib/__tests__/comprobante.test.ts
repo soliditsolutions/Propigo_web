@@ -69,7 +69,43 @@ describe("construirSnapshotPago", () => {
     expect(snap.ajustes).toEqual([]);
   });
 
-  it("incluye la UF aplicada solo cuando la hay", () => {
+  it("contrato amoblado: agrega el desglose de IVA incluido (L-IV4)", () => {
+    // Avalúo 45M ⇒ deducción mensual 412.500 exenta; el resto lleva IVA incluido.
+    const snap = construirSnapshotPago({
+      ...base, folio: "CP-2026-00099", esAmoblado: true,
+      arriendoClp: 800_000, interesClp: 0, diasAtraso: 0,
+      montoGastoComunClp: 0, denominacion: "CLP", totalClp: 800_000,
+    });
+    expect(snap.ivaArriendo).toBeDefined();
+    // El total no cambia: exento + neto + iva = arriendo.
+    const d = snap.ivaArriendo!;
+    expect(d.exentoClp + d.netoClp + d.ivaClp).toBe(800_000);
+    expect(d.exentoClp).toBe(412_500);
+    expect(d.ivaClp).toBeGreaterThan(0);
+    // El monto cobrado sigue siendo la renta pactada.
+    expect(snap.totalClp).toBe(800_000);
+  });
+
+  it("contrato NO amoblado: sin desglose de IVA de arriendo", () => {
+    const snap = construirSnapshotPago({
+      ...base, folio: "CP-2026-00100", esAmoblado: false,
+      arriendoClp: 800_000, interesClp: 0, diasAtraso: 0,
+      montoGastoComunClp: 0, denominacion: "CLP", totalClp: 800_000,
+    });
+    expect(snap.ivaArriendo).toBeUndefined();
+  });
+
+  it("amoblado sin avalúo cargado: no falla, sale sin desglose", () => {
+    const snap = construirSnapshotPago({
+      ...base, folio: "CP-2026-00101", esAmoblado: true,
+      inmueble: { ...inmueble, avaluoFiscalClp: null },
+      arriendoClp: 800_000, interesClp: 0, diasAtraso: 0,
+      montoGastoComunClp: 0, denominacion: "CLP", totalClp: 800_000,
+    });
+    expect(snap.ivaArriendo).toBeUndefined();
+  });
+
+    it("incluye la UF aplicada solo cuando la hay", () => {
     const conUf = construirSnapshotPago({
       ...base, folio: "CP-2026-00004", arriendoClp: 450_000, interesClp: 0,
       diasAtraso: 0, montoGastoComunClp: 0, denominacion: "UF", ufAplicada: 39_000, totalClp: 450_000,

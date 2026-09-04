@@ -15,7 +15,7 @@
  * Estos builders son puros: no tocan base. La acción de cobros arma los datos y
  * los pasa; así el contenido del documento se puede probar sin la base.
  */
-import { ivaComision } from "@housing/core";
+import { ivaComision, ivaArriendoIncluido } from "@housing/core";
 
 export type EmisorSnapshot = {
   nombre: string;
@@ -66,6 +66,18 @@ export type SnapshotPago = Base & {
   ajustes: AjusteSnapshot[];
   /** Lo efectivamente pagado. */
   totalClp: number;
+  /**
+   * Desglose del IVA del arriendo amoblado (L-IV4). Solo presente si el contrato
+   * es amoblado. El IVA va INCLUIDO en la renta —el arrendatario paga lo mismo—;
+   * esto solo muestra cómo se reparte para el SII: parte exenta (11 % del avalúo),
+   * neto e IVA contenido.
+   */
+  ivaArriendo?: {
+    exentoClp: number;
+    netoClp: number;
+    ivaClp: number;
+    deduccionAvaluoClp: number;
+  };
 };
 
 export type SnapshotLiquidacion = Base & {
@@ -103,7 +115,22 @@ export function construirSnapshotPago(datos: {
   ufAplicada?: number;
   ajustes?: AjusteSnapshot[];
   totalClp: number;
+  /** Si el contrato es amoblado — activa el desglose de IVA del arriendo (L-IV4). */
+  esAmoblado?: boolean;
 }): SnapshotPago {
+  // Arriendo amoblado: el IVA va incluido en la renta. Se descompone para el
+  // documento (el cobro no cambia). Sin avalúo no se puede, así que solo se
+  // calcula cuando ambos datos están; en su ausencia el comprobante sale sin
+  // el desglose en vez de fallar (un pago no debe caerse por esto).
+  let ivaArriendo: SnapshotPago["ivaArriendo"];
+  if (datos.esAmoblado && datos.inmueble.avaluoFiscalClp != null) {
+    const d = ivaArriendoIncluido({
+      esAmoblado: true, rentaCLP: datos.arriendoClp, avaluoFiscalCLP: datos.inmueble.avaluoFiscalClp,
+    });
+    ivaArriendo = {
+      exentoClp: d.exentoCLP, netoClp: d.netoCLP, ivaClp: d.ivaCLP, deduccionAvaluoClp: d.deduccionAvaluoCLP,
+    };
+  }
   return {
     tipo: "pago",
     folio: datos.folio,
@@ -121,6 +148,7 @@ export function construirSnapshotPago(datos: {
     ...(datos.ufAplicada !== undefined ? { ufAplicada: datos.ufAplicada } : {}),
     ajustes: datos.ajustes ?? [],
     totalClp: datos.totalClp,
+    ...(ivaArriendo ? { ivaArriendo } : {}),
   };
 }
 

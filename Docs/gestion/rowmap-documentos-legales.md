@@ -87,7 +87,7 @@ sola** para todas las corredoras.
 | **L-IV1** | Cálculo del IVA de comisión según naturaleza jurídica: afecta si es persona jurídica; **exenta** si es persona natural por trabajo personal (Art. 12° E N°8 LIVS) | L-DT1 | — | `[x]` |
 | **L-IV2** | `ivaComisionCLP` en el snapshot y en línea aparte del documento | L-IV1, L-CP2 | — | `[x]` |
 | **L-IV3** | Tests del cuadre: `arrendatario = propietario + comisión + IVA` | L-IV2 | — | `[x]` |
-| **L-IV4** | Si el inmueble es amoblado, la renta va afecta a IVA con base rebajada en 11 % del avalúo fiscal | L-DT3, L-DT4 | **L-04** | `[!]` |
+| **L-IV4** | Si el inmueble es amoblado, la renta va afecta a IVA con base rebajada en 11 % del avalúo fiscal | L-DT3, L-DT4 | **L-04** | `[x]` |
 
 ---
 
@@ -217,7 +217,7 @@ menos.
 | **L-01** | ¿El folio es correlativo por corredora, o global de la plataforma? | 🟡 | L-CP4 | Por corredora y año: es su documento, no el nuestro. | Abierta |
 | **L-02** | `Tenant.rut` pasa a obligatorio: ¿qué pasa con las cuentas ya creadas sin él? | 🟡 | L-DT2 | Obligatorio para emitir documentos, no para usar el panel. Se pide al primer intento de emisión. | Abierta |
 | **L-03** | ¿El avalúo fiscal se carga a mano o se obtiene del SII por el rol? | 🟡 | L-DT3 | A mano al principio. La consulta automatizada al SII es un proyecto aparte. | Abierta |
-| **L-04** | ¿Damos soporte al arriendo amoblado, que sí va afecto a IVA? | 🔴 | L-IV4 | Sí, pero en una segunda etapa: primero el caso habitacional simple, que es el 90 %. | Abierta |
+| **L-04** | ¿Damos soporte al arriendo amoblado, que sí va afecto a IVA? | 🔴 | L-IV4 | Sí, pero en una segunda etapa: primero el caso habitacional simple, que es el 90 %. | ✅ Resuelta: IVA **incluido** en el valor del arriendo; se descompone en el comprobante. |
 | **L-05** | Supresión de datos vs. ledger inmutable: ¿cómo se resuelve? | 🔴 | L-DP5 | Anonimizar la `Persona` y conservar los asientos con el vínculo roto. El ledger conserva montos y fechas, no identidad. **Requiere revisión legal.** | Abierta |
 | **L-06** | ¿Cuál es el plazo de respuesta a una solicitud de derechos? | 🔴 | L-DP7 | Leer el plazo en el texto de la ley y publicarlo. No inventarlo. | Abierta |
 | **L-07** | ¿Housing es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | Abierta |

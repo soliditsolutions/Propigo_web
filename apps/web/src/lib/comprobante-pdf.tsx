@@ -140,6 +140,14 @@ function ComprobantePago({ snap }: { snap: SnapshotPago }) {
           <Text style={styles.totalValor}>{clp(snap.totalClp)}</Text>
         </View>
       </View>
+      {snap.ivaArriendo ? (
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Detalle tributario (arriendo amoblado, IVA incluido)</Text>
+          <Fila label="Exento (11% del avalúo fiscal)" valor={clp(snap.ivaArriendo.exentoClp)} />
+          <Fila label="Neto afecto" valor={clp(snap.ivaArriendo.netoClp)} />
+          <Fila label="IVA incluido (19%)" valor={clp(snap.ivaArriendo.ivaClp)} />
+        </View>
+      ) : null}
       <Pie />
     </Page>
   );

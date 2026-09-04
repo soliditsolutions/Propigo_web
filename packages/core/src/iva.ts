@@ -181,3 +181,82 @@ export function ivaComision(
     deduccionAvaluoCLP: 0,
   };
 }
+
+/** Descomposición de un monto que YA incluye el IVA (arriendo amoblado). */
+export type DesgloseIvaIncluido = {
+  /** Si la operación está gravada. */
+  afecto: boolean;
+  /** Parte exenta: el 11 % del avalúo, que corresponde al inmueble desnudo. */
+  exentoCLP: CLP;
+  /** Neto gravado contenido en el total. */
+  netoCLP: CLP;
+  /** IVA contenido en el total. */
+  ivaCLP: CLP;
+  /** El total, que es la renta pactada — no cambia. */
+  totalCLP: CLP;
+  /** Deducción del 11 % aplicada (igual a exentoCLP salvo tope por renta baja). */
+  deduccionAvaluoCLP: CLP;
+};
+
+/**
+ * Descompone una renta amoblada con el IVA **incluido** en el valor.
+ *
+ * Decisión de producto (2026-09): el corredor pacta la renta amoblada como el
+ * monto final que paga el arrendatario, con IVA ya adentro. El cobro NO cambia
+ * —el arrendatario paga la renta pactada—; lo que este cálculo entrega es cómo
+ * se reparte ese total para el comprobante y el SII.
+ *
+ * A diferencia de `ivaArriendo` (que suma el IVA sobre una renta neta), acá el
+ * total está fijo y el IVA se extrae de adentro:
+ *
+ *   exento        = min(deducción del 11 %, renta)   // el inmueble desnudo, exento
+ *   gravadoConIva = renta − exento
+ *   neto          = round(gravadoConIva / 1,19)
+ *   iva           = gravadoConIva − neto
+ *   total         = renta                             // no cambia
+ *
+ * Un arriendo no amoblado es exento: el total es todo neto, sin IVA.
+ */
+export function ivaArriendoIncluido(input: ArriendoIvaInput): DesgloseIvaIncluido {
+  const { esAmoblado, rentaCLP, avaluoFiscalCLP = null, mesesDelPeriodo = 1 } = input;
+
+  if (!Number.isFinite(rentaCLP) || rentaCLP < 0) {
+    throw new Error("ivaArriendoIncluido: la renta no puede ser negativa");
+  }
+
+  if (!esAmoblado) {
+    return {
+      afecto: false,
+      exentoCLP: rentaCLP,
+      netoCLP: rentaCLP,
+      ivaCLP: 0,
+      totalCLP: rentaCLP,
+      deduccionAvaluoCLP: 0,
+    };
+  }
+
+  if (avaluoFiscalCLP === null || avaluoFiscalCLP === undefined) {
+    throw new Error(
+      "ivaArriendoIncluido: un arriendo amoblado necesita el avalúo fiscal de la " +
+      "propiedad para calcular la deducción del 11 % (DL 825 art. 17)",
+    );
+  }
+
+  const deduccionAvaluoCLP = deduccionAvaluo(avaluoFiscalCLP, mesesDelPeriodo);
+  // La deducción no puede exceder la renta: lo que queda gravado nunca es
+  // negativo. Si el avalúo es tan alto que cubre toda la renta, todo es exento.
+  const exentoCLP = Math.min(deduccionAvaluoCLP, rentaCLP);
+  const gravadoConIva = rentaCLP - exentoCLP;
+  // El IVA va incluido en `gravadoConIva`: se extrae dividiendo por (1 + tasa).
+  const netoCLP = redondearPeso(gravadoConIva / (1 + IVA_PCT / 100));
+  const ivaCLP = gravadoConIva - netoCLP;
+
+  return {
+    afecto: true,
+    exentoCLP,
+    netoCLP,
+    ivaCLP,
+    totalCLP: rentaCLP,
+    deduccionAvaluoCLP,
+  };
+}

@@ -60,7 +60,18 @@ describe("ComprobantePdfDocument", () => {
     expect(esPdf(buf)).toBe(true);
   });
 
-  it("un tipo desconocido falla en vez de emitir un PDF vacío", () => {
+  it("comprobante de pago amoblado (con desglose de IVA incluido) renderiza", async () => {
+    const snap = construirSnapshotPago({
+      ...base, folio: "CP-2026-00050", esAmoblado: true,
+      arriendoClp: 800_000, interesClp: 0, diasAtraso: 0,
+      montoGastoComunClp: 0, denominacion: "CLP", totalClp: 800_000,
+    });
+    expect(snap.ivaArriendo).toBeDefined();
+    const buf = await renderToBuffer(ComprobantePdfDocument({ snapshot: snap }));
+    expect(esPdf(buf)).toBe(true);
+  });
+
+    it("un tipo desconocido falla en vez de emitir un PDF vacío", () => {
     // Guard contra un snapshot corrupto: mejor un error visible que un documento
     // en blanco que parezca válido.
     expect(() =>

@@ -83,8 +83,8 @@ beforeEach(() => {
 
 describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", () => {
   it("rechaza si el plan actual ya está al límite solo con Manager + colaboradores activos (downgrade mientras la invitación seguía viva)", async () => {
-    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 3
-    mockUsuarioCount.mockResolvedValue(2); // 2 colaboradores activos → cupoUsado = 1(manager) + 2 = 3 >= 3
+    mockTenantFindUnique.mockResolvedValue({ plan: "gold" }); // max 5
+    mockUsuarioCount.mockResolvedValue(5); // downgrade: 5 colaboradores activos → cupoUsado = 1(manager) + 5 = 6 >= 5
 
     const res = await aceptarInvitacionAction(null, formData());
 
@@ -119,8 +119,8 @@ describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", (
   });
 
   it("permite aceptar la primera invitación de un tenant recién creado (0 colaboradores activos, plan con cupo >= 2)", async () => {
-    mockTenantFindUnique.mockResolvedValue({ plan: "silver" }); // max 3
-    mockUsuarioCount.mockResolvedValue(0); // cupoUsado = 1 + 0 = 1 < 3
+    mockTenantFindUnique.mockResolvedValue({ plan: "gold" }); // max 5 (Silver ya no admite subusuarios)
+    mockUsuarioCount.mockResolvedValue(0); // cupoUsado = 1 + 0 = 1 < 5
 
     await aceptarInvitacionAction(null, formData());
 

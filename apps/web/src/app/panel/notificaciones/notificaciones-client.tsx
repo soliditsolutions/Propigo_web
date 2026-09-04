@@ -145,16 +145,23 @@ export function NotificacionesClient({
       if (emailRealActivo) {
         const r = await enviarNotificacionesPendientes();
         if (r.ok) {
+          const notaColapso = r.reemplazadas > 0
+            ? ` · ${r.reemplazadas} sin enviar por quedar obsolet${r.reemplazadas === 1 ? "a" : "as"}`
+            : "";
           toast(
-            `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}.`,
+            `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}${notaColapso}.`,
             r.errores > 0 ? "error" : "success",
           );
-          if (r.enviadas > 0) window.location.reload();
+          if (r.enviadas > 0 || r.reemplazadas > 0) window.location.reload();
         }
       } else {
         const r = await simularEnvioMasivo();
         if (r.ok) {
-          toast(`${cantidad(r.enviadas, "recordatorio", "recordatorios")} marcado${r.enviadas === 1 ? "" : "s"} como enviado${r.enviadas === 1 ? "" : "s"} (simulación).`, "success");
+          const notaColapso = r.reemplazadas > 0
+            ? ` · ${r.reemplazadas} descartad${r.reemplazadas === 1 ? "a" : "as"} por obsolet${r.reemplazadas === 1 ? "a" : "as"}`
+            : "";
+          toast(`${cantidad(r.enviadas, "recordatorio", "recordatorios")} marcado${r.enviadas === 1 ? "" : "s"} como enviado${r.enviadas === 1 ? "" : "s"} (simulación)${notaColapso}.`, "success");
+          if (r.reemplazadas > 0) { window.location.reload(); return; }
           setNoticias((prev) =>
             prev.map((n) => n.estado === "pendiente" ? { ...n, estado: "simulada" as const } : n)
           );
@@ -334,8 +341,15 @@ export function NotificacionesClient({
                       {fecha(n.createdAt)}
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <Badge tone={n.estado === "pendiente" ? "amber" : n.estado === "simulada" ? "green" : "blue"}>
-                        {n.estado === "simulada" ? "Enviada" : n.estado}
+                      <Badge tone={
+                        n.estado === "pendiente" ? "amber"
+                        : n.estado === "reemplazada" ? "slate"
+                        : n.estado === "simulada" || n.estado === "enviada" ? "green"
+                        : "blue"
+                      }>
+                        {n.estado === "simulada" || n.estado === "enviada" ? "Enviada"
+                          : n.estado === "reemplazada" ? "Reemplazada"
+                          : n.estado}
                       </Badge>
                     </td>
                     <td className="px-5 py-3.5 text-right">

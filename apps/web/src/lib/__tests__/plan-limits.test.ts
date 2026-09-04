@@ -31,9 +31,9 @@ describe("Tabla de planes", () => {
   it("los 4 planes tienen los cupos decididos", () => {
     expect(PLANS.map((p) => [p.id, p.maxPropiedades, p.maxUsuarios, p.tokensDiarios])).toEqual([
       ["bronze", 10, 1, 3],
-      ["silver", 25, 3, 10],
-      ["gold", 75, 10, 30],
-      ["diamond", 200, 20, 100],
+      ["silver", 25, 1, 10],
+      ["gold", 75, 5, 30],
+      ["diamond", 200, 10, 100],
     ]);
   });
 
@@ -50,10 +50,24 @@ describe("Tabla de planes", () => {
     // de tener sentido y nadie lo notaría hasta que un cliente reclamara.
     for (let i = 1; i < PLANS.length; i++) {
       expect(PLANS[i].maxPropiedades).toBeGreaterThan(PLANS[i - 1].maxPropiedades);
-      expect(PLANS[i].maxUsuarios).toBeGreaterThan(PLANS[i - 1].maxUsuarios);
       expect(PLANS[i].tokensDiarios).toBeGreaterThan(PLANS[i - 1].tokensDiarios);
       expect(PLANS[i].mensualUf).toBeGreaterThan(PLANS[i - 1].mensualUf);
+      // Los usuarios NO crecen estrictamente: Bronze y Silver comparten el tope
+      // de 1 usuario a propósito (ninguno tiene subusuarios). Basta con que no
+      // decrezca; lo que diferencia a Silver de Bronze son propiedades, tokens
+      // y precio, no los usuarios.
+      expect(PLANS[i].maxUsuarios).toBeGreaterThanOrEqual(PLANS[i - 1].maxUsuarios);
     }
+  });
+
+  it("Bronze y Silver no tienen subusuarios; Gold y Diamond sí", () => {
+    // Regla de producto: los dos planes de entrada son de un solo usuario (el
+    // Manager). El multiusuario empieza en Gold.
+    const cupo = (id: string) => PLANS.find((p) => p.id === id)!.maxUsuarios;
+    expect(cupo("bronze")).toBe(1);
+    expect(cupo("silver")).toBe(1);
+    expect(cupo("gold")).toBe(5);
+    expect(cupo("diamond")).toBe(10);
   });
 
   it("la exportación está desde Gold", () => {

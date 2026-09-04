@@ -7,6 +7,7 @@ import { sendNotificacionEmail } from "@/lib/email";
 import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
 import { renderizarAlerta } from "@/lib/alertas";
+import { idsReemplazadas, esNotificacionDeCiclo } from "@/lib/notificaciones-ciclo";
 import { clpOrUf } from "@/lib/format";
 import {
   puedeRecibir, firmarTokenBaja, MAX_CORREOS_POR_DIA,
@@ -277,6 +278,51 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
  */
 const LOTE_ENVIO = 200;
 
+/**
+ * Retira los avisos de ciclo de vida que quedaron obsoletos: si de un contrato
+ * hay una notificación de estado más nueva (p. ej. "contrato vigente"), la más
+ * vieja que sigue pendiente (p. ej. "firma tu contrato") pasa a "reemplazada" y
+ * no se envía. Se decide mirando TODAS las de ciclo del contrato —incluidas las
+ * ya enviadas—, para que el colapso valga aunque la más nueva haya salido en
+ * una corrida anterior. Devuelve cuántas retiró.
+ *
+ * Lo usan tanto el envío real como la simulación, para que ninguno de los dos
+ * mande la notificación que el otro habría descartado.
+ */
+async function colapsarCicloVida(
+  tenantId: string,
+  propiedadIds: string[] | null,
+): Promise<number> {
+  const pendientesCiclo = await withTenant(tenantId, (tx) => tx.notificacion.findMany({
+    where: {
+      tenantId, estado: "pendiente",
+      ...(propiedadIds ? { contrato: { propiedadId: { in: propiedadIds } } } : {}),
+    },
+    select: { contratoId: true, tipo: true },
+  }));
+  const contratos = [
+    ...new Set(
+      pendientesCiclo
+        .filter((n) => n.contratoId && esNotificacionDeCiclo(n.tipo))
+        .map((n) => n.contratoId as string),
+    ),
+  ];
+  if (contratos.length === 0) return 0;
+
+  const deCiclo = await withTenant(tenantId, (tx) => tx.notificacion.findMany({
+    where: { tenantId, contratoId: { in: contratos } },
+    select: { id: true, tipo: true, contratoId: true, createdAt: true, estado: true },
+  }));
+  const retirar = idsReemplazadas(deCiclo);
+  if (retirar.length === 0) return 0;
+
+  const res = await withTenant(tenantId, (tx) => tx.notificacion.updateMany({
+    where: { tenantId, id: { in: retirar }, estado: "pendiente" },
+    data:  { estado: "reemplazada" },
+  }));
+  return res.count;
+}
+
 export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): Promise<{
   ok: boolean;
   enviadas: number;
@@ -286,11 +332,17 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
   dadasDeBaja: number;
   /** Diferidas por tope diario; salen en la próxima corrida, no se pierden. */
   diferidas: number;
+  /** Avisos de ciclo retirados por quedar obsoletos frente a uno más nuevo. */
+  reemplazadas: number;
 }> {
   try {
     const actor  = tenantOverride ? null : await getActor();
     const tenant = tenantOverride ?? actor!.tenant;
     const propiedadIds = actor ? await propiedadIdsVisibles(actor) : null;
+
+    // Se colapsa antes de leer: las reemplazadas dejan de estar "pendiente" y
+    // el findMany de abajo ya no las trae, así que no hay que filtrarlas a mano.
+    const reemplazadas = await colapsarCicloVida(tenant.id, propiedadIds);
 
     // Lectura en su propia transacción corta — no mantenemos abierta una
     // transacción mientras esperamos el I/O externo de envío de email más abajo.
@@ -381,10 +433,10 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
 
     revalidatePath("/panel/notificaciones");
     revalidatePath("/panel");
-    return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas };
+    return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas, reemplazadas };
   } catch (e) {
     logError("enviarNotificacionesPendientes", e);
-    return { ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0 };
+    return { ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0 };
   }
 }
 
@@ -418,10 +470,13 @@ export async function marcarSimulada(id: string): Promise<{ ok: boolean }> {
 }
 
 /** Marcar todas las notificaciones pendientes como "simuladas". */
-export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: number }> {
+export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: number; reemplazadas: number }> {
   try {
     const actor = await getActor();
     const propiedadIds = await propiedadIdsVisibles(actor);
+    // Mismo colapso que el envío real: no simular como "enviada" una que el
+    // envío real habría descartado por obsoleta.
+    const reemplazadas = await colapsarCicloVida(actor.tenantId, propiedadIds);
     const { count } = await withTenant(actor.tenantId, (tx) => tx.notificacion.updateMany({
       where: {
         tenantId: actor.tenantId, estado: "pendiente",
@@ -431,8 +486,8 @@ export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: num
     }));
     revalidatePath("/panel/notificaciones");
     revalidatePath("/panel");
-    return { ok: true, enviadas: count };
+    return { ok: true, enviadas: count, reemplazadas };
   } catch {
-    return { ok: false, enviadas: 0 };
+    return { ok: false, enviadas: 0, reemplazadas: 0 };
   }
 }

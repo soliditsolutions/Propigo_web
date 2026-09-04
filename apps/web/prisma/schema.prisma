@@ -260,6 +260,9 @@ enum EstadoNotificacion {
   pendiente
   simulada
   enviada
+  // Aviso de ciclo de vida que quedó obsoleto porque salió uno más nuevo del
+  // mismo contrato (ver notificaciones-ciclo.ts). Nunca se envió; no es un fallo.
+  reemplazada
 }
 
 enum TipoDocumento {

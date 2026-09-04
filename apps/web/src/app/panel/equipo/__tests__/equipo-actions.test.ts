@@ -84,15 +84,17 @@ describe("invitarColaboradorAction — cupo de usuarios por plan", () => {
     expect(mockInvitacionCreate).not.toHaveBeenCalled();
   });
 
-  it("rechaza cuando el cupo está lleno por colaboradores activos (Silver, 3 usuarios)", async () => {
-    mockGetActor.mockResolvedValue(actorManager("silver"));
-    mockUsuarioCount.mockResolvedValue(2);   // 2 colaboradores activos
+  it("rechaza cuando el cupo está lleno por colaboradores activos (Gold, 5 usuarios)", async () => {
+    // Silver ya no admite subusuarios (queda cubierto por el caso Bronze). El
+    // tope-por-colaboradores-activos se prueba en Gold, el primer plan multiusuario.
+    mockGetActor.mockResolvedValue(actorManager("gold"));
+    mockUsuarioCount.mockResolvedValue(4);   // 4 colaboradores activos
     mockInvitacionCount.mockResolvedValue(0);
-    // cupoUsado = 1 (manager) + 2 + 0 = 3 >= max(silver)=3 → rechazado
+    // cupoUsado = 1 (manager) + 4 + 0 = 5 >= max(gold)=5 → rechazado
 
     const res = await invitarColaboradorAction("Juan Pérez", "juan@empresa.cl");
 
-    expect(res).toEqual({ ok: false, error: expect.stringMatching(/límite de 3 usuarios/i) });
+    expect(res).toEqual({ ok: false, error: expect.stringMatching(/límite de 5 usuarios/i) });
     expect(mockInvitacionCreate).not.toHaveBeenCalled();
   });
 
@@ -163,7 +165,7 @@ describe("getCupoInfo — información de cupo para la UI", () => {
 
     const info = await getCupoInfo();
 
-    expect(info).toEqual({ usado: 4, max: 10, planLabel: "Gold" });
+    expect(info).toEqual({ usado: 4, max: 5, planLabel: "Gold" });
   });
 
   it("un plan desconocido devuelve planLabel 'Gratuito' y el cupo de Bronze", async () => {

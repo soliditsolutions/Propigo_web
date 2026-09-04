@@ -125,12 +125,12 @@ export const PLANS: Plan[] = [
     anualUf: 5,
     annualSavings: "2 meses gratis",
     maxPropiedades: 25,
-    maxUsuarios: 3,
+    maxUsuarios: 1,
     tokensDiarios: 10,
     permiteExportar: false,
     features: [
       { text: propiedadesFeatureText(25), tooltip: TOOLTIP_SLOTS },
-      { text: usuariosFeatureText(3) },
+      { text: usuariosFeatureText(1) },
       { text: tokensFeatureText(10), tooltip: TOOLTIP_TOKENS },
       { text: "Analítica intermedia de desempeño" },
       { text: "Herramientas de administración y automatización" },
@@ -146,13 +146,13 @@ export const PLANS: Plan[] = [
     anualUf: 9,
     annualSavings: "2 meses gratis",
     maxPropiedades: 75,
-    maxUsuarios: 10,
+    maxUsuarios: 5,
     tokensDiarios: 30,
     permiteExportar: true,
     featured: true,
     features: [
       { text: propiedadesFeatureText(75), tooltip: TOOLTIP_SLOTS },
-      { text: usuariosFeatureText(10) },
+      { text: usuariosFeatureText(5) },
       { text: tokensFeatureText(30), tooltip: TOOLTIP_TOKENS },
       { text: "Analítica avanzada de cartera" },
       { text: "Exportación de información" },
@@ -169,7 +169,7 @@ export const PLANS: Plan[] = [
     anualUf: 17,
     annualSavings: "2 meses gratis",
     maxPropiedades: 200,
-    maxUsuarios: 20,
+    maxUsuarios: 10,
     // "IA de alto uso" del brief comercial, aterrizado a un número: el sistema
     // necesita un tope concreto para poder aplicarlo, y "ilimitado" sería un
     // costo abierto contra la API de IA que no controlamos. Decisión N-02.
@@ -177,7 +177,7 @@ export const PLANS: Plan[] = [
     permiteExportar: true,
     features: [
       { text: propiedadesFeatureText(200), tooltip: TOOLTIP_SLOTS },
-      { text: usuariosFeatureText(20) },
+      { text: usuariosFeatureText(10) },
       { text: tokensFeatureText(100), tooltip: TOOLTIP_TOKENS },
       { text: "Analítica premium de cartera" },
       { text: "Exportación avanzada de información" },

@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import { getActor, getUfCLPTx, type Actor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { generarCalendario, type PeriodoCalendario } from "@housing/core";
+import { CausalTermino } from "@/generated/prisma/enums";
 import { esc } from "@/lib/html";
 import { logError } from "@/lib/logger";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
@@ -99,12 +100,37 @@ export async function terminarContrato(
   opts: {
     tipo: "normal" | "anticipado";
     montoRetencion: number; // 0 = devuelve todo; > 0 = retiene parte o todo
+    /** Por qué termina. Fija el plazo de restitución y qué procedimiento
+     *  procede; queda en el contrato como parte del registro del cierre. */
+    causal: CausalTermino;
+    /** Solo para las causales de desahucio: cuándo se notificó. La Ley 18.101
+     *  cuenta los plazos de restitución desde acá, no desde la fecha de término. */
+    fechaNotificacionDesahucio?: string; // "YYYY-MM-DD"
   },
 ): Promise<ResultadoOk> {
   if (!contratoId)
     return { ok: false, error: "ID de contrato requerido." };
 
   const montoRetencion = Math.round(Math.max(0, opts.montoRetencion));
+
+  // La causal no puede venir vacía ni inventada: de ella dependen el plazo de
+  // restitución y el procedimiento, así que no se acepta un valor fuera del enum.
+  if (!opts.causal || !Object.values(CausalTermino).includes(opts.causal))
+    return { ok: false, error: "Indica la causal de término." };
+
+  const esDesahucio =
+    opts.causal === "desahucio_arrendador" || opts.causal === "desahucio_arrendatario";
+  let fechaDesahucio: Date | null = null;
+  if (opts.fechaNotificacionDesahucio) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(opts.fechaNotificacionDesahucio) ||
+        isNaN(new Date(opts.fechaNotificacionDesahucio).getTime()))
+      return { ok: false, error: "La fecha de notificación del desahucio no es válida." };
+    fechaDesahucio = new Date(opts.fechaNotificacionDesahucio + "T00:00:00Z");
+  }
+  // El desahucio se cuenta desde su notificación: sin esa fecha, el plazo de
+  // restitución de la Ley 18.101 no se puede calcular.
+  if (esDesahucio && fechaDesahucio === null)
+    return { ok: false, error: "Un desahucio necesita la fecha en que se notificó." };
 
   try {
     const actor  = await getActor();
@@ -156,7 +182,12 @@ export async function terminarContrato(
       /* Contrato → terminado / terminado_anticipado */
       await tx.contrato.update({
         where: { id: contratoId, tenantId: tenant.id },
-        data:  { estado: nuevoEstado, fechaTermino: hoy },
+        data:  {
+          estado: nuevoEstado,
+          fechaTermino: hoy,
+          causalTermino: opts.causal,
+          fechaNotificacionDesahucio: fechaDesahucio,
+        },
       });
 
       /* Cancelar períodos futuros pendientes/atrasados */

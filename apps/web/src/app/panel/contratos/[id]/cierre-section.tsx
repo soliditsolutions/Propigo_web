@@ -9,6 +9,25 @@ import { terminarContrato } from "./actions";
 import { clp, cantidad } from "@/lib/format";
 import { useToast } from "@/components/ui/toast";
 
+/**
+ * Causales de término, en el lenguaje del corredor. El orden es intencional:
+ * las más habituales por tipo de término van primero. `desahucio` marca las
+ * que exigen la fecha de notificación (Ley 18.101 cuenta el plazo desde ahí).
+ */
+const CAUSALES: {
+  valor: string; etiqueta: string; tipos: ("normal" | "anticipado")[]; desahucio?: boolean;
+}[] = [
+  { valor: "vencimiento_plazo",            etiqueta: "Venció el plazo pactado",              tipos: ["normal"] },
+  { valor: "mutuo_acuerdo",                etiqueta: "Mutuo acuerdo de las partes",          tipos: ["normal", "anticipado"] },
+  { valor: "desahucio_arrendatario",       etiqueta: "El arrendatario avisa que se va",      tipos: ["anticipado"], desahucio: true },
+  { valor: "desahucio_arrendador",         etiqueta: "El arrendador pone término con aviso", tipos: ["anticipado"], desahucio: true },
+  { valor: "no_pago_renta",                etiqueta: "No pago de la renta",                  tipos: ["anticipado"] },
+  { valor: "incumplimiento_contrato",      etiqueta: "Incumplimiento de otra obligación",    tipos: ["anticipado"] },
+  { valor: "destruccion_inmueble",         etiqueta: "El inmueble se destruyó o quedó inhabitable", tipos: ["anticipado"] },
+  { valor: "expiracion_derecho_arrendador",etiqueta: "Se extinguió el derecho del arrendador (venta, remate)", tipos: ["anticipado"] },
+  { valor: "otra",                         etiqueta: "Otra causal",                          tipos: ["normal", "anticipado"] },
+];
+
 interface Props {
   contratoId:          string;
   /** Fecha de término pactada del contrato — null si es de plazo indefinido.
@@ -59,6 +78,17 @@ export function CierreSection({
     permitirTerminoNormal ? "normal" : "anticipado"
   );
   const [montoRetencion, setMontoRetencion] = useState(0);
+  const [causal, setCausal]               = useState("");
+  const [fechaDesahucio, setFechaDesahucio] = useState("");
+
+  // Las causales que corresponden al tipo elegido. Cambiar de tipo puede dejar
+  // una causal que ya no aplica: en ese caso se limpia, para no terminar un
+  // contrato "normal" con la causal de un no-pago.
+  const causalesDisponibles = CAUSALES.filter((c) => c.tipos.includes(tipo));
+  const causalActual = CAUSALES.find((c) => c.valor === causal);
+  const requiereFechaDesahucio = !!causalActual?.desahucio;
+  // No se puede terminar sin causal, ni con un desahucio sin su fecha.
+  const puedeTerminar = !!causal && (!requiereFechaDesahucio || !!fechaDesahucio);
 
   /* Renta del período faltante — informativa. La Ley 18.101 no regula el
    * término anticipado por el arrendatario; lo habitual y más defendible
@@ -75,7 +105,11 @@ export function CierreSection({
   function handleTerminar() {
     if (!confirmado) return;
     startTransition(async () => {
-      const res = await terminarContrato(contratoId, { tipo, montoRetencion });
+      const res = await terminarContrato(contratoId, {
+        tipo, montoRetencion,
+        causal: causal as never,
+        fechaNotificacionDesahucio: requiereFechaDesahucio ? fechaDesahucio : undefined,
+      });
       if (!res.ok) {
         toast(res.error ?? "Error al terminar el contrato.", "error");
         return;
@@ -123,7 +157,15 @@ export function CierreSection({
                 <button
                   key={t}
                   type="button"
-                  onClick={() => !disabled && setTipo(t)}
+                  onClick={() => {
+                    if (disabled) return;
+                    setTipo(t);
+                    // Si la causal elegida no pertenece al nuevo tipo, se limpia.
+                    if (causal && !CAUSALES.find((c) => c.valor === causal)?.tipos.includes(t)) {
+                      setCausal("");
+                      setFechaDesahucio("");
+                    }
+                  }}
                   aria-pressed={active}
                   disabled={disabled}
                   title={disabled ? "Disponible solo durante el último mes del contrato" : undefined}
@@ -149,6 +191,46 @@ export function CierreSection({
               );
             })}
           </div>
+        </fieldset>
+
+        {/* Causal de término — de ella dependen el plazo de restitución y el
+            procedimiento que procede, así que no es opcional. */}
+        <fieldset>
+          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-danger-dk)" }}>
+            Causal de término
+          </legend>
+          <select
+            value={causal}
+            onChange={(e) => {
+              setCausal(e.target.value);
+              if (!CAUSALES.find((c) => c.valor === e.target.value)?.desahucio) setFechaDesahucio("");
+            }}
+            className="w-full rounded-xl border py-2.5 px-3 text-sm outline-none"
+            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+          >
+            <option value="">Selecciona una causal…</option>
+            {causalesDisponibles.map((c) => (
+              <option key={c.valor} value={c.valor}>{c.etiqueta}</option>
+            ))}
+          </select>
+          {requiereFechaDesahucio && (
+            <div className="mt-3">
+              <label htmlFor="fechaDesahucio" className="mb-1 block text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+                Fecha en que se notificó el desahucio
+              </label>
+              <input
+                id="fechaDesahucio"
+                type="date"
+                value={fechaDesahucio}
+                onChange={(e) => setFechaDesahucio(e.target.value)}
+                className="w-full rounded-xl border py-2 px-3 text-sm outline-none"
+                style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+              />
+              <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                La Ley 18.101 cuenta el plazo de restitución desde la notificación, no desde hoy.
+              </p>
+            </div>
+          )}
         </fieldset>
 
         {/* Aviso renta del período faltante (solo anticipado, informativo) */}
@@ -263,11 +345,11 @@ export function CierreSection({
         <button
           type="button"
           onClick={handleTerminar}
-          disabled={!confirmado || isPending}
+          disabled={!confirmado || !puedeTerminar || isPending}
           className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
           style={{
-            background: (!confirmado || isPending) ? "var(--hw-border-2)" : "var(--hw-danger)",
-            cursor: !confirmado ? "not-allowed" : "pointer",
+            background: (!confirmado || !puedeTerminar || isPending) ? "var(--hw-border-2)" : "var(--hw-danger)",
+            cursor: (!confirmado || !puedeTerminar) ? "not-allowed" : "pointer",
           }}
         >
           {isPending ? (

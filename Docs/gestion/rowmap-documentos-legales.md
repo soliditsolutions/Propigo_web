@@ -74,7 +74,7 @@ lógica: es el trabajo más barato del rowMap y desbloquea todo lo demás.
 | **L-DT7** | Las cuentas bancarias entran al régimen de visibilidad del Grupo 1: dato sensible, no público | L-DT5, L-DT6 | — | `[ ]` |
 | **L-DT8** | `Contrato.inscripcionCbr` (fojas, número, año) — hoy el borrador lo deja como marcador | — | — | `[x]` |
 | **L-DT9** | `Contrato.firmadoAnteNotario` — es lo que da prueba suficiente en el monitorio (Ley 21.461) | — | — | `[x]` |
-| **L-DT10** | `Contrato.causalTermino` y fecha de notificación del desahucio (campos y enum en esquema; UI en el flujo de cierre) | — | — | `[~]` |
+| **L-DT10** | `Contrato.causalTermino` y fecha de notificación del desahucio | — | — | `[x]` |
 
 ---
 

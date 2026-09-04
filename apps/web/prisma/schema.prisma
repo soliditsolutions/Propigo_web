@@ -55,6 +55,32 @@ enum EstadoContrato {
   cancelado            // Borrador anulado antes de activarse — nunca estuvo vigente
 }
 
+/**
+ * Por qué terminó un contrato.
+ *
+ * Las causales salen de la Ley 18.101 y del Código Civil. `otra` existe porque
+ * el corredor no puede quedar bloqueado por un caso que la lista no previó.
+ */
+enum CausalTermino {
+  /// Las partes acuerdan poner término. Es el caso normal y el más limpio.
+  mutuo_acuerdo
+  /// Llegó la fecha de fin pactada y nadie renovó.
+  vencimiento_plazo
+  /// El arrendador pone término con aviso (Ley 18.101 arts. 3 y 4).
+  desahucio_arrendador
+  /// El arrendatario avisa que se va antes del vencimiento.
+  desahucio_arrendatario
+  /// Mora en el pago de la renta (Código Civil art. 1977).
+  no_pago_renta
+  /// Incumplimiento de otra obligación del contrato.
+  incumplimiento_contrato
+  /// El inmueble se destruyó o quedó inhabitable.
+  destruccion_inmueble
+  /// Se extinguió el derecho del arrendador sobre el inmueble (venta, remate).
+  expiracion_derecho_arrendador
+  otra
+}
+
 enum EstadoPeriodo {
   pendiente
   pagado
@@ -196,6 +222,14 @@ enum PagadorServicio {
   propietario
 }
 
+/** Tipo de cuenta bancaria, tal como lo pide cualquier formulario chileno. */
+enum TipoCuentaBancaria {
+  corriente
+  vista
+  ahorro
+  cuenta_rut
+}
+
 /**
  * Tipo de unidad accesoria con rol propio.
  *
@@ -247,7 +281,19 @@ enum CanalOtp {
 model Tenant {
   id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nombre                  String
-  rut                     String?
+  /// RUT de la corredora, canónico sin puntos ("76123456-0"). Obligatorio y
+  /// único: identifica la cuenta ante el SII y es lo que va en todo documento
+  /// que la corredora emite. No es la PK —una PK no debería cambiar nunca y un
+  /// RUT sí se corrige tras un typo— pero cumple el mismo rol identificador.
+  rut                     String   @unique
+  /// Decide si la comisión de la corredora lleva IVA. Una persona jurídica
+  /// presta un servicio afecto; una persona natural que emite boleta de
+  /// honorarios queda exenta por el DL 825 art. 12 letra E N° 8.
+  esPersonaJuridica       Boolean  @default(true) @map("es_persona_juridica")
+  /// Giro y domicilio comercial: menciones obligatorias del emisor en todo
+  /// documento de cobro que emite la corredora.
+  giro                    String?
+  direccion               String?
   plan                    String?
   emailContacto           String?  @map("email_contacto")   // email público para recibir consultas del marketplace
   // Config operativa (ADR-0008)
@@ -285,6 +331,7 @@ model Tenant {
   suscripciones    SuscripcionTenant[]
   cargosBilling    CargoBilling[]
   comisiones       ComisionPlataforma[]
+  cuentasBancarias CuentaBancaria[]
 
   @@map("tenant")
 }
@@ -364,7 +411,7 @@ model Persona {
   accesosOtp            AccesoOtp[]
   accesosLog            AccesoLog[]
   preferenciaNotif PreferenciaNotificacion[]
-
+  cuentasBancarias CuentaBancaria[]
 
   @@index([tenantId])
   @@unique([tenantId, rut])
@@ -384,6 +431,11 @@ model Propiedad {
   /// Si las partes del contrato pueden ver el rol en el portal. El corredor lo
   /// ve siempre y el contrato lo lleva igual: esto decide qué se comparte.
   rolVisibleEnPortal Boolean         @default(true) @map("rol_visible_en_portal")
+  /// Avalúo fiscal del SII, en pesos. El Art. 10 de la Ley 18.101 lo exige
+  /// como mención del contrato, y el DL 825 art. 17 lo usa como base de la
+  /// deducción del 11 % que rebaja el IVA del arriendo amoblado. Lo ingresa el
+  /// corredor a mano (decisión L-03): no hay servicio del SII que lo entregue.
+  avaluoFiscal       Decimal?        @map("avaluo_fiscal") @db.Decimal(14, 0)
   direccion          String
   comuna             String?
   region             String?
@@ -491,6 +543,12 @@ model Contrato {
   valorArriendo       Decimal            @map("valor_arriendo") @db.Decimal(14, 4)
   diaVencimiento      Int                @map("dia_vencimiento") @db.SmallInt
   comisionCorredorPct Decimal            @default(0) @map("comision_corredor_pct") @db.Decimal(5, 2)
+  /// Determina si el arriendo está afecto a IVA. Por regla general arrendar un
+  /// inmueble es exento; el DL 825 art. 8 letra g) lo grava cuando se arrienda
+  /// amoblado. El cálculo vive en @housing/core (ivaArriendo) y necesita además
+  /// el avalúo fiscal de la propiedad: sin él no se puede aplicar la deducción
+  /// del 11 % y se le cobraría de más al arrendatario.
+  esAmoblado          Boolean            @default(false) @map("es_amoblado")
   reajuste            FrecuenciaReajuste @default(anual)
   moraTasaPct         Decimal            @default(0) @map("mora_tasa_pct") @db.Decimal(5, 2)
   moraDiasGracia      Int                @default(0) @map("mora_dias_gracia") @db.SmallInt
@@ -515,6 +573,25 @@ model Contrato {
   fechaInicio         DateTime           @map("fecha_inicio") @db.Date
   fechaFin            DateTime?          @map("fecha_fin") @db.Date
   fechaTermino        DateTime?          @map("fecha_termino") @db.Date  // Fecha real en que se terminó/canceló
+  /// Por qué terminó. Se fija al cerrar el contrato; null mientras está vigente
+  /// o en borrador. No es taxonomía por prolijidad: de la causal dependen el
+  /// plazo de restitución y qué procedimiento judicial procede.
+  causalTermino       CausalTermino?     @map("causal_termino")
+  /// Cuándo se notificó el desahucio. La Ley 18.101 cuenta los plazos de
+  /// restitución desde la notificación y no desde la fecha de término, así que
+  /// sin este dato el plazo no se puede calcular.
+  fechaNotificacionDesahucio DateTime?   @map("fecha_notificacion_desahucio") @db.Date
+  /// Inscripción del inmueble en el Conservador de Bienes Raíces; hoy el
+  /// borrador del contrato la deja como marcador de texto. Fojas y número van
+  /// como texto porque se transcriben literales a la cláusula ("234 vuelta").
+  inscripcionCbrFojas       String?      @map("inscripcion_cbr_fojas")
+  inscripcionCbrNumero      String?      @map("inscripcion_cbr_numero")
+  inscripcionCbrAnio        Int?         @map("inscripcion_cbr_anio") @db.SmallInt
+  inscripcionCbrConservador String?      @map("inscripcion_cbr_conservador")
+  /// Si el contrato se firmó ante notario. Bajo la Ley 21.461 es lo que
+  /// habilita el procedimiento monitorio: sin firma notarial el propietario
+  /// queda en juicio ordinario.
+  firmadoAnteNotario  Boolean            @default(false) @map("firmado_ante_notario")
   // Validación IA — resultado de la última validación automática
   validacionIa           Json?     @map("validacion_ia")
   validacionEstado       String?   @map("validacion_estado")     // "aprobado" | "con_alertas" | "requiere_revision"
@@ -812,6 +889,50 @@ model CuentaServicio {
   @@index([tenantId])
   @@index([propiedadId])
   @@map("cuenta_servicio")
+}
+
+/**
+ * Cuenta bancaria de destino de un pago.
+ *
+ * Una sola tabla para los dos casos porque son el mismo dato con el mismo
+ * régimen de sensibilidad, y separarlos habría significado duplicar cinco
+ * columnas y dos validaciones:
+ *   · persona_id nulo    → la cuenta de la propia corredora, la que va en el
+ *     recordatorio de pago para que el arrendatario sepa dónde transferir.
+ *   · persona_id no nulo → la cuenta de un propietario, a la que se abona la
+ *     liquidación.
+ *
+ * Una por titular: setup.sql lo asegura con un índice único parcial, porque el
+ * @@unique de Prisma no alcanza cuando persona_id es nulo (en Postgres dos NULL
+ * no chocan entre sí y se podrían crear varias cuentas de corredora).
+ */
+model CuentaBancaria {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String             @map("tenant_id") @db.Uuid
+  /// Null = cuenta de la corredora. No nulo = cuenta de ese propietario.
+  personaId  String?            @map("persona_id") @db.Uuid
+  banco      String
+  tipo       TipoCuentaBancaria @default(corriente)
+  numero     String
+  /// El titular puede no ser el propietario del inmueble (una sociedad, un
+  /// apoderado), así que nombre y RUT se guardan aparte y no se derivan.
+  titular    String
+  rutTitular String             @map("rut_titular")
+  /// Correo al que el banco manda el comprobante de la transferencia.
+  email      String?
+  /// Si las partes pueden verla en el portal. Por defecto NO: un número de
+  /// cuenta es de los datos más sensibles que guarda la plataforma. Que la
+  /// cuenta de la corredora aparezca en el recordatorio de pago es otra cosa
+  /// —ese documento va dirigido a quien debe pagar— y no pasa por acá.
+  visibleEnPortal Boolean       @default(false) @map("visible_en_portal")
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  persona Persona? @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@unique([tenantId, personaId])
+  @@map("cuenta_bancaria")
 }
 
 /**

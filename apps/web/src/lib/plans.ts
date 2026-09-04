@@ -16,8 +16,13 @@
  * punto de enforcement en el servidor.
  */
 
-/** IVA chileno. Único lugar donde vive la tasa. */
-export const IVA_PCT = 19;
+/**
+ * IVA chileno. La tasa vive en `@housing/core` porque también la necesita el
+ * IVA del arriendo amoblado, que es dominio financiero y no billing de Housing.
+ * Se reexporta acá para no romper a quien ya la importaba desde este módulo.
+ */
+import { IVA_PCT } from "@housing/core";
+export { IVA_PCT };
 
 /** Meses que se pagan en el plan anual (12 − 2 de regalo). */
 export const MESES_PAGADOS_ANUAL = 10;

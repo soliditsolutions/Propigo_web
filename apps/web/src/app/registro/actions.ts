@@ -128,6 +128,10 @@ export async function registroAction(
   const rut      = formData.get("rut")?.toString().trim()                 ?? "";
   const email    = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const empresa  = formData.get("empresa")?.toString().trim()             ?? "";
+  // Cómo opera la corredora. Decide dos cosas: si la comisión que emite lleva
+  // IVA (DL 825 art. 12 E N° 8) y si hay que pedirle un RUT distinto del suyo.
+  const esPersonaJuridica = formData.get("esPersonaJuridica")?.toString() !== "natural";
+  const rutEmpresaRaw     = formData.get("rutEmpresa")?.toString().trim() ?? "";
   const password = formData.get("password")?.toString()                   ?? "";
   const consent  = formData.get("consent")?.toString();
   const consentIa = formData.get("consentIa")?.toString();
@@ -152,6 +156,22 @@ export async function registroAction(
   if (empresa.length < 2 || empresa.length > 120) {
     return { error: "El nombre de la empresa debe tener entre 2 y 120 caracteres.", field: "empresa" };
   }
+
+  // Un corredor independiente ES la corredora: su RUT y el de la empresa son
+  // el mismo, y pedírselo dos veces solo daría ocasión de tipearlo distinto.
+  const rutEmpresa = esPersonaJuridica ? rutEmpresaRaw : rut;
+
+  if (esPersonaJuridica && !rutEmpresa) {
+    return { error: "Ingresa el RUT de la corredora.", field: "rutEmpresa" };
+  }
+  if (!validateRut(rutEmpresa)) {
+    return {
+      error: "El RUT de la corredora no es válido. Verifica el dígito verificador.",
+      field: "rutEmpresa",
+    };
+  }
+
+  const rutEmpresaCanonical = canonicalRut(rutEmpresa);
 
   // Ley 21.719 Art. 4 — consentimiento explícito e inequívoco (no premarcado)
   if (!consent) {
@@ -293,9 +313,12 @@ export async function registroAction(
   // que exista sesión no hay tenant al cual scopear la consulta, así que se
   // resuelve con las mismas funciones SECURITY DEFINER que usa login.
   try {
-    const [emailRows, rutRows] = await Promise.all([
+    const [emailRows, rutRows, rutEmpresaRows] = await Promise.all([
       prisma.$queryRaw<{ existe: boolean }[]>`SELECT auth_email_existe(${email}) AS existe`,
       prisma.$queryRaw<{ existe: boolean }[]>`SELECT auth_rut_existe(${rutCanonical}) AS existe`,
+      // tenant.rut es único global desde el Grupo B del rowMap legal: identifica
+      // a la corredora ante el SII y no puede repetirse entre cuentas.
+      prisma.$queryRaw<{ existe: boolean }[]>`SELECT auth_rut_corredora_existe(${rutEmpresaCanonical}) AS existe`,
     ]);
 
     if (emailRows[0]?.existe) {
@@ -303,6 +326,14 @@ export async function registroAction(
     }
     if (rutRows[0]?.existe) {
       return { error: "Ya existe una cuenta registrada con este RUT.", field: "rut" };
+    }
+    if (rutEmpresaRows[0]?.existe) {
+      return {
+        error: esPersonaJuridica
+          ? "Ya existe una corredora registrada con este RUT."
+          : "Ya existe una corredora registrada con tu RUT.",
+        field: esPersonaJuridica ? "rutEmpresa" : "rut",
+      };
     }
   } catch {
     return { error: "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo." };
@@ -319,7 +350,12 @@ export async function registroAction(
 
     newUser = await prisma.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
-        data:   { nombre: empresa, plan: "Gratuito" },
+        data:   {
+          nombre: empresa,
+          rut:    rutEmpresaCanonical,
+          esPersonaJuridica,
+          plan:   "Gratuito",
+        },
         select: { id: true },
       });
 

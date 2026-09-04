@@ -13,6 +13,8 @@ import {
   validarCuentas,
   normalizarCuenta,
   validarRolesComplementarios,
+  validarAvaluoFiscal,
+  MAX_AVALUO_FISCAL,
   esCuentaObligatoria,
   nombreCuenta,
   SERVICIOS_OBLIGATORIOS,
@@ -335,5 +337,41 @@ describe("normalizarCuenta — etiqueta", () => {
       etiqueta: "  Internet  ", paga: "arrendatario",
     });
     expect(r.etiqueta).toBe("Internet");
+  });
+});
+
+describe("validarAvaluoFiscal", () => {
+  it("es opcional: sin valor no es un error", () => {
+    // Hay propiedades cargadas antes de que el campo existiera, y un corredor
+    // puede no tener las contribuciones a mano al dar de alta el inmueble.
+    expect(validarAvaluoFiscal(undefined)).toBeNull();
+    expect(validarAvaluoFiscal(null)).toBeNull();
+  });
+
+  it("acepta montos reales de vivienda", () => {
+    for (const v of [2_500_000, 45_000_000, 380_000_000, MAX_AVALUO_FISCAL]) {
+      expect(validarAvaluoFiscal(v), String(v)).toBeNull();
+    }
+  });
+
+  it("rechaza cero y negativos, y sugiere dejarlo en blanco", () => {
+    expect(validarAvaluoFiscal(0)).toMatch(/mayor que cero/);
+    expect(validarAvaluoFiscal(0)).toMatch(/en blanco/);
+    expect(validarAvaluoFiscal(-1)).toMatch(/mayor que cero/);
+  });
+
+  it("rechaza decimales: el peso chileno no los tiene", () => {
+    expect(validarAvaluoFiscal(45_000_000.5)).toMatch(/sin decimales/);
+  });
+
+  it("atrapa el dedazo de los ceros de más", () => {
+    // 45 millones tecleado con tres ceros extra. Es el error que el techo
+    // existe para atajar, y el mensaje lo dice en esos términos.
+    expect(validarAvaluoFiscal(45_000_000_000_0)).toMatch(/ceros de más/);
+  });
+
+  it("rechaza NaN e Infinity", () => {
+    expect(validarAvaluoFiscal(Number.NaN)).toMatch(/debe ser un número/);
+    expect(validarAvaluoFiscal(Number.POSITIVE_INFINITY)).toMatch(/debe ser un número/);
   });
 });

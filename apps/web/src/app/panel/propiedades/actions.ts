@@ -12,7 +12,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { verificarCupoPropiedades } from "@/lib/plan-limits";
 import {
   normalizarRol, validarRol, validarCuentas, normalizarCuenta,
-  validarRolesComplementarios,
+  validarRolesComplementarios, validarAvaluoFiscal,
   type EntradaCuenta, type EntradaRolComplementario,
 } from "@/lib/propiedad-datos";
 import { getClientIpFromHeaders } from "@/lib/ip";
@@ -136,6 +136,11 @@ export async function crearPropiedad(data: {
   /** Estacionamientos y bodegas con rol propio. Opcional (G-06). */
   rolVisibleEnPortal?: boolean;
   rolesComplementarios?: EntradaRolComplementario[];
+  /**
+   * Avalúo fiscal del SII, en pesos. Opcional acá y obligatorio al marcar un
+   * contrato como amoblado: es la base de la deducción del 11 % (DL 825 art. 17).
+   */
+  avaluoFiscal?: number | null;
   comuna?: string;
   region?: string;
   piezas?: number;
@@ -173,6 +178,10 @@ export async function crearPropiedad(data: {
   }
   {
     const e = validarRolesComplementarios(data.rolesComplementarios ?? [], data.rol);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarAvaluoFiscal(data.avaluoFiscal);
     if (e) return { ok: false, error: e };
   }
 
@@ -283,6 +292,7 @@ export async function crearPropiedad(data: {
           estado:      "borrador",          // ← siempre borrador al crear
           direccion:   data.direccion.trim(),
           rol:         normalizarRol(data.rol),
+          avaluoFiscal: data.avaluoFiscal ?? null,
           rolVisibleEnPortal: data.rolVisibleEnPortal !== false,
           comuna:      data.comuna?.trim()  || null,
           region:      data.region?.trim()  || null,
@@ -396,6 +406,8 @@ export async function actualizarPropiedad(
     cuentas: EntradaCuenta[];
     rolesComplementarios?: EntradaRolComplementario[];
     direccion: string;
+    /** Avalúo fiscal del SII, en pesos. Ver la nota en crearPropiedad. */
+    avaluoFiscal?: number | null;
     comuna?: string;
     region?: string;
     piezas?: number;
@@ -431,6 +443,10 @@ export async function actualizarPropiedad(
   }
   {
     const e = validarRolesComplementarios(data.rolesComplementarios ?? [], data.rol);
+    if (e) return { ok: false, error: e };
+  }
+  {
+    const e = validarAvaluoFiscal(data.avaluoFiscal);
     if (e) return { ok: false, error: e };
   }
   if (!["casa", "departamento", "cabana"].includes(data.tipo))
@@ -511,6 +527,7 @@ export async function actualizarPropiedad(
         data: {
           tipo:        data.tipo as "casa" | "departamento" | "cabana",
           rol:         normalizarRol(data.rol),
+          avaluoFiscal: data.avaluoFiscal ?? null,
           rolVisibleEnPortal: data.rolVisibleEnPortal !== false,
           direccion:   data.direccion.trim(),
           comuna:      data.comuna?.trim()  || null,

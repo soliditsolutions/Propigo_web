@@ -36,12 +36,13 @@ describe("RegistroForm — estado inicial (sin errores)", () => {
     mockUseActionState.mockReturnValue([...NO_ERROR]);
   });
 
-  it("renderiza los cinco campos requeridos", () => {
+  it("renderiza los seis campos requeridos", () => {
     render(<RegistroForm />);
     expect(screen.getByLabelText("Nombre completo")).toBeInTheDocument();
     expect(screen.getByLabelText("RUT")).toBeInTheDocument();
     expect(screen.getByLabelText("Correo electrónico")).toBeInTheDocument();
     expect(screen.getByLabelText("Nombre de la corredora")).toBeInTheDocument();
+    expect(screen.getByLabelText("RUT de la corredora")).toBeInTheDocument();
     expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
   });
 
@@ -200,5 +201,89 @@ describe("RegistroForm — aria-describedby al hint cuando no hay error", () => 
   it("nombre-hint contiene texto sobre la cédula de identidad", () => {
     render(<RegistroForm />);
     expect(document.getElementById("nombre-hint")).toHaveTextContent(/cédula de identidad/i);
+  });
+});
+
+
+// ── RUT de la corredora (rowMap legal, Grupo B: L-DT1 y L-DT2) ───────────────
+//
+// Antes el registro creaba el Tenant solo con nombre y plan: el RUT de la
+// corredora —lo que la identifica ante el SII y va en cada documento que
+// emite— no se pedía en ninguna parte. Ahora es obligatorio y único.
+//
+// El caso que estos tests cuidan es el del corredor independiente: para él la
+// corredora ES él, y pedirle su RUT dos veces solo daría ocasión de tipearlo
+// distinto entre un campo y otro.
+
+function llenarFormulario() {
+  fireEvent.change(screen.getByLabelText("Nombre completo"), {
+    target: { value: "Juan García López" },
+  });
+  fireEvent.change(screen.getByLabelText("RUT"), { target: { value: "111111111" } });
+  fireEvent.change(screen.getByLabelText("Correo electrónico"), {
+    target: { value: "juan@correo.cl" },
+  });
+  fireEvent.change(screen.getByLabelText("Nombre de la corredora"), {
+    target: { value: "Corredora del Sur SpA" },
+  });
+  fireEvent.change(screen.getByLabelText("Contraseña"), {
+    target: { value: "MiContraseñaMuyLargaYSegura123!" },
+  });
+  fireEvent.click(screen.getByRole("checkbox"));
+}
+
+describe("RegistroForm — RUT de la corredora", () => {
+  beforeEach(() => {
+    mockUseActionState.mockReturnValue([...NO_ERROR]);
+  });
+
+  it("por defecto opera como empresa y pide el RUT de la corredora", () => {
+    render(<RegistroForm />);
+    expect(screen.getByRole("radio", { name: /como empresa/i })).toBeChecked();
+    expect(screen.getByLabelText("RUT de la corredora")).toBeInTheDocument();
+  });
+
+  it("el hint aclara que no es el RUT personal", () => {
+    render(<RegistroForm />);
+    expect(document.getElementById("rutEmpresa-hint")).toHaveTextContent(/no es el tuyo/i);
+  });
+
+  it("como persona natural el campo desaparece: no se pide el RUT dos veces", () => {
+    render(<RegistroForm />);
+    fireEvent.click(screen.getByRole("radio", { name: /como persona natural/i }));
+    expect(screen.queryByLabelText("RUT de la corredora")).toBeNull();
+  });
+
+  it("valida el dígito verificador mientras se escribe", () => {
+    render(<RegistroForm />);
+    // 11.111.111-1 es válido mod-11, así que -2 no lo es.
+    fireEvent.change(screen.getByLabelText("RUT de la corredora"), {
+      target: { value: "111111112" },
+    });
+    expect(screen.getByText("RUT inválido")).toBeInTheDocument();
+  });
+
+  it("formatea con puntos y guión igual que el RUT personal", () => {
+    render(<RegistroForm />);
+    const input = screen.getByLabelText("RUT de la corredora") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "761234560" } });
+    expect(input.value).toBe("76.123.456-0");
+  });
+
+  it("como empresa, no deja enviar sin el RUT de la corredora", () => {
+    render(<RegistroForm />);
+    llenarFormulario();
+    clickSubmit();
+    expect(screen.getByText(/Ingresa el RUT de tu corredora/i)).toBeInTheDocument();
+  });
+
+  it("como persona natural, el formulario avanza sin ese campo", () => {
+    render(<RegistroForm />);
+    fireEvent.click(screen.getByRole("radio", { name: /como persona natural/i }));
+    llenarFormulario();
+    clickSubmit();
+    // Este es el punto: el corredor independiente no queda bloqueado por un
+    // campo que para él es el mismo dato que ya entregó.
+    expect(screen.queryByText(/Ingresa el RUT de tu corredora/i)).toBeNull();
   });
 });

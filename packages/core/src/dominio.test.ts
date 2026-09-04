@@ -10,6 +10,7 @@ import {
   conciliar,
   calcularLiquidacion,
   esGarantiaValida, calcularTerminoGarantia, MAX_MESES_GARANTIA,
+  ivaArriendo, ivaComision, deduccionAvaluo, IVA_PCT, DEDUCCION_AVALUO_PCT_ANUAL,
 } from "./index";
 
 // ─── Primitivas ───────────────────────────────────────────────────────────────
@@ -342,5 +343,110 @@ describe("flujo completo (conciliar → liquidar)", () => {
     });
     assert.ok(liq.liquidacionNetaCLP < arriendoCLP, "el neto debe ser menor al bruto");
     assert.equal(liq.liquidacionNetaCLP, arriendoCLP - liq.comisionCLP - 45000);
+  });
+});
+
+// ─── IVA del arriendo y de la comisión (DL 825) ───────────────────────────────
+
+describe("ivaArriendo", () => {
+  test("el arriendo no amoblado es exento y no necesita avalúo", () => {
+    const r = ivaArriendo({ esAmoblado: false, rentaCLP: 800_000 });
+    assert.equal(r.afecto, false);
+    assert.equal(r.ivaCLP, 0);
+    assert.equal(r.totalCLP, 800_000);
+    assert.equal(r.deduccionAvaluoCLP, 0);
+  });
+
+  test("el amoblado descuenta el 11 % anual del avalúo antes de aplicar la tasa", () => {
+    // Avalúo 45.000.000 ⇒ 11 % anual = 4.950.000 ⇒ mensual 412.500.
+    // Base = 800.000 − 412.500 = 387.500 ⇒ IVA = 73.625.
+    const r = ivaArriendo({
+      esAmoblado: true, rentaCLP: 800_000, avaluoFiscalCLP: 45_000_000,
+    });
+    assert.equal(r.afecto, true);
+    assert.equal(r.deduccionAvaluoCLP, 412_500);
+    assert.equal(r.baseImponibleCLP, 387_500);
+    assert.equal(r.ivaCLP, 73_625);
+    assert.equal(r.totalCLP, 873_625);
+  });
+
+  test("NO es renta × 19 %: la deducción del art. 17 baja el impuesto", () => {
+    // Este es el error que el módulo existe para evitar. Sin la deducción el
+    // IVA sería 152.000 y se le estaría cobrando de más al arrendatario.
+    const r = ivaArriendo({
+      esAmoblado: true, rentaCLP: 800_000, avaluoFiscalCLP: 45_000_000,
+    });
+    const sinDeduccion = Math.round((800_000 * IVA_PCT) / 100);
+    assert.equal(sinDeduccion, 152_000);
+    assert.ok(r.ivaCLP < sinDeduccion);
+  });
+
+  test("si la deducción supera la renta, la base es cero y no negativa", () => {
+    // Un avalúo alto con una renta baja: el art. 17 permite descontar, no
+    // generar un impuesto a favor del contribuyente.
+    const r = ivaArriendo({
+      esAmoblado: true, rentaCLP: 300_000, avaluoFiscalCLP: 45_000_000,
+    });
+    assert.equal(r.baseImponibleCLP, 0);
+    assert.equal(r.ivaCLP, 0);
+    assert.equal(r.totalCLP, 300_000);
+  });
+
+  test("un amoblado sin avalúo falla en vez de gravar la renta completa", () => {
+    assert.throws(
+      () => ivaArriendo({ esAmoblado: true, rentaCLP: 800_000 }),
+      /avalúo fiscal/,
+    );
+    assert.throws(
+      () => ivaArriendo({ esAmoblado: true, rentaCLP: 800_000, avaluoFiscalCLP: null }),
+      /avalúo fiscal/,
+    );
+  });
+
+  test("rechaza una renta negativa", () => {
+    assert.throws(() => ivaArriendo({ esAmoblado: false, rentaCLP: -1 }));
+  });
+});
+
+describe("deduccionAvaluo", () => {
+  test("un año completo deduce el 11 % del avalúo", () => {
+    assert.equal(deduccionAvaluo(45_000_000, 12), 4_950_000);
+    assert.equal(DEDUCCION_AVALUO_PCT_ANUAL, 11);
+  });
+
+  test("prorratea períodos distintos de un año y redondea al peso", () => {
+    // 38.750.000 × 11 % = 4.262.500; /12 = 355.208,33 ⇒ 355.208.
+    assert.equal(deduccionAvaluo(38_750_000), 355_208);
+    assert.equal(deduccionAvaluo(45_000_000, 6), 2_475_000);
+  });
+
+  test("rechaza avalúo negativo y período no positivo", () => {
+    assert.throws(() => deduccionAvaluo(-1));
+    assert.throws(() => deduccionAvaluo(45_000_000, 0));
+    assert.throws(() => deduccionAvaluo(45_000_000, -3));
+  });
+});
+
+describe("ivaComision", () => {
+  test("la corredora persona jurídica emite comisión afecta", () => {
+    const r = ivaComision(64_000, true);
+    assert.equal(r.afecto, true);
+    assert.equal(r.ivaCLP, 12_160);
+    assert.equal(r.totalCLP, 76_160);
+  });
+
+  test("la corredora persona natural queda exenta (art. 12 E N° 8)", () => {
+    const r = ivaComision(64_000, false);
+    assert.equal(r.afecto, false);
+    assert.equal(r.ivaCLP, 0);
+    assert.equal(r.totalCLP, 64_000);
+  });
+
+  test("la comisión no lleva deducción de avalúo: esa regla es del arriendo", () => {
+    assert.equal(ivaComision(64_000, true).deduccionAvaluoCLP, 0);
+  });
+
+  test("rechaza una comisión negativa", () => {
+    assert.throws(() => ivaComision(-1, true));
   });
 });

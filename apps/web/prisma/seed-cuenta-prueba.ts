@@ -29,6 +29,9 @@ const CUENTA = {
   tenantId: "00000000-0000-4000-8000-000000000001",
   usuarioId: "00000000-0000-4000-8000-000000000002",
   tenantNombre: "Corredora de Prueba SpA",
+  // RUT de la corredora, distinto del RUT del usuario de más abajo: uno
+  // identifica a la empresa y el otro a la persona que la administra.
+  tenantRut: "77888999-4",
   // Diamond para que ninguna feature quede oculta detrás de un gate mientras
   // se prueba. Para probar el gating por plan, ver el doc (hay un one-liner).
   plan: "diamond",
@@ -102,8 +105,11 @@ async function main() {
 
     await tx.tenant.upsert({
       where: { id: CUENTA.tenantId },
-      create: { id: CUENTA.tenantId, nombre: CUENTA.tenantNombre, plan: CUENTA.plan },
-      update: { nombre: CUENTA.tenantNombre, plan: CUENTA.plan },
+      create: {
+        id: CUENTA.tenantId, nombre: CUENTA.tenantNombre,
+        rut: CUENTA.tenantRut, plan: CUENTA.plan,
+      },
+      update: { nombre: CUENTA.tenantNombre, rut: CUENTA.tenantRut, plan: CUENTA.plan },
     });
 
     await tx.usuario.upsert({

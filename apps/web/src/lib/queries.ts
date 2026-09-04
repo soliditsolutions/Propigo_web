@@ -586,6 +586,7 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
     direccion: p.direccion,
     rol: p.rol,
     rolVisibleEnPortal: p.rolVisibleEnPortal,
+    avaluoFiscal: p.avaluoFiscal ? Number(p.avaluoFiscal) : null,
     cuentasServicio: p.cuentasServicio,
     rolesComplementarios: p.rolesComplementarios,
     comuna: p.comuna,

@@ -36,11 +36,15 @@ const PAYLOADS = [
 
 const NUMERO_SECRETO = "SECRETO-QA-9988776655";
 const ROL_SECRETO = "9999-1";
+/** Número de cuenta bancaria señuelo. Un dato de este tipo filtrado es fraude. */
+const CUENTA_SECRETA = "SECRETO-QA-BANCO-4433221100";
 
 let prisma: PrismaClient | null = null;
 let tenantA = "";
 let tenantB = "";
 let propiedadA = "";
+let personaA = "";
+let cuentaBancariaA = "";
 
 /** Ejecuta `fn` con el contexto de tenant seteado, igual que withTenant(). */
 async function comoTenant<T>(tenantId: string, fn: (tx: PrismaClient) => Promise<T>): Promise<T> {
@@ -100,6 +104,25 @@ async function preparar(): Promise<boolean> {
     });
   });
   propiedadA = prop.id;
+
+  // Cuenta bancaria del propietario, con un número inconfundible. Va sobre la
+  // misma persona señuelo para no ocupar el cupo de la cuenta de la corredora,
+  // que el índice único parcial limita a una por tenant.
+  const cuenta = await comoTenant(tenantA, async (tx) => {
+    const persona = await tx.persona.findFirst({ where: { tenantId: tenantA }, select: { id: true } });
+    if (!persona) throw new Error("La corredora de prueba no tiene personas; falta correr el seed.");
+    personaA = persona.id;
+    await tx.cuentaBancaria.deleteMany({ where: { tenantId: tenantA, personaId: persona.id } });
+    return tx.cuentaBancaria.create({
+      data: {
+        tenantId: tenantA, personaId: persona.id, banco: "Banco QA",
+        tipo: "corriente", numero: CUENTA_SECRETA,
+        titular: "Titular QA", rutTitular: "11111111-1",
+      },
+      select: { id: true },
+    });
+  });
+  cuentaBancariaA = cuenta.id;
   return true;
 }
 
@@ -107,6 +130,9 @@ const hayBase = await preparar();
 const cuando = hayBase ? describe : describe.skip;
 
 afterAll(async () => {
+  if (prisma && cuentaBancariaA) {
+    await comoTenant(tenantA, (tx) => tx.cuentaBancaria.deleteMany({ where: { id: cuentaBancariaA } }));
+  }
   if (prisma && propiedadA) {
     await comoTenant(tenantA, (tx) => tx.propiedad.deleteMany({ where: { id: propiedadA } }));
   }
@@ -119,6 +145,44 @@ cuando("Aislamiento entre corredoras (RLS)", () => {
     // estaría dando el código de la aplicación y no la base.
     const fuga = await comoTenant(tenantB, (tx) =>
       tx.cuentaServicio.findMany({ where: { numero: NUMERO_SECRETO } }));
+    expect(fuga).toHaveLength(0);
+  });
+
+  it("la corredora dueña SÍ ve su cuenta bancaria", async () => {
+    // Control positivo, y va primero a propósito. Sin él, los tres tests que
+    // siguen —todos esperan cero filas— pasarían igual si la siembra hubiera
+    // fallado y no existiera ninguna cuenta que filtrar. Un aislamiento que se
+    // prueba sobre una tabla vacía no prueba nada.
+    const propia = await comoTenant(tenantA, (tx) =>
+      tx.cuentaBancaria.findMany({ where: { numero: CUENTA_SECRETA } }));
+    expect(propia).toHaveLength(1);
+  });
+
+  it("otra corredora NO ve las cuentas bancarias", async () => {
+    // Un número de cuenta filtrado entre corredoras no es una molestia de
+    // privacidad: es el dato con el que se comete un fraude.
+    const fuga = await comoTenant(tenantB, (tx) =>
+      tx.cuentaBancaria.findMany({ where: { numero: CUENTA_SECRETA } }));
+    expect(fuga).toHaveLength(0);
+  });
+
+  it("otra corredora NO puede modificar ni borrar una cuenta bancaria", async () => {
+    const upd = await comoTenant(tenantB, (tx) =>
+      tx.cuentaBancaria.updateMany({ where: { numero: CUENTA_SECRETA }, data: { numero: "DESVIADA" } }));
+    const del = await comoTenant(tenantB, (tx) =>
+      tx.cuentaBancaria.deleteMany({ where: { numero: CUENTA_SECRETA } }));
+    expect(upd.count).toBe(0);
+    expect(del.count).toBe(0);
+
+    // Redirigir la cuenta de destino de una liquidación es el ataque que esto
+    // impide, así que se comprueba que el número siguió siendo el mismo.
+    const propia = await comoTenant(tenantA, (tx) =>
+      tx.cuentaBancaria.findMany({ where: { id: cuentaBancariaA }, select: { numero: true } }));
+    expect(propia[0]?.numero).toBe(CUENTA_SECRETA);
+  });
+
+  it("SIN contexto de tenant tampoco se ven las cuentas bancarias", async () => {
+    const fuga = await prisma!.cuentaBancaria.findMany({ where: { numero: CUENTA_SECRETA } });
     expect(fuga).toHaveLength(0);
   });
 
@@ -246,5 +310,52 @@ cuando("Integridad de los datos", () => {
       FROM rol_complementario r JOIN propiedad p ON p.id = r.propiedad_id
       WHERE r.tenant_id <> p.tenant_id`);
     expect(Number(cruzados[0].n)).toBe(0);
+  });
+});
+
+
+cuando("Una sola cuenta bancaria por titular", () => {
+  it("la corredora no puede tener dos cuentas propias", async () => {
+    // El @@unique de Prisma sobre (tenant_id, persona_id) NO cubre este caso:
+    // en Postgres dos NULL no son iguales entre sí, así que sin el índice
+    // parcial de setup.sql se podrían acumular varias cuentas de corredora y
+    // no habría forma de saber a cuál se le pide transferir al arrendatario.
+    const datos = {
+      tenantId: tenantA, personaId: null, banco: "Banco QA",
+      tipo: "corriente" as const, numero: "QA-CORREDORA-1",
+      titular: "Corredora QA", rutTitular: "11111111-1",
+    };
+    let creadaId = "";
+    try {
+      await comoTenant(tenantA, (tx) => tx.cuentaBancaria.deleteMany({
+        where: { tenantId: tenantA, personaId: null },
+      }));
+      const primera = await comoTenant(tenantA, (tx) =>
+        tx.cuentaBancaria.create({ data: datos, select: { id: true } }));
+      creadaId = primera.id;
+
+      await expect(
+        comoTenant(tenantA, (tx) =>
+          tx.cuentaBancaria.create({ data: { ...datos, numero: "QA-CORREDORA-2" } })),
+      ).rejects.toThrow();
+    } finally {
+      if (creadaId) {
+        await comoTenant(tenantA, (tx) => tx.cuentaBancaria.deleteMany({ where: { id: creadaId } }));
+      }
+    }
+  });
+
+  it("un propietario no puede tener dos cuentas", async () => {
+    // Este sí lo cubre el @@unique de Prisma, y se comprueba para que un
+    // refactor que lo quite no pase inadvertido.
+    await expect(
+      comoTenant(tenantA, (tx) => tx.cuentaBancaria.create({
+        data: {
+          tenantId: tenantA, personaId: personaA, banco: "Banco QA",
+          tipo: "vista", numero: "QA-DUPLICADA",
+          titular: "Titular QA", rutTitular: "11111111-1",
+        },
+      })),
+    ).rejects.toThrow();
   });
 });

@@ -34,6 +34,7 @@ type Propiedad = {
   direccion: string;
   rol: string;
   rolVisibleEnPortal?: boolean;
+  avaluoFiscal: number | null;
   cuentasServicio?: EntradaCuenta[];
   rolesComplementarios?: EntradaRolComplementario[];
   comuna: string | null;
@@ -129,6 +130,8 @@ type FormProp = {
   asignadoAId: string;
   /** Rol de Avalúo del SII de la unidad habitacional (obligatorio). */
   rol: string;
+  /** Avalúo fiscal en pesos. String como el resto de los numéricos del form. */
+  avaluoFiscal: string;
   /** Si las partes del contrato ven el rol en el portal. */
   rolVisibleEnPortal: boolean;
   cuentas: EntradaCuenta[];
@@ -166,6 +169,7 @@ const FORM_CREAR_INICIAL: FormCrear = {
   imagenes: [""],
   asignadoAId: "",
   rol: "",
+  avaluoFiscal: "",
   // Se comparte por omisión: ocultar es la excepción, no el punto de partida.
   rolVisibleEnPortal: true,
   cuentas: CUENTAS_INICIALES,
@@ -177,6 +181,7 @@ function formDesdePropiedad(p: Propiedad): FormProp {
     tipo:               p.tipo,
     direccion:          p.direccion,
     rol:                p.rol ?? "",
+    avaluoFiscal:       p.avaluoFiscal != null ? String(p.avaluoFiscal) : "",
     rolVisibleEnPortal: p.rolVisibleEnPortal ?? true,
     cuentas:            (p.cuentasServicio as EntradaCuenta[] | undefined) ?? CUENTAS_INICIALES,
     rolesComplementarios: (p.rolesComplementarios as EntradaRolComplementario[] | undefined) ?? [],
@@ -470,6 +475,25 @@ function CamposProp({
         <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
           Manzana y predio, como aparece en las contribuciones. También sirve con el
           código de comuna adelante.
+        </p>
+      </div>
+
+      {/* Avalúo fiscal. Va junto al rol porque salen del mismo papel —las
+          contribuciones— y porque los dos identifican el inmueble ante el SII. */}
+      <div>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Avalúo fiscal</p>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={form.avaluoFiscal}
+          onChange={(e) => onChangeField("avaluoFiscal", e.target.value.replace(/[^0-9]/g, ""))}
+          placeholder="45000000"
+          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
+          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+        />
+        <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+          En pesos, como aparece en las contribuciones. El contrato lo exige (Ley
+          18.101, Art. 10) y hace falta para calcular el IVA si arriendas amoblado.
         </p>
       </div>
 
@@ -985,7 +1009,7 @@ export function PropiedadesClient({
   // Dialog "Editar propiedad"
   const [openEditar, setOpenEditar]   = useState(false);
   const [formEditar, setFormEditar]   = useState<FormProp>({
-    rol: "", rolVisibleEnPortal: true, cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
+    rol: "", avaluoFiscal: "", rolVisibleEnPortal: true, cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
     tipo: "departamento", direccion: "", comuna: "", region: "",
     piezas: "", banos: "", m2Totales: "",
     m2Construidos: "", estacionamientos: "", plantas: "",
@@ -1029,6 +1053,7 @@ export function PropiedadesClient({
         tipo:              formCrear.tipo,
         direccion:         formCrear.direccion.trim(),
         rol:               formCrear.rol,
+        avaluoFiscal:      formCrear.avaluoFiscal ? parseInt(formCrear.avaluoFiscal, 10) : null,
         rolVisibleEnPortal: formCrear.rolVisibleEnPortal,
         cuentas:           formCrear.cuentas,
         rolesComplementarios: formCrear.rolesComplementarios,
@@ -1091,6 +1116,7 @@ export function PropiedadesClient({
         // El formulario de edición muestra estos tres campos; si no se mandan,
         // la corredora los cambia, ve "guardado" y nada cambia en la base.
         rol:               formEditar.rol,
+        avaluoFiscal:      formEditar.avaluoFiscal ? parseInt(formEditar.avaluoFiscal, 10) : null,
         rolVisibleEnPortal: formEditar.rolVisibleEnPortal,
         cuentas:           formEditar.cuentas,
         rolesComplementarios: formEditar.rolesComplementarios,
@@ -1367,6 +1393,7 @@ export function PropiedadesClient({
                   {[
                     { label: "Propietario",    value: seleccionada.propietario.nombre },
                     { label: "Rol de avalúo",  value: seleccionada.rol },
+                    { label: "Avalúo fiscal",  value: seleccionada.avaluoFiscal != null ? clp(seleccionada.avaluoFiscal) : "—" },
                     { label: "Orientación",    value: seleccionada.orientacion ?? "—" },
                     { label: "M² construidos", value: seleccionada.m2Construidos != null ? `${seleccionada.m2Construidos} m²` : "—" },
                     { label: "M² totales",     value: seleccionada.m2Totales != null ? `${seleccionada.m2Totales} m²` : "—" },

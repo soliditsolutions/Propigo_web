@@ -24,6 +24,15 @@ create unique index if not exists uniq_cargo_por_tenant_tipo_periodo
   on cargo_billing (tenant_id, tipo, periodo)
   where estado <> 'fallido';
 
+-- 1c. Una sola cuenta bancaria de la CORREDORA por tenant. El @@unique de
+-- Prisma sobre (tenant_id, persona_id) no cubre este caso: en Postgres dos
+-- NULL no son iguales entre sí, así que un tenant podría acumular varias
+-- filas con persona_id nulo y no habría forma de saber a qué cuenta se le
+-- pide transferir al arrendatario.
+create unique index if not exists uniq_cuenta_bancaria_corredora
+  on cuenta_bancaria (tenant_id)
+  where persona_id is null;
+
 -- ─────────────── 2. Ledger inmutable (append-only) ───────────────
 create or replace function prevent_mutation() returns trigger as $$
 begin
@@ -82,7 +91,11 @@ begin
     'preferencia_notificacion',
     -- Datos sensibles de la propiedad: números de cuenta de servicios y roles
     -- de avalúo. Una corredora no debe ver los de otra.
-    'cuenta_servicio','rol_complementario'
+    'cuenta_servicio','rol_complementario',
+    -- Cuentas bancarias de la corredora y de los propietarios. Es el dato más
+    -- sensible que guarda la plataforma: un número de cuenta filtrado entre
+    -- corredoras es fraude, no una molestia.
+    'cuenta_bancaria'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.
@@ -206,6 +219,15 @@ language sql security definer set search_path = public as $$
   select exists(select 1 from usuario where rut = p_rut and id <> p_excluir_usuario_id);
 $$;
 
+-- El RUT de la CORREDORA (tenant.rut) es único global: dos corredoras no pueden
+-- compartirlo. El chequeo es cross-tenant por definición —se hace en el
+-- registro, cuando todavía no hay sesión ni tenant— y por eso devuelve solo un
+-- booleano: dice que el RUT está tomado, nunca por quién.
+create or replace function auth_rut_corredora_existe(p_rut text) returns boolean
+language sql security definer set search_path = public as $$
+  select exists(select 1 from tenant where rut = p_rut);
+$$;
+
 -- Token de valoración del marketplace: puede venir de ConsultaContacto (interesado
 -- que llenó el formulario de contacto) o de Contrato (arrendatario con contrato
 -- vigente) — ver /api/marketplace/valoracion. Dos funciones, una por origen.
@@ -231,6 +253,7 @@ grant execute on function auth_lookup_usuario_por_id(uuid) to housing_app;
 grant execute on function auth_email_existe(text) to housing_app;
 grant execute on function auth_rut_existe(text) to housing_app;
 grant execute on function auth_rut_pertenece_a_otro_usuario(text, uuid) to housing_app;
+grant execute on function auth_rut_corredora_existe(text) to housing_app;
 grant execute on function marketplace_lookup_valoracion_consulta(uuid) to housing_app;
 grant execute on function marketplace_lookup_valoracion_contrato(uuid) to housing_app;
 

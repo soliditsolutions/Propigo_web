@@ -73,6 +73,39 @@ export function validarRol(valor: string): string | null {
   return null;
 }
 
+// ── Avalúo fiscal ───────────────────────────────────────────────────────
+
+/**
+ * Techo del avalúo aceptado, en pesos.
+ *
+ * No es un límite legal: es un detector de dedazos. Un avalúo de vivienda en
+ * Chile se cuenta en decenas o cientos de millones, así que cien mil millones
+ * deja pasar cualquier caso real —incluido un edificio completo— y atrapa el
+ * error de tipeo que agrega ceros de más.
+ */
+export const MAX_AVALUO_FISCAL = 100_000_000_000;
+
+/**
+ * null si el avalúo es válido; si no, el motivo.
+ *
+ * Es opcional a nivel de dato —hay propiedades cargadas antes de que este campo
+ * existiera— pero deja de serlo en cuanto el contrato se marca como amoblado:
+ * ahí la deducción del 11 % del DL 825 art. 17 lo necesita, y sin él la única
+ * salida sería gravar la renta completa. Esa exigencia se aplica en el
+ * contrato, no acá, porque es el contrato el que decide si está afecto.
+ */
+export function validarAvaluoFiscal(valor: number | null | undefined): string | null {
+  if (valor === null || valor === undefined) return null;
+  if (!Number.isFinite(valor)) return "El avalúo fiscal debe ser un número.";
+  if (!Number.isInteger(valor))
+    return "El avalúo fiscal va en pesos enteros, sin decimales.";
+  if (valor <= 0)
+    return "El avalúo fiscal debe ser mayor que cero. Si no lo tienes a mano, déjalo en blanco.";
+  if (valor > MAX_AVALUO_FISCAL)
+    return "Revisa el avalúo fiscal: ese monto parece tener ceros de más.";
+  return null;
+}
+
 // ── Cuentas de servicios básicos ────────────────────────────────────────
 
 export type TipoServicio = "agua" | "luz" | "gas" | "gastos_comunes" | "otro";

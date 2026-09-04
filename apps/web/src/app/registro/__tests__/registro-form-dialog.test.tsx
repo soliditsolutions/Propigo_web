@@ -164,6 +164,12 @@ function abrirModal() {
   fireEvent.change(screen.getByLabelText(/nombre de la corredora/i), {
     target: { value: "Corredora del Sur SpA" },
   });
+  // Desde el Grupo B del rowMap legal el RUT de la corredora es obligatorio:
+  // sin él la validación del cliente no deja abrir el modal. 76.123.456-0 es
+  // válido mod-11 y distinto del RUT personal de más arriba.
+  fireEvent.change(screen.getByLabelText(/rut de la corredora/i), {
+    target: { value: "761234560" },
+  });
   // Label exacto "Contraseña" para no colisionar con aria-label="Mostrar contraseña" del ojo
   fireEvent.change(screen.getByLabelText("Contraseña"), {
     target: { value: "MiContraseñaMuyLargaYSegura123!" },

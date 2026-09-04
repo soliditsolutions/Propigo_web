@@ -15,6 +15,7 @@ export * from "./calendario";
 export * from "./mora";
 export * from "./conciliacion";
 export * from "./liquidacion";
+export * from "./iva";
 export * from "./garantia";
 export * from "./rut";
 export * from "./chile-geo";

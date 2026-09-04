@@ -23,7 +23,7 @@ async function main() {
   const now = new Date();
   const user = await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
-      data: { nombre: "Corredora E2E SpA", plan: "Gratuito" },
+      data: { nombre: "Corredora E2E SpA", rut: "76543210-3", plan: "Gratuito" },
       select: { id: true },
     });
     return tx.usuario.create({

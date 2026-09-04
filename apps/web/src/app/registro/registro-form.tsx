@@ -437,6 +437,10 @@ export function RegistroForm() {
   const [nombre, setNombre]              = useState("");
   const [email, setEmail]                = useState("");
   const [rut, setRut]                    = useState("");
+  // Cómo opera la corredora. Por defecto empresa, que es el caso mayoritario;
+  // el independiente cambia la opción y deja de tener que tipear su RUT dos veces.
+  const [esPersonaJuridica, setEsPersonaJuridica] = useState(true);
+  const [rutEmpresa, setRutEmpresa]      = useState("");
   const [modalOpen, setModalOpen]        = useState(false);
   const [clientErrors, setClientErrors]  = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -447,6 +451,12 @@ export function RegistroForm() {
   const rutErr     = rutClientError || clientErrors.rut || (state?.field === "rut" ? state.error : null) || null;
   const emailErr   = clientErrors.email  || (state?.field === "email"  ? state.error : null) || null;
   const empresaErr = clientErrors.empresa || null;
+  const rutEmpresaClientError =
+    esPersonaJuridica && rutEmpresa.length > 3 && !validateRut(rutEmpresa)
+      ? "RUT inválido" : null;
+  const rutEmpresaErr =
+    rutEmpresaClientError || clientErrors.rutEmpresa ||
+    (state?.field === "rutEmpresa" ? state.error : null) || null;
   const passwordErr = clientErrors.password || null;
   const consentErr  = clientErrors.consent  || null;
 
@@ -454,6 +464,12 @@ export function RegistroForm() {
     const raw = e.target.value.replace(/[^0-9kK]/g, "");
     setRut(raw.length > 1 ? formatRut(raw) : raw);
     if (clientErrors.rut) setClientErrors((p) => ({ ...p, rut: "" }));
+  }
+
+  function handleRutEmpresaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/[^0-9kK]/g, "");
+    setRutEmpresa(raw.length > 1 ? formatRut(raw) : raw);
+    if (clientErrors.rutEmpresa) setClientErrors((p) => ({ ...p, rutEmpresa: "" }));
   }
 
   function handleFormSubmit(e: React.FormEvent) {
@@ -475,6 +491,10 @@ export function RegistroForm() {
       errs.email = "Ingresa un correo electrónico válido.";
     if (!empresa || empresa.length < 2)
       errs.empresa = "Ingresa el nombre de tu corredora (mínimo 2 caracteres).";
+    // Solo se valida si opera como empresa: el independiente usa su propio RUT,
+    // que ya se validó más arriba.
+    if (esPersonaJuridica && (!rutEmpresa || !validateRut(rutEmpresa)))
+      errs.rutEmpresa = "Ingresa el RUT de tu corredora con un dígito verificador válido.";
     const strength = evaluatePassword(password, { nombre: nombreV, email: emailV });
     if (!password || !strength.passes)
       errs.password = strength.suggestion || "Ingresa una contraseña.";
@@ -483,7 +503,7 @@ export function RegistroForm() {
 
     if (Object.keys(errs).length > 0) {
       setClientErrors(errs);
-      const firstField = ["nombre", "rut", "email", "empresa", "password", "consent"].find(
+      const firstField = ["nombre", "rut", "email", "empresa", "rutEmpresa", "password", "consent"].find(
         (f) => errs[f],
       );
       if (firstField) {
@@ -631,6 +651,85 @@ export function RegistroForm() {
             </p>
           )}
         </div>
+
+        {/* Cómo opera la corredora. No es un dato administrativo: decide si la
+            comisión que la corredora emite lleva IVA. */}
+        <fieldset className="space-y-2">
+          <legend className="mb-1 block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+            ¿Cómo opera tu corredora?
+          </legend>
+          {[
+            { juridica: true,  etiqueta: "Como empresa",
+              detalle: "SpA, Ltda., EIRL u otra sociedad con RUT propio." },
+            { juridica: false, etiqueta: "Como persona natural",
+              detalle: "Corredor independiente: la corredora eres tú, con tu mismo RUT." },
+          ].map((op) => (
+            <label
+              key={String(op.juridica)}
+              className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
+              style={{
+                background: esPersonaJuridica === op.juridica ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
+                border: `1px solid ${esPersonaJuridica === op.juridica ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+                opacity: pending ? 0.6 : 1,
+              }}
+            >
+              <input
+                type="radio"
+                name="esPersonaJuridica"
+                value={op.juridica ? "juridica" : "natural"}
+                checked={esPersonaJuridica === op.juridica}
+                disabled={pending}
+                onChange={() => {
+                  setEsPersonaJuridica(op.juridica);
+                  if (clientErrors.rutEmpresa) setClientErrors((p) => ({ ...p, rutEmpresa: "" }));
+                }}
+                className="mt-0.5 h-4 w-4 shrink-0"
+                style={{ accentColor: "var(--hw-primary)" }}
+              />
+              <span className="min-w-0">
+                <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>{op.etiqueta}</span>
+                <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>{op.detalle}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        {/* RUT de la corredora. Solo se pide a la empresa: al independiente ya
+            se lo pedimos arriba y volver a pedirlo solo daría ocasión de
+            tipearlo distinto. */}
+        {esPersonaJuridica && (
+          <div className="space-y-1.5">
+            <label htmlFor="rutEmpresa" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+              RUT de la corredora
+            </label>
+            <input
+              id="rutEmpresa"
+              name="rutEmpresa"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              required
+              placeholder="76.123.456-0"
+              maxLength={12}
+              value={rutEmpresa}
+              onChange={handleRutEmpresaChange}
+              disabled={pending}
+              aria-invalid={rutEmpresaErr ? true : undefined}
+              aria-describedby={rutEmpresaErr ? "rutEmpresa-error" : "rutEmpresa-hint"}
+              style={inputStyle(!!rutEmpresaErr, pending)}
+              onFocus={onFocus}
+              onBlur={makeOnBlur(!!rutEmpresaErr)}
+            />
+            <p id="rutEmpresa-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+              Va en cada comprobante y liquidación que emitas. No es el tuyo.
+            </p>
+            {rutEmpresaErr && (
+              <p id="rutEmpresa-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+                {rutEmpresaErr}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Contraseña con medidor de fuerza */}
         <div className="space-y-1.5">

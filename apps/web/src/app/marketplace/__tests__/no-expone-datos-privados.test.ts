@@ -29,6 +29,10 @@ const CAMPOS_PROHIBIDOS = [
   "rol:",
   "cuentasServicio",
   "rolesComplementarios",
+  // El avalúo fiscal es dato del SII sobre el inmueble, igual que el rol: sirve
+  // para deducir la carga tributaria del propietario y no tiene por qué estar
+  // al alcance de cualquiera que mire una publicación.
+  "avaluoFiscal",
 ];
 
 describe("superficies públicas — datos privados de la propiedad", () => {

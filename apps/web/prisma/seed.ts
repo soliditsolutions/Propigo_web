@@ -64,7 +64,12 @@ async function main() {
   const tenant = await prisma.tenant.create({
     data: {
       nombre: "Corredora Demo SpA",
-      rut: "76.123.456-0", // DV corregido (mod-11); el original -7 no validaba
+      // Canónico sin puntos: es la forma en que Tenant.rut se guarda y compara
+      // (es UNIQUE). El DV está corregido por mod-11; el original -7 no validaba.
+      rut: "76123456-0",
+      esPersonaJuridica: true,
+      giro: "Corretaje de propiedades",
+      direccion: "Av. Providencia 1234, oficina 501, Providencia",
       plan: "demo",
       ventanaLiquidacionDias: 10,   // ADR-0008: hasta el día 10 para liquidar
       recordatorioDiasAntes: 5,     // ADR-0008: avisar 5 días antes del vencimiento

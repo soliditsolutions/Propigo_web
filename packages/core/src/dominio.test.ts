@@ -10,6 +10,7 @@ import {
   conciliar,
   calcularLiquidacion,
   esGarantiaValida, calcularTerminoGarantia, MAX_MESES_GARANTIA,
+  plazoRestitucionDesahucio, PLAZO_BASE_MESES, PLAZO_TOPE_MESES,
   ivaArriendo, ivaArriendoIncluido, ivaComision, deduccionAvaluo, IVA_PCT, DEDUCCION_AVALUO_PCT_ANUAL,
 } from "./index";
 
@@ -524,5 +525,45 @@ describe("ivaArriendoIncluido — IVA dentro del valor pactado", () => {
 
   test("amoblado sin avalúo: falla en vez de inventar la base", () => {
     assert.throws(() => ivaArriendoIncluido({ esAmoblado: true, rentaCLP: 800_000 }), /avalúo fiscal/);
+  });
+});
+
+describe("plazoRestitucionDesahucio (Ley 18.101 Art. 3)", () => {
+  test("menos de un año: solo el plazo base de 2 meses", () => {
+    const r = plazoRestitucionDesahucio(new Date("2026-01-01"), new Date("2026-08-01"));
+    assert.equal(r.aniosOcupados, 0);
+    assert.equal(r.mesesPlazo, PLAZO_BASE_MESES);
+    assert.equal(r.fechaRestitucion.toISOString().slice(0,10), "2026-10-01");
+    assert.equal(r.alcanzoTope, false);
+  });
+
+  test("dos años completos: 2 + 2 = 4 meses", () => {
+    const r = plazoRestitucionDesahucio(new Date("2024-03-05"), new Date("2026-03-05"));
+    assert.equal(r.aniosOcupados, 2);
+    assert.equal(r.mesesPlazo, 4);
+  });
+
+  test("un día antes de cumplir el año no cuenta ese año", () => {
+    const r = plazoRestitucionDesahucio(new Date("2024-03-05"), new Date("2026-03-04"));
+    assert.equal(r.aniosOcupados, 1);  // cumplió 1 año, no 2
+    assert.equal(r.mesesPlazo, 3);
+  });
+
+  test("tope de 6 meses: cinco años daría 7, pero se corta en 6", () => {
+    const r = plazoRestitucionDesahucio(new Date("2020-01-01"), new Date("2026-01-01"));
+    assert.equal(r.aniosOcupados, 6);
+    assert.equal(r.mesesPlazo, PLAZO_TOPE_MESES); // 2 + 6 = 8 → tope 6
+    assert.equal(r.alcanzoTope, true);
+  });
+
+  test("la fecha de restitución se cuenta desde la notificación, no desde hoy", () => {
+    const r = plazoRestitucionDesahucio(new Date("2025-06-15"), new Date("2026-06-15"));
+    assert.equal(r.aniosOcupados, 1);
+    assert.equal(r.mesesPlazo, 3);
+    assert.equal(r.fechaRestitucion.toISOString().slice(0,10), "2026-09-15");
+  });
+
+  test("notificación anterior al inicio: error", () => {
+    assert.throws(() => plazoRestitucionDesahucio(new Date("2026-06-15"), new Date("2026-01-01")));
   });
 });

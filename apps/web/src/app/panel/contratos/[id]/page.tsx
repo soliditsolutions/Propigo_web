@@ -145,6 +145,20 @@ export default async function ContratoDetallePage({
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Descargar borrador (PDF)
           </a>
+        ) : (detalle.estado === "terminado" || detalle.estado === "terminado_anticipado") ? (
+          // Aviso de término (L-CM2/L-CM3): disponible una vez que el contrato
+          // tiene causal y fecha de término.
+          <a
+            href={`/api/panel/contratos/${detalle.id}/aviso-termino/pdf`}
+            className="hw-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
+            style={{
+              background: "var(--hw-surface-2)", color: "var(--hw-text-2)",
+              border: "1px solid var(--hw-border-2)",
+            }}
+          >
+            <Download className="h-3.5 w-3.5" aria-hidden="true" />
+            Aviso de término (PDF)
+          </a>
         ) : undefined}
       />
 

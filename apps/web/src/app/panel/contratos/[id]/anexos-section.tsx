@@ -108,20 +108,31 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
         </h2>
 
         {tieneDeuda && (
-          <button
-            type="button"
-            onClick={handleGenerarDeuda}
-            disabled={isGenDeuda}
-            className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
-            style={{ background: isGenDeuda ? "var(--hw-text-4)" : "var(--hw-danger-dk)" }}
-          >
-            {isGenDeuda ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-            ) : (
-              <FileText className="h-3.5 w-3.5" aria-hidden />
-            )}
-            Generar reconocimiento de deuda
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Estado de cuenta (L-CM1): el documento que respalda la monitoria. */}
+            <a
+              href={`/api/panel/contratos/${contratoId}/estado-cuenta/pdf`}
+              className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+              style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)", border: "1px solid var(--hw-border-2)" }}
+            >
+              <Download className="h-3.5 w-3.5" aria-hidden />
+              Estado de cuenta (PDF)
+            </a>
+            <button
+              type="button"
+              onClick={handleGenerarDeuda}
+              disabled={isGenDeuda}
+              className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+              style={{ background: isGenDeuda ? "var(--hw-text-4)" : "var(--hw-danger-dk)" }}
+            >
+              {isGenDeuda ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+              ) : (
+                <FileText className="h-3.5 w-3.5" aria-hidden />
+              )}
+              Generar reconocimiento de deuda
+            </button>
+          </div>
         )}
       </div>
 

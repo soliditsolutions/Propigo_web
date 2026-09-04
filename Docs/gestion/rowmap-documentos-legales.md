@@ -168,7 +168,7 @@ vigencia de la ley.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-CM1** | **Estado de cuenta de deuda**: rentas, gastos comunes y consumos adeudados, con forma, fecha y lugar en que se contrajeron — es lo que exige la demanda monitoria | L-CP3 | — | `[ ]` |
+| **L-CM1** | **Estado de cuenta de deuda**: rentas, gastos comunes y consumos adeudados, con forma, fecha y lugar en que se contrajeron — es lo que exige la demanda monitoria | L-CP3 | — | `[x]` |
 | **L-CM2** | **Aviso de término** con los plazos calculados: 2 meses, +1 por año completo ocupado, tope 6 | L-DT10 | — | `[x]` |
 | **L-CM3** | El aviso de término advierte que **no surte efecto legal por correo**: requiere notificación judicial o personal de notario | L-CM2 | — | `[x]` |
 | **L-CM4** | **Aviso de reajuste** en PDF, mostrando los 12 meses de IPC uno por uno | P-NT3 | **G-04** | `[!]` |

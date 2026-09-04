@@ -196,6 +196,7 @@ describe("cerrarLiquidacion — BL-RC2 (idempotencia contra doble-submit)", () =
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
+      ivaComisionCLP: 0,
       descuentoPropietarioCLP: 0,
       liquidacionNetaCLP: 470000,
     });
@@ -260,6 +261,7 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
+      ivaComisionCLP: 0,
       descuentoPropietarioCLP: 0,
       liquidacionNetaCLP: 470000,
     });
@@ -303,6 +305,37 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
     expect(alPropietario!.cuerpo).toMatch(/Arriendo:/);
     expect(alPropietario!.cuerpo).toMatch(/Comisión corredor:/);
     expect(alPropietario!.cuerpo).toMatch(/Neto a pagar:/);
+  });
+
+  it("crea el asiento IVA_COMISION cuando la corredora es persona jurídica (L-IV)", async () => {
+    // La corredora del mock es persona jurídica, así que la comisión va afecta.
+    // calcularLiquidacion (mockeado) devuelve el IVA; la acción debe escribir su
+    // asiento aparte, con el monto que entregó el cálculo.
+    mockCalcLiq.mockReturnValue({
+      comisionCLP: 30000,
+      ivaComisionCLP: 5700,      // 30.000 × 19%
+      descuentoPropietarioCLP: 0,
+      liquidacionNetaCLP: 464300, // 500.000 − 30.000 − 5.700
+    });
+
+    await cerrarLiquidacion("periodo-123", []);
+
+    const asientos = mockTx.asientoLedger.create.mock.calls.map((c) => c[0].data);
+    const ivaAsiento = asientos.find((d) => d.tipo === "IVA_COMISION");
+    expect(ivaAsiento).toBeDefined();
+    expect(ivaAsiento!.montoClp).toBe(5700);
+    // Y la corredora recibe la afectación: calcularLiquidacion fue llamado con la marca.
+    expect(mockCalcLiq).toHaveBeenCalledWith(expect.objectContaining({ comisionAfectaIva: true }));
+  });
+
+  it("NO crea asiento IVA_COMISION cuando el IVA es cero (persona natural)", async () => {
+    mockCalcLiq.mockReturnValue({
+      comisionCLP: 30000, ivaComisionCLP: 0,
+      descuentoPropietarioCLP: 0, liquidacionNetaCLP: 470000,
+    });
+    await cerrarLiquidacion("periodo-123", []);
+    const asientos = mockTx.asientoLedger.create.mock.calls.map((c) => c[0].data);
+    expect(asientos.find((d) => d.tipo === "IVA_COMISION")).toBeUndefined();
   });
 });
 

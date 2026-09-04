@@ -220,6 +220,41 @@ describe("calcularLiquidacion", () => {
     assert.equal(r.comisionCLP, 0);
     assert.equal(r.liquidacionNetaCLP, 444000);
   });
+
+  test("comisión afecta a IVA: el propietario soporta el IVA (se descuenta del neto)", () => {
+    const r = calcularLiquidacion({
+      arriendoCLP: 500000, ajustes: [], comisionPct: 8, comisionAfectaIva: true,
+    });
+    assert.equal(r.comisionCLP, 40000);        // 500.000 × 8%
+    assert.equal(r.ivaComisionCLP, 7600);      // 40.000 × 19%
+    assert.equal(r.liquidacionNetaCLP, 452400); // 500.000 − 40.000 − 7.600
+  });
+
+  test("persona natural (default): comisión exenta, IVA cero, neto sin cambio", () => {
+    const r = calcularLiquidacion({ arriendoCLP: 500000, ajustes: [], comisionPct: 8 });
+    assert.equal(r.ivaComisionCLP, 0);
+    assert.equal(r.liquidacionNetaCLP, 460000);
+  });
+
+  test("cuadre L-IV3: arriendo = neto + comisión + IVA + descuentos", () => {
+    // El invariante que garantiza que la plata del arrendatario se reparte sin
+    // fugarse ni aparecer de la nada.
+    const casos = [
+      { arriendoCLP: 500000, comisionPct: 8,  afecta: true,  ajustes: [] },
+      { arriendoCLP: 521409, comisionPct: 10, afecta: true,  ajustes: [{ tipo: "descuento_propietario" as const, montoCLP: 45000 }] },
+      { arriendoCLP: 730000, comisionPct: 12, afecta: false, ajustes: [{ tipo: "retencion" as const, montoCLP: 30000 }] },
+    ];
+    for (const c of casos) {
+      const r = calcularLiquidacion({
+        arriendoCLP: c.arriendoCLP, ajustes: c.ajustes, comisionPct: c.comisionPct, comisionAfectaIva: c.afecta,
+      });
+      assert.equal(
+        r.liquidacionNetaCLP + r.comisionCLP + r.ivaComisionCLP + r.descuentoPropietarioCLP,
+        c.arriendoCLP,
+        `cuadre falla para arriendo ${c.arriendoCLP}`,
+      );
+    }
+  });
   test("ajustes mixtos: combina correctamente", () => {
     const r = calcularLiquidacion({
       arriendoCLP: 521409,

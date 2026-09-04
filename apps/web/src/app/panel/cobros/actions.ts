@@ -408,6 +408,9 @@ export async function cerrarLiquidacion(
         arriendoCLP,
         ajustes: ajustes.map((a) => ({ tipo: a.tipo, montoCLP: a.montoCLP })),
         comisionPct: Number(c.comisionCorredorPct),
+        // La corredora persona jurídica emite comisión afecta; el IVA lo soporta
+        // el propietario y sale de su neto (L-IV). Persona natural: exenta.
+        comisionAfectaIva: tenant.esPersonaJuridica,
       });
 
       // BL-RC2: Compuerta atómica — solo la primera TX liquida este período.
@@ -453,6 +456,16 @@ export async function cerrarLiquidacion(
         data: { ...baseAsiento, tipo: "COMISION_CORREDOR", concepto: "arriendo",
           montoClp: liq.comisionCLP },
       });
+
+      // IVA de la comisión (solo si la corredora es persona jurídica). Es un
+      // asiento aparte para que la liquidación y las vistas puedan mostrarlo por
+      // separado, y para que el cuadre del período sea explícito.
+      if (liq.ivaComisionCLP > 0) {
+        await tx.asientoLedger.create({
+          data: { ...baseAsiento, tipo: "IVA_COMISION", concepto: "arriendo",
+            montoClp: liq.ivaComisionCLP, descripcion: "IVA de la comisión" },
+        });
+      }
 
       // Liquidación al propietario
       await tx.asientoLedger.create({

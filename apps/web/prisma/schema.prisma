@@ -165,6 +165,9 @@ enum TipoAsiento {
   CARGO_AJUSTE
   PAGO_RECIBIDO
   COMISION_CORREDOR
+  // IVA de la comisión (corredora persona jurídica). Lo soporta el propietario:
+  // se descuenta de su liquidación junto con la comisión (decisión 2026-09, L-IV).
+  IVA_COMISION
   AJUSTE_LIQUIDACION
   LIQUIDACION_PROPIETARIO
   GARANTIA_RECIBIDA

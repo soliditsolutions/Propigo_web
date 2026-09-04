@@ -1,4 +1,5 @@
 import { redondearPeso, type CLP } from "./dinero";
+import { ivaComision } from "./iva";
 
 /**
  * Cierre de liquidación — Paso 2 del flujo (ADR-0008, Regla 11/12).
@@ -30,11 +31,20 @@ export interface DatosLiquidacion {
   ajustes: AjusteInput[];
   /** Porcentaje de comisión del corredor (ej. 8 = 8%). */
   comisionPct: number;
+  /**
+   * Si la comisión va afecta a IVA (corredora persona jurídica). Cuando es
+   * true, el IVA de la comisión lo soporta el propietario: se descuenta de su
+   * neto, igual que la comisión (decisión de producto 2026-09). Default false
+   * para el caso persona natural, exento por el DL 825 art. 12 E N° 8.
+   */
+  comisionAfectaIva?: boolean;
 }
 
 export interface ResultadoLiquidacion {
   /** Comisión retenida por el corredor. */
   comisionCLP: CLP;
+  /** IVA de la comisión. 0 si la corredora es persona natural (exenta). */
+  ivaComisionCLP: CLP;
   /**
    * Suma de ajustes que reducen el neto al propietario
    * (descuento_propietario + retencion).
@@ -42,7 +52,7 @@ export interface ResultadoLiquidacion {
   descuentoPropietarioCLP: CLP;
   /**
    * Neto que recibe el propietario:
-   * arriendoCLP − comisionCLP − descuentoPropietarioCLP
+   * arriendoCLP − comisionCLP − ivaComisionCLP − descuentoPropietarioCLP
    * Puede ser negativo si los descuentos superan el arriendo; el caller decide cómo manejarlo.
    */
   liquidacionNetaCLP: CLP;
@@ -58,9 +68,13 @@ export interface ResultadoLiquidacion {
  *
  * Fórmula:
  *   comision          = round(arriendoCLP × comisionPct / 100)
+ *   ivaComision       = comisionAfectaIva ? round(comision × 19%) : 0
  *   descPropietario   = Σ ajustes tipo descuento_propietario + retencion
  *   cargoArrendatario = Σ ajustes tipo cargo_arrendatario
- *   netoPropietario   = arriendoCLP − comision − descPropietario
+ *   netoPropietario   = arriendoCLP − comision − ivaComision − descPropietario
+ *
+ * El cuadre resultante (L-IV3): arriendoCLP = netoPropietario + comision +
+ * ivaComision + descPropietario. Es lo que el arrendatario pagó, repartido.
  */
 export function calcularLiquidacion(datos: DatosLiquidacion): ResultadoLiquidacion {
   const { arriendoCLP, ajustes, comisionPct } = datos;
@@ -84,12 +98,15 @@ export function calcularLiquidacion(datos: DatosLiquidacion): ResultadoLiquidaci
     .reduce((sum, a) => sum + a.montoCLP, 0);
 
   const comisionCLP = redondearPeso((arriendoCLP * comisionPct) / 100);
+  // El IVA de la comisión lo soporta el propietario: se descuenta de su neto.
+  const ivaComisionCLP = ivaComision(comisionCLP, datos.comisionAfectaIva ?? false).ivaCLP;
 
   const liquidacionNetaCLP =
-    arriendoCLP - comisionCLP - descuentoPropietarioCLP;
+    arriendoCLP - comisionCLP - ivaComisionCLP - descuentoPropietarioCLP;
 
   return {
     comisionCLP,
+    ivaComisionCLP,
     descuentoPropietarioCLP,
     liquidacionNetaCLP,
     cargoArrendatarioCLP,

@@ -86,7 +86,7 @@ sola** para todas las corredoras.
 |---|---|---|---|---|
 | **L-IV1** | Cálculo del IVA de comisión según naturaleza jurídica: afecta si es persona jurídica; **exenta** si es persona natural por trabajo personal (Art. 12° E N°8 LIVS) | L-DT1 | — | `[x]` |
 | **L-IV2** | `ivaComisionCLP` en el snapshot y en línea aparte del documento | L-IV1, L-CP2 | — | `[x]` |
-| **L-IV3** | Tests del cuadre: `arrendatario = propietario + comisión + IVA` | L-IV2 | — | `[ ]` |
+| **L-IV3** | Tests del cuadre: `arrendatario = propietario + comisión + IVA` | L-IV2 | — | `[x]` |
 | **L-IV4** | Si el inmueble es amoblado, la renta va afecta a IVA con base rebajada en 11 % del avalúo fiscal | L-DT3, L-DT4 | **L-04** | `[!]` |
 
 ---

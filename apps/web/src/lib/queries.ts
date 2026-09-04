@@ -506,6 +506,8 @@ export type VoucherItem = {
   id: string;
   fecha: Date;
   tipo: "pago" | "liquidacion";
+  /** Folio del documento. Null en vouchers previos al formato con folio. */
+  folio: string | null;
   montoClp: number;
   contratoId: string;
   arrendatario: { nombre: string };
@@ -543,6 +545,7 @@ export async function getVouchers(
     id: v.id,
     fecha: v.fecha,
     tipo: v.tipo,
+    folio: v.folio,
     montoClp: Number(v.montoClp),
     contratoId: v.contratoId,
     arrendatario: v.arrendatario,

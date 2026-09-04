@@ -2,7 +2,7 @@ import { getActor, getVouchers, getContratosSelect, propiedadIdsVisibles } from 
 import { clp, fecha } from "@/lib/format";
 import { PageTitle } from "@/components/panel/ui";
 import { FiltrosClient } from "./filtros-client";
-import { ReceiptText, FileText } from "lucide-react";
+import { ReceiptText, FileText, Download } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -122,15 +122,28 @@ export default async function VouchersPage({
                         {clp(v.montoClp)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <a
-                          href={`/panel/contratos/${v.contratoId}`}
-                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
-                          style={{ color: "var(--hw-primary)" }}
-                          aria-label={`Ver contrato de ${v.arrendatario.nombre}`}
-                        >
-                          <FileText className="h-3.5 w-3.5" aria-hidden />
-                          Contrato
-                        </a>
+                        <div className="inline-flex items-center gap-1">
+                          {v.folio && (
+                            <a
+                              href={`/api/panel/vouchers/${v.id}/pdf`}
+                              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+                              style={{ color: "var(--hw-primary)" }}
+                              aria-label={`Descargar comprobante ${v.folio}`}
+                            >
+                              <Download className="h-3.5 w-3.5" aria-hidden />
+                              PDF
+                            </a>
+                          )}
+                          <a
+                            href={`/panel/contratos/${v.contratoId}`}
+                            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+                            style={{ color: "var(--hw-text-3)" }}
+                            aria-label={`Ver contrato de ${v.arrendatario.nombre}`}
+                          >
+                            <FileText className="h-3.5 w-3.5" aria-hidden />
+                            Contrato
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   );

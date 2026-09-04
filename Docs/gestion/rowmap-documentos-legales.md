@@ -65,16 +65,16 @@ lógica: es el trabajo más barato del rowMap y desbloquea todo lo demás.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-DT1** | `Tenant.esPersonaJuridica` — decide si la comisión lleva IVA | — | — | `[ ]` |
-| **L-DT2** | `Tenant.giro`, `Tenant.direccion`; `Tenant.rut` pasa a obligatorio | — | **L-02** | `[!]` |
-| **L-DT3** | `Propiedad.avaluoFiscal` — mención exigida por el Art. 10 de la Ley 18.101 | — | **L-03** | `[!]` |
-| **L-DT4** | `Contrato.esAmoblado` — **determina si el arriendo está afecto a IVA** | — | — | `[ ]` |
+| **L-DT1** | `Tenant.esPersonaJuridica` — decide si la comisión lleva IVA | — | — | `[x]` |
+| **L-DT2** | `Tenant.giro`, `Tenant.direccion`; `Tenant.rut` pasa a obligatorio | — | **L-02** | `[x]` |
+| **L-DT3** | `Propiedad.avaluoFiscal` — mención exigida por el Art. 10 de la Ley 18.101 | — | **L-03** | `[x]` |
+| **L-DT4** | `Contrato.esAmoblado` — **determina si el arriendo está afecto a IVA** | — | — | `[x]` |
 | **L-DT5** | Cuenta bancaria de la corredora (para el recordatorio) | — | — | `[ ]` |
 | **L-DT6** | Cuenta bancaria del propietario (para la liquidación) | — | — | `[ ]` |
 | **L-DT7** | Las cuentas bancarias entran al régimen de visibilidad del Grupo 1: dato sensible, no público | L-DT5, L-DT6 | — | `[ ]` |
-| **L-DT8** | `Contrato.inscripcionCbr` (fojas, número, año) — hoy el borrador lo deja como marcador | — | — | `[ ]` |
-| **L-DT9** | `Contrato.firmadoAnteNotario` — es lo que da prueba suficiente en el monitorio (Ley 21.461) | — | — | `[ ]` |
-| **L-DT10** | `Contrato.causalTermino` y fecha de notificación del desahucio | — | — | `[ ]` |
+| **L-DT8** | `Contrato.inscripcionCbr` (fojas, número, año) — hoy el borrador lo deja como marcador | — | — | `[x]` |
+| **L-DT9** | `Contrato.firmadoAnteNotario` — es lo que da prueba suficiente en el monitorio (Ley 21.461) | — | — | `[x]` |
+| **L-DT10** | `Contrato.causalTermino` y fecha de notificación del desahucio (campos y enum en esquema; UI en el flujo de cierre) | — | — | `[~]` |
 
 ---
 

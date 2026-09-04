@@ -73,6 +73,20 @@ export interface DatosContrato {
   moraDiasGracia:    number;
   cobraGastoComun:   boolean;
   montoGastoComun:   number;
+  /**
+   * Si el inmueble se arrienda amoblado. Determina si el arriendo está afecto
+   * a IVA (DL 825 art. 8 g). Exige que la propiedad tenga avalúo fiscal: sin él
+   * no se puede aplicar la deducción del 11 % y se cobraría de más.
+   */
+  esAmoblado:        boolean;
+  /** Si el contrato se firmó ante notario (habilita el monitorio, Ley 21.461). */
+  firmadoAnteNotario: boolean;
+  /** Inscripción del inmueble en el Conservador de Bienes Raíces. Todo opcional:
+   *  se transcribe literal a la cláusula del contrato cuando está. */
+  inscripcionCbrFojas?:       string;
+  inscripcionCbrNumero?:      string;
+  inscripcionCbrAnio?:        number;
+  inscripcionCbrConservador?: string;
   garantiaMeses:        number;    // 0–2
   garantiaDenominacion: "UF" | "CLP";
   /** Monto de garantía en su denominación (nº de UF, o pesos). El asiento
@@ -121,6 +135,14 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
   if (data.fechaFin !== undefined) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data.fechaFin) || isNaN(new Date(data.fechaFin).getTime()))
       return { ok: false, error: "Fecha de fin inválida." };
+  }
+  // El año de inscripción, si viene, tiene que ser un año plausible: un CBR no
+  // inscribe en el año 300 ni en el 3000.
+  if (data.inscripcionCbrAnio !== undefined && data.inscripcionCbrAnio !== null) {
+    const anioActual = new Date().getUTCFullYear();
+    if (!Number.isInteger(data.inscripcionCbrAnio) ||
+        data.inscripcionCbrAnio < 1900 || data.inscripcionCbrAnio > anioActual)
+      return { ok: false, error: `El año de inscripción en el CBR debe estar entre 1900 y ${anioActual}.` };
   }
 
   try {
@@ -186,6 +208,16 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
       if (!propVerif)
         throw new DomainError(
           "La propiedad no está disponible o no pertenece a este corredor.",
+        );
+      // L-DT4: un arriendo amoblado está afecto a IVA, y ese IVA se calcula
+      // sobre la renta menos el 11 % del avalúo (DL 825 art. 17). Sin avalúo la
+      // única salida sería gravar la renta completa, así que se ataja acá en
+      // vez de emitir un comprobante mal calculado más adelante.
+      if (data.esAmoblado && propVerif.avaluoFiscal === null)
+        throw new DomainError(
+          "Para un arriendo amoblado la propiedad necesita su avalúo fiscal: " +
+          "es la base del IVA (DL 825 art. 17). Complétalo en la propiedad antes " +
+          "de crear el contrato.",
         );
       // ADR-0013 (Fase D) — un Colaborador solo crea contratos sobre lo que tiene asignado.
       if (actor.rol !== "manager" && propVerif.asignadoAId !== actor.usuarioId)
@@ -259,6 +291,12 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
           moraTasaPct:    data.moraTasaPct,
           moraDiasGracia: data.moraDiasGracia,
           cobraGastoComun: data.cobraGastoComun,
+          esAmoblado:     data.esAmoblado,
+          firmadoAnteNotario: data.firmadoAnteNotario,
+          inscripcionCbrFojas:       data.inscripcionCbrFojas?.trim() || null,
+          inscripcionCbrNumero:      data.inscripcionCbrNumero?.trim() || null,
+          inscripcionCbrAnio:        data.inscripcionCbrAnio ?? null,
+          inscripcionCbrConservador: data.inscripcionCbrConservador?.trim() || null,
           garantiaMeses:  data.garantiaMeses,
           garantiaDenominacion: data.garantiaMeses > 0 ? data.garantiaDenominacion : null,
           garantiaMontoBase:    data.garantiaMeses > 0 ? data.garantiaMonto : null,

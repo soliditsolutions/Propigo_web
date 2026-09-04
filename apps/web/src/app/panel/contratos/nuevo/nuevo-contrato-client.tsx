@@ -20,6 +20,8 @@ export type PropiedadItem = {
   estado: string;
   direccion: string;
   comuna: string | null;
+  /** Avalúo fiscal en pesos. Se usa para avisar si falta al marcar amoblado. */
+  avaluoFiscal: number | null;
   propietarioId: string;
   propietarioNombre: string;
 };
@@ -47,6 +49,14 @@ type WizardData = {
   moraDiasGracia: string;
   cobraGastoComun: boolean;
   montoGastoComun: string;
+  /** Si se arrienda amoblado. Afecta a IVA y exige avalúo en la propiedad. */
+  esAmoblado: boolean;
+  /* Paso 4 — datos legales del contrato */
+  firmadoAnteNotario: boolean;
+  inscripcionCbrFojas: string;
+  inscripcionCbrNumero: string;
+  inscripcionCbrAnio: string;
+  inscripcionCbrConservador: string;
   /* Paso 4 */
   fechaInicio: string;
   tipoVigencia: "indefinido" | "fijo";
@@ -68,6 +78,10 @@ const INITIAL: WizardData = {
   comisionCorredorPct: "50", reajuste: "anual",
   moraTasaPct: "3", moraDiasGracia: "5",
   cobraGastoComun: false, montoGastoComun: "",
+  esAmoblado: false,
+  firmadoAnteNotario: false,
+  inscripcionCbrFojas: "", inscripcionCbrNumero: "", inscripcionCbrAnio: "",
+  inscripcionCbrConservador: "",
   fechaInicio: "", tipoVigencia: "indefinido", fechaFin: "",
   garantiaMeses: "0", garantiaDenominacion: "UF", garantiaMonto: "",
 };
@@ -509,8 +523,11 @@ function Step2({
 function Step3({
   data,
   set,
+  avaluoPropiedad,
 }: {
   data: WizardData;
+  /** Avalúo de la propiedad elegida; null si no lo tiene cargado. */
+  avaluoPropiedad: number | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   set: (k: keyof WizardData, v: any) => void;
 }) {
@@ -646,6 +663,38 @@ function Step3({
                   min="1"
                 />
               </FieldRow>
+            </div>
+          )}
+        </div>
+
+        {/* Amoblado — decide si el arriendo está afecto a IVA (DL 825 art. 8 g).
+            No es un detalle de la ficha: cambia lo que se cobra. */}
+        <div className="rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={data.esAmoblado}
+              onChange={(e) => set("esAmoblado", e.target.checked)}
+              className="h-4 w-4 rounded accent-blue-600"
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                Se arrienda amoblado
+              </p>
+              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                Un arriendo amoblado está afecto a IVA. Se calcula sobre la renta
+                menos el 11 % del avalúo fiscal (DL 825 art. 17).
+              </p>
+            </div>
+          </label>
+          {data.esAmoblado && avaluoPropiedad === null && (
+            <div
+              className="mt-3 rounded-xl p-3 text-xs"
+              style={{ background: "var(--hw-warning-lt)", color: "var(--hw-warning-dk)", border: "1px solid var(--hw-warning-bd)" }}
+            >
+              Esta propiedad no tiene avalúo fiscal cargado, y sin él no se puede
+              calcular el IVA del arriendo amoblado. Complétalo en la ficha de la
+              propiedad antes de crear el contrato.
             </div>
           )}
         </div>
@@ -798,6 +847,69 @@ function Step4({
             </div>
           </FieldRow>
         )}
+
+        {/* Datos legales del contrato. Todo opcional al crear: se pueden
+            completar después, pero cargarlos acá evita que el borrador salga
+            con marcadores. */}
+        <div className="rounded-xl p-4 space-y-4" style={{ background: "var(--hw-surface-2)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+            Datos legales <span className="font-normal" style={{ color: "var(--hw-text-4)" }}>(opcional)</span>
+          </p>
+
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={data.firmadoAnteNotario}
+              onChange={(e) => set("firmadoAnteNotario", e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded accent-blue-600"
+            />
+            <div className="min-w-0">
+              <p className="text-sm" style={{ color: "var(--hw-text-1)" }}>Se firma ante notario</p>
+              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                Habilita el procedimiento monitorio si hay que cobrar rentas impagas
+                (Ley 21.461). Sin firma notarial, el cobro va por juicio ordinario.
+              </p>
+            </div>
+          </label>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+              Inscripción en el Conservador de Bienes Raíces
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <FieldRow label="Fojas">
+                <TextInput
+                  value={data.inscripcionCbrFojas}
+                  onChange={(e) => set("inscripcionCbrFojas", e.target.value)}
+                  placeholder="1234 vuelta"
+                />
+              </FieldRow>
+              <FieldRow label="Número">
+                <TextInput
+                  value={data.inscripcionCbrNumero}
+                  onChange={(e) => set("inscripcionCbrNumero", e.target.value)}
+                  placeholder="567"
+                />
+              </FieldRow>
+              <FieldRow label="Año">
+                <TextInput
+                  type="number"
+                  inputMode="numeric"
+                  value={data.inscripcionCbrAnio}
+                  onChange={(e) => set("inscripcionCbrAnio", e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="2021"
+                />
+              </FieldRow>
+              <FieldRow label="Conservador">
+                <TextInput
+                  value={data.inscripcionCbrConservador}
+                  onChange={(e) => set("inscripcionCbrConservador", e.target.value)}
+                  placeholder="CBR de Santiago"
+                />
+              </FieldRow>
+            </div>
+          </div>
+        </div>
 
         {/* Vista previa del calendario */}
         {preview.length > 0 && (
@@ -992,6 +1104,12 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
         moraDiasGracia:    parseInt(data.moraDiasGracia, 10),
         cobraGastoComun:   data.cobraGastoComun,
         montoGastoComun:   data.cobraGastoComun ? parseFloat(data.montoGastoComun) : 0,
+        esAmoblado:        data.esAmoblado,
+        firmadoAnteNotario: data.firmadoAnteNotario,
+        inscripcionCbrFojas:       data.inscripcionCbrFojas.trim() || undefined,
+        inscripcionCbrNumero:      data.inscripcionCbrNumero.trim() || undefined,
+        inscripcionCbrAnio:        data.inscripcionCbrAnio.trim() ? parseInt(data.inscripcionCbrAnio, 10) : undefined,
+        inscripcionCbrConservador: data.inscripcionCbrConservador.trim() || undefined,
         garantiaMeses:     parseInt(data.garantiaMeses, 10),
         garantiaDenominacion: data.garantiaDenominacion,
         // Monto en la denominación elegida; el servidor lo convierte a CLP con
@@ -1160,7 +1278,13 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
           />
         )}
 
-        {step === 3 && <Step3 data={data} set={set} />}
+        {step === 3 && (
+          <Step3
+            data={data}
+            set={set}
+            avaluoPropiedad={propiedades.find((p) => p.id === data.propiedadId)?.avaluoFiscal ?? null}
+          />
+        )}
 
         {step === 4 && <Step4 data={data} set={set} preview={calendarPreview} />}
       </div>

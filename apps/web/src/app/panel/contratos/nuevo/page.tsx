@@ -32,6 +32,7 @@ export default async function NuevoContratoPage() {
     estado:            p.estado,
     direccion:         p.direccion,
     comuna:            p.comuna,
+    avaluoFiscal:      p.avaluoFiscal ? Number(p.avaluoFiscal) : null,
     propietarioId:     p.propietarioId,
     propietarioNombre: p.propietario.nombre,
   }));

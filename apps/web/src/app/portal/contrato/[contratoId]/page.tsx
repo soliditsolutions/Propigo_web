@@ -119,9 +119,13 @@ export default async function PortalContratoPage({
           documentos: { select: { id: true, nombre: true, tipo: true } },
         },
       },
-      vouchers: rol === "propietario"
-        ? { where: { tipo: "liquidacion" }, orderBy: { fecha: "desc" }, take: 12, select: { id: true, tipo: true, montoClp: true, fecha: true } }
-        : false,
+      // El arrendatario ve sus comprobantes de pago; el propietario, sus
+      // liquidaciones. Cada uno solo el tipo que le corresponde (L-CP8).
+      vouchers: {
+        where:   { tipo: rol === "propietario" ? "liquidacion" : "pago" },
+        orderBy: { fecha: "desc" }, take: 12,
+        select:  { id: true, tipo: true, montoClp: true, fecha: true, folio: true },
+      },
     },
   }));
 
@@ -411,8 +415,8 @@ export default async function PortalContratoPage({
           />
         )}
 
-        {/* ── Vouchers / liquidaciones (propietario) ── */}
-        {!esArrendatario && contrato.vouchers && contrato.vouchers.length > 0 && (
+        {/* ── Comprobantes (arrendatario) / liquidaciones (propietario) ── */}
+        {contrato.vouchers && contrato.vouchers.length > 0 && (
           <div
             className="rounded-2xl overflow-hidden"
             style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
@@ -420,16 +424,29 @@ export default async function PortalContratoPage({
             <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--hw-border)" }}>
               <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
                 <CreditCard className="h-4 w-4" aria-hidden />
-                Liquidaciones recibidas
+                {esArrendatario ? "Mis comprobantes de pago" : "Liquidaciones recibidas"}
               </h2>
             </div>
             <div className="divide-y" style={{ borderColor: "var(--hw-border)" }}>
               {contrato.vouchers.map((v) => (
-                <div key={v.id} className="flex items-center justify-between px-5 py-3.5">
+                <div key={v.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                   <span className="text-sm" style={{ color: "var(--hw-text-3)" }}>{fecha(v.fecha)}</span>
-                  <span className="hw-num font-semibold" style={{ color: "var(--hw-text-1)" }}>
-                    {clp(Number(v.montoClp))}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="hw-num font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                      {clp(Number(v.montoClp))}
+                    </span>
+                    {v.folio && (
+                      <a
+                        href={`/api/portal/voucher/${v.id}/pdf`}
+                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+                        style={{ color: "var(--hw-primary)" }}
+                        aria-label={`Descargar comprobante ${v.folio}`}
+                      >
+                        <Download className="h-3.5 w-3.5" aria-hidden />
+                        PDF
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

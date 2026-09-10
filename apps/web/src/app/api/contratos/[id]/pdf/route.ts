@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
+import { idFiltro } from "@/lib/busqueda";
 import { ContratoPdfDocument, type ContratoPdfData } from "@/lib/contrato-pdf";
 
 export async function GET(
@@ -18,6 +19,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+  }
 
   let actor;
   try {

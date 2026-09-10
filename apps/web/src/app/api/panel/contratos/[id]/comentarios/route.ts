@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { withTenant } from "@/lib/tenant-db";
+import { idFiltro } from "@/lib/busqueda";
 import { sendComentarioCorredorEmail } from "@/lib/email";
 
 const schema = z.object({
@@ -29,6 +30,9 @@ export async function POST(
 
   const { texto, documentoIds } = parsed.data;
   const { id: contratoId } = await params;
+  if (!idFiltro(contratoId)) {
+    return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+  }
 
   const resultado = await withTenant(session.tenantId, async (tx) => {
     const contrato = await tx.contrato.findFirst({
@@ -109,6 +113,7 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
 
   const { id: contratoId } = await params;
+  if (!idFiltro(contratoId)) return NextResponse.json([]);
 
   const comentarios = await withTenant(session.tenantId, (tx) => tx.comentarioCorredor.findMany({
     where:   { contratoId, tenantId: session.tenantId },

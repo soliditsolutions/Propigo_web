@@ -19,6 +19,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
 import { ComprobantePdfDocument } from "@/lib/comprobante-pdf";
+import { idFiltro } from "@/lib/busqueda";
 import type { SnapshotPago, SnapshotLiquidacion } from "@/lib/comprobante";
 
 export async function GET(
@@ -31,6 +32,9 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Comprobante no encontrado." }, { status: 404 });
+  }
   const { personaId, tenantId, rol } = session;
 
   // El tipo permitido depende del rol: el arrendatario paga (comprobante de

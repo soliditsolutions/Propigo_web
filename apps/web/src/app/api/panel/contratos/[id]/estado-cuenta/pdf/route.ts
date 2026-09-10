@@ -13,6 +13,7 @@ import { logError } from "@/lib/logger";
 import { convertirUfAClp } from "@housing/core";
 import { getUfCLPTx } from "@/lib/queries";
 import { construirEstadoCuenta, type PeriodoDeuda } from "@/lib/estado-cuenta";
+import { idFiltro } from "@/lib/busqueda";
 import { EstadoCuentaDocument } from "@/lib/estado-cuenta-pdf";
 
 export async function GET(
@@ -20,6 +21,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+  }
 
   let actor;
   try {

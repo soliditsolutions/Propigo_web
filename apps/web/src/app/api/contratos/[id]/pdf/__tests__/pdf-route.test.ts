@@ -33,6 +33,8 @@ vi.mock("@/lib/db", () => {
 
 const { GET } = await import("../route");
 
+const ID_VALIDO = "11111111-1111-4111-8111-111111111111";
+
 const CONTRATO_BASE = {
   id: "contrato-1", estado: "borrador", denominacion: "UF", valorArriendo: "24.5", diaVencimiento: 5,
   reajuste: "anual", moraTasaPct: "3", moraDiasGracia: 5,
@@ -47,7 +49,7 @@ const CONTRATO_BASE = {
   propietario:  { nombre: "Ana Propietaria",  rut: "22222222-2", email: null },
 };
 
-function req(id = "contrato-1") {
+function req(id = ID_VALIDO) {
   return GET(new Request(`http://localhost/api/contratos/${id}/pdf`), { params: Promise.resolve({ id }) });
 }
 
@@ -58,6 +60,13 @@ describe("GET /api/contratos/[id]/pdf", () => {
     mockGetActor.mockRejectedValue(new Error("no session"));
     const res = await req();
     expect(res.status).toBe(401);
+  });
+
+  it("404 sin tocar la BD si el id no es un UUID (evita el 500 de Prisma)", async () => {
+    mockGetActor.mockResolvedValue({ usuarioId: "manager-1", tenantId: "tenant-1", rol: "manager", tenant: { nombre: "Corredora" } });
+    const res = await req("' OR 1=1--");
+    expect(res.status).toBe(404);
+    expect(mockContratoFindFirst).not.toHaveBeenCalled();
   });
 
   it("404 si el contrato no existe o es de otro tenant", async () => {

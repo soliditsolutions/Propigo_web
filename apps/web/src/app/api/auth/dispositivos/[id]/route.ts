@@ -11,6 +11,7 @@ import {
   clearDeviceCookie,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { idFiltro } from "@/lib/busqueda";
 import { cookies } from "next/headers";
 
 export async function DELETE(
@@ -23,6 +24,9 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Dispositivo no encontrado" }, { status: 404 });
+  }
 
   const dispositivo = await prisma.dispositivoConfiable.findUnique({
     where: { id },

@@ -283,6 +283,11 @@ language sql security definer set search_path = public as $$
   ) c on true
   left join propiedad prop on prop.id = c.propiedad_id
   where p.rut = p_rut
+  -- Un mismo RUT puede existir en varias corredoras. Se prefiere la persona que
+  -- SÍ tiene un contrato vigente: es la única que puede autenticarse en el
+  -- portal (solicitar-otp exige contrato_id). Sin este orden, `limit 1` era no
+  -- determinista y podía devolver una ficha sin contrato, bloqueando el acceso.
+  order by (c.id is not null) desc, p.created_at asc
   limit 1;
 $$;
 grant execute on function portal_lookup_persona_por_rut(text) to housing_app;

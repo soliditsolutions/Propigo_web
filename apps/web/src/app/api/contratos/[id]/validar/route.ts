@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { getTenant } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { evaluarReglasContrato } from "@/lib/contract-rules";
+import { idFiltro } from "@/lib/busqueda";
 import { logError } from "@/lib/logger";
 
 export type ValidacionEstado = "aprobado" | "con_alertas" | "requiere_revision";
@@ -107,6 +108,9 @@ export async function POST(
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
 
     const { id: contratoId } = await params;
+    if (!idFiltro(contratoId)) {
+      return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+    }
 
     const contrato = await withTenant(tenant.id, (tx) => tx.contrato.findFirst({
       where: { id: contratoId, tenantId: tenant.id },
@@ -174,6 +178,9 @@ export async function PUT(
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
 
     const { id: contratoId } = await params;
+    if (!idFiltro(contratoId)) {
+      return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+    }
 
     const confirmado = await withTenant(tenant.id, async (tx) => {
       const contrato = await tx.contrato.findFirst({

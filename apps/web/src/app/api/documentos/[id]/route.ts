@@ -22,6 +22,7 @@ import { join, basename } from "path";
 import { getSession } from "@/lib/auth";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
+import { idFiltro } from "@/lib/busqueda";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -43,6 +44,9 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Documento no encontrado." }, { status: 404 });
+  }
 
   // 2. Buscar documento — scoped al tenant del usuario (previene IDOR).
   //    ADR-0011 Fase 2: bajo housing_app + RLS, un documento de otro tenant

@@ -15,6 +15,7 @@ import { join, basename } from "path";
 import { getPortalSession } from "@/lib/portal-auth";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
+import { idFiltro } from "@/lib/busqueda";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -35,6 +36,9 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!idFiltro(id)) {
+    return NextResponse.json({ error: "Documento no encontrado." }, { status: 404 });
+  }
   const { personaId, tenantId, rol } = session;
 
   const doc = await withTenant(tenantId, async (tx) => {

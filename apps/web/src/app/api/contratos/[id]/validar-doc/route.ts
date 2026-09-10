@@ -4,6 +4,7 @@ import { getTenant } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { type ValidacionResultado, validarEsquema } from "../validar/route";
 import { detectarPii } from "@/lib/pii-detector";
+import { idFiltro } from "@/lib/busqueda";
 import { logError } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/ip";
@@ -165,6 +166,9 @@ export async function POST(
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
 
     const { id: contratoId } = await params;
+    if (!idFiltro(contratoId)) {
+      return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
+    }
 
     const contrato = await withTenant(tenant.id, (tx) => tx.contrato.findFirst({
       where:  { id: contratoId, tenantId: tenant.id },

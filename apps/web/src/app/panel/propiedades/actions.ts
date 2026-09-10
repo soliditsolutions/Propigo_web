@@ -16,6 +16,7 @@ import {
   type EntradaCuenta, type EntradaRolComplementario,
 } from "@/lib/propiedad-datos";
 import { getClientIpFromHeaders } from "@/lib/ip";
+import { validarCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
 
 export type ResultadoCrear =
   | { ok: true; id: string }
@@ -427,10 +428,25 @@ export async function actualizarPropiedad(
     imagenes?: string[];
     /** Colaborador a cargo (ADR-0013). "" = desasignar explícito. Ausente = no tocar (Colaborador). */
     asignadoAId?: string;
+    /**
+     * Cuenta bancaria del propietario (L-DT6). null = quitarla; objeto = crear
+     * o actualizar. Es por persona: se guarda contra el propietarioId, no la
+     * propiedad, así que afecta a todas sus propiedades.
+     */
+    cuentaPropietario?: {
+      banco: string; tipo: string; numero: string;
+      titular: string; rutTitular: string; email: string; visibleEnPortal: boolean;
+    } | null;
   },
 ): Promise<ResultadoOk> {
   if (!propiedadId)
     return { ok: false, error: "ID de propiedad requerido." };
+
+  // La cuenta del propietario, si viene, se valida antes de tocar la base.
+  if (data.cuentaPropietario) {
+    const e = validarCuentaBancaria(data.cuentaPropietario);
+    if (e) return { ok: false, error: e };
+  }
   // Mismas reglas que al dar de alta: editar no es una puerta de atrás para
   // dejar una propiedad en un estado que el alta no habría aceptado.
   {
@@ -573,6 +589,36 @@ export async function actualizarPropiedad(
           visibleEnPortal: c.visibleEnPortal !== false,
         })),
       });
+
+      // Cuenta bancaria del propietario (L-DT6). Va contra el propietarioId de
+      // esta propiedad; una por persona (índice único parcial de setup.sql).
+      if (data.cuentaPropietario === null) {
+        await tx.cuentaBancaria.deleteMany({
+          where: { tenantId: actor.tenantId, personaId: prop.propietarioId },
+        });
+      } else if (data.cuentaPropietario) {
+        const cp = data.cuentaPropietario;
+        const existenteCta = await tx.cuentaBancaria.findFirst({
+          where: { tenantId: actor.tenantId, personaId: prop.propietarioId },
+          select: { id: true },
+        });
+        const payloadCta = {
+          banco: cp.banco.trim(),
+          tipo: cp.tipo as never,
+          numero: normalizarNumeroCuenta(cp.numero),
+          titular: cp.titular.trim(),
+          rutTitular: canonicalRut(cp.rutTitular.trim()),
+          email: cp.email.trim() || null,
+          visibleEnPortal: cp.visibleEnPortal,
+        };
+        if (existenteCta) {
+          await tx.cuentaBancaria.update({ where: { id: existenteCta.id }, data: payloadCta });
+        } else {
+          await tx.cuentaBancaria.create({
+            data: { tenantId: actor.tenantId, personaId: prop.propietarioId, ...payloadCta },
+          });
+        }
+      }
 
       await tx.rolComplementario.deleteMany({ where: { propiedadId, tenantId: actor.tenantId } });
       if ((data.rolesComplementarios ?? []).length > 0) {

@@ -37,6 +37,19 @@ export type InmuebleSnapshot = {
   avaluoFiscalClp: number | null;
 };
 
+/**
+ * Cuenta bancaria de destino, congelada en el documento (L-DT6). El titular
+ * puede no ser el propietario (una sociedad, un apoderado), así que se guarda
+ * aparte y no se deriva.
+ */
+export type CuentaDestinoSnapshot = {
+  banco: string;
+  tipo: string;
+  numero: string;
+  titular: string;
+  rutTitular: string;
+};
+
 /** Un ajuste tal como se imprime: qué es, y cuánto (L-CP1, L-CP2). */
 export type AjusteSnapshot = {
   tipo: string;
@@ -93,6 +106,12 @@ export type SnapshotLiquidacion = Base & {
   /** Lo que recibe el propietario. */
   netoPropietarioClp: number;
   ajustes: AjusteSnapshot[];
+  /**
+   * Cuenta a la que se abona la liquidación (L-DT6). Presente solo si el
+   * propietario tiene una cargada; se congela para que el documento de un mes
+   * pasado siga mostrando la cuenta que se usó entonces.
+   */
+  cuentaPropietario?: CuentaDestinoSnapshot;
 };
 
 /** Pie obligatorio: el comprobante no es un documento tributario (L-CP10). */
@@ -165,6 +184,8 @@ export function construirSnapshotLiquidacion(datos: {
   descuentoPropietarioClp: number;
   netoPropietarioClp: number;
   ajustes: AjusteSnapshot[];
+  /** Cuenta del propietario, o null si no tiene una cargada. */
+  cuentaPropietario?: CuentaDestinoSnapshot | null;
 }): SnapshotLiquidacion {
   // El IVA de la comisión se deriva de la naturaleza jurídica de la corredora
   // (L-IV1): afecta si es persona jurídica, exenta si es persona natural que
@@ -187,5 +208,6 @@ export function construirSnapshotLiquidacion(datos: {
     descuentoPropietarioClp: datos.descuentoPropietarioClp,
     netoPropietarioClp: datos.netoPropietarioClp,
     ajustes: datos.ajustes,
+    ...(datos.cuentaPropietario ? { cuentaPropietario: datos.cuentaPropietario } : {}),
   };
 }

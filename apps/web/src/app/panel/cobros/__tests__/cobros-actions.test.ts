@@ -55,6 +55,7 @@ const mockTx = {
   pagoEntrante:      { create: vi.fn() },
   ajusteLiquidacion: { create: vi.fn() },
   folioCounter:      { upsert: vi.fn() },
+  cuentaBancaria:    { findFirst: vi.fn() },
 };
 
 // Datos del inmueble y las partes que el snapshot del comprobante congela
@@ -122,6 +123,7 @@ describe("simularPago — BL-RC1 (idempotencia contra doble-submit)", () => {
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue(null);
     mockConciliar.mockReturnValue({
       estado: "conciliado", totalEsperado: 500000, diferencia: 0,
     });
@@ -194,6 +196,7 @@ describe("cerrarLiquidacion — BL-RC2 (idempotencia contra doble-submit)", () =
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue(null);
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
       ivaComisionCLP: 0,
@@ -259,6 +262,7 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue(null);
     mockCalcLiq.mockReturnValue({
       comisionCLP: 30000,
       ivaComisionCLP: 0,
@@ -337,6 +341,26 @@ describe("cerrarLiquidacion — las notificaciones deben SALIR de verdad", () =>
     const asientos = mockTx.asientoLedger.create.mock.calls.map((c) => c[0].data);
     expect(asientos.find((d) => d.tipo === "IVA_COMISION")).toBeUndefined();
   });
+
+  it("congela la cuenta del propietario en el snapshot de la liquidación (L-DT6)", async () => {
+    mockCalcLiq.mockReturnValue({
+      comisionCLP: 30000, ivaComisionCLP: 0,
+      descuentoPropietarioCLP: 0, liquidacionNetaCLP: 470000,
+    });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue({
+      banco: "Banco Estado", tipo: "vista", numero: "12345678",
+      titular: "Propietario QA", rutTitular: "16358920-6",
+    });
+
+    await cerrarLiquidacion("periodo-123", []);
+
+    const voucherArg = mockTx.voucher.create.mock.calls.find((c) => c[0].data.tipo === "liquidacion");
+    expect(voucherArg).toBeDefined();
+    const snap = voucherArg![0].data.snapshot;
+    expect(snap.cuentaPropietario).toBeDefined();
+    expect(snap.cuentaPropietario.banco).toBe("Banco Estado");
+    expect(snap.cuentaPropietario.numero).toBe("12345678");
+  });
 });
 
 describe("simularPago — ownership (ADR-0013, Fase D)", () => {
@@ -346,6 +370,7 @@ describe("simularPago — ownership (ADR-0013, Fase D)", () => {
       async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
     );
     mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue(null);
     mockConciliar.mockReturnValue({ estado: "conciliado", totalEsperado: 500000, diferencia: 0 });
   });
 

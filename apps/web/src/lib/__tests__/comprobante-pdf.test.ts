@@ -71,6 +71,20 @@ describe("ComprobantePdfDocument", () => {
     expect(esPdf(buf)).toBe(true);
   });
 
+    it("la liquidación con cuenta del propietario (Transferir a) renderiza", async () => {
+    const snap = construirSnapshotLiquidacion({
+      ...base, folio: "LQ-2026-00020",
+      arriendoClp: 450_000, comisionClp: 45_000,
+      descuentoPropietarioClp: 0, netoPropietarioClp: 405_000, ajustes: [],
+      cuentaPropietario: {
+        banco: "Banco Estado", tipo: "corriente", numero: "0012345678",
+        titular: "Pedro Propietario", rutTitular: "22222222-2",
+      },
+    });
+    const buf = await renderToBuffer(ComprobantePdfDocument({ snapshot: snap }));
+    expect(esPdf(buf)).toBe(true);
+  });
+
     it("un tipo desconocido falla en vez de emitir un PDF vacío", () => {
     // Guard contra un snapshot corrupto: mejor un error visible que un documento
     // en blanco que parezca válido.

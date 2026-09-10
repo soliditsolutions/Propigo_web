@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import {
   X, MapPin, BedDouble, Bath, Car, ChevronRight, ShieldCheck,
   Plus, Loader2, AlertCircle, Image as ImageIcon, CheckCircle2, Pencil,
-  Lock, ArrowRight, RotateCcw, UploadCloud,
+  Lock, ArrowRight, RotateCcw, UploadCloud, Landmark,
 } from "lucide-react";
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
 import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { clp } from "@/lib/format";
 import { crearPropiedad, activarPropiedad, desactivarPropiedad, actualizarPropiedad, previsualizarUbicacion } from "./actions";
+import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
 import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@housing/core";
 
 // Leaflet usa `window` — debe cargarse únicamente en el navegador.
@@ -57,7 +58,12 @@ type Propiedad = {
   mostrarUbicacionExacta: boolean;
   asignadoAId: string | null;
   asignadoA: { id: string; nombre: string } | null;
-  propietario: { nombre: string };
+  propietario: { nombre: string; email?: string | null; rut?: string };
+  /** Cuenta bancaria del propietario (L-DT6). Null si no tiene una cargada. */
+  cuentaPropietario: {
+    banco: string; tipo: string; numero: string;
+    titular: string; rutTitular: string; email: string | null; visibleEnPortal: boolean;
+  } | null;
   imagenes: Imagen[];
   _count: { contratos: number; publicaciones: number };
 };
@@ -136,6 +142,15 @@ type FormProp = {
   rolVisibleEnPortal: boolean;
   cuentas: EntradaCuenta[];
   rolesComplementarios: EntradaRolComplementario[];
+  /**
+   * Cuenta bancaria del propietario (L-DT6). null = no hay ninguna; un objeto
+   * = se está creando o editando. Es por persona, no por propiedad: aplica al
+   * propietario en todas sus propiedades.
+   */
+  cuentaPropietario: {
+    banco: string; tipo: string; numero: string;
+    titular: string; rutTitular: string; email: string; visibleEnPortal: boolean;
+  } | null;
 };
 
 type FormCrear = FormProp & {
@@ -174,6 +189,7 @@ const FORM_CREAR_INICIAL: FormCrear = {
   rolVisibleEnPortal: true,
   cuentas: CUENTAS_INICIALES,
   rolesComplementarios: [],
+  cuentaPropietario: null,
 };
 
 function formDesdePropiedad(p: Propiedad): FormProp {
@@ -203,6 +219,14 @@ function formDesdePropiedad(p: Propiedad): FormProp {
     mostrarUbicacionExacta: p.mostrarUbicacionExacta,
     imagenes:           p.imagenes.map((i) => i.url).concat(p.imagenes.length === 0 ? [""] : []),
     asignadoAId:        p.asignadoAId ?? "",
+    cuentaPropietario:  p.cuentaPropietario
+      ? {
+          banco: p.cuentaPropietario.banco, tipo: p.cuentaPropietario.tipo,
+          numero: p.cuentaPropietario.numero, titular: p.cuentaPropietario.titular,
+          rutTitular: p.cuentaPropietario.rutTitular, email: p.cuentaPropietario.email ?? "",
+          visibleEnPortal: p.cuentaPropietario.visibleEnPortal,
+        }
+      : null,
   };
 }
 
@@ -378,6 +402,128 @@ function ImagenesField({
 }
 
 /* ── Sub-componente: campos comunes del formulario ── */
+type CuentaProp = {
+  banco: string; tipo: string; numero: string;
+  titular: string; rutTitular: string; email: string; visibleEnPortal: boolean;
+};
+
+const CUENTA_PROP_VACIA: CuentaProp = {
+  banco: "", tipo: "corriente", numero: "", titular: "", rutTitular: "", email: "", visibleEnPortal: false,
+};
+
+const inputCuentaCls =
+  "w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]";
+const inputCuentaStyle = { borderColor: "var(--hw-border)" } as const;
+
+/**
+ * Cuenta bancaria del propietario (L-DT6). Es por persona, no por propiedad:
+ * lo que se edite acá aplica al propietario en todas sus propiedades. El
+ * arrendatario nunca la ve; el propietario la ve en su portal solo si el
+ * corredor activa el interruptor (L-DT7).
+ */
+function CuentaPropietarioSection({
+  propietarioNombre,
+  cuenta,
+  onChange,
+}: {
+  propietarioNombre: string;
+  cuenta: CuentaProp | null;
+  onChange: (c: CuentaProp | null) => void;
+}) {
+  const set = <K extends keyof CuentaProp>(k: K, v: CuentaProp[K]) =>
+    onChange({ ...(cuenta ?? CUENTA_PROP_VACIA), [k]: v });
+
+  return (
+    <div className="mt-5 rounded-2xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border)" }}>
+      <div className="mb-1 flex items-center gap-2">
+        <Landmark className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
+        <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+          Cuenta bancaria del propietario
+        </p>
+      </div>
+      <p className="mb-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        A esta cuenta se le abona la liquidación de {propietarioNombre || "el propietario"}.
+        Aplica al propietario en todas sus propiedades. Dato sensible: el arrendatario no la ve.
+      </p>
+
+      {cuenta === null ? (
+        <button
+          type="button"
+          onClick={() => onChange({ ...CUENTA_PROP_VACIA })}
+          className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+          style={{ background: "var(--hw-surface)", color: "var(--hw-text-2)", border: "1px solid var(--hw-border-2)" }}
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          Agregar cuenta
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Banco</p>
+              <input type="text" value={cuenta.banco} onChange={(e) => set("banco", e.target.value)}
+                placeholder="Banco de Chile" className={inputCuentaCls} style={inputCuentaStyle} />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Tipo de cuenta</p>
+              <select value={cuenta.tipo} onChange={(e) => set("tipo", e.target.value)}
+                className={inputCuentaCls} style={inputCuentaStyle}>
+                {TIPOS_CUENTA.map((t) => <option key={t} value={t}>{ETIQUETA_TIPO_CUENTA[t] ?? t}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Número de cuenta</p>
+            <input type="text" inputMode="numeric" value={cuenta.numero}
+              onChange={(e) => set("numero", e.target.value.replace(/[^\d\s-]/g, ""))}
+              placeholder="0012345678" className={inputCuentaCls} style={inputCuentaStyle} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Titular</p>
+              <input type="text" value={cuenta.titular} onChange={(e) => set("titular", e.target.value)}
+                placeholder="Nombre del titular" className={inputCuentaCls} style={inputCuentaStyle} />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>RUT del titular</p>
+              <input type="text" value={cuenta.rutTitular} onChange={(e) => set("rutTitular", e.target.value)}
+                placeholder="12.345.678-9" className={inputCuentaCls} style={inputCuentaStyle} />
+            </div>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Correo del titular (opcional)</p>
+            <input type="email" value={cuenta.email} onChange={(e) => set("email", e.target.value)}
+              placeholder="titular@correo.cl" className={inputCuentaCls} style={inputCuentaStyle} />
+          </div>
+
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
+            style={{
+              background: cuenta.visibleEnPortal ? "var(--hw-primary-lt)" : "var(--hw-surface)",
+              border: `1px solid ${cuenta.visibleEnPortal ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+            }}>
+            <input type="checkbox" checked={cuenta.visibleEnPortal}
+              onChange={(e) => set("visibleEnPortal", e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--hw-primary)" }} />
+            <span className="min-w-0">
+              <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>Visible en el portal del propietario</span>
+              <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>
+                El propietario ve su cuenta en el portal como confirmación de dónde recibe sus liquidaciones.
+              </span>
+            </span>
+          </label>
+
+          <button type="button" onClick={() => onChange(null)}
+            className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium"
+            style={{ color: "var(--hw-danger-dk)" }}>
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+            Quitar cuenta
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CamposProp({
   form,
   rutError,
@@ -1010,6 +1156,7 @@ export function PropiedadesClient({
   const [openEditar, setOpenEditar]   = useState(false);
   const [formEditar, setFormEditar]   = useState<FormProp>({
     rol: "", avaluoFiscal: "", rolVisibleEnPortal: true, cuentas: CUENTAS_INICIALES, rolesComplementarios: [],
+    cuentaPropietario: null,
     tipo: "departamento", direccion: "", comuna: "", region: "",
     piezas: "", banos: "", m2Totales: "",
     m2Construidos: "", estacionamientos: "", plantas: "",
@@ -1117,6 +1264,7 @@ export function PropiedadesClient({
         // la corredora los cambia, ve "guardado" y nada cambia en la base.
         rol:               formEditar.rol,
         avaluoFiscal:      formEditar.avaluoFiscal ? parseInt(formEditar.avaluoFiscal, 10) : null,
+        cuentaPropietario: formEditar.cuentaPropietario,
         rolVisibleEnPortal: formEditar.rolVisibleEnPortal,
         cuentas:           formEditar.cuentas,
         rolesComplementarios: formEditar.rolesComplementarios,
@@ -1564,6 +1712,14 @@ export function PropiedadesClient({
               onChangeImagenes={(imgs) => setFieldEditar("imagenes", imgs)}
               onRutBlur={() => {}}
             />
+
+            {seleccionada && (
+              <CuentaPropietarioSection
+                propietarioNombre={seleccionada.propietario.nombre}
+                cuenta={formEditar.cuentaPropietario}
+                onChange={(c) => setFieldEditar("cuentaPropietario", c)}
+              />
+            )}
 
             {/* Botones */}
             <div className="mt-6 flex justify-end gap-3">

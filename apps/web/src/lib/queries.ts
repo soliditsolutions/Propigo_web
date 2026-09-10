@@ -571,7 +571,17 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
     where: { tenantId, ...(propiedadIds ? { id: { in: propiedadIds } } : {}) },
     orderBy: { createdAt: "desc" },
     include: {
-      propietario: { select: { nombre: true, email: true, rut: true } },
+      propietario: {
+        select: {
+          nombre: true, email: true, rut: true,
+          // Cuenta bancaria del propietario (L-DT6). Es por persona, no por
+          // propiedad, así que se lee de la relación de la Persona. Puede no
+          // haber ninguna.
+          cuentasBancarias: {
+            select: { banco: true, tipo: true, numero: true, titular: true, rutTitular: true, email: true, visibleEnPortal: true },
+          },
+        },
+      },
       imagenes: { orderBy: { orden: "asc" } },
       asignadoA: { select: { id: true, nombre: true } },
       // El panel trae TODO, incluida la marca de visibilidad: el corredor ve
@@ -612,7 +622,8 @@ export async function getPropiedades(tenantId: string, propiedadIds?: string[] |
     mostrarUbicacionExacta: p.mostrarUbicacionExacta,
     asignadoAId: p.asignadoAId,
     asignadoA: p.asignadoA,
-    propietario: p.propietario,
+    propietario: { nombre: p.propietario.nombre, email: p.propietario.email, rut: p.propietario.rut },
+    cuentaPropietario: p.propietario.cuentasBancarias[0] ?? null,
     imagenes: p.imagenes,
     _count: p._count,
   }));

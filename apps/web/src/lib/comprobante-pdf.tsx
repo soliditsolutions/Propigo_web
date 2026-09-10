@@ -12,6 +12,7 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { formatRut } from "./rut";
 import { PIE_COMPROBANTE, type SnapshotPago, type SnapshotLiquidacion } from "./comprobante";
+import { ETIQUETA_TIPO_CUENTA } from "./cuenta-bancaria";
 
 const styles = StyleSheet.create({
   page: { padding: "48 56", fontSize: 10, fontFamily: "Helvetica", lineHeight: 1.4, color: "#1a1a1a" },
@@ -183,6 +184,16 @@ function ComprobanteLiquidacion({ snap }: { snap: SnapshotLiquidacion }) {
           <Text style={styles.totalValor}>{clp(snap.netoPropietarioClp)}</Text>
         </View>
       </View>
+      {snap.cuentaPropietario ? (
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Transferir a</Text>
+          <Fila label="Banco" valor={snap.cuentaPropietario.banco} />
+          <Fila label="Tipo" valor={ETIQUETA_TIPO_CUENTA[snap.cuentaPropietario.tipo] ?? snap.cuentaPropietario.tipo} />
+          <Fila label="N° de cuenta" valor={snap.cuentaPropietario.numero} />
+          <Fila label="Titular" valor={snap.cuentaPropietario.titular} />
+          <Fila label="RUT" valor={formatRut(snap.cuentaPropietario.rutTitular)} />
+        </View>
+      ) : null}
       <Pie />
     </Page>
   );

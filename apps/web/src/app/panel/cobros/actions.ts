@@ -488,6 +488,13 @@ export async function cerrarLiquidacion(
       // la comisión según naturaleza jurídica de la corredora (L-IV2) + folio.
       const folioLiq = await siguienteFolio(tx, tenant.id, "liquidacion", pagoAsiento.fechaEvento);
       const docLiq = datosDocumento(tenant, c);
+      // Cuenta del propietario (L-DT6): se congela en el snapshot para que el
+      // documento muestre la cuenta que se usó, aunque después cambie. null si
+      // el propietario no tiene una cargada — la liquidación igual se cierra.
+      const cuentaProp = await tx.cuentaBancaria.findFirst({
+        where: { tenantId: tenant.id, personaId: c.propietarioId },
+        select: { banco: true, tipo: true, numero: true, titular: true, rutTitular: true },
+      });
       const snapshotLiq = construirSnapshotLiquidacion({
         folio: folioLiq, fecha: pagoAsiento.fechaEvento, periodoNumero: periodo.numero,
         ...docLiq,
@@ -496,6 +503,7 @@ export async function cerrarLiquidacion(
         descuentoPropietarioClp: liq.descuentoPropietarioCLP,
         netoPropietarioClp: liq.liquidacionNetaCLP,
         ajustes: ajustes.map((a) => ({ tipo: a.tipo, descripcion: a.descripcion, montoClp: a.montoCLP })),
+        cuentaPropietario: cuentaProp,
       });
       await tx.voucher.create({
         data: {

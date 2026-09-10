@@ -99,7 +99,18 @@ export default async function PortalContratoPage({
         },
       },
       arrendatario: { select: { nombre: true, rut: true, email: true, telefono: true } },
-      propietario:  { select: { nombre: true, rut: true, email: true } },
+      propietario:  {
+        select: {
+          nombre: true, rut: true, email: true,
+          // Cuenta bancaria: solo la que el corredor marcó visible en portal
+          // (L-DT7). El arrendatario nunca llega acá — este select solo se usa
+          // cuando rol === "propietario".
+          cuentasBancarias: {
+            where:  { visibleEnPortal: true },
+            select: { banco: true, tipo: true, numero: true, titular: true, rutTitular: true },
+          },
+        },
+      },
       periodos: {
         where: rol === "arrendatario"
           ? { estado: { in: ["pendiente", "atrasado", "pagado", "liquidado", "en_revision"] } }
@@ -457,6 +468,30 @@ export default async function PortalContratoPage({
         {esArrendatario && (
           <ComentariosSection comentarios={comentariosCliente} />
         )}
+
+        {/* ── Cuenta donde recibo mis liquidaciones (propietario) ── */}
+        {!esArrendatario && contrato.propietario.cuentasBancarias?.[0] && (() => {
+          const cb = contrato.propietario.cuentasBancarias[0];
+          return (
+            <div
+              className="rounded-2xl p-5"
+              style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+            >
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+                <CreditCard className="h-4 w-4" aria-hidden />
+                Cuenta donde recibo mis liquidaciones
+              </h2>
+              <div className="space-y-1 text-sm" style={{ color: "var(--hw-text-3)" }}>
+                <p><span style={{ color: "var(--hw-text-4)" }}>Banco:</span> {cb.banco}</p>
+                <p><span style={{ color: "var(--hw-text-4)" }}>N° de cuenta:</span> {cb.numero}</p>
+                <p><span style={{ color: "var(--hw-text-4)" }}>Titular:</span> {cb.titular} ({cb.rutTitular})</p>
+              </div>
+              <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                Si estos datos no son correctos, avísale a tu corredora.
+              </p>
+            </div>
+          );
+        })()}
 
         {/* ── Mis datos registrados ── */}
         <div

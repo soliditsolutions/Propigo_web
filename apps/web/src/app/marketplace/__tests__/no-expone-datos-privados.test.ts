@@ -33,6 +33,11 @@ const CAMPOS_PROHIBIDOS = [
   // para deducir la carga tributaria del propietario y no tiene por qué estar
   // al alcance de cualquiera que mire una publicación.
   "avaluoFiscal",
+  // Cuentas bancarias (de la corredora o de propietarios): el dato más sensible
+  // que guarda la plataforma. Nunca en una superficie pública.
+  "cuentasBancarias",
+  "cuentaBancaria",
+  "rutTitular",
 ];
 
 describe("superficies públicas — datos privados de la propiedad", () => {

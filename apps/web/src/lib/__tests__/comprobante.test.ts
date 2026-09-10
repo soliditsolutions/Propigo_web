@@ -156,7 +156,32 @@ describe("construirSnapshotLiquidacion", () => {
     expect(snap.ivaComisionClp).toBe(0);
   });
 
-  it("conserva el neto al propietario y la comisión", () => {
+  it("congela la cuenta del propietario si se pasa (L-DT6)", () => {
+    const snap = construirSnapshotLiquidacion({
+      ...base, folio: "LQ-2026-00010",
+      arriendoClp: 450_000, comisionClp: 45_000,
+      descuentoPropietarioClp: 0, netoPropietarioClp: 405_000, ajustes: [],
+      cuentaPropietario: {
+        banco: "Banco Estado", tipo: "vista", numero: "12345678",
+        titular: "Pedro Propietario", rutTitular: "22222222-2",
+      },
+    });
+    expect(snap.cuentaPropietario).toBeDefined();
+    expect(snap.cuentaPropietario!.banco).toBe("Banco Estado");
+    expect(snap.cuentaPropietario!.numero).toBe("12345678");
+  });
+
+  it("sin cuenta del propietario, el campo queda ausente (no null)", () => {
+    const snap = construirSnapshotLiquidacion({
+      ...base, folio: "LQ-2026-00011",
+      arriendoClp: 450_000, comisionClp: 45_000,
+      descuentoPropietarioClp: 0, netoPropietarioClp: 405_000, ajustes: [],
+      cuentaPropietario: null,
+    });
+    expect(snap.cuentaPropietario).toBeUndefined();
+  });
+
+    it("conserva el neto al propietario y la comisión", () => {
     const snap = construirSnapshotLiquidacion({
       ...base, folio: "LQ-2026-00004",
       arriendoClp: 450_000, comisionClp: 45_000,

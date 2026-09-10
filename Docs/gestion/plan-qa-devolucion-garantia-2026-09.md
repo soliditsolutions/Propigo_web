@@ -103,4 +103,45 @@ colapsaba a un total sin desglose comunicado a la parte afectada.
 
 ## Resultados
 
-_(Se completa al ejecutar.)_
+_Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió · ⏳ pendiente._
+
+### Cobertura automatizada (verde)
+
+- `garantia-devolucion.test.ts` — 10 casos: validación (C1–C3), cálculo
+  B1–B4, cuadre del snapshot B5/P-GA5.
+- `garantia-devolucion-pdf.test.ts` — 4 casos: render del PDF con y sin
+  retenciones, con saldo pendiente, e inyección (C4).
+- `terminar-contrato-garantia.test.ts` — 3 casos contra Postgres real:
+  D1 (un asiento `RETENCION_GARANTIA` por ítem con su glosa + `DEVOLUCION_GARANTIA`),
+  D2 (`v_garantia_retenida` = 0), D3 (exceso: Σ retención = garantía, el
+  sobrante no entra al ledger, view = 0), D4 (voucher `garantia` con folio
+  `GA-AAAA-NNNNN` y snapshot que cuadra), E1/E2 (aviso con desglose y con
+  "Saldo pendiente"), C1/C5 (retención sin motivo → rechazada, contrato sigue
+  vigente).
+- Suites completas: **`apps/web` 879 ✅ · `@housing/core` 74 ✅**. Typecheck y
+  lint limpios.
+
+### Por sección
+
+| ID | Resultado |
+|---|---|
+| A1 | ✅ `verificarOwnershipContrato` — colaborador sin acceso → `DomainError` (código sin cambios). |
+| A2 | ✅ La ruta PDF ya devuelve `401` sin sesión (sin cambios). |
+| A3 | ✅ Portal: `tiposPermitidos` = `["pago","garantia"]` para arrendatario, `["liquidacion"]` para propietario. |
+| A4 | ✅ Cruce con el contrato por `arrendatarioId` (sin cambios). |
+| B1–B5 | ✅ Tests de cálculo y snapshot. |
+| C1–C3, C5 | ✅ `validarRetenciones` + integración. |
+| C4 | ✅ Test de inyección en el PDF. |
+| D1–D4 | ✅ Integración contra Postgres real. |
+| D5 | ✅ `terminarContrato` no toca el trigger; los asientos son sólo `create`. |
+| E1–E3 | ✅ Cuerpo de la notificación y pie del PDF (tests). |
+| F1–F5 | 🔧 UI verificada por captura: la lista repetible y la boleta en vivo (garantía $500.000 − $120.000 − $30.000 = **$350.000**) renderizan correctamente. El click-through completo (terminar → comprobante → PDF) quedó **⏳ pendiente del reinicio del dev server** (cliente Prisma en caché sin el valor `garantia`). |
+| G1 | ✅ Dispatch por `snapshot.tipo` en ambas rutas; los tests de `comprobante-pdf` siguen verdes. |
+| G2 | ✅ `TIPO_LABEL.garantia`, filtro y etiqueta en el historial de vouchers. |
+| G3 | ✅ 879 + 74. |
+
+### Hallazgo
+
+| # | Severidad | Hallazgo | Corrección |
+|---|---|---|---|
+| 1 | Media (cobro no identificado) | La retención de garantía era un número único, un asiento genérico ("daños/descuentos") y un aviso de una línea. El arrendatario que salía no sabía por qué se le retenía. | Boleta: listado de retenciones con motivo obligatorio, un asiento por ítem, comprobante `GA-` regenerable y aviso con el desglose. Revisado el resto de cobros/avisos: la liquidación y el estado de cuenta ya estaban itemizados. |

@@ -103,7 +103,7 @@ colapsaba a un total sin desglose comunicado a la parte afectada.
 
 ## Resultados
 
-_Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió · ⏳ pendiente._
+_Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió. Verificación E2E completa._
 
 ### Cobertura automatizada (verde)
 
@@ -135,7 +135,8 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió · ⏳ pendiente.
 | D1–D4 | ✅ Integración contra Postgres real. |
 | D5 | ✅ `terminarContrato` no toca el trigger; los asientos son sólo `create`. |
 | E1–E3 | ✅ Cuerpo de la notificación y pie del PDF (tests). |
-| F1–F5 | 🔧 UI verificada por captura: la lista repetible y la boleta en vivo (garantía $500.000 − $120.000 − $30.000 = **$350.000**) renderizan correctamente. El click-through completo (terminar → comprobante → PDF) quedó **⏳ pendiente del reinicio del dev server** (cliente Prisma en caché sin el valor `garantia`). |
+| F1–F5 | ✅ Click-through completo en el navegador: se agregaron 2 retenciones ($120.000 + $35.000), causal mutuo acuerdo, y se terminó el contrato `e3cca64a`. Boleta en vivo correcta ($500.000 − $155.000 = **$345.000**). |
+| E2E | ✅ Tras el término: asientos `GARANTIA_RECIBIDA 500k` + `RETENCION_GARANTIA 120k` ("Retención: Pintura del living y pasillo") + `RETENCION_GARANTIA 35k` ("Retención: Reposición de 2 juegos de llaves") + `DEVOLUCION_GARANTIA 345k`. `v_garantia_retenida` = **0**. Voucher `garantia` folio `GA-2026-00001`, snapshot cuadra (500k + 0 − 155k = 345k). Notificación con desglose ítem por ítem. PDF del panel: `200 · application/pdf · no-store,private · GA-2026-00001.pdf` (4.1 KB, dispatch a `DevolucionGarantiaDocument`). Portal: la consulta del arrendatario lo encuentra (1), la del propietario no (0). |
 | G1 | ✅ Dispatch por `snapshot.tipo` en ambas rutas; los tests de `comprobante-pdf` siguen verdes. |
 | G2 | ✅ `TIPO_LABEL.garantia`, filtro y etiqueta en el historial de vouchers. |
 | G3 | ✅ 879 + 74. |

@@ -15,8 +15,9 @@ import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { ComprobantePdfDocument } from "@/lib/comprobante-pdf";
+import { DevolucionGarantiaDocument } from "@/lib/garantia-devolucion-pdf";
 import { idFiltro } from "@/lib/busqueda";
-import type { SnapshotPago, SnapshotLiquidacion } from "@/lib/comprobante";
+import type { SnapshotPago, SnapshotLiquidacion, SnapshotGarantia } from "@/lib/comprobante";
 
 export async function GET(
   _req: Request,
@@ -52,7 +53,7 @@ export async function GET(
   // Vouchers anteriores al folio/snapshot enriquecido no se pueden dibujar: su
   // snapshot no trae emisor ni partes. Se distingue del "no existe" para que el
   // corredor entienda que es un comprobante viejo, no un error.
-  const snapshot = voucher.snapshot as unknown as (SnapshotPago | SnapshotLiquidacion) & { tipo?: string };
+  const snapshot = voucher.snapshot as unknown as (SnapshotPago | SnapshotLiquidacion | SnapshotGarantia) & { tipo?: string };
   if (!voucher.folio || !snapshot?.emisor) {
     return NextResponse.json(
       { error: "Este comprobante es anterior al formato PDF y no puede regenerarse." },
@@ -62,7 +63,11 @@ export async function GET(
 
   let buffer;
   try {
-    buffer = await renderToBuffer(ComprobantePdfDocument({ snapshot }));
+    buffer = await renderToBuffer(
+      snapshot.tipo === "garantia"
+        ? DevolucionGarantiaDocument({ snapshot: snapshot as SnapshotGarantia })
+        : ComprobantePdfDocument({ snapshot: snapshot as SnapshotPago | SnapshotLiquidacion }),
+    );
   } catch (e) {
     logError(`voucher-pdf/${id}`, e);
     return NextResponse.json({ error: "No pudimos generar el PDF." }, { status: 500 });

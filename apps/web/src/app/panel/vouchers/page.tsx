@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const TIPO_LABEL = {
   pago:        { label: "Pago",        color: "var(--hw-primary)" },
   liquidacion: { label: "Liquidación", color: "var(--hw-success)" },
+  garantia:    { label: "Devolución de garantía", color: "var(--hw-warning)" },
 } as const;
 
 export default async function VouchersPage({
@@ -20,7 +21,8 @@ export default async function VouchersPage({
   const params  = await searchParams;
   const propiedadIds = await propiedadIdsVisibles(actor);
 
-  const tipo = (params.tipo === "pago" || params.tipo === "liquidacion") ? params.tipo : undefined;
+  const tipo = (params.tipo === "pago" || params.tipo === "liquidacion" || params.tipo === "garantia")
+    ? params.tipo : undefined;
 
   const [vouchers, contratos] = await Promise.all([
     getVouchers(actor.tenantId, {
@@ -158,7 +160,7 @@ export default async function VouchersPage({
           >
             <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
               {vouchers.length} voucher{vouchers.length !== 1 ? "s" : ""}
-              {tipo && ` · ${tipo === "pago" ? "solo pagos" : "solo liquidaciones"}`}
+              {tipo && ` · solo ${TIPO_LABEL[tipo].label.toLowerCase()}`}
             </p>
             <p className="text-xs font-semibold tabular-nums hw-num" style={{ color: "var(--hw-text-2)" }}>
               Total: {clp(vouchers.reduce((s, v) => s + v.montoClp, 0))}

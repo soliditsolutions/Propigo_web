@@ -182,7 +182,7 @@ vigencia de la ley.
 | **L-CM2** | **Aviso de término** con los plazos calculados: 2 meses, +1 por año completo ocupado, tope 6 | L-DT10 | — | `[x]` |
 | **L-CM3** | El aviso de término advierte que **no surte efecto legal por correo**: requiere notificación judicial o personal de notario | L-CM2 | — | `[x]` |
 | **L-CM4** | **Aviso de reajuste** en PDF, mostrando los 12 meses de IPC uno por uno | P-NT3 | **G-04** | `[!]` |
-| **L-CM5** | **Devolución de garantía** con detalle de retenciones y su motivo | P-GA3 | — | `[ ]` |
+| **L-CM5** | **Devolución de garantía** con detalle de retenciones y su motivo | P-GA3 | — | `[x]` |
 | **L-CM6** | **Aviso de cambio de titularidad** de la propiedad | — | — | `[ ]` |
 | **L-CM7** | Datos de transferencia en el recordatorio de pago, y cierre «Si ya pagaste, omite este correo» | L-DT5 | — | `[x]` |
 

@@ -60,6 +60,7 @@ export function FiltrosClient({
           <option value="">Todos</option>
           <option value="pago">Pago</option>
           <option value="liquidacion">Liquidación</option>
+          <option value="garantia">Devolución de garantía</option>
         </select>
       </div>
 

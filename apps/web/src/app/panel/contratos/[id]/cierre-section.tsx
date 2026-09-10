@@ -3,11 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  XCircle, Loader2, CheckCircle2, ShieldCheck, AlertTriangle,
+  XCircle, Loader2, CheckCircle2, ShieldCheck, AlertTriangle, Plus, X,
 } from "lucide-react";
 import { terminarContrato } from "./actions";
 import { clp, cantidad } from "@/lib/format";
+import { calcularDevolucionGarantia } from "@/lib/garantia-devolucion";
 import { useToast } from "@/components/ui/toast";
+
+type RetencionLocal = { tempId: string; descripcion: string; montoClp: number };
+let _rid = 0;
+const nuevaRetencion = (): RetencionLocal => ({ tempId: `r${_rid++}`, descripcion: "", montoClp: 0 });
 
 /**
  * Causales de término, en el lenguaje del corredor. El orden es intencional:
@@ -77,9 +82,20 @@ export function CierreSection({
   const [tipo, setTipo]                   = useState<"normal" | "anticipado">(() =>
     permitirTerminoNormal ? "normal" : "anticipado"
   );
-  const [montoRetencion, setMontoRetencion] = useState(0);
+  const [retenciones, setRetenciones]     = useState<RetencionLocal[]>([]);
   const [causal, setCausal]               = useState("");
   const [fechaDesahucio, setFechaDesahucio] = useState("");
+
+  const retencionesValidas = retenciones
+    .filter((r) => r.descripcion.trim() && r.montoClp > 0)
+    .map((r) => ({ descripcion: r.descripcion.trim(), montoClp: Math.round(r.montoClp) }));
+  const hayRetencionIncompleta = retenciones.some(
+    (r) => (r.descripcion.trim() ? 0 : 1) + (r.montoClp > 0 ? 0 : 1) === 1,
+  );
+  const dev = calcularDevolucionGarantia({
+    garantiaDisponibleClp: garantiaDisponibleCLP,
+    retenciones: retencionesValidas,
+  });
 
   // Las causales que corresponden al tipo elegido. Cambiar de tipo puede dejar
   // una causal que ya no aplica: en ese caso se limpia, para no terminar un
@@ -87,8 +103,10 @@ export function CierreSection({
   const causalesDisponibles = CAUSALES.filter((c) => c.tipos.includes(tipo));
   const causalActual = CAUSALES.find((c) => c.valor === causal);
   const requiereFechaDesahucio = !!causalActual?.desahucio;
-  // No se puede terminar sin causal, ni con un desahucio sin su fecha.
-  const puedeTerminar = !!causal && (!requiereFechaDesahucio || !!fechaDesahucio);
+  // No se puede terminar sin causal, ni con un desahucio sin su fecha, ni con
+  // una retención a medio llenar (motivo sin monto o al revés).
+  const puedeTerminar =
+    !!causal && (!requiereFechaDesahucio || !!fechaDesahucio) && !hayRetencionIncompleta;
 
   /* Renta del período faltante — informativa. La Ley 18.101 no regula el
    * término anticipado por el arrendatario; lo habitual y más defendible
@@ -106,7 +124,7 @@ export function CierreSection({
     if (!confirmado) return;
     startTransition(async () => {
       const res = await terminarContrato(contratoId, {
-        tipo, montoRetencion,
+        tipo, retenciones: retencionesValidas,
         causal: causal as never,
         fechaNotificacionDesahucio: requiereFechaDesahucio ? fechaDesahucio : undefined,
       });
@@ -262,7 +280,7 @@ export function CierreSection({
           </div>
         )}
 
-        {/* Garantía — retención / devolución */}
+        {/* Garantía — devolución con detalle de retenciones (boleta, L-CM5) */}
         {garantiaDisponibleCLP > 0 && (
           <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-danger-bd)" }}>
             <div className="flex items-center gap-2">
@@ -278,51 +296,86 @@ export function CierreSection({
             )}
 
             <div>
-              <label
-                htmlFor="monto-retencion"
-                className="mb-1 block text-xs font-semibold"
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-danger-dk)" }}>
+                Retenciones (deja la lista vacía para devolver todo)
+              </p>
+              <p className="mb-2 text-[11px]" style={{ color: "var(--hw-danger-dk)", opacity: 0.8 }}>
+                Cada retención queda impresa en el comprobante que recibe el arrendatario. El motivo es obligatorio.
+              </p>
+              <div className="space-y-2">
+                {retenciones.map((r) => (
+                  <div key={r.tempId} className="grid gap-2 sm:grid-cols-[1fr_auto_auto] items-center rounded-lg p-2" style={{ background: "var(--hw-danger-lt)" }}>
+                    <input
+                      type="text"
+                      placeholder="Motivo (ej. pintura de living, reposición de llaves)"
+                      value={r.descripcion}
+                      maxLength={200}
+                      onChange={(e) => setRetenciones((prev) => prev.map((x) => x.tempId === r.tempId ? { ...x, descripcion: e.target.value } : x))}
+                      className="rounded-lg border px-2 py-1.5 text-sm"
+                      style={{ borderColor: "var(--hw-danger-bd)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+                      aria-label="Motivo de la retención"
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium" style={{ color: "var(--hw-danger-dk)" }}>$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Monto"
+                        value={r.montoClp || ""}
+                        onChange={(e) => setRetenciones((prev) => prev.map((x) => x.tempId === r.tempId ? { ...x, montoClp: Number(e.target.value.replace(/\D/g, "")) } : x))}
+                        className="w-28 rounded-lg border px-2 py-1.5 text-sm tabular-nums"
+                        style={{ borderColor: "var(--hw-danger-bd)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+                        aria-label="Monto de la retención en pesos"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRetenciones((prev) => prev.filter((x) => x.tempId !== r.tempId))}
+                      aria-label="Eliminar esta retención"
+                      className="hw-btn rounded-lg p-1"
+                      style={{ color: "var(--hw-danger-dk)" }}
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setRetenciones((prev) => [...prev, nuevaRetencion()])}
+                className="hw-btn mt-2 flex items-center gap-1 text-xs font-semibold"
                 style={{ color: "var(--hw-danger-dk)" }}
               >
-                Monto a retener por daños (0 = devuelve todo)
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium" style={{ color: "var(--hw-danger-dk)" }}>$</span>
-                <input
-                  id="monto-retencion"
-                  type="number"
-                  min={0}
-                  max={garantiaDisponibleCLP}
-                  step={1000}
-                  value={montoRetencion}
-                  onChange={(e) => setMontoRetencion(Math.min(garantiaDisponibleCLP, Math.max(0, Number(e.target.value))))}
-                  className="w-40 rounded-lg border px-3 py-1.5 text-sm tabular-nums"
-                  style={{ borderColor: "var(--hw-danger-bd)", color: "var(--hw-danger-dk)", outline: "none" }}
-                />
-              </div>
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Agregar retención
+              </button>
+              {hayRetencionIncompleta && (
+                <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--hw-danger-dk)" }}>
+                  Completa el motivo y el monto de cada retención, o elimínala.
+                </p>
+              )}
             </div>
 
-            {/* Resumen visual */}
-            <div className="grid grid-cols-2 gap-2 rounded-lg p-3" style={{ background: "var(--hw-danger-lt)" }}>
-              <div className="text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-danger-dk)" }}>
-                  Se retiene
-                </p>
-                <p className="mt-0.5 text-sm font-bold tabular-nums" style={{ color: "var(--hw-danger-dk)" }}>
-                  {clp(montoRetencion)}
-                </p>
+            {/* Resumen — la boleta en vivo */}
+            <div className="rounded-lg p-3 space-y-1 text-xs" style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger-dk)" }}>
+              <div className="flex justify-between"><span>Garantía a restituir</span><span className="tabular-nums">{clp(dev.garantiaDisponibleClp)}</span></div>
+              {dev.retenciones.map((r, i) => (
+                <div key={i} className="flex justify-between"><span>− {r.descripcion}</span><span className="tabular-nums">{clp(r.montoClp)}</span></div>
+              ))}
+              <div className="flex justify-between border-t pt-1 font-bold" style={{ borderColor: "var(--hw-danger-bd)", color: "var(--hw-success-dk)" }}>
+                <span>Se devuelve al arrendatario</span><span className="tabular-nums">{clp(dev.devolucionClp)}</span>
               </div>
-              <div className="text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-success)" }}>
-                  Se devuelve
-                </p>
-                <p className="mt-0.5 text-sm font-bold tabular-nums" style={{ color: "var(--hw-success-dk)" }}>
-                  {clp(garantiaDisponibleCLP - montoRetencion)}
-                </p>
-              </div>
+              {dev.saldoPendienteArrendatarioClp > 0 && (
+                <div className="flex justify-between font-semibold pt-1" style={{ color: "var(--hw-danger-dk)" }}>
+                  <span>Saldo que el arrendatario debe pagar (se cobra por fuera)</span>
+                  <span className="tabular-nums">{clp(dev.saldoPendienteArrendatarioClp)}</span>
+                </div>
+              )}
             </div>
 
             <p className="text-[11px]" style={{ color: "var(--hw-danger-dk)", opacity: 0.8 }}>
-              Ambos montos quedarán registrados en el ledger inmutable del contrato.
+              Se emitirá un comprobante de devolución de garantía y se avisará al arrendatario con este desglose.
+              Los montos quedan en el ledger inmutable del contrato.
             </p>
           </div>
         )}

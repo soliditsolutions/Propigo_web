@@ -496,7 +496,7 @@ export async function getNotificacionCount(tenantId: string, propiedadIds?: stri
 }
 
 type VoucherFiltros = {
-  tipo?: "pago" | "liquidacion";
+  tipo?: "pago" | "liquidacion" | "garantia";
   desde?: string;
   hasta?: string;
   contratoId?: string;
@@ -505,7 +505,7 @@ type VoucherFiltros = {
 export type VoucherItem = {
   id: string;
   fecha: Date;
-  tipo: "pago" | "liquidacion";
+  tipo: "pago" | "liquidacion" | "garantia";
   /** Folio del documento. Null en vouchers previos al formato con folio. */
   folio: string | null;
   montoClp: number;

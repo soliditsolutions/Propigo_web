@@ -102,11 +102,11 @@ cuadre, no una línea de texto.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **P-GA1** | Valor `garantia` en el enum `TipoVoucher` | — | — | `[ ]` |
+| **P-GA1** | Valor `garantia` en el enum `TipoVoucher` | — | — | `[x]` |
 | **P-GA2** | Corregir `Voucher.arrendatarioId`: el voucher de `liquidacion` es del propietario | — | **G-03** | `[!]` |
-| **P-GA3** | Generar el voucher de garantía al cerrar el contrato, con snapshot completo | P-GA1, P-GA2 | — | `[ ]` |
-| **P-GA4** | Glosa con desglose en la notificación de término (hoy es una línea) | P-GA3 | — | `[ ]` |
-| **P-GA5** | Tests: el snapshot cuadra (recibido + reajuste − retenciones = devuelto) | P-GA3 | — | `[ ]` |
+| **P-GA3** | Generar el voucher de garantía al cerrar el contrato, con snapshot completo | P-GA1 | — | `[x]` |
+| **P-GA4** | Glosa con desglose en la notificación de término (hoy es una línea) | P-GA3 | — | `[x]` |
+| **P-GA5** | Tests: el snapshot cuadra (recibido + reajuste − retenciones = devuelto) | P-GA3 | — | `[x]` |
 
 **Lo que YA existe y no hay que rehacer:** el ledger está completo —
 `GARANTIA_RECIBIDA`, `RETENCION_GARANTIA`, `DEVOLUCION_GARANTIA` y
@@ -115,6 +115,25 @@ la contabilidad.
 
 `Documento` ya tiene FK `voucherId`, así que el voucher puede colgar un PDF más
 adelante sin tocar el modelo.
+
+> ✅ **P-GA1/P-GA3/P-GA4/P-GA5 — 2026-09-10 (L-CM5).** Al terminar el contrato,
+> la garantía se liquida como una boleta: un listado de retenciones con su
+> motivo (`terminarContrato` acepta `retenciones[]`; `lib/garantia-devolucion.ts`
+> reparte la garantía contra la lista). Cada retención es un asiento
+> `RETENCION_GARANTIA` con su glosa; el sobrante, `DEVOLUCION_GARANTIA`.
+> `v_garantia_retenida` cierra a 0 (test de integración). Se emite un voucher
+> `garantia` (folio `GA-2026-00001`) con snapshot que cuadra, regenerable a PDF
+> (`garantia-devolucion-pdf.tsx`) desde el panel y el portal del arrendatario.
+> La notificación de término lleva el desglose ítem por ítem.
+>
+> **P-GA2 sigue `[!]`**: es el problema del voucher de *liquidación*
+> (destinatario mal etiquetado). El voucher de garantía usa `arrendatarioId`
+> correctamente —el arrendatario ES quien recibe la devolución—, así que P-GA3
+> no lo necesita.
+>
+> **Exceso de retenciones sobre la garantía**: no se cobra por la plataforma.
+> Queda como "saldo pendiente del arrendatario" en el comprobante y en el
+> aviso; el corredor lo gestiona por fuera.
 
 ### 🎓 Rol para este grupo: Ingeniero de sistemas contables
 

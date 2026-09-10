@@ -19,8 +19,9 @@ import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
 import { ComprobantePdfDocument } from "@/lib/comprobante-pdf";
+import { DevolucionGarantiaDocument } from "@/lib/garantia-devolucion-pdf";
 import { idFiltro } from "@/lib/busqueda";
-import type { SnapshotPago, SnapshotLiquidacion } from "@/lib/comprobante";
+import type { SnapshotPago, SnapshotLiquidacion, SnapshotGarantia } from "@/lib/comprobante";
 
 export async function GET(
   req: NextRequest,
@@ -37,17 +38,18 @@ export async function GET(
   }
   const { personaId, tenantId, rol } = session;
 
-  // El tipo permitido depende del rol: el arrendatario paga (comprobante de
-  // pago), al propietario se le liquida. Es lo que impide que el arrendatario
-  // vea la liquidación, que incluye la comisión de la corredora.
-  const tipoPermitido = rol === "arrendatario" ? "pago" : "liquidacion";
+  // El tipo permitido depende del rol: el arrendatario ve su comprobante de
+  // pago y su devolución de garantía; al propietario se le liquida. Es lo que
+  // impide que el arrendatario vea la liquidación, que lleva la comisión.
+  const tiposPermitidos: ("pago" | "liquidacion" | "garantia")[] =
+    rol === "arrendatario" ? ["pago", "garantia"] : ["liquidacion"];
   const whereContrato = rol === "arrendatario"
     ? { tenantId, arrendatarioId: personaId }
     : { tenantId, propietarioId: personaId };
 
   const voucher = await withTenant(tenantId, async (tx) => {
     const v = await tx.voucher.findFirst({
-      where:  { id, tenantId, tipo: tipoPermitido },
+      where:  { id, tenantId, tipo: { in: tiposPermitidos } },
       select: { id: true, folio: true, snapshot: true, tipo: true, contratoId: true },
     });
     if (!v) return null;
@@ -60,7 +62,7 @@ export async function GET(
     return NextResponse.json({ error: "Comprobante no encontrado." }, { status: 404 });
   }
 
-  const snapshot = voucher.snapshot as unknown as (SnapshotPago | SnapshotLiquidacion) & { emisor?: unknown };
+  const snapshot = voucher.snapshot as unknown as (SnapshotPago | SnapshotLiquidacion | SnapshotGarantia) & { emisor?: unknown };
   if (!voucher.folio || !snapshot?.emisor) {
     return NextResponse.json(
       { error: "Este comprobante es anterior al formato PDF." },
@@ -75,7 +77,11 @@ export async function GET(
 
   let buffer;
   try {
-    buffer = await renderToBuffer(ComprobantePdfDocument({ snapshot }));
+    buffer = await renderToBuffer(
+      snapshot.tipo === "garantia"
+        ? DevolucionGarantiaDocument({ snapshot: snapshot as SnapshotGarantia })
+        : ComprobantePdfDocument({ snapshot: snapshot as SnapshotPago | SnapshotLiquidacion }),
+    );
   } catch (e) {
     logError(`portal-voucher-pdf/${id}`, e);
     return NextResponse.json({ error: "No pudimos generar el PDF." }, { status: 500 });

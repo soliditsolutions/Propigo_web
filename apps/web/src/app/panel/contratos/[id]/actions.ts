@@ -11,7 +11,12 @@ import { CausalTermino } from "@/generated/prisma/enums";
 import { esc } from "@/lib/html";
 import { logError } from "@/lib/logger";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
-import { cantidad, plural } from "@/lib/format";
+import { cantidad, plural, clp } from "@/lib/format";
+import { siguienteFolio } from "@/lib/folio";
+import { construirSnapshotGarantia } from "@/lib/comprobante";
+import {
+  validarRetenciones, calcularDevolucionGarantia, type RetencionGarantia,
+} from "@/lib/garantia-devolucion";
 
 export type ResultadoOk =
   | { ok: true }
@@ -93,13 +98,19 @@ export async function activarContrato(contratoId: string): Promise<ResultadoOk> 
 /**
  * Termina un contrato vigente (normal o anticipado).
  * La propiedad vuelve a estado "disponible".
- * Registra asientos RETENCION_GARANTIA / DEVOLUCION_GARANTIA en el ledger.
+ *
+ * La garantía se liquida como una boleta (L-CM5): un listado de retenciones con
+ * su motivo, cada una un asiento RETENCION_GARANTIA, y lo que sobra queda como
+ * DEVOLUCION_GARANTIA. Se emite un comprobante de garantía (voucher `garantia`
+ * con snapshot completo) y la notificación al arrendatario lleva el desglose.
  */
 export async function terminarContrato(
   contratoId: string,
   opts: {
     tipo: "normal" | "anticipado";
-    montoRetencion: number; // 0 = devuelve todo; > 0 = retiene parte o todo
+    /** Listado de retenciones sobre la garantía. Vacío = se devuelve todo.
+     *  Cada ítem necesita un motivo (queda impreso en el comprobante). */
+    retenciones?: RetencionGarantia[];
     /** Por qué termina. Fija el plazo de restitución y qué procedimiento
      *  procede; queda en el contrato como parte del registro del cierre. */
     causal: CausalTermino;
@@ -111,7 +122,12 @@ export async function terminarContrato(
   if (!contratoId)
     return { ok: false, error: "ID de contrato requerido." };
 
-  const montoRetencion = Math.round(Math.max(0, opts.montoRetencion));
+  const retenciones: RetencionGarantia[] = (opts.retenciones ?? []).map((r) => ({
+    descripcion: typeof r?.descripcion === "string" ? r.descripcion : "",
+    montoClp: Math.round(Number(r?.montoClp)),
+  }));
+  const errRet = validarRetenciones(retenciones);
+  if (errRet) return { ok: false, error: errRet };
 
   // La causal no puede venir vacía ni inventada: de ella dependen el plazo de
   // restitución y el procedimiento, así que no se acepta un valor fuera del enum.
@@ -143,7 +159,13 @@ export async function terminarContrato(
         select: {
           propiedadId: true, arrendatarioId: true, propietarioId: true,
           garantiaDenominacion: true, garantiaMontoBase: true, garantiaMontoCLP: true,
-          propiedad: { select: { asignadoAId: true } },
+          arrendatario: { select: { nombre: true, rut: true } },
+          propietario:  { select: { nombre: true, rut: true } },
+          propiedad: {
+            select: {
+              asignadoAId: true, direccion: true, comuna: true, rol: true, avaluoFiscal: true,
+            },
+          },
         },
       });
       if (!contrato)
@@ -167,8 +189,6 @@ export async function terminarContrato(
         contrato.garantiaDenominacion === "UF" && contrato.garantiaMontoBase !== null
           ? Math.round(Number(contrato.garantiaMontoBase) * (await getUfCLPTx(tx, hoy)))
           : garantiaSnapshotCLP;
-      const retencionFinal = Math.min(montoRetencion, garantiaCLP);
-      const devolucionFinal = garantiaCLP - retencionFinal;
       // Diferencia UF entre lo recibido y lo que se restituye hoy. La aporta
       // (o descuenta) el propietario. Sin este asiento, v_garantia_retenida no
       // cerraría a cero para una garantía UF (recibida ≠ retención+devolución).
@@ -176,6 +196,11 @@ export async function terminarContrato(
       // devoluciones en mora entre las partes de todo contrato de arriendo
       // (verificado contra el texto vigente de la ley, revisión 2026-07-30).
       const reajusteCLP = garantiaCLP - garantiaSnapshotCLP;
+
+      // Reparte la garantía contra el listado de retenciones (boleta L-CM5).
+      const dev = calcularDevolucionGarantia({
+        garantiaDisponibleClp: garantiaCLP, reajusteClp: reajusteCLP, retenciones,
+      });
 
       const nuevoEstado = opts.tipo === "anticipado" ? "terminado_anticipado" : "terminado";
 
@@ -231,7 +256,13 @@ export async function terminarContrato(
             },
           });
         }
-        if (retencionFinal > 0) {
+        /* Un asiento RETENCION_GARANTIA por ítem de la boleta, con su motivo.
+           Solo se registra lo que la garantía alcanza a cubrir: el exceso no
+           sale de la garantía (queda como saldo pendiente informado, no en el
+           ledger), así v_garantia_retenida sigue cerrando a cero. */
+        for (const r of dev.retenciones) {
+          if (r.cubiertoPorGarantiaClp <= 0) continue;
+          const parcial = r.cubiertoPorGarantiaClp < r.montoClp;
           await tx.asientoLedger.create({
             data: {
               tenantId:       tenant.id,
@@ -239,15 +270,14 @@ export async function terminarContrato(
               arrendatarioId: contrato.arrendatarioId,
               propietarioId:  contrato.propietarioId,
               tipo:           "RETENCION_GARANTIA",
-              // Magnitud (como GARANTIA_RECIBIDA) — la dirección la aplica v_garantia_retenida.
               signo:          1,
-              montoClp:       retencionFinal,
+              montoClp:       r.cubiertoPorGarantiaClp,
               fechaEvento:    hoy,
-              descripcion:    `Retención por término ${opts.tipo} (daños/descuentos)`,
+              descripcion:    `Retención: ${r.descripcion}${parcial ? " (parcial — supera la garantía)" : ""}`,
             },
           });
         }
-        if (devolucionFinal > 0) {
+        if (dev.devolucionClp > 0) {
           await tx.asientoLedger.create({
             data: {
               tenantId:       tenant.id,
@@ -255,23 +285,73 @@ export async function terminarContrato(
               arrendatarioId: contrato.arrendatarioId,
               propietarioId:  contrato.propietarioId,
               tipo:           "DEVOLUCION_GARANTIA",
-              // Magnitud (como GARANTIA_RECIBIDA) — la dirección la aplica v_garantia_retenida.
               signo:          1,
-              montoClp:       devolucionFinal,
+              montoClp:       dev.devolucionClp,
               fechaEvento:    hoy,
-              descripcion:    `Devolución de garantía al arrendatario`,
+              descripcion:    "Devolución de garantía al arrendatario",
             },
           });
         }
       }
 
-      /* Notificación al arrendatario */
+      /* Comprobante de devolución de garantía (L-CM5) — solo si había garantía.
+         Snapshot congelado + folio correlativo, se regenera a PDF (L-CP7). */
+      let folioGarantia: string | null = null;
+      if (garantiaCLP > 0) {
+        folioGarantia = await siguienteFolio(tx, tenant.id, "garantia", hoy);
+        const snapshot = construirSnapshotGarantia({
+          folio: folioGarantia,
+          fecha: hoy,
+          emisor: {
+            nombre: tenant.nombre, rut: tenant.rut, giro: tenant.giro,
+            direccion: tenant.direccion, esPersonaJuridica: tenant.esPersonaJuridica,
+          },
+          inmueble: {
+            direccion: contrato.propiedad.direccion, comuna: contrato.propiedad.comuna,
+            rol: contrato.propiedad.rol,
+            avaluoFiscalClp: contrato.propiedad.avaluoFiscal != null ? Number(contrato.propiedad.avaluoFiscal) : null,
+          },
+          arrendatario: contrato.arrendatario,
+          propietario:  contrato.propietario,
+          causalTermino: opts.causal,
+          tipoTermino:   opts.tipo,
+          fechaTermino:  hoy,
+          garantiaRecibidaClp: garantiaSnapshotCLP,
+          garantiaDenominacion: contrato.garantiaDenominacion ?? null,
+          garantiaMontoBase: contrato.garantiaMontoBase != null ? Number(contrato.garantiaMontoBase) : null,
+          garantiaDisponibleClp: garantiaCLP,
+          retenciones,
+        });
+        await tx.voucher.create({
+          data: {
+            tenantId:       tenant.id,
+            contratoId,
+            arrendatarioId: contrato.arrendatarioId,
+            tipo:           "garantia",
+            montoClp:       dev.devolucionClp,
+            fecha:          hoy,
+            folio:          folioGarantia,
+            snapshot:       snapshot as unknown as object,
+          },
+        });
+      }
+
+      /* Notificación al arrendatario, con el desglose ítem por ítem (P-GA4). */
       const tipoNotif = opts.tipo === "anticipado" ? "salida_anticipada" : "termino_contrato";
-      const garantiaInfo = garantiaCLP > 0
-        ? devolucionFinal > 0
-          ? `Se devuelven ${devolucionFinal.toLocaleString("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0 })} de garantía.`
-          : "La garantía fue retenida íntegramente por daños."
-        : "";
+      const lineas: string[] = ["Tu contrato de arriendo ha sido dado por terminado."];
+      if (garantiaCLP > 0) {
+        lineas.push("", `Liquidación de la garantía (comprobante ${folioGarantia}):`);
+        lineas.push(`  Garantía a restituir: ${clp(dev.garantiaDisponibleClp)}`);
+        for (const r of dev.retenciones) {
+          lineas.push(`  − ${r.descripcion}: ${clp(r.montoClp)}`);
+        }
+        lineas.push(`  Se devuelve: ${clp(dev.devolucionClp)}`);
+        if (dev.saldoPendienteArrendatarioClp > 0) {
+          lineas.push(
+            `  Saldo pendiente de pago (las retenciones superan la garantía): ${clp(dev.saldoPendienteArrendatarioClp)}`,
+          );
+        }
+      }
       await tx.notificacion.create({
         data: {
           tenantId:  tenant.id,
@@ -283,7 +363,7 @@ export async function terminarContrato(
           asunto:    opts.tipo === "anticipado"
             ? "Término anticipado de contrato de arriendo"
             : "Término de contrato de arriendo",
-          cuerpo: `Tu contrato de arriendo ha sido dado por terminado. ${garantiaInfo}`,
+          cuerpo: lineas.join("\n"),
         },
       });
     });

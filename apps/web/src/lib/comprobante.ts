@@ -16,6 +16,11 @@
  * los pasa; así el contenido del documento se puede probar sin la base.
  */
 import { ivaComision, ivaArriendoIncluido } from "@housing/core";
+import {
+  calcularDevolucionGarantia,
+  type RetencionGarantia,
+  type RetencionResuelta,
+} from "./garantia-devolucion";
 
 export type EmisorSnapshot = {
   nombre: string;
@@ -117,6 +122,86 @@ export type SnapshotLiquidacion = Base & {
 /** Pie obligatorio: el comprobante no es un documento tributario (L-CP10). */
 export const PIE_COMPROBANTE =
   "Comprobante de gestión. No constituye documento tributario.";
+
+/**
+ * Comprobante de devolución de garantía (L-CM5). Congela el estado de cuenta
+ * de la garantía al terminar el contrato: qué se recibió, cómo se reajustó, qué
+ * se retuvo (con el motivo de cada retención) y qué se devuelve. Si las
+ * retenciones exceden la garantía, `saldoPendienteArrendatarioClp` es lo que el
+ * arrendatario aún debe —la plataforma no lo cobra, solo lo informa—.
+ */
+export type SnapshotGarantia = {
+  tipo: "garantia";
+  folio: string;
+  fecha: string;
+  emisor: EmisorSnapshot;
+  inmueble: InmuebleSnapshot;
+  arrendatario: ParteSnapshot;
+  propietario: ParteSnapshot;
+  /** Cómo y cuándo terminó el contrato — contexto del cierre. */
+  causalTermino: string;
+  tipoTermino: "normal" | "anticipado";
+  fechaTermino: string;
+  /** Lo depositado al inicio (asiento GARANTIA_RECIBIDA). */
+  garantiaRecibidaClp: number;
+  garantiaDenominacion: string | null;
+  garantiaMontoBase: number | null;
+  /** Diferencia UF entre lo recibido y lo restituible hoy. */
+  reajusteClp: number;
+  /** Garantía a restituir hoy (recibido + reajuste). */
+  garantiaDisponibleClp: number;
+  retenciones: RetencionResuelta[];
+  retencionesTotalClp: number;
+  retenidoDeGarantiaClp: number;
+  devolucionClp: number;
+  saldoPendienteArrendatarioClp: number;
+};
+
+export function construirSnapshotGarantia(datos: {
+  folio: string;
+  fecha: Date;
+  emisor: EmisorSnapshot;
+  inmueble: InmuebleSnapshot;
+  arrendatario: ParteSnapshot;
+  propietario: ParteSnapshot;
+  causalTermino: string;
+  tipoTermino: "normal" | "anticipado";
+  fechaTermino: Date;
+  garantiaRecibidaClp: number;
+  garantiaDenominacion: string | null;
+  garantiaMontoBase: number | null;
+  garantiaDisponibleClp: number;
+  retenciones: RetencionGarantia[];
+}): SnapshotGarantia {
+  const reajusteClp = datos.garantiaDisponibleClp - datos.garantiaRecibidaClp;
+  const d = calcularDevolucionGarantia({
+    garantiaDisponibleClp: datos.garantiaDisponibleClp,
+    reajusteClp,
+    retenciones: datos.retenciones,
+  });
+  return {
+    tipo: "garantia",
+    folio: datos.folio,
+    fecha: datos.fecha.toISOString(),
+    emisor: datos.emisor,
+    inmueble: datos.inmueble,
+    arrendatario: datos.arrendatario,
+    propietario: datos.propietario,
+    causalTermino: datos.causalTermino,
+    tipoTermino: datos.tipoTermino,
+    fechaTermino: datos.fechaTermino.toISOString(),
+    garantiaRecibidaClp: datos.garantiaRecibidaClp,
+    garantiaDenominacion: datos.garantiaDenominacion,
+    garantiaMontoBase: datos.garantiaMontoBase,
+    reajusteClp: d.reajusteClp,
+    garantiaDisponibleClp: d.garantiaDisponibleClp,
+    retenciones: d.retenciones,
+    retencionesTotalClp: d.retencionesTotalClp,
+    retenidoDeGarantiaClp: d.retenidoDeGarantiaClp,
+    devolucionClp: d.devolucionClp,
+    saldoPendienteArrendatarioClp: d.saldoPendienteArrendatarioClp,
+  };
+}
 
 export function construirSnapshotPago(datos: {
   folio: string;

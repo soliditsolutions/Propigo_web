@@ -20,6 +20,7 @@ import type { TipoVoucher } from "@/generated/prisma/enums";
 export const PREFIJO_FOLIO: Record<TipoVoucher, string> = {
   pago: "CP",         // Comprobante de Pago
   liquidacion: "LQ",  // Liquidación
+  garantia: "GA",     // Devolución de Garantía
 };
 
 /**

@@ -133,6 +133,7 @@ enum TipoAjuste {
 enum TipoVoucher {
   pago
   liquidacion
+  garantia
 }
 
 /**

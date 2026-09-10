@@ -100,4 +100,26 @@ describe("GET /api/panel/personas/[id]/export-datos", () => {
     mockConstruir.mockRejectedValue(new PersonaNoEncontrada());
     expect((await req()).status).toBe(404);
   });
+
+  it("E2 — un export fallido NO escribe auditoría", async () => {
+    const { PersonaNoEncontrada } = await import("@/lib/export-datos-persona");
+    mockGetActor.mockResolvedValue({ usuarioId: "u1", tenantId: "t1", rol: "manager" });
+    mockConstruir.mockRejectedValue(new PersonaNoEncontrada());
+    await req();
+    expect(mockAuditoriaCreate).not.toHaveBeenCalled();
+  });
+
+  it("D2 — un `formato` arbitrario se trata como JSON, no rompe", async () => {
+    mockGetActor.mockResolvedValue({ usuarioId: "u1", tenantId: "t1", rol: "manager" });
+    const res = await req(ID, "..%2F..%2Fetc%2Fpasswd");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toMatch(/application\/json/);
+  });
+
+  it("E3 — rate limit: al superar 20 exports/hora del usuario → 429", async () => {
+    mockGetActor.mockResolvedValue({ usuarioId: "rl-user", tenantId: "t1", rol: "manager" });
+    let last = 200;
+    for (let i = 0; i < 25; i++) last = (await req()).status;
+    expect(last).toBe(429);
+  });
 });

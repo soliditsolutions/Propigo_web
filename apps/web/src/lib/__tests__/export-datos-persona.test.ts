@@ -13,11 +13,14 @@ import "dotenv/config";
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client";
+import { renderToBuffer } from "@react-pdf/renderer";
 import {
   construirExportDatosPersona,
   nombreArchivoExport,
   PersonaNoEncontrada,
+  type ExportDatosPersona,
 } from "../export-datos-persona";
+import { ExportDatosPersonaDocument } from "../export-datos-persona-pdf";
 
 describe("nombreArchivoExport", () => {
   it("arma el nombre con el RUT limpio y la fecha", () => {
@@ -26,6 +29,38 @@ describe("nombreArchivoExport", () => {
   });
   it("respeta la extensión pedida", () => {
     expect(nombreArchivoExport("5.126.663-3", "pdf")).toMatch(/\.pdf$/);
+  });
+});
+
+describe("ExportDatosPersonaDocument — D3 inyección en el PDF", () => {
+  it("un nombre/dirección con <script>, </Text> y & no rompe el render", async () => {
+    const mal = "<script>alert(1)</script> </Text> & { } \"x\"";
+    const datos: ExportDatosPersona = {
+      meta: { generadoEl: new Date().toISOString(), fundamento: "Ley 21.719", responsable: { nombre: mal, rut: "1-9" }, alcance: mal },
+      identidad: { nombre: mal, rut: mal, email: mal, telefono: mal, canalDeAccesoPreferido: mal, registradaEl: new Date().toISOString() },
+      contratos: [{
+        rol: "arrendatario", estado: "vigente",
+        inmueble: { direccion: mal, comuna: mal, rolAvaluo: mal },
+        contraparte: { nombre: mal },
+        denominacion: "CLP", valorArriendo: "1", cobraGastoComun: false,
+        comisionCorredorPct: "0", esAmoblado: false,
+        fechaInicio: "2026-01-01", fechaFin: null, fechaTermino: null, causalTermino: null,
+        firmadoAnteNotario: false,
+        periodos: [{ numero: 1, vencimiento: "2026-02-01", montoBase: "1", montoGastoComun: "0", estado: "pagado", pagadoEl: "2026-01-30" }],
+        comprobantes: [{ folio: mal, tipo: "pago", fecha: "2026-01-30", montoCLP: "1" }],
+      }],
+      cuentasBancarias: [{ banco: mal, tipo: mal, numero: mal, titular: mal, rutTitular: mal, email: mal, esDeLaCorredora: false }],
+      documentos: [{ nombre: mal, tipo: mal, fecha: "2026-01-01", via: "contrato" }],
+      comunicaciones: [{ fecha: new Date().toISOString(), tipo: mal, canal: mal, asunto: mal, estado: mal }],
+      registrosDeAcceso: [{ fecha: new Date().toISOString(), accion: mal, ip: mal }],
+      solicitudesDeCodigoDeAcceso: [{ fecha: new Date().toISOString(), canal: mal, ip: mal, usado: true }],
+      reservas: [{ inmueble: mal, fechaReserva: "2026-01-01", vigenteHasta: null, estado: mal }],
+      preferenciaDeNotificacion: { suscrito: true, bajaHasta: null, motivo: mal, actualizadaEl: new Date().toISOString() },
+      valoraciones: [{ fecha: new Date().toISOString(), estrellas: 4, comentario: mal, visible: true }],
+    };
+    const buf = await renderToBuffer(ExportDatosPersonaDocument({ data: datos }));
+    expect(buf.length).toBeGreaterThan(1000);
+    expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
   });
 });
 
@@ -105,6 +140,23 @@ cuando("construirExportDatosPersona", () => {
           folio: `CP-${MARCA}-00001`, snapshot: { emisor: { nombre: "QA" } },
         },
       });
+      // Un comprobante de LIQUIDACIÓN (del propietario) sobre el mismo contrato:
+      // el arrendatario NO debe verlo en su export.
+      await tx.voucher.create({
+        data: {
+          tenantId: tenantA, contratoId: c.id, arrendatarioId: idPersona,
+          tipo: "liquidacion", montoClp: 405000, fecha: new Date(`${MARCA}-02-04`),
+          folio: `LQ-${MARCA}-00001`, snapshot: { emisor: { nombre: "QA" } },
+        },
+      });
+      // Valoración vía contrato: la deja el arrendatario. En el export del
+      // PROPIETARIO no debe aparecer.
+      await tx.valoracionCorredor.create({
+        data: {
+          tenantId: tenantA, contratoId: c.id, nombre: "Persona", apellido: "Export QA",
+          estrellas: 4, comentario: "OPINION-SOLO-DEL-ARRENDATARIO", esVisible: true,
+        },
+      });
       await tx.cuentaBancaria.create({
         data: {
           tenantId: tenantA, personaId: idPersona, banco: "Banco QA",
@@ -117,6 +169,7 @@ cuando("construirExportDatosPersona", () => {
   afterAll(async () => {
     if (!prisma) return;
     await comoTenant(tenantA, async (tx) => {
+      await tx.valoracionCorredor.deleteMany({ where: { contratoId: idContrato } });
       await tx.voucher.deleteMany({ where: { contratoId: idContrato } });
       await tx.periodoPago.deleteMany({ where: { contratoId: idContrato } });
       await tx.cuentaBancaria.deleteMany({ where: { rutTitular: RUT_TITULAR } });
@@ -159,5 +212,50 @@ cuando("construirExportDatosPersona", () => {
     const exp = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idPersona));
     expect(exp.meta.responsable.nombre).toBeTruthy();
     expect(exp.meta.fundamento).toMatch(/21\.719/);
+  });
+
+  it("C2 — el arrendatario ve solo el comprobante de PAGO, no la liquidación", async () => {
+    const exp = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idPersona));
+    const folios = exp.contratos[0].comprobantes.map((v) => v.folio);
+    expect(folios).toEqual([`CP-${MARCA}-00001`]);
+    expect(JSON.stringify(exp)).not.toContain(`LQ-${MARCA}-00001`);
+  });
+
+  it("C2b — el propietario ve solo la LIQUIDACIÓN, no el comprobante de pago", async () => {
+    const exp = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idContraparte));
+    expect(exp.contratos[0].rol).toBe("propietario");
+    const folios = exp.contratos[0].comprobantes.map((v) => v.folio);
+    expect(folios).toEqual([`LQ-${MARCA}-00001`]);
+    expect(JSON.stringify(exp)).not.toContain(`CP-${MARCA}-00001`);
+  });
+
+  it("C3 — la valoración solo sale en el export del arrendatario", async () => {
+    const arr = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idPersona));
+    expect(arr.valoraciones.map((v) => v.comentario)).toContain("OPINION-SOLO-DEL-ARRENDATARIO");
+
+    const prop = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idContraparte));
+    expect(prop.valoraciones).toHaveLength(0);
+    expect(JSON.stringify(prop)).not.toContain("OPINION-SOLO-DEL-ARRENDATARIO");
+  });
+
+  it("C4 — las cuentas bancarias del export son solo las de la persona", async () => {
+    const prop = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idContraparte));
+    expect(prop.cuentasBancarias).toHaveLength(0); // la cuenta es del arrendatario
+    const arr = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idPersona));
+    expect(arr.cuentasBancarias.every((c) => c.esDeLaCorredora === false)).toBe(true);
+  });
+
+  it("D4 — un payload en el nombre se conserva como texto literal en el JSON", async () => {
+    await comoTenant(tenantA, (tx) => tx.persona.update({
+      where: { id: idPersona }, data: { nombre: "<script>alert(1)</script> & </Text>" },
+    }));
+    const exp = await comoTenant(tenantA, (tx) => construirExportDatosPersona(tx, tenantA, idPersona));
+    expect(exp.identidad.nombre).toBe("<script>alert(1)</script> & </Text>");
+    // JSON.stringify escapa; el string vuelve entero al parsear.
+    const round = JSON.parse(JSON.stringify(exp));
+    expect(round.identidad.nombre).toBe("<script>alert(1)</script> & </Text>");
+    await comoTenant(tenantA, (tx) => tx.persona.update({
+      where: { id: idPersona }, data: { nombre: "Persona Export QA" },
+    }));
   });
 });

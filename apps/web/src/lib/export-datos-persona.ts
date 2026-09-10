@@ -143,6 +143,10 @@ export async function construirExportDatosPersona(
 
   const contratos: ContratoExport[] = contratosRaw.map((c) => {
     const esArrendatario = c.arrendatarioId === personaId;
+    // Cada parte ve el comprobante que le corresponde: el arrendatario, el de
+    // PAGO; el propietario, la LIQUIDACIÓN. Mismo criterio que el portal — nunca
+    // al revés, para no cruzar el detalle de la comisión.
+    const tipoComprobante = esArrendatario ? "pago" : "liquidacion";
     return {
       rol: esArrendatario ? "arrendatario" : "propietario",
       estado: c.estado,
@@ -166,7 +170,7 @@ export async function construirExportDatosPersona(
         estado: p.estado,
         pagadoEl: ymd(p.fechaPagoReal),
       })),
-      comprobantes: c.vouchers.map((v) => ({
+      comprobantes: c.vouchers.filter((v) => v.tipo === tipoComprobante).map((v) => ({
         folio: v.folio,
         tipo: v.tipo,
         fecha: ymd(v.fecha)!,
@@ -176,6 +180,11 @@ export async function construirExportDatosPersona(
   });
 
   const contratoIds = contratosRaw.map((c) => c.id);
+  // La valoración vía contrato la deja el ARRENDATARIO (marketplace/valoracion).
+  // En el export del propietario sería la opinión de un tercero, no su dato.
+  const contratoIdsComoArrendatario = contratosRaw
+    .filter((c) => c.arrendatarioId === personaId)
+    .map((c) => c.id);
 
   const cuentasRaw = await tx.cuentaBancaria.findMany({
     where: { tenantId, personaId },
@@ -254,10 +263,11 @@ export async function construirExportDatosPersona(
       }
     : null;
 
-  // Valoraciones: sin `personaId`; se asocian por el contrato de la persona.
-  const valoracionesRaw = contratoIds.length
+  // Valoraciones: sin `personaId`; solo las de contratos donde la persona es
+  // arrendatario, que es quien la deja (ver arriba).
+  const valoracionesRaw = contratoIdsComoArrendatario.length
     ? await tx.valoracionCorredor.findMany({
-        where: { tenantId, contratoId: { in: contratoIds } },
+        where: { tenantId, contratoId: { in: contratoIdsComoArrendatario } },
         orderBy: { createdAt: "asc" },
         select: { createdAt: true, estrellas: true, comentario: true, esVisible: true },
       })

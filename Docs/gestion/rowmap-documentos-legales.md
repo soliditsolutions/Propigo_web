@@ -141,8 +141,8 @@ vigencia de la ley.
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
 | **L-DP1** | Trabajo de retención que **cumpla los plazos ya publicados**: OTP, registros de acceso, auditoría | — | — | `[x]` |
-| **L-DP2** | Derecho de **acceso**: entregar copia de los datos de una persona | — | — | `[ ]` |
-| **L-DP3** | Derecho de **portabilidad**: exportar en formato estructurado y reutilizable | L-DP2 | — | `[ ]` |
+| **L-DP2** | Derecho de **acceso**: entregar copia de los datos de una persona | — | — | `[x]` |
+| **L-DP3** | Derecho de **portabilidad**: exportar en formato estructurado y reutilizable | L-DP2 | — | `[x]` |
 | **L-DP4** | Derecho de **rectificación** desde el portal | — | — | `[ ]` |
 | **L-DP5** | Derecho de **supresión**, con anonimización irreversible y sin romper el ledger inmutable | L-DP1 | **L-05** | `[!]` |
 | **L-DP6** | Derecho de **oposición y bloqueo** del tratamiento | — | — | `[ ]` |
@@ -159,6 +159,16 @@ vigencia de la ley.
 > vivían como texto dentro de la página, sin nada que los pudiera cumplir. Ahora
 > ambos leen de `lib/retencion.ts`, y un test falla si alguien declara una
 > categoría automática sin escribir su borrado.
+
+> ✅ **L-DP2 / L-DP3 — 2026-09-10.** `lib/export-datos-persona.ts` reúne todo lo
+> que la plataforma guarda de una persona dentro de una corredora; la ruta
+> `GET /api/panel/personas/[id]/export-datos?formato=json|pdf` lo entrega como
+> JSON estructurado (portabilidad) o PDF legible (acceso). Manager-only, acotado
+> al tenant, y el propio export queda en `auditoria_equipo`. La contraparte de
+> cada contrato aparece **solo por su nombre**: un test lo verifica contra el
+> RUT/correo del otro. El acceso se ejerce ante la corredora responsable (Housing
+> es encargado); el autoservicio desde el portal queda para más adelante si se
+> decide.
 
 ---
 

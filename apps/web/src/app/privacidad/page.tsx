@@ -387,6 +387,12 @@ export default function PrivacidadPage() {
                   su nombre completo, RUT y el derecho que desea ejercer. Responderemos dentro
                   de <strong>15 días hábiles</strong> conforme al art. 28 de la Ley 21.719.
                 </p>
+                <p className="mt-2" style={{ color: "var(--pf-text-body)" }}>
+                  Para los derechos de <strong>acceso</strong> y <strong>portabilidad</strong>, si sus datos
+                  son tratados por una corredora que usa la plataforma, esta le entregará una copia completa
+                  de sus datos personales en formato legible (PDF) y estructurado y reutilizable por máquina
+                  (JSON). Los datos de la contraparte de cada contrato se limitan a su nombre.
+                </p>
               </div>
             </Section>
 

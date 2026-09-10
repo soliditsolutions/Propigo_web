@@ -9,6 +9,7 @@ import { FirmaSection } from "./firma-section";
 import { CierreSection } from "./cierre-section";
 import { RenovarSection } from "./renovar-section";
 import { AnexosSection } from "./anexos-section";
+import { ExportDatosPersona } from "./export-datos-persona";
 import { ComentariosCorredorSection } from "@/components/panel/ComentariosCorredorSection";
 import { verificarYExtenderCalendario } from "@/lib/auto-extender";
 
@@ -171,12 +172,18 @@ export default async function ContratoDetallePage({
           {detalle.arrendatario.email && (
             <p className="text-xs text-[var(--hw-text-4)] truncate">{detalle.arrendatario.email}</p>
           )}
+          {actor.rol === "manager" && (
+            <ExportDatosPersona personaId={detalle.arrendatario.id} nombre={detalle.arrendatario.nombre} />
+          )}
         </Card>
 
         <Card className="p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-[var(--hw-text-4)] mb-1">Propietario</p>
           <p className="font-semibold text-[var(--hw-text-1)]">{detalle.propietario.nombre}</p>
           <p className="text-xs text-[var(--hw-text-4)]">{detalle.propietario.rut}</p>
+          {actor.rol === "manager" && (
+            <ExportDatosPersona personaId={detalle.propietario.id} nombre={detalle.propietario.nombre} />
+          )}
         </Card>
 
         <Card className="p-4">

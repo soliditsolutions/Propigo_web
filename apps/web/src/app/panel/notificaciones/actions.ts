@@ -8,6 +8,7 @@ import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
 import { renderizarAlerta } from "@/lib/alertas";
 import { idsReemplazadas, esNotificacionDeCiclo } from "@/lib/notificaciones-ciclo";
+import { construirCuerpoRecordatorio } from "@/lib/recordatorio-pago";
 import { clpOrUf } from "@/lib/format";
 import {
   puedeRecibir, firmarTokenBaja, MAX_CORREOS_POR_DIA,
@@ -56,7 +57,7 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
 
     // Obtener todos los períodos pendientes/atrasados/pagados con sus contratos y personas.
     // Secuencial, no Promise.all: tx comparte una única conexión Postgres.
-    const [periodos, existentes, alertasAuto, alertasEmitidas] = await withTenant(tenant.id, async (tx) => {
+    const [periodos, existentes, alertasAuto, alertasEmitidas, cuentaCorredora] = await withTenant(tenant.id, async (tx) => {
       const periodos = await tx.periodoPago.findMany({
         where: {
           tenantId: tenant.id,
@@ -90,6 +91,13 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
         where: { tenantId: tenant.id, activa: true, disparador: { not: null } },
       });
 
+      // Cuenta bancaria de la corredora (personaId nulo) para los datos de
+      // transferencia del recordatorio de pago (L-CM7). Puede no existir todavía.
+      const cuentaCorredora = await tx.cuentaBancaria.findFirst({
+        where: { tenantId: tenant.id, personaId: null },
+        select: { banco: true, tipo: true, numero: true, titular: true, rutTitular: true, email: true },
+      });
+
       // Para no repetir una alerta sobre el mismo período. Se apoya en las
       // columnas alerta_id/periodo_id (indexadas), no en el payload: el
       // deduplicado por tipo no alcanza acá, porque dos alertas distintas
@@ -99,7 +107,7 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
         select: { alertaId: true, periodoId: true },
       });
 
-      return [periodos, existentes, alertasAuto, alertasEmitidas] as const;
+      return [periodos, existentes, alertasAuto, alertasEmitidas, cuentaCorredora] as const;
     });
 
     // Extraer periodoIds ya notificados por tipo
@@ -143,7 +151,10 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
           asunto: diasHastaVencimiento === 0
             ? `Tu arriendo vence hoy: ${c.propiedad.direccion}`
             : `Tu arriendo vence en ${cantidad(diasHastaVencimiento, "día", "días")}: ${c.propiedad.direccion}`,
-          cuerpo: `El pago de tu arriendo vence el ${p.fechaVencimiento.toLocaleDateString("es-CL", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" })}. Paga antes de esa fecha para no generar intereses por mora.`,
+          cuerpo: construirCuerpoRecordatorio({
+            fechaVencimiento: p.fechaVencimiento,
+            cuentaCorredora,
+          }),
           payload: { periodoId: p.id, diasRestantes: diasHastaVencimiento },
         });
         yaNotificado.add(`recordatorio_vencimiento::${p.id}`);

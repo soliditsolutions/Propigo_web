@@ -161,6 +161,12 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/panel", request.url));
     }
 
+    // /panel/corredora edita datos de facturación de la empresa (giro, domicilio,
+    // cuenta bancaria); es del Manager, igual criterio que Equipo.
+    if (pathname.startsWith("/panel/corredora") && session.rol !== "manager") {
+      return NextResponse.redirect(new URL("/panel", request.url));
+    }
+
     // ADR-0013 (Fase D) — Estadísticas es business intelligence de cartera
     // completa (turnover, retención, comparables de mercado); no se recorta
     // por propiedad asignada, así que es exclusiva del Manager, igual que Equipo.

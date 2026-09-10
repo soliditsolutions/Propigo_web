@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, FileText, Wallet, Bell, UserCog, House, ReceiptText, BarChart3, Users } from "lucide-react";
+import { LayoutDashboard, Building2, FileText, Wallet, Bell, UserCog, House, ReceiptText, BarChart3, Users, Landmark } from "lucide-react";
 
 const items = [
   { href: "/panel",                label: "Resumen",        icon: LayoutDashboard },
@@ -29,6 +29,10 @@ const itemsSecundarios = [
 // la cuenta; el proxy además rechaza la ruta directamente para cualquier
 // Collaborator que intente navegar ahí a mano.
 const itemEquipo = { href: "/panel/equipo", label: "Equipo", icon: Users };
+
+// Datos de facturación de la corredora (giro, domicilio, cuenta bancaria) —
+// aparecen en cada documento que emite. Solo el Manager; el proxy también gatea.
+const itemCorredora = { href: "/panel/corredora", label: "Datos de la corredora", icon: Landmark };
 
 function NavLink({
   href,
@@ -86,7 +90,7 @@ export function Nav({ collapsed = false, isManager = false }: { collapsed?: bool
     ? [...items.slice(0, 4), itemEstadisticas, ...items.slice(4)]
     : items;
   const secundarios = isManager
-    ? [itemsSecundarios[0], itemEquipo, itemsSecundarios[1]]
+    ? [itemsSecundarios[0], itemCorredora, itemEquipo, itemsSecundarios[1]]
     : itemsSecundarios;
 
   return (

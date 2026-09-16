@@ -143,11 +143,11 @@ vigencia de la ley.
 | **L-DP1** | Trabajo de retención que **cumpla los plazos ya publicados**: OTP, registros de acceso, auditoría | — | — | `[x]` |
 | **L-DP2** | Derecho de **acceso**: entregar copia de los datos de una persona | — | — | `[x]` |
 | **L-DP3** | Derecho de **portabilidad**: exportar en formato estructurado y reutilizable | L-DP2 | — | `[x]` |
-| **L-DP4** | Derecho de **rectificación** desde el portal | — | — | `[ ]` |
+| **L-DP4** | Derecho de **rectificación** desde el portal | — | — | `[x]` |
 | **L-DP5** | Derecho de **supresión**, con anonimización irreversible y sin romper el ledger inmutable | L-DP1 | **L-05** | `[!]` |
-| **L-DP6** | Derecho de **oposición y bloqueo** del tratamiento | — | — | `[ ]` |
+| **L-DP6** | Derecho de **oposición y bloqueo** del tratamiento | — | — | `[x]` |
 | **L-DP7** | **Canal** para ejercer los derechos, con acuse y plazo de respuesta | L-DP2…L-DP6 | **L-06** | `[!]` |
-| **L-DP8** | **Registro de actividades de tratamiento** | — | — | `[ ]` |
+| **L-DP8** | **Registro de actividades de tratamiento** | — | — | `[x]` |
 | **L-DP9** | Procedimiento de **notificación de brechas** a la Agencia y a los afectados | — | **L-07** | `[!]` |
 | **L-DP10** | Revisar si corresponde **delegado de protección de datos** | — | **L-07** | `[!]` |
 | **L-DP11** | Corregir las **tres afirmaciones falsas** de `privacidad/page.tsx` (OTP, logs de IP, audit log) y el plazo del art. 200 | — | — | `[x]` |
@@ -169,6 +169,25 @@ vigencia de la ley.
 > RUT/correo del otro. El acceso se ejerce ante la corredora responsable (Housing
 > es encargado); el autoservicio desde el portal queda para más adelante si se
 > decide.
+
+> ✅ **L-DP4 / L-DP6 / L-DP8 — 2026-09-16.** El autoservicio del párrafo anterior
+> ya existe para estos tres: `/portal/mis-datos`.
+> · **Rectificación (L-DP4)**: correo y teléfono, con código de verificación —
+> al correo *nuevo* si se corrige el correo, al correo *actual* si se corrige
+> el teléfono (no hay envío de SMS implementado). Nombre y RUT no son
+> editables ahí: son identidad; un botón aparte lo deriva a la corredora.
+> · **Oposición (L-DP6)**: reutiliza `preferencia_notificacion` (la baja de
+> avisos que ya existía) con alcance explícito — "solo opcionales" o "todos,
+> incluidos los del contrato" —, dejando claro que lo necesario para ejecutar
+> el contrato sigue tratándose (la ley no permite oponerse a eso).
+> · **Registro de actividades de tratamiento (L-DP8)**: `lib/registro-tratamiento.ts`
+> + página pública `/registro-tratamiento`. Cruza finalidad/base legal/datos/
+> destinatarios por actividad, con los plazos resueltos desde `RETENCIONES`
+> (la misma fuente que aplica la purga) para que nunca diga un plazo distinto
+> del que el sistema cumple.
+> Cada ejercicio de un derecho queda en `solicitud_derecho_persona` (evidencia
+> para L-DP7 más adelante), con retención automática propia (3 años, como la
+> auditoría) — se agregó junto con la de los códigos de verificación (1 día).
 
 ---
 

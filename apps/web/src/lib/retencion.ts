@@ -18,7 +18,9 @@
 /** Categoría de dato con su plazo, tal como se publica y tal como se aplica. */
 export type Retencion = {
   /** Identificador estable; no se muestra. */
-  clave: "otp" | "accesoPortal" | "auditoriaEquipo" | "cuenta" | "contratos" | "contable" | "dispositivos";
+  clave:
+    | "otp" | "accesoPortal" | "auditoriaEquipo" | "cuenta" | "contratos" | "contable" | "dispositivos"
+    | "codigosContacto" | "solicitudesDerecho";
   /** Cómo se le nombra a la persona que lee la política. */
   categoria: string;
   /** El plazo, en palabras. */
@@ -59,6 +61,25 @@ export const RETENCIONES: Retencion[] = [
   {
     clave: "auditoriaEquipo",
     categoria: "Auditoría de acciones del equipo de la corredora (incluye IP)",
+    periodo: "3 años",
+    fundamento: "Ley 21.719",
+    automatica: true,
+    dias: 3 * ANIO,
+  },
+  {
+    clave: "codigosContacto",
+    categoria: "Códigos de verificación para rectificar correo o teléfono",
+    // Mismo criterio que el OTP del portal: el código deja de servir a los 10
+    // minutos, la fila se borra al día siguiente.
+    periodo: "Expiran a los 10 minutos y se eliminan dentro de las 24 horas siguientes",
+    automatica: true,
+    dias: 1,
+  },
+  {
+    clave: "solicitudesDerecho",
+    categoria: "Solicitudes de ejercicio de derechos ARCO+",
+    // Es la prueba de que la corredora respondió a tiempo a un derecho
+    // ejercido — mismo plazo y mismo fundamento que la auditoría del equipo.
     periodo: "3 años",
     fundamento: "Ley 21.719",
     automatica: true,

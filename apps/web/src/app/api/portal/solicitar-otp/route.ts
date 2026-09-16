@@ -10,18 +10,14 @@
  * - Ley 21.719: audit log en acceso_log.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { randomInt, randomUUID, createHash } from "crypto";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { sendPortalOtpEmail } from "@/lib/email";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
-
-function hashOtp(codigo: string): string {
-  const salt = process.env.AUTH_SECRET ?? "";
-  return createHash("sha256").update(codigo + salt).digest("hex");
-}
+import { generarCodigo, hashCodigo as hashOtp } from "@/lib/codigo-verificacion";
 
 /** Normaliza RUT a formato canónico sin puntos: "12345678-9" */
 function normalizarRut(rut: string): string {
@@ -94,7 +90,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generar OTP de 6 dígitos
-    const codigo     = randomInt(100000, 1000000).toString().padStart(6, "0");
+    const codigo     = generarCodigo();
     const codigoHash = hashOtp(codigo);
     const expiraEn   = new Date(Date.now() + 10 * 60 * 1000);
 

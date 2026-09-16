@@ -5,18 +5,14 @@
  * Requiere sesión JWT válida (sin deviceToken confirmado — por eso no pasa el middleware de device).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { randomInt, randomUUID, createHash } from "crypto";
+import { randomUUID } from "crypto";
 import { getSession, clearSessionCookie, clearDeviceCookie } from "@/lib/auth";
 import { sendDeviceCodeEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
-
-function hashCode(code: string): string {
-  const secret = process.env.AUTH_SECRET ?? "";
-  return createHash("sha256").update(code + secret).digest("hex");
-}
+import { generarCodigo, hashCodigo as hashCode } from "@/lib/codigo-verificacion";
 
 function parseBrowser(ua: string): string {
   if (!ua) return "Navegador desconocido";
@@ -101,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generar código de 6 dígitos y UUID pre-confirmación
-    const codigo      = randomInt(100000, 1000000).toString().padStart(6, "0");
+    const codigo      = generarCodigo();
     const deviceToken = randomUUID();
     const codigoHash  = hashCode(codigo);
     const expiraAt    = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos

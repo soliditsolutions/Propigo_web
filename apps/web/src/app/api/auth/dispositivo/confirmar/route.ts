@@ -19,11 +19,7 @@ import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
-
-function hashCode(code: string): string {
-  const secret = process.env.AUTH_SECRET ?? "";
-  return createHash("sha256").update(code + secret).digest("hex");
-}
+import { hashCodigo as hashCode } from "@/lib/codigo-verificacion";
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

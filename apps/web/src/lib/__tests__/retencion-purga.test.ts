@@ -75,6 +75,8 @@ async function sembrar(tenantId: string, personaId: string, propiedadId: string,
     const otp = retencion("otp").dias!;
     const acc = retencion("accesoPortal").dias!;
     const aud = retencion("auditoriaEquipo").dias!;
+    const cod = retencion("codigosContacto").dias!;
+    const sol = retencion("solicitudesDerecho").dias!;
 
     // Por cada categoría: uno vencido y uno dentro del plazo.
     await tx.accesoOtp.createMany({ data: [
@@ -93,6 +95,18 @@ async function sembrar(tenantId: string, personaId: string, propiedadId: string,
       { tenantId, actorId: usuarioId, accion: `${MARCA}_vencido`,  createdAt: haceDias(aud + 5) },
       { tenantId, actorId: usuarioId, accion: `${MARCA}_reciente`, createdAt: haceDias(1) },
     ] as never });
+
+    await tx.codigoRectificacionPersona.createMany({ data: [
+      { tenantId, personaId, campo: "email", valorNuevo: `${MARCA}_vencido@qa.local`,
+        codigoHash: `${MARCA}_vencido`, expiraAt: haceDias(cod + 5) },
+      { tenantId, personaId, campo: "email", valorNuevo: `${MARCA}_vigente@qa.local`,
+        codigoHash: `${MARCA}_vigente`, expiraAt: haceDias(0) },
+    ] as never });
+
+    await tx.solicitudDerechoPersona.createMany({ data: [
+      { tenantId, personaId, derecho: "rectificacion", detalle: `${MARCA}_vencido`, createdAt: haceDias(sol + 5) },
+      { tenantId, personaId, derecho: "rectificacion", detalle: `${MARCA}_reciente`, createdAt: haceDias(1) },
+    ] as never });
   });
 }
 
@@ -103,6 +117,8 @@ async function limpiar() {
       await tx.accesoOtp.deleteMany({ where: { codigoHash: { startsWith: MARCA } } });
       await tx.accesoLog.deleteMany({ where: { accion: { startsWith: MARCA } } });
       await tx.auditoriaEquipo.deleteMany({ where: { accion: { startsWith: MARCA } } });
+      await tx.codigoRectificacionPersona.deleteMany({ where: { codigoHash: { startsWith: MARCA } } });
+      await tx.solicitudDerechoPersona.deleteMany({ where: { detalle: { startsWith: MARCA } } });
     });
   }
 }
@@ -128,6 +144,8 @@ cuando("purga lo vencido y solo lo vencido", () => {
     expect(r.otp).toBe(1);
     expect(r.accesoPortal).toBe(1);
     expect(r.auditoriaEquipo).toBe(1);
+    expect(r.codigosContacto).toBe(1);
+    expect(r.solicitudesDerecho).toBe(1);
 
     // Y el que estaba dentro del plazo sigue ahí. Esta es la mitad que
     // importa: una purga que borra de más destruye prueba.
@@ -135,8 +153,10 @@ cuando("purga lo vencido y solo lo vencido", () => {
       otp: await tx.accesoOtp.count({ where: { codigoHash: { startsWith: MARCA } } }),
       acc: await tx.accesoLog.count({ where: { accion: { startsWith: MARCA } } }),
       aud: await tx.auditoriaEquipo.count({ where: { accion: { startsWith: MARCA } } }),
+      cod: await tx.codigoRectificacionPersona.count({ where: { codigoHash: { startsWith: MARCA } } }),
+      sol: await tx.solicitudDerechoPersona.count({ where: { detalle: { startsWith: MARCA } } }),
     }));
-    expect(quedan).toEqual({ otp: 1, acc: 1, aud: 1 });
+    expect(quedan).toEqual({ otp: 1, acc: 1, aud: 1, cod: 1, sol: 1 });
 
     const sobrevivientes = await comoTenant(tenantA, (tx) =>
       tx.accesoLog.findMany({ where: { accion: { startsWith: MARCA } }, select: { accion: true } }));
@@ -147,7 +167,7 @@ cuando("purga lo vencido y solo lo vencido", () => {
     // Idempotencia: el cron corre a diario y no debe ir comiéndose datos
     // vigentes en cada pasada.
     const r = await comoTenant(tenantA, (tx) => purgarDatosVencidos(tx, tenantA, AHORA));
-    expect(r).toEqual({ otp: 0, accesoPortal: 0, auditoriaEquipo: 0 });
+    expect(r).toEqual({ otp: 0, accesoPortal: 0, auditoriaEquipo: 0, codigosContacto: 0, solicitudesDerecho: 0 });
   });
 
   it("justo en el límite del plazo todavía NO se borra", async () => {
@@ -206,10 +226,10 @@ cuando("la purga no cruza de corredora", () => {
 
 describe("acumulador del resumen", () => {
   it("empieza en cero y suma por categoría", () => {
-    expect(purgaVacia()).toEqual({ otp: 0, accesoPortal: 0, auditoriaEquipo: 0 });
+    expect(purgaVacia()).toEqual({ otp: 0, accesoPortal: 0, auditoriaEquipo: 0, codigosContacto: 0, solicitudesDerecho: 0 });
     expect(sumarPurgas(
-      { otp: 1, accesoPortal: 2, auditoriaEquipo: 3 },
-      { otp: 10, accesoPortal: 20, auditoriaEquipo: 30 },
-    )).toEqual({ otp: 11, accesoPortal: 22, auditoriaEquipo: 33 });
+      { otp: 1, accesoPortal: 2, auditoriaEquipo: 3, codigosContacto: 4, solicitudesDerecho: 5 },
+      { otp: 10, accesoPortal: 20, auditoriaEquipo: 30, codigosContacto: 40, solicitudesDerecho: 50 },
+    )).toEqual({ otp: 11, accesoPortal: 22, auditoriaEquipo: 33, codigosContacto: 44, solicitudesDerecho: 55 });
   });
 });

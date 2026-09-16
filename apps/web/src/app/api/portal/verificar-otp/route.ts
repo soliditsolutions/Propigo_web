@@ -10,18 +10,13 @@
  * - Audit log en acceso_log — Ley 19.628 / 21.719.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "crypto";
 import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { signPortalSession, setPortalCookie } from "@/lib/portal-auth";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
-
-function hashOtp(codigo: string): string {
-  const salt = process.env.AUTH_SECRET ?? "";
-  return createHash("sha256").update(codigo + salt).digest("hex");
-}
+import { hashCodigo as hashOtp } from "@/lib/codigo-verificacion";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);

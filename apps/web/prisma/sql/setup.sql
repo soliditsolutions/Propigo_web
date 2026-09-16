@@ -98,7 +98,12 @@ begin
     'cuenta_bancaria',
     -- Contador de folios: correlativo legal por corredora. Jamás debe verse ni
     -- alterarse entre corredoras.
-    'folio_counter'
+    'folio_counter',
+    -- Ejercicio de derechos Ley 21.719 desde el portal (L-DP4/L-DP6): el código
+    -- de verificación de una rectificación y el registro de solicitudes son
+    -- tan sensibles como cualquier otro dato de la persona — de otra corredora
+    -- no debe verse ni alterarse.
+    'codigo_rectificacion_persona','solicitud_derecho_persona'
     -- invitacion_colaborador NO va aquí a propósito (ADR-0013): sin tenant_id,
     -- la página de aceptación no tiene sesión todavía cuando la consulta —
     -- mismo motivo por el que reset_token tampoco está en este arreglo.

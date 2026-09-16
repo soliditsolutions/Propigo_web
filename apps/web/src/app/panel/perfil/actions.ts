@@ -1,12 +1,12 @@
 "use server";
 
-import { randomInt, createHash } from "crypto";
 import { prisma }          from "@/lib/db";
 import { withTenant }      from "@/lib/tenant-db";
 import { getSession, signSession, setSessionCookie } from "@/lib/auth";
 import { verifyPassword, hashPassword } from "@/lib/password";
 import { evaluatePassword }             from "@/lib/password-strength";
 import { sendCambioContactoCodeEmail }  from "@/lib/email";
+import { generarCodigo, hashCodigo as hashOtpCode } from "@/lib/codigo-verificacion";
 
 class DomainError extends Error {
   constructor(msg: string) { super(msg); this.name = "DomainError"; }
@@ -267,11 +267,6 @@ export type ConfirmarCambioContactoState =
   | { ok: true; valorNuevo: string }
   | { ok: false; error: string };
 
-function hashOtpCode(code: string): string {
-  const secret = process.env.AUTH_SECRET ?? "";
-  return createHash("sha256").update(code + secret).digest("hex");
-}
-
 export async function solicitarCambioContactoAction(
   campo: CampoContacto,
   valorNuevoRaw: string,
@@ -350,7 +345,7 @@ export async function solicitarCambioContactoAction(
     return { ok: false, error: "Demasiados intentos. Espera antes de volver a intentarlo." };
   }
 
-  const codigo     = randomInt(100000, 1000000).toString().padStart(6, "0");
+  const codigo     = generarCodigo();
   const codigoHash = hashOtpCode(codigo);
   const expiraAt   = new Date(Date.now() + 10 * 60 * 1000);
 

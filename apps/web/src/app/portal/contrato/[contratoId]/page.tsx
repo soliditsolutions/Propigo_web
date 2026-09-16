@@ -208,14 +208,24 @@ export default async function PortalContratoPage({
             <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Portal de autoconsulta</p>
           </div>
         </div>
-        <a
-          href="/api/portal/logout"
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-danger-lt)]"
-          style={{ color: "var(--hw-danger)" }}
-        >
-          <LogOut className="h-3.5 w-3.5" aria-hidden />
-          Cerrar sesión
-        </a>
+        <div className="flex items-center gap-1">
+          <a
+            href="/portal/mis-datos"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+            style={{ color: "var(--hw-text-3)" }}
+          >
+            <User className="h-3.5 w-3.5" aria-hidden />
+            Mis datos
+          </a>
+          <a
+            href="/api/portal/logout"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-danger-lt)]"
+            style={{ color: "var(--hw-danger)" }}
+          >
+            <LogOut className="h-3.5 w-3.5" aria-hidden />
+            Cerrar sesión
+          </a>
+        </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6 space-y-4">

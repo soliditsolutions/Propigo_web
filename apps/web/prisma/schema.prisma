@@ -362,6 +362,8 @@ model Tenant {
   comisiones       ComisionPlataforma[]
   cuentasBancarias CuentaBancaria[]
   foliosCounters   FolioCounter[]
+  codigosRectificacion CodigoRectificacionPersona[]
+  solicitudesDerecho   SolicitudDerechoPersona[]
 
   @@map("tenant")
 }
@@ -442,10 +444,66 @@ model Persona {
   accesosLog            AccesoLog[]
   preferenciaNotif PreferenciaNotificacion[]
   cuentasBancarias CuentaBancaria[]
+  codigosRectificacion   CodigoRectificacionPersona[]
+  solicitudesDerecho     SolicitudDerechoPersona[]
 
   @@index([tenantId])
   @@unique([tenantId, rut])
   @@map("persona")
+}
+
+/**
+ * Código de verificación para el derecho de rectificación desde el portal
+ * (L-DP4). Mismo esquema que `CodigoCambioContacto` del panel, pero sujeto a
+ * RLS por tenant: acá quien pide el cambio no tiene contraseña con qué
+ * reautenticarse (el portal es solo-OTP), así que la prueba de control es un
+ * código enviado al canal de confianza — ver `lib/rectificacion-persona.ts`.
+ */
+model CodigoRectificacionPersona {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  personaId   String    @map("persona_id") @db.Uuid
+  /// "email" | "telefono" — el campo que se está corrigiendo.
+  campo       String
+  valorNuevo  String    @map("valor_nuevo")
+  codigoHash  String    @map("codigo_hash") @db.Char(64)
+  expiraAt    DateTime  @map("expira_at") @db.Timestamptz(6)
+  intentos    Int       @default(0) @db.SmallInt
+  usadoAt     DateTime? @map("usado_at") @db.Timestamptz(6)
+  ipSolicitud String?   @map("ip_solicitud") @db.Inet
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  persona Persona @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([personaId])
+  @@map("codigo_rectificacion_persona")
+}
+
+/**
+ * Ejercicio de un derecho de la Ley 21.719 por una persona del portal:
+ * rectificación (L-DP4) u oposición al tratamiento (L-DP6). Es el rastro
+ * auditable de la solicitud — lo que un registro de actividades de
+ * tratamiento (L-DP8) y un futuro canal unificado (L-DP7) necesitan poder
+ * mostrar: qué se pidió, cuándo, y con qué efecto.
+ */
+model SolicitudDerechoPersona {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  personaId String   @map("persona_id") @db.Uuid
+  /// "rectificacion" | "oposicion" | "identidad" (nombre/RUT: se deriva al corredor)
+  derecho   String
+  detalle   String?
+  ip        String?  @db.Inet
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  persona Persona @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([personaId])
+  @@map("solicitud_derecho_persona")
 }
 
 model Propiedad {

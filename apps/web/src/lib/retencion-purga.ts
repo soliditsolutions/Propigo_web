@@ -16,17 +16,21 @@ export type ResultadoPurga = {
   otp: number;
   accesoPortal: number;
   auditoriaEquipo: number;
+  codigosContacto: number;
+  solicitudesDerecho: number;
 };
 
 export function purgaVacia(): ResultadoPurga {
-  return { otp: 0, accesoPortal: 0, auditoriaEquipo: 0 };
+  return { otp: 0, accesoPortal: 0, auditoriaEquipo: 0, codigosContacto: 0, solicitudesDerecho: 0 };
 }
 
 export function sumarPurgas(a: ResultadoPurga, b: ResultadoPurga): ResultadoPurga {
   return {
-    otp:             a.otp + b.otp,
-    accesoPortal:    a.accesoPortal + b.accesoPortal,
-    auditoriaEquipo: a.auditoriaEquipo + b.auditoriaEquipo,
+    otp:                 a.otp + b.otp,
+    accesoPortal:        a.accesoPortal + b.accesoPortal,
+    auditoriaEquipo:     a.auditoriaEquipo + b.auditoriaEquipo,
+    codigosContacto:     a.codigosContacto + b.codigosContacto,
+    solicitudesDerecho:  a.solicitudesDerecho + b.solicitudesDerecho,
   };
 }
 
@@ -54,9 +58,20 @@ export async function purgarDatosVencidos(
     where: { tenantId, createdAt: { lt: fechaCorte(retencion("auditoriaEquipo").dias!, ahora) } },
   });
 
+  // Mismo criterio que el OTP: se mide por expiración, no por cuándo se pidió.
+  const codigosContacto = await tx.codigoRectificacionPersona.deleteMany({
+    where: { tenantId, expiraAt: { lt: fechaCorte(retencion("codigosContacto").dias!, ahora) } },
+  });
+
+  const solicitudesDerecho = await tx.solicitudDerechoPersona.deleteMany({
+    where: { tenantId, createdAt: { lt: fechaCorte(retencion("solicitudesDerecho").dias!, ahora) } },
+  });
+
   return {
-    otp:             otp.count,
-    accesoPortal:    accesoPortal.count,
-    auditoriaEquipo: auditoriaEquipo.count,
+    otp:                otp.count,
+    accesoPortal:       accesoPortal.count,
+    auditoriaEquipo:    auditoriaEquipo.count,
+    codigosContacto:    codigosContacto.count,
+    solicitudesDerecho: solicitudesDerecho.count,
   };
 }

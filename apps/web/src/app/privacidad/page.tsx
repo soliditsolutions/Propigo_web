@@ -393,6 +393,13 @@ export default function PrivacidadPage() {
                   de sus datos personales en formato legible (PDF) y estructurado y reutilizable por máquina
                   (JSON). Los datos de la contraparte de cada contrato se limitan a su nombre.
                 </p>
+                <p className="mt-2" style={{ color: "var(--pf-text-body)" }}>
+                  Si es arrendatario o propietario, puede ejercer los derechos de <strong>rectificación</strong>{" "}
+                  (correo y teléfono) y de <strong>oposición</strong> al tratamiento de avisos, sin escribir un
+                  correo, desde <a href="/portal" style={{ color: "var(--pf-purple)", fontWeight: 500 }}>el portal de autoconsulta → Mis datos</a>.
+                  Su nombre y su RUT no se editan ahí —son su identidad legal—: si están mal, ese mismo
+                  formulario lo comunica a su corredora para que lo corrija.
+                </p>
               </div>
             </Section>
 
@@ -534,6 +541,7 @@ export default function PrivacidadPage() {
               </div>
               <div className="mt-4 flex flex-wrap gap-4 text-xs" style={{ color: "var(--pf-text-light)" }}>
                 <Link href="/terminos-uso" className="hover:opacity-70">Términos de uso</Link>
+                <Link href="/registro-tratamiento" className="hover:opacity-70">Registro de actividades de tratamiento</Link>
                 <Link href="/marketplace" className="hover:opacity-70">Marketplace</Link>
                 <Link href="/portal" className="hover:opacity-70">Consulta tu arriendo</Link>
               </div>

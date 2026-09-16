@@ -303,9 +303,23 @@ let idProp = "";
 async function sembrarPortal(): Promise<boolean> {
   if (!prisma) return false;
   await comoTenant(tenantA, async (tx) => {
-    const props = await tx.persona.findMany({ where: { tenantId: tenantA }, select: { id: true }, take: 2 });
-    idArr = props[0].id;
-    idProp = props[1]?.id ?? props[0].id;
+    // Personas propias: tomar "cualquiera de las 2 primeras" del tenant
+    // (como hacía esto antes) puede agarrar el fixture transitorio de OTRO
+    // archivo de test corriendo en paralelo contra la misma base real —y
+    // crearle a esa persona un contrato/voucher de más mientras el otro test
+    // asume que tiene exactamente los suyos. Se detectó así: este archivo
+    // hacía fallar de forma intermitente los asserts de conteo de
+    // export-datos-persona.test.ts cuando ambos corrían a la vez.
+    const arr = await tx.persona.create({
+      data: { tenantId: tenantA, rut: `QA-${MARCA}-ARR`, nombre: "Arr IDOR Portal QA" },
+      select: { id: true },
+    });
+    const prop = await tx.persona.create({
+      data: { tenantId: tenantA, rut: `QA-${MARCA}-PROP`, nombre: "Prop IDOR Portal QA" },
+      select: { id: true },
+    });
+    idArr = arr.id;
+    idProp = prop.id;
     // Propiedad propia: un índice único impide dos contratos vigentes por
     // propiedad, así que no se puede reusar una del seed.
     const propiedad = await tx.propiedad.create({
@@ -375,6 +389,7 @@ cuando("A — IDOR vertical portal (comprobante ↔ liquidación)", () => {
       await tx.voucher.deleteMany({ where: { contratoId: idContratoP } });
       await tx.contrato.deleteMany({ where: { id: idContratoP } });
       if (c) await tx.propiedad.deleteMany({ where: { id: c.propiedadId } });
+      await tx.persona.deleteMany({ where: { id: { in: [idArr, idProp] } } });
     });
   });
 

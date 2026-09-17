@@ -116,7 +116,7 @@ un "leer, comparar, escribir" en pasos separados.
 | **P-B3** | Alta de suscripción: checkout, tokenización, activación | P-B1, P-B2 | D-08 | `[ ]` |
 | **P-B4** | Cobro recurrente: ciclo, renovación, **conversión UF→CLP**, reloj inyectable | P-B3 | **N-03** | `[!]` |
 | **P-B5** | Dunning: notificación de mora → 10 días de gracia → suspensión | P-B4 | — | `[ ]` |
-| **P-B6** | Cambio de plan: upgrade inmediato con prorrateo / downgrade agendado a fin de período | P-B4 | — | `[ ]` |
+| **P-B6** | Cambio de plan: upgrade inmediato con prorrateo / downgrade agendado a fin de período | P-B4 | **D-18** | `[!]` |
 | **P-B7** | Gate de downgrade: verificar que el tenant cumple los límites del plan destino (usuarios **y** propiedades) antes de permitir el cambio | P-B6, P-B0.2 | — | `[ ]` |
 | **P-B8** | `Tenant.plan` derivado de la suscripción activa | P-B3 | D-09 | `[ ]` |
 | **P-B9** | Emisión de DTE por cada cobro + envío por correo | P-B4 | **D-07** | `[!]` |
@@ -218,6 +218,18 @@ D-01 (precios) · D-05 (downgrade) · D-07 (DTE, dirección) · D-10 (mora) · D
 | **D-15** | Condiciones objetivas exactas del retracto | 🟡 | P-C1, P-C2 | Cero contratos generados **y** cero pagos procesados **y** < 20 % de tokens del período. | Abierta |
 | **D-16** | Impago de comisiones: ¿se cortan solo cobros nuevos o también mandatos vigentes? | 🟡 | P-E3 | Solo cobros nuevos. | Abierta |
 | **D-17** | Criterio de salida del piloto | 🟡 | P-F2, P-F3 | Cero descalces en 30 días con ≥10 pagos reales. | Abierta |
+| **D-18** | ¿Upgrade **inmediato con prorrateo** (lo que dice hoy P-B6), o upgrade también **agendado al próximo ciclo**, con la misma regla que el downgrade? Propuesta del usuario (2026-09-16): completar el mes en curso con el plan actual y recién activar el cambio en la facturación del mes siguiente — el cobro ocurre siempre al inicio de mes, así que ese cobro ya sale con el plan nuevo. Sin prorrateo en ningún sentido, upgrade y downgrade quedan simétricos. | 🔴 | P-B6 | Pendiente — a definir en la sesión del 2026-09-17. Trade-off: más simple de implementar (una sola regla, sin lógica de prorrateo) a cambio de que el cliente que sube de plan espere al ciclo siguiente para ver el beneficio, en vez de acceso inmediato. | **Abierta — planteada 2026-09-16** |
+
+> **Nota 2026-09-16** — el usuario también pidió, por separado, "ver un plan para
+> el downgrade" porque la cantidad de propiedades/usuarios varía mucho entre
+> planes y bajar de plan podría dejar al tenant por sobre el cupo del plan
+> destino. **Esto ya está resuelto en el diseño, no es una brecha nueva**:
+> **D-05** decidió downgrade agendado y condicionado (el tenant debe cumplir
+> primero los límites del plan destino), y **P-B7** es exactamente el gate que
+> lo aplica (verifica usuarios *y* propiedades antes de permitir el cambio).
+> Falta implementarlo (P-B6/P-B7 siguen en `[ ]`/`[!]`), pero la regla de
+> negocio ya está tomada — no hace falta volver a discutirla el 2026-09-17,
+> solo confirmar que sigue pareciendo correcta antes de construirla.
 
 ### Qué se puede implementar hoy sin ninguna respuesta
 

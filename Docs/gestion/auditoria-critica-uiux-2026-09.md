@@ -261,3 +261,33 @@ Los puntos 2, 3 y 4 sí se ejecutaron:
 
 Suite completa 917/917 en cada paso, typecheck y lint limpios. El punto 5
 (fotografía propia del hero) sigue fuera de alcance de código.
+
+---
+
+## Pendiente — pasada de responsive/mobile completa (reportado 2026-09-16)
+
+El usuario reportó, para revisar en la sesión del 2026-09-17: **"la versión
+mobile en general se ve bastante mal — textos mal centrados, párrafos
+corridos, títulos, cards, botones mal orientados."**
+
+Contexto importante: los chequeos mobile puntuales que hice durante esta
+sesión (hero/home a 375px, dashboard del panel con `h-dvh`, la grilla del
+marketplace, el formulario de alertas personalizadas, "Mi Plan") se vieron
+bien en cada caso. Eso significa que **el problema no está necesariamente en
+lo que toqué hoy** — es una impresión general del usuario sobre el producto
+completo, así que puede estar en pantallas que no revisé a fondo en mobile:
+
+- Login / registro / recuperar-contraseña / verificar-dispositivo (páginas de
+  auth, con su layout de card sobre foto).
+- Contratos, Cobros, Vouchers, Estadísticas, Equipo (secciones densas del
+  panel, con tablas que capaz no colapsan bien a columna única).
+- El portal del arrendatario completo (`/portal/*`), no solo la pantalla de
+  login que ya se vio.
+- Ficha de propiedad del marketplace y el flujo de contacto/denuncia.
+
+**Para la próxima sesión:** conviene un recorrido sistemático a 375px (y
+quizás 768px, tablet) página por página — no una corrección puntual sobre la
+misma media docena de pantallas ya revisadas — para encontrar los casos
+reales de texto mal centrado, párrafos sin `max-width` que corren de borde a
+borde, y botones/cards que no se reordenan en columna. Sin ese recorrido
+todavía no hay una lista concreta de qué corregir.

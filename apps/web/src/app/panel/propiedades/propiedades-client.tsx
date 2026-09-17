@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import {
   X, MapPin, BedDouble, Bath, Car, ChevronRight, ShieldCheck,
   Plus, Loader2, AlertCircle, Image as ImageIcon, CheckCircle2, Pencil,
-  Lock, ArrowRight, RotateCcw, UploadCloud, Landmark,
+  Lock, ArrowRight, RotateCcw, UploadCloud, Landmark, ArrowLeftRight,
 } from "lucide-react";
 import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
 import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
@@ -19,7 +19,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { clp } from "@/lib/format";
-import { crearPropiedad, activarPropiedad, desactivarPropiedad, actualizarPropiedad, previsualizarUbicacion } from "./actions";
+import {
+  crearPropiedad, activarPropiedad, desactivarPropiedad, actualizarPropiedad,
+  previsualizarUbicacion, cambiarPropietarioPropiedad,
+} from "./actions";
 import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
 import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@housing/core";
 
@@ -1169,6 +1172,14 @@ export function PropiedadesClient({
   const [errorEditar, setErrorEditar] = useState("");
   const [isPendingEditar, startEditar] = useTransition();
 
+  // Dialog "Cambiar titularidad" (L-CM6) — independiente de "Editar
+  // propiedad": funciona en cualquier estado, incluida una propiedad arrendada.
+  const [openTitularidad, setOpenTitularidad] = useState(false);
+  const [formTitularidad, setFormTitularidad] = useState({ nombre: "", rut: "", email: "" });
+  const [errorTitularidad, setErrorTitularidad] = useState("");
+  const [rutErrorTitularidad, setRutErrorTitularidad] = useState("");
+  const [isPendingTitularidad, startTitularidad] = useTransition();
+
   /* ── helpers formularios ── */
   function setFieldCrear<K extends keyof FormCrear>(k: K, v: FormCrear[K]) {
     setFormCrear((f) => ({ ...f, [k]: v }));
@@ -1243,6 +1254,45 @@ export function PropiedadesClient({
     startDesactivarModal(async () => {
       const res = await desactivarPropiedad(seleccionada.id);
       if (!res.ok) { setErrDesactivarModal(res.error ?? "Error al bajar la propiedad."); return; }
+      setSeleccionada(null);
+      router.refresh();
+    });
+  }
+
+  function abrirTitularidad() {
+    setFormTitularidad({ nombre: "", rut: "", email: "" });
+    setErrorTitularidad("");
+    setRutErrorTitularidad("");
+    setOpenTitularidad(true);
+  }
+
+  function handleRutBlurTitularidad() {
+    const val = formTitularidad.rut.trim();
+    if (!val) { setRutErrorTitularidad(""); return; }
+    if (!validarRut(val)) {
+      setRutErrorTitularidad("RUT inválido — verifique el dígito verificador.");
+    } else {
+      setRutErrorTitularidad("");
+      setFormTitularidad((f) => ({ ...f, rut: formatearRut(val) }));
+    }
+  }
+
+  function handleCambiarTitularidad() {
+    if (!seleccionada) return;
+    setErrorTitularidad("");
+    if (!formTitularidad.nombre.trim()) { setErrorTitularidad("El nombre es obligatorio."); return; }
+    if (!formTitularidad.rut.trim() || !validarRut(formTitularidad.rut.trim())) {
+      setRutErrorTitularidad("RUT inválido — verifique el dígito verificador.");
+      return;
+    }
+    startTitularidad(async () => {
+      const res = await cambiarPropietarioPropiedad(seleccionada.id, {
+        nombre: formTitularidad.nombre.trim(),
+        rut: formTitularidad.rut.trim(),
+        email: formTitularidad.email.trim() || undefined,
+      });
+      if (!res.ok) { setErrorTitularidad(res.error); return; }
+      setOpenTitularidad(false);
       setSeleccionada(null);
       router.refresh();
     });
@@ -1640,10 +1690,119 @@ export function PropiedadesClient({
                         : "tiene un contrato vigente."}
                     </div>
                   )}
+                  {esManager && (
+                    <button
+                      type="button"
+                      onClick={abrirTitularidad}
+                      className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold"
+                      style={{ color: "var(--hw-text-3)" }}
+                    >
+                      <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      Cambiar titularidad (nuevo propietario)
+                    </button>
+                  )}
                 </div>
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════════════════════════════════════════════
+          Dialog: Cambiar titularidad (L-CM6)
+      ══════════════════════════════════════════════════ */}
+      <Dialog
+        open={openTitularidad && seleccionada !== null}
+        onOpenChange={(o) => { if (!o) setOpenTitularidad(false); }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+              Cambiar titularidad
+            </DialogTitle>
+            <DialogDescription className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+              {seleccionada?.direccion}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div
+              className="rounded-xl px-4 py-3 text-xs leading-relaxed"
+              style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+            >
+              Propietario actual: <strong>{seleccionada?.propietario.nombre}</strong>.
+              Si esta propiedad tiene un contrato vigente, se avisará al
+              arrendatario del cambio — el contrato sigue rigiendo igual, solo
+              cambia el titular.
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+                Nombre del nuevo propietario
+              </label>
+              <input
+                type="text"
+                value={formTitularidad.nombre}
+                onChange={(e) => setFormTitularidad((f) => ({ ...f, nombre: e.target.value }))}
+                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                placeholder="Nombre completo"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+                RUT del nuevo propietario
+              </label>
+              <input
+                type="text"
+                value={formTitularidad.rut}
+                onChange={(e) => { setFormTitularidad((f) => ({ ...f, rut: e.target.value })); if (rutErrorTitularidad) setRutErrorTitularidad(""); }}
+                onBlur={handleRutBlurTitularidad}
+                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                placeholder="12.345.678-9"
+              />
+              {rutErrorTitularidad && (
+                <p className="mt-1 text-xs font-medium" style={{ color: "var(--hw-danger)" }}>{rutErrorTitularidad}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+                Correo (opcional)
+              </label>
+              <input
+                type="email"
+                value={formTitularidad.email}
+                onChange={(e) => setFormTitularidad((f) => ({ ...f, email: e.target.value }))}
+                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                placeholder="correo@ejemplo.cl"
+              />
+            </div>
+
+            {errorTitularidad && (
+              <p className="text-sm font-medium" style={{ color: "var(--hw-danger)" }}>{errorTitularidad}</p>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setOpenTitularidad(false)}
+                className="hw-btn flex-1 rounded-xl py-2.5 text-sm font-semibold"
+                style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCambiarTitularidad}
+                disabled={isPendingTitularidad}
+                className="hw-btn flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+                style={{ background: "var(--hw-primary)" }}
+              >
+                {isPendingTitularidad
+                  ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Guardando…</>
+                  : "Confirmar cambio"}
+              </button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

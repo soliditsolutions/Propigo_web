@@ -17,6 +17,7 @@ import {
 } from "@/lib/propiedad-datos";
 import { getClientIpFromHeaders } from "@/lib/ip";
 import { validarCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
+import { construirAvisoCambioTitularidad } from "@/lib/cambio-titularidad";
 
 export type ResultadoCrear =
   | { ok: true; id: string }
@@ -669,6 +670,121 @@ export async function actualizarPropiedad(
     logError("actualizarPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al actualizar la propiedad. Por favor intenta nuevamente." };
+  }
+}
+
+export type ResultadoCambioTitularidad =
+  | { ok: true; notificados: number }
+  | { ok: false; error: string };
+
+/**
+ * Cambia el propietario de una propiedad (L-CM6). Reservado al administrador
+ * de la cuenta: no es un ajuste de datos de formulario, es un hecho jurídico
+ * (nuevo dueño) que afecta a quién se le rinde cuentas y, eventualmente, a
+ * quién se le paga — a diferencia de `actualizarPropiedad`, funciona en
+ * cualquier estado (incluida una propiedad arrendada: es justo el caso de uso
+ * típico, una venta con arrendatario dentro).
+ *
+ * Busca o crea la Persona del nuevo propietario por RUT (mismo patrón que
+ * `crearPropiedad`) y avisa a cada arrendatario con contrato vigente sobre
+ * esa propiedad — el contrato sigue rigiendo igual, solo cambia el titular.
+ */
+export async function cambiarPropietarioPropiedad(
+  propiedadId: string,
+  data: { nombre: string; rut: string; email?: string; telefono?: string },
+): Promise<ResultadoCambioTitularidad> {
+  if (!propiedadId)
+    return { ok: false, error: "ID de propiedad requerido." };
+  const nombre = data.nombre.trim();
+  const rutInput = data.rut.trim();
+  if (!nombre)
+    return { ok: false, error: "El nombre del nuevo propietario es obligatorio." };
+  if (!rutInput)
+    return { ok: false, error: "El RUT del nuevo propietario es obligatorio." };
+  if (!validarRut(rutInput))
+    return { ok: false, error: "El RUT del nuevo propietario no es válido (verifique el dígito verificador)." };
+  const rutCanon = canonicalRut(rutInput);
+
+  try {
+    const actor = await getActor();
+    if (actor.rol !== "manager")
+      return { ok: false, error: "Solo el administrador de la cuenta puede cambiar el propietario de una propiedad." };
+
+    const notificados = await withTenant(actor.tenantId, async (tx) => {
+      const prop = await tx.propiedad.findFirst({
+        where: { id: propiedadId, tenantId: actor.tenantId },
+        include: { propietario: { select: { id: true, nombre: true, rut: true } } },
+      });
+      if (!prop)
+        throw new DomainError("La propiedad no existe o no pertenece a este corredor.");
+      if (prop.propietario.rut === rutCanon)
+        throw new DomainError("Ese RUT ya es el propietario actual de la propiedad.");
+
+      // Buscar o crear la Persona del nuevo propietario (mismo patrón que crearPropiedad).
+      let nuevoPropietario = await tx.persona.findFirst({
+        where: { tenantId: actor.tenantId, rut: rutCanon },
+      });
+      if (!nuevoPropietario) {
+        nuevoPropietario = await tx.persona.create({
+          data: {
+            tenantId: actor.tenantId,
+            nombre,
+            rut: rutCanon,
+            email: data.email?.trim() || null,
+            telefono: data.telefono?.trim() || null,
+          },
+        });
+      }
+
+      await tx.propiedad.update({
+        where: { id: propiedadId, tenantId: actor.tenantId },
+        data: { propietarioId: nuevoPropietario.id },
+      });
+
+      // Avisar a cada arrendatario con contrato vigente sobre esta propiedad —
+      // una propiedad puede no tener contrato vigente (borrador/disponible/
+      // reservada) y el cambio igual es válido, solo que no hay a quién avisar.
+      const contratosVigentes = await tx.contrato.findMany({
+        where: { propiedadId, tenantId: actor.tenantId, estado: "vigente" },
+        select: { id: true, arrendatarioId: true },
+      });
+
+      const { asunto, cuerpo } = construirAvisoCambioTitularidad({
+        direccion: prop.direccion,
+        propietarioNuevoNombre: nombre,
+        propietarioNuevoRut: rutCanon,
+        fechaEfecto: new Date(),
+      });
+
+      for (const c of contratosVigentes) {
+        await tx.notificacion.create({
+          data: {
+            tenantId: actor.tenantId,
+            personaId: c.arrendatarioId,
+            contratoId: c.id,
+            tipo: "cambio_titularidad",
+            asunto,
+            cuerpo,
+            payload: {
+              propietarioAnteriorNombre: prop.propietario.nombre,
+              propietarioAnteriorRut: prop.propietario.rut,
+              propietarioNuevoNombre: nombre,
+              propietarioNuevoRut: rutCanon,
+            },
+          },
+        });
+      }
+
+      return contratosVigentes.length;
+    });
+
+    revalidatePath("/panel/propiedades");
+    revalidatePath("/panel");
+    return { ok: true, notificados };
+  } catch (e) {
+    logError("cambiarPropietarioPropiedad", e);
+    if (e instanceof DomainError) return { ok: false, error: e.message };
+    return { ok: false, error: "Error al cambiar el propietario. Intenta nuevamente." };
   }
 }
 

@@ -195,6 +195,7 @@ enum TipoNotificacion {
   renovacion_contrato    // Notificación al arrendatario cuando se renueva el contrato
   comentario_corredor    // Corredor deja un comentario/mensaje en el portal del arrendatario
   alerta_personalizada   // Alerta definida por el admin de la corredora (AlertaPersonalizada)
+  cambio_titularidad     // La propiedad cambió de propietario (L-CM6)
 }
 
 enum CanalNotificacion {

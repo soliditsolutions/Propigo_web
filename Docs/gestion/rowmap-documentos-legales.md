@@ -202,8 +202,19 @@ vigencia de la ley.
 | **L-CM3** | El aviso de término advierte que **no surte efecto legal por correo**: requiere notificación judicial o personal de notario | L-CM2 | — | `[x]` |
 | **L-CM4** | **Aviso de reajuste** en PDF, mostrando los 12 meses de IPC uno por uno | P-NT3 | **G-04** | `[!]` |
 | **L-CM5** | **Devolución de garantía** con detalle de retenciones y su motivo | P-GA3 | — | `[x]` |
-| **L-CM6** | **Aviso de cambio de titularidad** de la propiedad | — | — | `[ ]` |
+| **L-CM6** | **Aviso de cambio de titularidad** de la propiedad | — | — | `[x]` |
 | **L-CM7** | Datos de transferencia en el recordatorio de pago, y cierre «Si ya pagaste, omite este correo» | L-DT5 | — | `[x]` |
+
+> ✅ **L-CM6 — 2026-09-16.** `cambiarPropietarioPropiedad()` (`panel/propiedades/actions.ts`)
+> reasigna `Propiedad.propietarioId` — reservado al administrador de la cuenta,
+> a diferencia de `actualizarPropiedad` funciona en **cualquier estado**
+> (una propiedad arrendada es justo el caso típico: se vende con arrendatario
+> dentro). Busca o crea la Persona del nuevo propietario por RUT, y por cada
+> contrato vigente sobre esa propiedad crea una `Notificacion` (tipo nuevo
+> `cambio_titularidad`) al arrendatario con el nombre y RUT del nuevo titular —
+> aclarando que el contrato sigue rigiendo igual. Verificado en vivo: cambio de
+> titular de un departamento arrendado, notificación generada para la
+> arrendataria y visible en `/panel/notificaciones`.
 
 ---
 

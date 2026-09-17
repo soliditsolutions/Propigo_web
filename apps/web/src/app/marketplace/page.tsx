@@ -469,7 +469,7 @@ export default async function MarketplacePage({
                     style={{ borderRadius: "16px", textDecoration: "none" }}
                   >
                     {/* Imagen o placeholder */}
-                    <div className="relative h-44 w-full overflow-hidden" style={{ background: "var(--pf-hero-1)" }}>
+                    <div className={`relative h-44 w-full overflow-hidden ${img ? "" : "pf-img-empty"}`}>
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img

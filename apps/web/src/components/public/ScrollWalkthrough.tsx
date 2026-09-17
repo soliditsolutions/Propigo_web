@@ -37,8 +37,14 @@ function setWalkthroughLayoutMode(mode: "pinned" | "stacked") {
 }
 
 export type WalkStop = {
-  /** Fotograma de fondo de esta parada. */
-  image: StaticImageData;
+  /**
+   * Fotograma de fondo de esta parada. Opcional: una parada sin foto (ej.
+   * "Nuestros Planes") muestra el `--hw-page` liso que ya queda detrás del
+   * crossfade — el mismo tratamiento "tarjeta glass sobre aurora, no sobre
+   * foto" que login/registro y que el modo apilado ya le daba a esta parada.
+   * Una decisión de compra necesita más calma visual que una parada narrativa.
+   */
+  image?: StaticImageData;
   /** Contenido (UI) que aparece sobre la foto en esta parada. */
   node: ReactNode;
   /**
@@ -176,7 +182,12 @@ export function ScrollWalkthrough({
   const [loaded, setLoaded] = useState(0);
 
   const n = stops.length;
-  const framesReady = loaded >= n;
+  // Paradas sin foto (ver WalkStop.image) nunca disparan `onLoad` — contar
+  // contra `n` las habría dejado esperando por siempre el safety-net de 3s
+  // en cada carga. `loaded` solo cuenta imágenes reales, así que se compara
+  // contra cuántas hay, no contra el total de paradas.
+  const imageStops = stops.filter((s) => s.image).length;
+  const framesReady = loaded >= imageStops;
   // Solo se anima cuando el efecto está activo Y las fotos están listas.
   const active = motionEnabled && framesReady;
 
@@ -466,6 +477,10 @@ export function ScrollWalkthrough({
             // mobile no se descargan, y en desktop a progreso 0 igual solo
             // se vería el primero (así que no hay parpadeo al hidratar).
             if (!motionEnabled && i !== 0) return null;
+            // Parada sin foto (ver WalkStop.image): no hay fotograma que
+            // montar — el frame anterior ya se encarga de desvanecerse con
+            // su propia distancia, dejando ver el --hw-page liso detrás.
+            if (!s.image) return null;
             const dist = Math.abs(pos - i);
             const opacity = active ? Math.max(0, 1 - dist) : i === 0 ? 1 : 0;
             // Ken Burns sutil: entra levemente ampliada y se asienta al llegar.
@@ -536,7 +551,7 @@ export function ScrollWalkthrough({
                     `priority`: aunque solo queda esta, entra lazy igual que
                     antes; en desktop, aunque oculta, comparte URL con la del
                     crossfade así que el navegador la deduplica. */}
-                {i === 0 && (
+                {i === 0 && s.image && (
                   <div className="hw-walk-stop-bg" aria-hidden="true">
                     <Image
                       src={s.image}

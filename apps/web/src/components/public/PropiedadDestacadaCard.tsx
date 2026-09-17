@@ -34,7 +34,7 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
       href={`/marketplace/${propiedad.publicacionId}`}
       className="hw-auth-card group flex w-full flex-col overflow-hidden p-0"
     >
-      <div className="relative h-24 w-full overflow-hidden" style={{ background: "var(--pf-hero-1)" }}>
+      <div className={`relative h-24 w-full overflow-hidden ${propiedad.imagenUrl ? "" : "pf-img-empty"}`}>
         {propiedad.imagenUrl ? (
           // Capa de parallax: EmblaCarousel desplaza este contenedor en X según
           // el scroll (ver [data-parallax-layer] en globals.css, sobredimensionado

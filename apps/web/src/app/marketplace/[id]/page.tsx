@@ -180,7 +180,7 @@ export default async function MarketplaceFichaPage({
                 )}
               </div>
             ) : (
-              <div className="flex h-60 items-center justify-center rounded-2xl" style={{ background: "var(--pf-hero-1)" }}>
+              <div className="pf-img-empty flex h-60 items-center justify-center rounded-2xl">
                 <Icon className="h-16 w-16" style={{ color: "var(--pf-border-input)" }} aria-hidden />
               </div>
             )}

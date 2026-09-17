@@ -13,7 +13,6 @@ import { PlanesStop } from "@/components/public/PlanesStop";
 import walkDoor from "@/images/backgrounds/scroll-walkthrough_door.png";
 import walkRoom from "@/images/backgrounds/scroll-walkthrough_keys_and_costumers.png";
 import walkContract from "@/images/backgrounds/scroll-walkthrough_signed_contract.png";
-import walkKeys from "@/images/backgrounds/scroll-walkthrough_get_keys.png";
 
 /** Top 10 corredores por rating agregado (ValoracionCorredor, esVisible=true). */
 async function getTopCorredores(): Promise<CorredorDestacado[]> {
@@ -325,13 +324,20 @@ export default async function Home() {
               "Nuestros Planes": en vez de resumirla (se sentía pobre) o
               sacarla del escenario (perdía la foto y las transiciones), su
               contenido es una tabla comparativa densa que sí cabe en un
-              frame fijado (ver PlanesStop). */}
+              frame fijado (ver PlanesStop). Sin foto propia (WalkStop.image
+              es opcional): a diferencia de las otras 3 paradas, esta es una
+              decisión de compra, no narrativa — la tabla de precios necesita
+              contraste calmo para comparar cifras, no una foto de fondo
+              compitiendo por atención. Al desvanecerse el frame anterior sin
+              uno nuevo que lo reemplace, lo que queda debajo es el mismo
+              `.hw-aurora-layer` fijo de la página (declarado arriba), ya
+              usado en login/registro. */}
           <ScrollWalkthrough
             stops={[
               { image: walkDoor,     node: stopHero },
               { image: walkRoom,     node: stopFeatures,    anchorId: "acerca-de" },
               { image: walkContract, node: stopPropiedades, anchorId: "destacado" },
-              { image: walkKeys,     node: <PlanesStop />,  anchorId: "planes" },
+              { node: <PlanesStop />, anchorId: "planes" },
             ]}
           />
         </main>

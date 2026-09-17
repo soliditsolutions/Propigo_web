@@ -1636,6 +1636,17 @@ html {
   box-shadow: var(--hw-shadow-2);
 }
 
+/* Estado vacío de imagen (propiedad sin fotos aún) — un rectángulo liso de
+   --pf-hero-1 se leía como un espacio roto, no como "todavía no hay fotos".
+   Textura de puntos de muy baja opacidad sobre el mismo tono: suficiente
+   para que se sienta diseñado, no tanto como para competir con el ícono del
+   tipo de propiedad que va centrado encima. */
+.pf-img-empty {
+  background-color: var(--pf-hero-1);
+  background-image: radial-gradient(color-mix(in srgb, var(--pf-purple) 15%, transparent) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+
 /* Trust badge — checkmark verde + texto muted */
 .pf-trust {
   display: inline-flex;

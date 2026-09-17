@@ -212,3 +212,52 @@ real no está dispersa — se concentra en tres bolsillos concretos:
    de cualquier ajuste adicional al grid del marketplace.
 5. *(Fuera de alcance de código)* fotografía propia para el hero — decisión
    de producción de contenido, no de ingeniería.
+
+---
+
+## Resultado de la ejecución (2026-09-16)
+
+El usuario aprobó el plan completo. Antes de tocar el dashboard (punto 1),
+leí el código de `panel/page.tsx`, `components/panel/ui.tsx` y
+`components/panel/animated-number.tsx` — y dos de las tres recomendaciones
+de ese punto resultaron **ya implementadas**, con más sofisticación de la
+que las capturas de pantalla dejaban ver:
+
+- **Count-up de los montos**: ya existe (`AnimatedNumber`, easeOutCubic,
+  respeta `prefers-reduced-motion`). Mi captura simplemente lo agarró
+  después de que la animación de 700ms ya había terminado.
+- **Glow semántico en las tarjetas KPI**: ya existe y es más elaborado de lo
+  que pedí — `.hw-card-glow` (radial-gradient ambiental + doble box-shadow
+  con `color-mix`, más intenso al hover) y `.hw-sheen` (barrido de luz),
+  ambos ya aplicados en `StatCard`.
+- **Sparklines**: sí es un hueco real (`recharts` no se usa en `panel/`,
+  solo en `estadisticas/`), pero investigar el porqué reveló algo más
+  importante: **`estadisticas/` está gateada por plan** (`getAnalyticsTier`).
+  Agregar gráficos a `panel/page.tsx` —que ven **todos** los planes—
+  regalaría gratis una vista previa de una función paga. Es una decisión de
+  producto/monetización, no de diseño, así que **no se implementó** sin
+  consultarlo primero.
+
+Los puntos 2, 3 y 4 sí se ejecutaron:
+
+- **Punto 2** — `ScrollWalkthrough`: `WalkStop.image` pasa a opcional; la
+  parada "Nuestros Planes" ya no comparte foto con las 3 narrativas, cae al
+  mismo `.hw-aurora-layer` que login/registro. Ajustado el conteo de
+  `framesReady` para no esperar por una foto que no existe. Commit `f5e6e47`.
+- **Punto 3** — `.pf-img-empty`: textura de puntos reemplaza el rectángulo
+  liso en los 3 lugares que duplicaban el estado "sin fotos" (tarjeta del
+  home, grilla de marketplace, ficha de propiedad). Mismo commit.
+- **Punto 4** — `prisma/seed-demo-propiedades.ts` (`npm run
+  db:seed-demo-propiedades`, idempotente, aditivo — no toca lo ya sembrado):
+  6 propiedades nuevas, no 8-10 — el tenant demo cae en plan Bronze efectivo
+  (cupo 10; ya tenía 4) y sembrar más habría roto el contador "X/10" del
+  panel o requerido tocar el plan del tenant, fuera de alcance. Sin fotos
+  reales: sin acceso de red confiable desde este entorno para bajar
+  imágenes con licencia clara — pero el volumen ya alcanzó para verificar
+  el grid real (7 tarjetas, 3 columnas, sin roturas) y el carrusel
+  "Destacado" del home (antes 1 tarjeta con mucho vacío, ahora 4-5 visibles
+  llenando el panel, confirmando que el problema era de datos, no de
+  layout).
+
+Suite completa 917/917 en cada paso, typecheck y lint limpios. El punto 5
+(fotografía propia del hero) sigue fuera de alcance de código.

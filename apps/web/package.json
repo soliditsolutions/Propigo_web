@@ -17,6 +17,7 @@
     "db:setup": "prisma db execute --file prisma/sql/setup.sql",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-cuenta": "tsx prisma/seed-cuenta-prueba.ts",
+    "db:seed-demo-propiedades": "tsx prisma/seed-demo-propiedades.ts",
     "db:clean": "tsx prisma/clean.ts",
     "db:repair": "tsx prisma/repair-publicaciones.ts"
   },

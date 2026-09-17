@@ -194,7 +194,7 @@ export function PanelShell({ tenant, user, children }: Props) {
   );
 
   return (
-    <div className="relative h-screen hw-page-bg overflow-hidden">
+    <div className="relative h-dvh hw-page-bg overflow-hidden">
       {/* Fondo — en claro, mismo blob suave que login/registro/home; en
           oscuro, variante "beams" (franjas de luz, aproximación CSS-only del
           componente Beams de React Bits — ver .hw-beams-layer). Solo se
@@ -204,7 +204,7 @@ export function PanelShell({ tenant, user, children }: Props) {
           (ver nota "usar con moderación" en .hw-aurora-bg de globals.css). */}
       <div className="hw-beams-layer" aria-hidden="true" />
 
-      <div className="relative z-10 flex h-screen">
+      <div className="relative z-10 flex h-dvh">
       {/* FIX UI-C4 — Skip link: permite a usuarios de teclado/lector de pantalla
           saltar directamente al contenido principal sin recorrer toda la barra lateral.
           WCAG 2.4.1 — Bypass Blocks. Visible solo cuando recibe foco (sr-only). */}

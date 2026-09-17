@@ -270,7 +270,7 @@ export default async function MarketplacePage({
           </span>
 
           <h1
-            className="hw-enter mt-2 text-4xl font-bold tracking-tight sm:text-5xl"
+            className="hw-enter hw-fluid-hero mt-2 font-bold tracking-tight"
             style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
           >
             Propiedades <span className="pf-headline-accent">disponibles</span>

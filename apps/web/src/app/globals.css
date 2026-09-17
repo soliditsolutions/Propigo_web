@@ -504,6 +504,19 @@ html {
     color: var(--hw-text-1);
   }
 
+  /* Tipografía fluida — escala en continuo entre 360px y 640px de viewport en
+     vez de saltar de golpe en el breakpoint `sm`. Los tamaños mín/máx calzan
+     con los que ya usaban los titulares (text-4xl→5xl y text-2xl→3xl), así
+     que a los dos extremos del rango se ve igual que antes; lo que cambia es
+     que ahora la transición entre 360px y 640px es continua, no un salto.
+     clamp(min, pendiente + vw, max) — fórmula fluid-type estándar (Utopia). */
+  .hw-fluid-hero {
+    font-size: clamp(2.25rem, 1.286rem + 4.286vw, 3rem); /* 36px → 48px */
+  }
+  .hw-fluid-h2 {
+    font-size: clamp(1.5rem, 1.018rem + 2.143vw, 1.875rem); /* 24px → 30px */
+  }
+
   /* Focus visible global — nunca outline:none sin reemplazo */
   :focus-visible {
     outline: 2px solid var(--hw-primary);

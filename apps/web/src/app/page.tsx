@@ -144,7 +144,7 @@ export default async function Home() {
         <ShieldCheck className="h-3.5 w-3.5 text-[var(--hw-success)]" />
         PropTech para corredores de propiedades · Chile
       </span>
-      <h1 className="mt-4 text-balance text-4xl font-bold leading-tight tracking-tight text-[var(--pf-navy)] sm:text-5xl">
+      <h1 className="hw-fluid-hero mt-4 text-balance font-bold leading-tight tracking-tight text-[var(--pf-navy)]">
         La gestión de arriendos,{" "}
         <span className="pf-headline-accent">automática y sin errores</span>.
       </h1>
@@ -207,7 +207,7 @@ export default async function Home() {
           <span className="text-xs font-bold uppercase tracking-widest text-[var(--pf-purple)]">
             Acerca de
           </span>
-          <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight text-[var(--pf-navy)] sm:text-3xl">
+          <h2 className="hw-fluid-h2 mt-2 text-balance font-bold tracking-tight text-[var(--pf-navy)]">
             Lo que hace{" "}
             <span className="pf-headline-accent">por ti</span>
           </h2>

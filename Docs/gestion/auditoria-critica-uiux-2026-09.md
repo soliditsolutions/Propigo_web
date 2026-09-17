@@ -291,3 +291,50 @@ misma media docena de pantallas ya revisadas — para encontrar los casos
 reales de texto mal centrado, párrafos sin `max-width` que corren de borde a
 borde, y botones/cards que no se reordenan en columna. Sin ese recorrido
 todavía no hay una lista concreta de qué corregir.
+
+### Resultado del recorrido (2026-09-17)
+
+Recorrido sistemático a 375px con la cuenta demo (`maria@corredorademo.cl`)
+sobre: login/registro/recuperar-contraseña/verificar-dispositivo, dashboard,
+Contratos, Cobros, Vouchers, Equipo, Estadísticas (sus 4 tabs), el aviso
+legal del marketplace, la ficha de propiedad completa (mapa, formulario de
+contacto, denuncia), y el login del portal. Se encontraron y corrigieron 4
+bugs reales de mobile — commits en esta sesión:
+
+1. **Mapa de Leaflet tapaba el modal de "Contactar al corredor"** — el bug
+   más serio de los cuatro: `.leaflet-container` queda en
+   `position: relative; z-index: auto` (CSS propio de Leaflet), que **no**
+   crea stacking context. Sus panes internos (tiles/marcador, z-index
+   200-700) terminaban compitiendo en el stacking context de la raíz del
+   documento contra el modal (z-index 50, un valor razonable para un
+   overlay) — y ganaban, tapando los campos Nombre/Apellido del formulario.
+   Fix: `isolate` en el div del mapa (`LeafletMapInner.tsx`), un fix de una
+   línea que corrige ambos usos del mapa (marketplace y portal del
+   arrendatario).
+2. **Aviso legal (ToS) del marketplace** — el indicador "Desplácese para leer
+   todo" se superponía directamente sobre texto legal aún sin leer (dos capas
+   de texto opaco en el mismo lugar). Causa: el offset del degradé estaba
+   fijo en px medido desde el diálogo completo, no desde el borde real del
+   área con scroll — en mobile el texto envuelve en muchas más líneas que en
+   desktop y el offset fijo dejaba de coincidir. Fix: indicador `sticky`
+   dentro del propio contenedor con scroll (se ancla solo, sin números
+   mágicos) + degradé de dos paradas que garantiza fondo 100% opaco bajo la
+   etiqueta.
+3. **Contratos y Vouchers** — tablas planas con scroll horizontal sin ninguna
+   pista visual; columnas como "Propietario" o "Detalle" quedaban cortadas
+   fuera de la pantalla. Fix: tarjeta apilada por fila en mobile (mismo
+   patrón que ya usa Cobros), tabla original intacta desde `md:` hacia
+   arriba.
+4. **Estadísticas → "Próximos vencimientos"** — fila de 3 columnas
+   (arrendatario+dirección / fecha / monto) que en mobile envolvía apretada.
+   Fix: `flex-col` en mobile (fecha+monto pasan a su propia línea),
+   `sm:flex-row` para volver al layout de una fila en pantallas más anchas.
+
+`tsc --noEmit` y `eslint` limpios sobre los 5 archivos tocados; cada fix se
+verificó visualmente a 375px y 800px en el navegador embebido.
+
+**Quedó fuera de este recorrido** (no se pudo probar sin credenciales de
+arrendatario/propietario sembradas): el resto del portal más allá del login
+(`/portal/mis-datos`, `/portal/contrato/[id]`) y el detalle de un contrato
+individual (`/panel/contratos/[id]`). Candidatos para la próxima pasada si el
+usuario sigue viendo problemas de mobile en esas pantallas.

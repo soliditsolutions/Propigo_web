@@ -61,5 +61,13 @@ export default function LeafletMapInner({ latitud, longitud, exacta }: LeafletMa
     };
   }, [latitud, longitud, exacta]);
 
-  return <div ref={contenedorRef} className="h-full w-full" />;
+  // `isolate` fuerza un nuevo stacking context sobre este div. Sin él,
+  // `.leaflet-container` queda en `position: relative; z-index: auto` (así
+  // lo define el CSS de Leaflet) — eso NO crea stacking context propio, así
+  // que los panes internos de Leaflet (z-index 200-700 en tiles/marcadores)
+  // terminan compitiendo en el stacking context de la RAÍZ del documento en
+  // vez de quedar contenidos aquí. Un modal en otra parte de la página con
+  // z-index 50 (razonable para un overlay) perdía contra eso y el mapa se
+  // veía "por encima" del modal, tapando sus campos.
+  return <div ref={contenedorRef} className="isolate h-full w-full" />;
 }

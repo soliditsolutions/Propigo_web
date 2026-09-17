@@ -65,7 +65,7 @@ export function TerminosAviso() {
           background:   "var(--hw-surface)",
           borderRadius: "20px",
           boxShadow:    "var(--hw-shadow-3)",
-          maxHeight:    "min(680px, 90dvh)",
+          maxHeight:    "min(760px, 92dvh)",
           transform:    closing ? "scale(0.96) translateY(8px)" : "scale(1) translateY(0)",
           transition:   "transform 320ms cubic-bezier(0.16,1,0.3,1), opacity 320ms ease",
         }}
@@ -184,27 +184,41 @@ export function TerminosAviso() {
               </span>
             ))}
           </div>
-        </div>
 
-        {/* ── Indicador de scroll ──────────────────────────────── */}
-        {!scrolled && (
-          <div
-            className="pointer-events-none absolute bottom-[88px] inset-x-0 flex flex-col items-center gap-1 pb-3"
-            style={{
-              background: "linear-gradient(to top, var(--hw-surface) 0%, transparent 100%)",
-              paddingTop: "40px",
-            }}
-          >
-            <span className="text-xs font-medium" style={{ color: "var(--hw-text-3)" }}>
-              Desplácese para leer todo
-            </span>
-            <ChevronDown
-              className="h-4 w-4 animate-bounce"
-              style={{ color: "var(--hw-text-4)" }}
-              aria-hidden
-            />
-          </div>
-        )}
+          {/* ── Indicador de scroll ────────────────────────────────
+              `sticky` (no `absolute`) y DENTRO del propio div scrolleable:
+              así se ancla siempre al borde inferior del viewport visible
+              del scroll, cualquiera sea la altura real del contenido. Un
+              offset fijo en px medido desde el diálogo completo (versión
+              anterior) no se adaptaba a mobile, donde el texto envuelve en
+              muchas más líneas y el indicador terminaba flotando sobre
+              contenido todavía sin leer. */}
+          {!scrolled && (
+            <div
+              className="pointer-events-none sticky inset-x-0 bottom-0 flex flex-col items-center gap-1 pb-1 pt-4 sm:pt-9"
+              style={{
+                // El texto de la etiqueta necesita quedar sobre fondo 100%
+                // opaco (no solo "hacia" opaco) o el párrafo de abajo se
+                // transparenta a través de ella y las dos capas de texto se
+                // leen mezcladas. Por eso el degradé se resuelve a opaco
+                // ANTES del final de la caja (60%), dejando toda la franja
+                // donde vive la etiqueta+chevron sólida; el fade real ocurre
+                // solo en el padding-top de arriba, sobre texto que de
+                // todas formas está por perderse de vista al hacer scroll.
+                background: "linear-gradient(to top, var(--hw-surface) 0%, var(--hw-surface) 60%, transparent 100%)",
+              }}
+            >
+              <span className="text-xs font-medium" style={{ color: "var(--hw-text-3)" }}>
+                Desplácese para leer todo
+              </span>
+              <ChevronDown
+                className="h-4 w-4 animate-bounce"
+                style={{ color: "var(--hw-text-4)" }}
+                aria-hidden
+              />
+            </div>
+          )}
+        </div>
 
         {/* ── Pie de acciones ──────────────────────────────────── */}
         <div

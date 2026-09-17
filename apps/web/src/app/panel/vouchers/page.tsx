@@ -61,10 +61,78 @@ export default async function VouchersPage({
           </p>
         </div>
       ) : (
-        <div
-          className="mt-4 overflow-hidden rounded-2xl"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
-        >
+        <>
+          {/* Mobile (<md): tarjetas — la tabla de abajo corta "Propiedad" y
+              "Detalle" fuera de la pantalla con scroll horizontal sin
+              ninguna pista visual de que hay más columnas al costado. */}
+          <div className="mt-4 space-y-3 rounded-2xl p-3 md:hidden" style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}>
+            {vouchers.map((v) => {
+              const tipoInfo = TIPO_LABEL[v.tipo] ?? { label: v.tipo, color: "var(--hw-text-3)" };
+              return (
+                <div key={v.id} className="rounded-xl p-3.5" style={{ border: "1px solid var(--hw-border)" }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold" style={{ color: "var(--hw-text-1)" }}>{v.arrendatario.nombre}</p>
+                      <p className="truncate text-xs" style={{ color: "var(--hw-text-3)" }}>
+                        {v.propiedad.direccion}
+                        {v.propiedad.comuna && <span style={{ color: "var(--hw-text-4)" }}> · {v.propiedad.comuna}</span>}
+                      </p>
+                    </div>
+                    <span
+                      className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      style={{ background: `${tipoInfo.color}18`, color: tipoInfo.color }}
+                    >
+                      {tipoInfo.label}
+                    </span>
+                  </div>
+
+                  <div className="mt-2.5 flex items-end justify-between gap-2 border-t pt-2.5" style={{ borderColor: "var(--hw-border)" }}>
+                    <div>
+                      <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>{fecha(v.fecha)}</p>
+                      <p className="font-semibold tabular-nums hw-num" style={{ color: "var(--hw-text-1)" }}>{clp(v.montoClp)}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {v.folio && (
+                        <a
+                          href={`/api/panel/vouchers/${v.id}/pdf`}
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+                          style={{ color: "var(--hw-primary)" }}
+                          aria-label={`Descargar comprobante ${v.folio}`}
+                        >
+                          <Download className="h-3.5 w-3.5" aria-hidden />
+                          PDF
+                        </a>
+                      )}
+                      <a
+                        href={`/panel/contratos/${v.contratoId}`}
+                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
+                        style={{ color: "var(--hw-text-3)" }}
+                        aria-label={`Ver contrato de ${v.arrendatario.nombre}`}
+                      >
+                        <FileText className="h-3.5 w-3.5" aria-hidden />
+                        Contrato
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                {vouchers.length} voucher{vouchers.length !== 1 ? "s" : ""}
+                {tipo && ` · solo ${TIPO_LABEL[tipo].label.toLowerCase()}`}
+              </p>
+              <p className="text-xs font-semibold tabular-nums hw-num" style={{ color: "var(--hw-text-2)" }}>
+                Total: {clp(vouchers.reduce((s, v) => s + v.montoClp, 0))}
+              </p>
+            </div>
+          </div>
+
+          {/* Desktop (≥md): tabla completa */}
+          <div
+            className="mt-4 hidden overflow-hidden rounded-2xl md:block"
+            style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+          >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -167,6 +235,7 @@ export default async function VouchersPage({
             </p>
           </div>
         </div>
+        </>
       )}
     </>
   );

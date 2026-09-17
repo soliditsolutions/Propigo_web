@@ -99,7 +99,7 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
         ) : (
           <div className="space-y-2">
             {data.proximosVencimientos.map((p) => (
-              <div key={p.id} className="flex items-center justify-between text-sm">
+              <div key={p.id} className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <div className="min-w-0">
                   <span style={{ color: "var(--hw-text-1)" }}>{p.arrendatario}</span>
                   <span className="ml-2 text-xs" style={{ color: "var(--hw-text-4)" }}>{p.direccion}</span>

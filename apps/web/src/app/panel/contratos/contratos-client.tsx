@@ -174,7 +174,81 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
         ))}
       </FilterToolbar>
 
-      <div className="hw-card overflow-hidden">
+      {/* Mobile (<md): tarjetas apiladas — la tabla de abajo, aunque tiene
+          scroll horizontal, corta "Propietario"/"Vigencia"/"Estado" fuera de
+          la pantalla sin ninguna pista visual de que hay más contenido al
+          costado; a este ancho una tarjeta por contrato se lee de corrido. */}
+      <div className="hw-card space-y-3 p-3 md:hidden">
+        {pagina.length === 0 ? (
+          <p className="px-2 py-8 text-center text-sm text-[var(--hw-text-4)]">Sin resultados para los filtros seleccionados.</p>
+        ) : pagina.map((c) => {
+          const uf = c.denominacion === "UF";
+          const diasRestantes = c.fechaFin
+            ? Math.floor((new Date(c.fechaFin).getTime() - hoy.getTime()) / 86400000)
+            : null;
+          return (
+            <Link
+              key={c.id}
+              href={`/panel/contratos/${c.id}`}
+              className="hw-row-hover block rounded-xl p-3.5"
+              style={{ border: "1px solid var(--hw-border)" }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[var(--hw-text-1)]">{c.propiedad.direccion}</p>
+                  {c.propiedad.comuna && <p className="text-xs text-[var(--hw-text-4)]">{c.propiedad.comuna}</p>}
+                </div>
+                <Badge tone={estadoTone(c.estado)} pulse={estadoPulse(c.estado)}>{estadoLabel(c.estado)}</Badge>
+              </div>
+
+              <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                <div>
+                  <p className="text-[var(--hw-text-4)]">Arrendatario</p>
+                  <p className="text-[var(--hw-text-2)]">{c.arrendatario.nombre}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--hw-text-4)]">Propietario</p>
+                  <p className="text-[var(--hw-text-2)]">{c.propietario.nombre}</p>
+                </div>
+              </div>
+
+              <div className="mt-2.5 flex items-end justify-between gap-2 border-t pt-2.5" style={{ borderColor: "var(--hw-border)" }}>
+                <div>
+                  <p className="font-semibold hw-num" style={{ color: "var(--hw-text-1)" }}>{uf ? `${num(c.valorArriendo)} UF` : clp(c.valorArriendo)}</p>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: uf ? "var(--hw-primary-lt)" : "var(--hw-success-lt)", color: uf ? "var(--hw-primary-dk)" : "var(--hw-success-dk)" }}>{c.denominacion}</span>
+                    {c.garantiaMeses > 0 && <span title="Tiene garantía"><ShieldCheck className="h-3.5 w-3.5 text-[var(--hw-primary)]" aria-hidden="true" /></span>}
+                  </div>
+                </div>
+                <div className="text-right text-xs" style={{ color: "var(--hw-text-3)" }}>
+                  <span className="hw-num">{fecha(c.fechaInicio)}</span>
+                  {c.fechaFin && <span className="block hw-num" style={{ color: "var(--hw-text-4)" }}>→ {fecha(c.fechaFin)}</span>}
+                  {diasRestantes !== null && diasRestantes > 0 && diasRestantes <= 90 && (
+                    <span
+                      className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      style={{
+                        background: diasRestantes <= 30 ? "var(--hw-danger-lt)" : "var(--hw-warning-lt)",
+                        color:      diasRestantes <= 30 ? "var(--hw-danger)"    : "var(--hw-warning)",
+                      }}
+                    >
+                      {diasRestantes <= 30 ? "⚠ " : ""}Vence en {diasRestantes}d
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <span className="text-xs text-[var(--hw-text-4)]">
+            {pagina.length} de {contratosFinales.length} contrato{contratosFinales.length !== 1 ? "s" : ""}
+          </span>
+          <PageSizePicker value={pageSize} onChange={setPageSize} />
+        </div>
+      </div>
+
+      {/* Desktop (≥md): tabla completa */}
+      <div className="hw-card hidden overflow-hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

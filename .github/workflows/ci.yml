@@ -61,8 +61,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # next-env.d.ts (tipos de imágenes, rutas) lo genera Next y está en
+      # .gitignore: en un clon limpio hay que generarlo antes de tsc.
       - name: Tipos
-        run: npx tsc --noEmit -p apps/web
+        run: |
+          (cd apps/web && npx next typegen)
+          npx tsc --noEmit -p apps/web
 
       - name: Preparar base (rol de runtime, migraciones, setup.sql, seeds)
         env:

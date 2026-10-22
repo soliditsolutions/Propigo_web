@@ -45,6 +45,8 @@ vi.mock("@/lib/rut", () => ({
 }));
 
 const mockUsuarioFindUnique = vi.fn();
+// sesionActiva(): 1 = el usuario de la sesión sigue activo.
+const mockUsuarioActivos    = vi.fn().mockResolvedValue(1);
 const mockCodigoFindFirst   = vi.fn();
 const mockCodigoCount       = vi.fn();
 const mockCodigoDeleteMany  = vi.fn().mockResolvedValue({ count: 0 });
@@ -57,7 +59,7 @@ const mockTransaction = vi.fn((ops: Promise<unknown>[]) => Promise.all(ops));
 
 vi.mock("@/lib/db", () => {
   const models = {
-    usuario:              { findUnique: mockUsuarioFindUnique },
+    usuario:              { findUnique: mockUsuarioFindUnique, count: mockUsuarioActivos },
     codigoCambioContacto: {
       findFirst:  mockCodigoFindFirst,
       count:      mockCodigoCount,
@@ -79,7 +81,7 @@ vi.mock("@/lib/db", () => {
 // mockUsuarioFindUnique que el resto del test controla con mockResolvedValueOnce.
 vi.mock("@/lib/tenant-db", () => ({
   withTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) =>
-    fn({ usuario: { findUnique: mockUsuarioFindUnique } }),
+    fn({ usuario: { findUnique: mockUsuarioFindUnique, count: mockUsuarioActivos } }),
   ),
 }));
 
@@ -93,6 +95,7 @@ const SESSION = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetSession.mockResolvedValue(SESSION);
+  mockUsuarioActivos.mockResolvedValue(1);
   mockCodigoFindFirst.mockResolvedValue(null);
   mockCodigoCount.mockResolvedValue(0);
 });
@@ -102,6 +105,15 @@ describe("solicitarCambioContactoAction — re-autenticación con contraseña", 
     mockGetSession.mockResolvedValue(null);
     const res = await solicitarCambioContactoAction("telefono", "+56911112222", "cualquiera");
     expect(res.ok).toBe(false);
+  });
+
+  it("rechaza a un usuario desactivado aunque su JWT siga vigente", async () => {
+    mockUsuarioActivos.mockResolvedValue(0);
+    const res = await solicitarCambioContactoAction("telefono", "+56911112222", "cualquiera");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toMatch(/sesión expirada/i);
+    expect(mockVerifyPassword).not.toHaveBeenCalled();
+    expect(mockSendCambioContactoCodeEmail).not.toHaveBeenCalled();
   });
 
   it("rechaza si no se envía contraseña, sin siquiera consultar la BD", async () => {

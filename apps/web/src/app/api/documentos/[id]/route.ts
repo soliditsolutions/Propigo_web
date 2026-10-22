@@ -5,8 +5,9 @@
  * FIX A3 — Documentos accesibles sin autenticación:
  * Los documentos estaban en /public/uploads/ accesibles por URL directa.
  * Esta ruta reemplaza el acceso público por descarga autenticada:
- *  1. Verifica JWT de sesión activa.
- *  2. Verifica que el documento pertenece al mismo tenant del usuario.
+ *  1. Verifica sesión activa y usuario no desactivado (getActor).
+ *  2. Verifica que el documento pertenece al mismo tenant del usuario y, si es
+ *     Colaborador, a una propiedad asignada a él (ADR-0013; 404 si no).
  *  3. Registra acceso en acceso_log (Ley 21.719).
  *  4. Lee el archivo desde disco y lo sirve con headers seguros.
  *
@@ -19,7 +20,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { join, basename } from "path";
-import { getSession } from "@/lib/auth";
+import { getActor } from "@/lib/queries";
+import { actorPuedeVerDocumento, SELECT_ALCANCE_DOCUMENTO } from "@/lib/alcance-documento";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { idFiltro } from "@/lib/busqueda";
@@ -38,10 +40,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   // 1. Autenticación
-  const session = await getSession();
-  if (!session) {
+  // getActor y no getSession: además de la firma del token exige que el
+  // usuario siga activo (un Colaborador desactivado conserva un JWT válido
+  // hasta que expira) y entrega el rol para aplicar el alcance de ADR-0013.
+  let actor;
+  try {
+    actor = await getActor();
+  } catch {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
+  const tenantId = actor.tenantId;
 
   const { id } = await params;
   if (!idFiltro(id)) {
@@ -52,12 +60,13 @@ export async function GET(
   //    ADR-0011 Fase 2: bajo propigo_app + RLS, un documento de otro tenant
   //    ya ni siquiera es visible a nivel de fila — el filtro tenantId de la
   //    query es ahora un segundo respaldo sobre lo que la BD ya garantiza.
-  const doc = await withTenant(session.tenantId, (tx) => tx.documento.findFirst({
-    where:  { id, tenantId: session.tenantId },
-    select: { id: true, tenantId: true, nombre: true, storageKey: true },
+  const doc = await withTenant(tenantId, (tx) => tx.documento.findFirst({
+    where:  { id, tenantId },
+    select: { id: true, tenantId: true, nombre: true, storageKey: true, ...SELECT_ALCANCE_DOCUMENTO },
   }));
 
-  if (!doc) {
+  // 404 también fuera del alcance del Colaborador: no revela que existe.
+  if (!doc || !actorPuedeVerDocumento(actor, doc)) {
     // Respuesta idéntica tanto si no existe como si es de otro tenant
     return NextResponse.json({ error: "Documento no encontrado." }, { status: 404 });
   }
@@ -76,9 +85,9 @@ export async function GET(
 
   // 4. Registrar acceso (Ley 21.719 — audit trail)
   const ip = getClientIp(req);
-  await withTenant(session.tenantId, (tx) => tx.accesoLog.create({
+  await withTenant(tenantId, (tx) => tx.accesoLog.create({
     data: {
-      tenantId:    session.tenantId,
+      tenantId:    tenantId,
       documentoId: doc.id,
       accion:      "documento_descargado",
       ip,

@@ -35,13 +35,27 @@ import { esRegionValida, esComunaValidaEnRegion } from "@propigo/core";
 import { validateRut, canonicalRut } from "@/lib/rut";
 import { MARCA } from "@/lib/marca";
 
+/**
+ * Sesión del panel solo si el usuario sigue activo. El JWT de un colaborador
+ * desactivado sigue siendo válido hasta que expira; sin esta lectura podía
+ * cambiar su contraseña y sus datos de contacto después de la baja.
+ */
+async function sesionActiva() {
+  const session = await getSession();
+  if (!session) return null;
+  const activos = await withTenant(session.tenantId, (tx) => tx.usuario.count({
+    where: { id: session.sub, desactivadoEn: null },
+  }));
+  return activos === 1 ? session : null;
+}
+
 // ── Guardar perfil ───────────────────────────────────────────────────────────
 
 export async function guardarPerfilAction(
   _prev: PerfilState,
   formData: FormData,
 ): Promise<PerfilState> {
-  const session = await getSession();
+  const session = await sesionActiva();
   if (!session) return { ok: false, error: "Sesión expirada. Vuelve a iniciar sesión." };
 
   const rut             = formData.get("rut")?.toString().trim()               ?? "";
@@ -196,7 +210,7 @@ export async function cambiarPasswordAction(
   _prev: PasswordState,
   formData: FormData,
 ): Promise<PasswordState> {
-  const session = await getSession();
+  const session = await sesionActiva();
   if (!session) return { ok: false, error: "Sesión expirada." };
 
   const actual    = formData.get("passwordActual")?.toString()   ?? "";
@@ -273,7 +287,7 @@ export async function solicitarCambioContactoAction(
   valorNuevoRaw: string,
   password: string,
 ): Promise<SolicitarCambioContactoState> {
-  const session = await getSession();
+  const session = await sesionActiva();
   if (!session) return { ok: false, error: "Sesión expirada. Vuelve a iniciar sesión." };
 
   // Re-autenticación: el código al correo actual prueba que la sesión sigue
@@ -371,7 +385,7 @@ export async function confirmarCambioContactoAction(
   campo: CampoContacto,
   codigoIngresado: string,
 ): Promise<ConfirmarCambioContactoState> {
-  const session = await getSession();
+  const session = await sesionActiva();
   if (!session) return { ok: false, error: "Sesión expirada. Vuelve a iniciar sesión." };
 
   const codigo = codigoIngresado.trim();

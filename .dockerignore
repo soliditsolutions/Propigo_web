@@ -1,0 +1,28 @@
+# Contexto de build mínimo y SIN secretos ni datos de clientes.
+.git
+.gitignore
+.gitattributes
+**/node_modules
+**/.next
+**/coverage
+**/*.tsbuildinfo
+**/next-env.d.ts
+graphify-out
+.claude
+.agents
+Docs
+*.md
+!apps/web/README.md
+
+# Secretos y entorno: se inyectan en runtime, nunca dentro de la imagen.
+**/.env
+**/.env.*
+!.env.example
+apps/web/secrets
+
+# Datos de usuarios (documentos privados y fotos subidas en local).
+apps/web/private-uploads
+apps/web/public/uploads
+
+# Cliente Prisma generado: se regenera dentro del build.
+apps/web/src/generated

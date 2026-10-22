@@ -16,11 +16,23 @@
  * SEGURIDAD: configurar CRON_SECRET en todas las variables de entorno.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { generarRecordatorios, enviarNotificacionesPendientes } from "@/app/panel/notificaciones/actions";
 import { getAllTenantsForSystem } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { purgarDatosVencidos, purgaVacia, sumarPurgas } from "@/lib/retencion-purga";
 import { logError } from "@/lib/logger";
+
+/**
+ * Comparación en tiempo constante del encabezado contra el secreto. Se comparan
+ * los SHA-256 (largo fijo) para no filtrar el largo del secreto y porque
+ * timingSafeEqual exige buffers del mismo tamaño.
+ */
+function autorizado(auth: string | null, secret: string): boolean {
+  const esperado = createHash("sha256").update(`Bearer ${secret}`).digest();
+  const recibido = createHash("sha256").update(auth ?? "").digest();
+  return timingSafeEqual(esperado, recibido);
+}
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -34,8 +46,7 @@ export async function GET(req: NextRequest) {
 
   // Exigir secreto siempre que esté configurado
   if (secret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) {
+    if (!autorizado(req.headers.get("authorization"), secret)) {
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
   }

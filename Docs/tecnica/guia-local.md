@@ -28,16 +28,14 @@ npm install
 # 2. Levantar la base de datos (PostgreSQL en Docker, puerto 5433)
 npm run db:up
 
-# 3. Crear el esquema de la base de datos
-npm run db:push   -w @propigo/web
+# 3. Crear el esquema (migraciones) y aplicar seguridad (RLS), reglas, vistas
+#    y el rol de la app — lo mismo que corre producción
+npm run db:deploy -w @propigo/web
 
-# 4. Aplicar seguridad (RLS), reglas e índices
-npm run db:setup  -w @propigo/web
-
-# 5. Cargar datos de ejemplo (corredora, propiedades, 2 contratos)
+# 4. Cargar datos de ejemplo (corredora, propiedades, 2 contratos)
 npm run db:seed   -w @propigo/web
 
-# 6. Iniciar la aplicación
+# 5. Iniciar la aplicación
 npm run dev
 ```
 

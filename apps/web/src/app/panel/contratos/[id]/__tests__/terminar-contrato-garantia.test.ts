@@ -32,17 +32,19 @@ let idProp = "";
 const MARCA = 2091;
 const IDS: string[] = [];
 
+// Limpieza con el rol dueño (DATABASE_ADMIN_URL): el de runtime no puede
+// saltarse el trigger append-only del ledger. Por conexión y no por
+// `docker exec`, para que corra igual en CI que en local.
 async function admin(sql: string) {
-  const { execSync } = await import("child_process");
-  execSync(
-    `docker exec -i propigo-db psql -U propigo -d propigo -v ON_ERROR_STOP=1`,
-    { input: sql, stdio: ["pipe", "ignore", "inherit"] },
-  );
+  const { Client } = await import("pg");
+  const cliente = new Client({ connectionString: process.env.DATABASE_ADMIN_URL });
+  await cliente.connect();
+  try { await cliente.query(sql); } finally { await cliente.end(); }
 }
 
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
-  if (!url) return false;
+  if (!url || !process.env.DATABASE_ADMIN_URL) return false;
   prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try { await prisma.$queryRaw`SELECT 1`; } catch {
     await prisma.$disconnect().catch(() => {}); prisma = null; return false;

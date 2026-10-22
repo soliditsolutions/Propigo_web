@@ -43,7 +43,7 @@ cuenta de prueba si se corre después**:
 
 ```bash
 npx prisma migrate reset -w @propigo/web   # 1. esquema limpio
-npm run db:setup       -w @propigo/web     # 2. RLS, vistas y triggers (NO lo reaplica el reset)
+npm run db:setup       -w @propigo/web     # 2. RLS, vistas, triggers y rol de la app (NO lo reaplica el reset)
 npm run db:seed        -w @propigo/web     # 3. datos demo — TRUNCATEA tenant, va ANTES
 npm run db:seed-cuenta -w @propigo/web     # 4. cuenta de prueba — siempre al final
 ```

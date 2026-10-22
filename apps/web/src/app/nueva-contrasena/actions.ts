@@ -67,13 +67,17 @@ export async function nuevaContrasenaAction(
     const passwordHash = await hashPassword(password);
 
     await withTenant(tenantId, async (tx) => {
+      // Consumo atómico: solo si sigue sin usar. Dos envíos simultáneos con el
+      // mismo enlace pasaban ambos la lectura de arriba; el segundo ahora
+      // revierte la transacción en vez de volver a cambiar la contraseña.
+      const consumido = await tx.resetToken.updateMany({
+        where: { id: resetToken.id, usadoEn: null },
+        data:  { usadoEn: new Date() },
+      });
+      if (consumido.count !== 1) throw new Error("token ya usado");
       await tx.usuario.update({
         where: { id: resetToken.usuarioId },
         data:  { passwordHash },
-      });
-      await tx.resetToken.update({
-        where: { id: resetToken.id },
-        data:  { usadoEn: new Date() },
       });
     });
   } catch {

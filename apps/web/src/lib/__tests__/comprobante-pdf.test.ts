@@ -5,13 +5,17 @@
  * descubre en un snapshot de props. Se comprueba que el buffer sea un PDF válido
  * y que un tipo desconocido falle en vez de emitir un documento vacío.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ComprobantePdfDocument } from "../comprobante-pdf";
 import {
   construirSnapshotPago, construirSnapshotLiquidacion,
   type EmisorSnapshot, type InmuebleSnapshot, type ParteSnapshot,
 } from "../comprobante";
+
+// Render real con @react-pdf (fuentes y layout): el primero de cada proceso
+// puede tardar más de los 5 s por defecto cuando la suite corre en paralelo.
+vi.setConfig({ testTimeout: 20_000 });
 
 const emisor: EmisorSnapshot = {
   nombre: "Corredora Demo SpA", rut: "76123456-0", giro: "Corretaje",

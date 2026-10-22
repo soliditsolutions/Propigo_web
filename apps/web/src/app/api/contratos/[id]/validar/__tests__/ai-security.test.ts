@@ -13,7 +13,7 @@ vi.mock("next/server", () => ({
   NextResponse: { json: vi.fn(), next: vi.fn(), redirect: vi.fn() },
 }));
 vi.mock("@/lib/auth",    () => ({ getSession: vi.fn() }));
-vi.mock("@/lib/queries", () => ({ getTenant: vi.fn() }));
+vi.mock("@/lib/queries", () => ({ getActor: vi.fn(), alcanceContrato: vi.fn() }));
 vi.mock("@/lib/db",      () => ({ prisma: { contrato: { findFirstOrThrow: vi.fn(), update: vi.fn() } } }));
 vi.mock("@/lib/logger",  () => ({ logError: vi.fn() }));
 

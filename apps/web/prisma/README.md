@@ -13,17 +13,19 @@ Traducción de [`docs/04-esquema-bd.md`](../../../docs/04-esquema-bd.md).
 # 1. Levantar Postgres (con Docker Desktop instalado)
 npm run db:up                       # desde la raíz del repo
 
-# 2. Crear el esquema en la BD
-npm run db:push    -w @propigo/web  # o: prisma migrate dev
+# 2. Migraciones versionadas + RLS, trigger, vistas y rol de la app (setup.sql)
+npm run db:deploy  -w @propigo/web
 
-# 3. Aplicar RLS, trigger y vistas
-npm run db:setup   -w @propigo/web
-
-# 4. (próximo) Cargar datos de ejemplo
-# npm run db:seed  -w @propigo/web
+# 3. Cargar datos de ejemplo (borra la base; solo contra un host local)
+npm run db:seed    -w @propigo/web
 ```
 
-> Nota de seguridad: RLS queda instalado, pero para que **restrinja de verdad** la
-> app debe conectarse con un rol sin privilegios de dueño (`propigo_app`). En el MVP
-> local app y migraciones usan el mismo rol; el endurecimiento con rol dedicado es un
-> paso posterior (ver `docs/01-arquitectura-produccion.md`).
+> Roles (ADR-0011): el CLI de Prisma y los seeds usan `DATABASE_ADMIN_URL` (rol
+> dueño, ver `prisma.config.ts`); la app se conecta con `DATABASE_URL` como
+> `propigo_app`, sin privilegios de dueño, así que RLS restringe de verdad.
+> `setup.sql` crea `propigo_app` **sin contraseña**: en local la asigna
+> `docker/initdb/` y en producción el gestor de secretos.
+>
+> Cambios de schema: generar la migración con `prisma migrate diff` (ver BRAIN.md),
+> nunca dejar un cambio aplicado solo con `db push` — producción se construye
+> únicamente con `migrate deploy`.

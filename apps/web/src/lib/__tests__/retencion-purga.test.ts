@@ -199,28 +199,34 @@ cuando("purga lo vencido y solo lo vencido", () => {
 cuando("la purga no cruza de corredora", () => {
   it("purgar la corredora A no toca los datos de B", async () => {
     await limpiar();
-    // Solo se siembra `accesoLog`, que necesita persona y nada más: la
-    // corredora B puede no tener propiedades, y exigirlas ataría el test a cómo
-    // quedó el seed en vez de a lo que se quiere probar.
-    const personaB = await comoTenant(tenantB, async (tx) => {
-      const p = await tx.persona.findFirst({ where: { tenantId: tenantB }, select: { id: true } });
-      if (!p) throw new Error("La corredora B no tiene personas; corre `npm run db:seed`.");
-      return p.id;
-    });
-    const dias = retencion("accesoPortal").dias!;
-    await comoTenant(tenantB, (tx) => tx.accesoLog.createMany({ data: [
-      { tenantId: tenantB, personaId: personaB, accion: `${MARCA}_vencido`,  createdAt: haceDias(dias + 5) },
-      { tenantId: tenantB, personaId: personaB, accion: `${MARCA}_reciente`, createdAt: haceDias(1) },
-    ] as never }));
+    // Solo se siembra `accesoLog`, que necesita persona y nada más. La persona
+    // es propia del test: la corredora B del seed puede no tener ninguna (en
+    // una base recién sembrada, como la de CI, no tiene), y depender de eso
+    // ataría el test a datos cargados a mano.
+    const personaB = await comoTenant(tenantB, async (tx) =>
+      (await tx.persona.create({
+        data: { tenantId: tenantB, rut: `${MARCA}_B`, nombre: "Retención QA (fixture)" },
+        select: { id: true },
+      })).id);
+    try {
+      const dias = retencion("accesoPortal").dias!;
+      await comoTenant(tenantB, (tx) => tx.accesoLog.createMany({ data: [
+        { tenantId: tenantB, personaId: personaB, accion: `${MARCA}_vencido`,  createdAt: haceDias(dias + 5) },
+        { tenantId: tenantB, personaId: personaB, accion: `${MARCA}_reciente`, createdAt: haceDias(1) },
+      ] as never }));
 
-    // Se purga A, que en esta prueba no sembró nada.
-    await comoTenant(tenantA, (tx) => purgarDatosVencidos(tx, tenantA, AHORA));
+      // Se purga A, que en esta prueba no sembró nada.
+      await comoTenant(tenantA, (tx) => purgarDatosVencidos(tx, tenantA, AHORA));
 
-    // Lo de B sigue intacto, incluido lo vencido: la purga de una corredora no
-    // alcanza a la otra.
-    const enB = await comoTenant(tenantB, (tx) =>
-      tx.accesoLog.count({ where: { accion: { startsWith: MARCA } } }));
-    expect(enB).toBe(2);
+      // Lo de B sigue intacto, incluido lo vencido: la purga de una corredora no
+      // alcanza a la otra.
+      const enB = await comoTenant(tenantB, (tx) =>
+        tx.accesoLog.count({ where: { accion: { startsWith: MARCA } } }));
+      expect(enB).toBe(2);
+    } finally {
+      await limpiar();
+      await comoTenant(tenantB, (tx) => tx.persona.delete({ where: { id: personaB } }));
+    }
   });
 });
 

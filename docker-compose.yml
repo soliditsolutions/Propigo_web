@@ -20,6 +20,8 @@ services:
       - "5433:5432"
     volumes:
       - propigo_pgdata:/var/lib/postgresql/data
+      # Rol de runtime con su contraseña de desarrollo (solo en un volumen nuevo).
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
 
 volumes:
   propigo_pgdata:

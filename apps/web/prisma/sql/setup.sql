@@ -1,6 +1,22 @@
 -- Propigo — objetos que Prisma no modela en el schema.
 -- Se aplica DESPUÉS de crear las tablas (prisma migrate / db push).
 -- Idempotente: se puede correr varias veces.
+-- Se ejecuta con el rol dueño (DATABASE_ADMIN_URL; ver prisma.config.ts).
+
+-- ─────────────── 0. Rol de runtime de la app (ADR-0011) ───────────────
+-- Va primero porque las secciones siguientes le otorgan permisos (3b, 3c, 6).
+-- Este archivo NO fija contraseñas: si el rol no existe se crea sin password,
+-- así no puede autenticarse hasta que se le asigne una. En local la asigna el
+-- script de inicialización de Docker (docker/initdb/); en producción, el gestor
+-- de secretos con `alter role propigo_app password ...` (ver
+-- Docs/tecnica/despliegue-produccion.md). Antes se creaba con la contraseña de
+-- desarrollo, que habría quedado activa en producción.
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'propigo_app') then
+    create role propigo_app with login;
+  end if;
+end $$;
 
 -- ─────────────── 1. Índices únicos parciales ───────────────
 -- Solo un contrato 'vigente' por propiedad (regla #5 / publicación).
@@ -416,18 +432,14 @@ group by tenant_id, contrato_id;
 -- tablas ni superusuario — por eso la política tenant_isolation (sección 3)
 -- sí lo restringe de verdad. 'propigo' queda reservado para migraciones
 -- (prisma migrate/db push, este mismo archivo) y tareas administrativas.
---
--- DEV: password fijo solo para este entorno local (mismo criterio que
--- POSTGRES_PASSWORD=propigo_dev en docker-compose.yml). En producción, generar
--- un secreto real vía el gestor de secretos del proveedor — nunca reusar este valor.
+-- El rol se crea en la sección 0 (al inicio): las secciones 3b/3c ya le
+-- otorgan permisos y fallarían en una base donde aún no existe.
 do $$
 begin
-  if not exists (select 1 from pg_roles where rolname = 'propigo_app') then
-    create role propigo_app with login password 'propigo_app_dev';
-  end if;
+  -- Nombre de la base dinámico: en producción puede no llamarse 'propigo'.
+  execute format('grant connect on database %I to propigo_app', current_database());
 end $$;
 
-grant connect on database propigo to propigo_app;
 grant usage on schema public to propigo_app;
 
 -- Tablas/secuencias/funciones existentes.
@@ -437,11 +449,15 @@ grant execute on all functions in schema public to propigo_app;
 
 -- Privilegios por defecto: toda tabla/secuencia/función que se cree DESPUÉS
 -- (nuevas migraciones) queda accesible para propigo_app automáticamente, sin
--- tener que editar este archivo cada vez que el schema crece. Se define con
--- 'for role propigo' porque las migraciones corren como ese rol.
-alter default privileges for role propigo in schema public
-  grant select, insert, update, delete on tables to propigo_app;
-alter default privileges for role propigo in schema public
-  grant usage, select on sequences to propigo_app;
-alter default privileges for role propigo in schema public
-  grant execute on functions to propigo_app;
+-- tener que editar este archivo cada vez que el schema crece. Se define para
+-- el rol que ejecuta este archivo (current_user), que es el mismo con el que
+-- corren las migraciones (DATABASE_ADMIN_URL).
+do $$
+begin
+  execute format('alter default privileges for role %I in schema public
+    grant select, insert, update, delete on tables to propigo_app', current_user);
+  execute format('alter default privileges for role %I in schema public
+    grant usage, select on sequences to propigo_app', current_user);
+  execute format('alter default privileges for role %I in schema public
+    grant execute on functions to propigo_app', current_user);
+end $$;

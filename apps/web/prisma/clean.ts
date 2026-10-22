@@ -9,9 +9,11 @@
  */
 import "dotenv/config";
 import { adaptadorPg } from "../src/lib/pg-adaptador";
+import { verificarBaseLocal } from "./guard-base-local";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { redondearPeso } from "@propigo/core";
 
+verificarBaseLocal(process.env.DATABASE_URL, "db:clean");
 const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 

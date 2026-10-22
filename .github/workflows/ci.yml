@@ -1,0 +1,107 @@
+# Integración continua — ver Docs/tecnica/despliegue-produccion.md.
+# Ningún merge con este workflow en rojo (CONTRIBUTING.md).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: propigo
+          POSTGRES_PASSWORD: propigo_dev
+          POSTGRES_DB: propigo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U propigo -d propigo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    # Credenciales de la base efímera del job (no son secretos de ningún entorno).
+    env:
+      DATABASE_ADMIN_URL: postgresql://propigo:propigo_dev@localhost:5432/propigo?schema=public
+      DATABASE_URL: postgresql://propigo_app:propigo_app_dev@localhost:5432/propigo?schema=public
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Solo dependencias de producción: las de desarrollo (eslint, CLI de
+      # shadcn) no llegan a la imagen y su triage está en la auditoría de
+      # seguridad (Docs/gestion/auditoria-seguridad-2026-10.md).
+      - name: Vulnerabilidades en dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Generar cliente Prisma
+        run: npm run db:generate -w @propigo/web
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npx tsc --noEmit -p apps/web
+
+      - name: Preparar base (rol de runtime, migraciones, setup.sql, seeds)
+        env:
+          PGPASSWORD: propigo_dev
+        run: |
+          psql -h localhost -U propigo -d propigo -v ON_ERROR_STOP=1 -f docker/initdb/01-rol-app.sql
+          npm run db:deploy -w @propigo/web
+          # Producción se construye solo con migraciones: si schema.prisma tiene
+          # cambios que ninguna migración aplica, se corta aquí (exit 2).
+          (cd apps/web && npx prisma migrate diff \
+            --from-config-datasource --to-schema prisma/schema.prisma --exit-code)
+          npm run db:seed -w @propigo/web
+          npm run db:seed-cuenta -w @propigo/web
+
+      - name: Pruebas web (incluye integración contra Postgres)
+        run: |
+          export AUTH_SECRET="$(openssl rand -hex 32)"
+          npm test -w @propigo/web
+
+      - name: Pruebas core
+        run: npm test -w @propigo/core
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_APP_URL: https://propigo.cl
+        run: npm run build
+
+  imagen:
+    name: Imagen de contenedor
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Build (sin publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          build-args: NEXT_PUBLIC_APP_URL=https://propigo.cl
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

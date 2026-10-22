@@ -228,7 +228,14 @@ export async function getCupoInfo(): Promise<CupoInfo> {
   return { usado, max, planLabel: plan?.name ?? "Gratuito" };
 }
 
-export async function getInvitacionesPendientes(tenantId: string) {
+// Sin parámetros: toda función exportada de un archivo "use server" es un
+// endpoint que el cliente puede invocar con los argumentos que quiera. Antes
+// recibía el tenantId (público en las URLs del marketplace) sin verificar
+// sesión: devolvía nombres y correos de invitados de cualquier corredora.
+export async function getInvitacionesPendientes() {
+  const actor = await getActor();
+  if (actor.rol !== "manager") return [];
+  const tenantId = actor.tenantId;
   // invitacion_colaborador no tiene tenant_id — se filtra por invitadoPorId
   // perteneciente al tenant (solo puede ser el Manager, uno por tenant esta fase).
   const manager = await withTenant(tenantId, (tx) => tx.usuario.findFirst({

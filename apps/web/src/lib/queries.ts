@@ -88,6 +88,15 @@ export async function propiedadIdsVisibles(actor: Actor): Promise<string[] | nul
 }
 
 /**
+ * ADR-0013 (Fase D) — filtro `where` de Contrato visible para el actor: sin
+ * filtro para un manager; solo contratos de propiedades asignadas a él para un
+ * colaborador. Para rutas que reciben un id de contrato desde la URL.
+ */
+export function alcanceContrato(actor: Pick<Actor, "rol" | "usuarioId">) {
+  return actor.rol === "manager" ? {} : { propiedad: { asignadoAId: actor.usuarioId } };
+}
+
+/**
  * Devuelve todos los tenants activos ordenados por fecha de creación.
  *
  * Uso EXCLUSIVO para operaciones de sistema sin sesión de usuario:

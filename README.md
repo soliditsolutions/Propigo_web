@@ -22,8 +22,9 @@ Empresa responsable: **SOLIDIT SpA** (no aparece en el logo). Marca, eslogan, do
 | Núcleo financiero | `@propigo/core` — paquete sin framework (dinero, UF, IPC, calendario) |
 | Auth | JWT con `jose` (cookies `pgo_session` / `pgo_portal`) + 2FA por dispositivo |
 | Email | Resend (real) / simulado en consola (dev) |
-| IA | Groq SDK + `@google/genai` (validación de contratos) |
-| Tests | Vitest + Testing Library |
+| IA | Groq SDK (validación de contratos y carnet) |
+| Tests | Vitest + Testing Library (CI en GitHub Actions) |
+| Despliegue | Contenedor Docker (Next.js standalone) — AWS App Runner + RDS PostgreSQL |
 
 Monorepo con **npm workspaces**: `apps/web` (aplicación) y `packages/core` (dominio).
 
@@ -31,7 +32,7 @@ Monorepo con **npm workspaces**: `apps/web` (aplicación) y `packages/core` (dom
 
 ## Prerrequisitos
 
-- **Node.js ≥ 20**
+- **Node.js ≥ 20.9** (CI y la imagen de producción usan la versión de `.nvmrc`)
 - **npm ≥ 10** (workspaces)
 - **PostgreSQL 16** — vía Docker (`docker compose`) o instalación local
 - **Docker Desktop** (opcional, para la BD con `npm run db:up`)
@@ -51,10 +52,9 @@ cp .env.example apps/web/.env
 # 3. Levantar PostgreSQL (Docker, puerto host 5433)
 npm run db:up
 
-# 4. Preparar la base de datos
-npm run db:push  -w @propigo/web    # crea tablas desde schema.prisma
-npm run db:setup -w @propigo/web    # RLS + trigger inmutable + vistas (setup.sql)
-npm run db:seed  -w @propigo/web    # datos demo (corredora, contratos, UF/IPC)
+# 4. Preparar la base de datos (con el rol dueño, DATABASE_ADMIN_URL)
+npm run db:deploy -w @propigo/web   # migraciones + setup.sql (RLS, trigger inmutable, vistas, rol de la app)
+npm run db:seed   -w @propigo/web   # datos demo (corredora, contratos, UF/IPC)
 
 # 5. Correr en desarrollo
 npm run dev                          # http://localhost:3000
@@ -71,34 +71,39 @@ npm run dev                          # http://localhost:3000
 | Comando | Descripción |
 |---|---|
 | `npm run dev` | Servidor de desarrollo (Turbopack) en :3000 |
-| `npm run build` | Build de producción |
+| `npm run build` | Build de producción (salida `standalone` para el contenedor) |
 | `npm run start` | Sirve el build de producción |
 | `npm run lint` | ESLint |
 | `npm test -w @propigo/web` | Tests (Vitest) |
 | `npm test -w @propigo/core` | Tests del núcleo de dominio |
 | `npm run db:up` / `db:down` | Levanta / detiene PostgreSQL (Docker) |
-| `npm run db:push -w @propigo/web` | Sincroniza el schema con la BD |
-| `npm run db:setup -w @propigo/web` | Aplica `prisma/sql/setup.sql` (RLS, trigger, vistas) |
-| `npm run db:seed -w @propigo/web` | Carga datos de demostración |
+| `npm run db:deploy -w @propigo/web` | Migraciones versionadas + `setup.sql` (lo mismo que corre producción) |
+| `npm run db:migrate:deploy -w @propigo/web` | Solo las migraciones versionadas |
+| `npm run db:setup -w @propigo/web` | Solo `prisma/sql/setup.sql` (RLS, trigger, vistas, rol de la app) |
+| `npm run db:seed -w @propigo/web` | Carga datos de demostración (**borra la base**; se niega a correr contra un host no local) |
 | `npm run db:generate -w @propigo/web` | Regenera el cliente Prisma |
 
 > Guía detallada de levantamiento y troubleshooting: [`Docs/tecnica/guia-local.md`](Docs/tecnica/guia-local.md).
+> Producción (imagen, migraciones, secretos, checklist): [`Docs/tecnica/despliegue-produccion.md`](Docs/tecnica/despliegue-produccion.md).
 
 ---
 
 ## Variables de entorno
 
-Se definen en `apps/web/.env`. El arranque las valida (`src/lib/startup-check.ts`) y **falla rápido** si falta una crítica.
+En desarrollo se definen en `apps/web/.env` (plantilla: `.env.example`); en producción las inyecta el gestor de secretos. El servidor las valida al arrancar (`src/instrumentation.ts` → `src/lib/startup-check.ts`) y **termina** si falta una crítica.
 
 | Variable | Requerida | Descripción |
 |---|---|---|
-| `DATABASE_URL` | ✅ | Cadena de conexión PostgreSQL. Con Docker: `postgresql://propigo:propigo_dev@localhost:5433/propigo?schema=public` |
+| `DATABASE_URL` | ✅ | Conexión de la **app**, con el rol restringido `propigo_app` (sujeto a RLS). Con Docker: `postgresql://propigo_app:propigo_app_dev@localhost:5433/propigo?schema=public` |
+| `DATABASE_ADMIN_URL` | ✅ (CLI) | Rol **dueño** para migraciones, `setup.sql` y seeds. La app nunca lo usa. Con Docker: `postgresql://propigo:propigo_dev@localhost:5433/propigo?schema=public` |
 | `AUTH_SECRET` | ✅ | Secreto para firmar JWT (panel, portal OTP y 2FA por dispositivo). Mínimo 32 caracteres. |
-| `GROQ_API_KEY` | ✅ (prod) | Clave de Groq para la validación de contratos con IA. En dev puede omitirse (la validación se salta). |
+| `GROQ_API_KEY` | ✅ | Clave de Groq para la validación de contratos y carnet con IA. El servidor no arranca sin ella. |
 | `CRON_SECRET` | ✅ (prod) | Protege el endpoint `/api/cron/recordatorios`. Obligatorio si el endpoint es accesible. |
 | `RESEND_API_KEY` | ⬜ | Clave de Resend para envío real de emails. Sin ella, los correos se simulan en consola. |
-| `NEXT_PUBLIC_APP_URL` | ⬜ | URL base para los enlaces en emails (ej. `http://localhost:3000`). |
-| `UPLOADS_PATH` | ⬜ | Ruta de almacenamiento de documentos/imágenes. Por defecto `public/uploads/`. |
+| `NEXT_PUBLIC_APP_URL` | ✅ (prod) | URL pública (ej. `https://propigo.cl`) para enlaces en emails y metadatos. Se incrusta **al compilar**: en la imagen va como `--build-arg`. |
+| `UPLOADS_PATH` | ⬜ | Directorio de documentos privados. Por defecto `apps/web/private-uploads/` (nunca bajo `public/`). |
+| `PROXIES_CONFIABLES` | ⬜ (prod) | Proxies propios delante de la app que agregan a `X-Forwarded-For` (1 = App Runner; 2 = CloudFront + App Runner). Define de dónde sale la IP para los límites de intentos. |
+| `ALLOW_REMOTE_SEED` | ⚠️ | **SOLO DEV.** `1` permite correr los seeds contra un host no local. |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | ⚠️ | **SOLO DEV.** `0` permite TLS autofirmado local. **Nunca en producción** (el startup-check lo bloquea). |
 | `E2E_BYPASS_IDENTITY` | ⬜ | **SOLO DEV/QA.** `1` omite la verificación de identidad por cédula (IA) en `/registro`, para pruebas E2E automatizadas. **Nunca en producción** (el startup-check lo bloquea). |
 
@@ -117,6 +122,9 @@ Propigo/
 ├── Docs/                # Documentación (técnica / funcional / gestión / decisiones)
 ├── BRAIN.md             # Contexto vivo del desarrollo (guía para asistentes/IA)
 ├── CONTRIBUTING.md      # Guía de contribución (ramas, commits, PRs, estilo)
+├── Dockerfile           # Imagen de producción (app) y de migraciones
+├── docker/initdb/       # Rol de la app con su contraseña de desarrollo (solo Docker local)
+├── .github/workflows/   # CI: lint, tipos, pruebas con Postgres, build e imagen
 └── docker-compose.yml   # PostgreSQL local
 ```
 

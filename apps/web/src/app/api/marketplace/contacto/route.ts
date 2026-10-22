@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { sendContactoCorredorEmail, sendAcuseContactoEmail } from "@/lib/email";
 import { z } from "zod";
 import { CORREO } from "@/lib/marca";
+import { getClientIp } from "@/lib/ip";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   publicacionId: z.string().uuid(),
@@ -17,21 +19,12 @@ const schema = z.object({
   viaTelefono:   z.boolean().default(false),
 });
 
-// Rate limit simple: max 5 solicitudes por IP cada 10 min (en-memory, basta para MVP)
-const ipLog = new Map<string, number[]>();
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const ventana = 10 * 60 * 1000;
-  const hits = (ipLog.get(ip) ?? []).filter(t => now - t < ventana);
-  if (hits.length >= 5) return false;
-  ipLog.set(ip, [...hits, now]);
-  return true;
-}
-
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-
-  if (!checkRateLimit(ip)) {
+  // Máx. 5 solicitudes por IP cada 10 min. La IP sale de getClientIp: el
+  // primer valor de x-forwarded-for lo elige el cliente y permitía saltarse
+  // el límite (y con él, inundar de correos a una corredora).
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`marketplace_contacto:${ip}`, 5, 10 * 60_000).allowed) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intenta más tarde." }, { status: 429 });
   }
 

@@ -59,7 +59,7 @@ export function sesionAgotada(session: SessionPayload, ahora = Date.now()): bool
 
 export async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, getSecret(), { algorithms: ["HS256"] });
     return payload as SessionPayload;
   } catch {
     return null;

@@ -5,11 +5,15 @@
  * dos caminos —desahucio con plazo calculado, y una causal sin plazo— y que la
  * advertencia legal (L-CM3) esté en el texto de origen.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { AvisoTerminoDocument, type AvisoTerminoData } from "../aviso-termino-pdf";
+
+// Render real con @react-pdf (fuentes y layout): el primero de cada proceso
+// puede tardar más de los 5 s por defecto cuando la suite corre en paralelo.
+vi.setConfig({ testTimeout: 20_000 });
 
 const base: AvisoTerminoData = {
   emisor: { nombre: "Corredora Demo SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Providencia 1234" },

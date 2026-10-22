@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { checkRateLimit } from "../rate-limit";
+import { checkRateLimit, limpiarVencidos } from "../rate-limit";
 
 /**
  * Tests: checkRateLimit — sliding-window in-memory rate limiter
@@ -176,5 +176,30 @@ describe("checkRateLimit() — sliding-window rate limiter", () => {
     // (el store se actualiza con el nuevo contador, pero el contador ya tiene 2 entradas)
     const result = checkRateLimit(key, 2, 60_000);
     expect(result.allowed).toBe(false);
+  });
+});
+
+describe("limpiarVencidos() — la limpieza respeta la ventana de cada clave", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("no reinicia un límite de 1 hora tras 10 minutos sin actividad", () => {
+    const key = "denuncia:203.0.113.7";
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    for (let i = 0; i < 3; i++) checkRateLimit(key, 3, 60 * 60_000);
+
+    vi.setSystemTime(new Date("2026-01-01T00:20:00.000Z"));
+    limpiarVencidos();
+    expect(checkRateLimit(key, 3, 60 * 60_000).allowed).toBe(false);
+  });
+
+  it("sí libera la clave cuando su propia ventana venció", () => {
+    const key = "contacto:203.0.113.8";
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    for (let i = 0; i < 5; i++) checkRateLimit(key, 5, 10 * 60_000);
+
+    vi.setSystemTime(new Date("2026-01-01T00:11:00.000Z"));
+    limpiarVencidos();
+    expect(checkRateLimit(key, 5, 10 * 60_000)).toEqual({ allowed: true });
   });
 });

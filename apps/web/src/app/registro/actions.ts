@@ -10,6 +10,7 @@ import { validateRut, canonicalRut }       from "@/lib/rut";
 import { verificarMagicBytes, ALLOWED_MIME_IMAGES } from "@/lib/magic-bytes";
 import { getClientIpFromHeaders }          from "@/lib/ip";
 import { checkRateLimit }                  from "@/lib/rate-limit";
+import { z }                               from "zod";
 
 // Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
 // verificación de identidad esperando indefinidamente en vez de fallar rápido.
@@ -75,6 +76,14 @@ type CarnetIA =
   | { rut: string; nombre: string }
   | { error: "no_es_carnet" | "ilegible" | "incompleto" | string };
 
+// La respuesta del modelo es entrada no confiable (la imagen la elige quien se
+// registra): se valida la forma antes de usarla. Un `rut` que no fuera texto
+// hacía lanzar a canonicalRut fuera de todo manejo de errores.
+const carnetIASchema = z.union([
+  z.object({ error: z.string().max(40) }),
+  z.object({ rut: z.string().max(20), nombre: z.string().max(200) }),
+]);
+
 async function leerCarnetConIA(base64: string, mimeType: string): Promise<CarnetIA> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY no configurado");
@@ -116,7 +125,9 @@ async function leerCarnetConIA(base64: string, mimeType: string): Promise<Carnet
   const jsonMatch = content.match(/\{[\s\S]*?\}/);
   if (!jsonMatch) throw new Error("Respuesta IA sin JSON");
 
-  return JSON.parse(jsonMatch[0]) as CarnetIA;
+  const parsed = carnetIASchema.safeParse(JSON.parse(jsonMatch[0]));
+  if (!parsed.success) throw new Error("Respuesta IA con forma inesperada");
+  return parsed.data;
 }
 
 // ── Server Action principal ──────────────────────────────────────────────────

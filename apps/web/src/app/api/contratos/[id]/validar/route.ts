@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getTenant } from "@/lib/queries";
+import { getActor, alcanceContrato } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { evaluarReglasContrato } from "@/lib/contract-rules";
 import { idFiltro } from "@/lib/busqueda";
@@ -103,9 +103,12 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
-    let tenant;
-    try { tenant = await getTenant(); }
+    // getActor (y no solo el tenant): un Colaborador solo opera sobre
+    // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
+    let actor;
+    try { actor = await getActor(); }
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const tenant = actor.tenant;
 
     const { id: contratoId } = await params;
     if (!idFiltro(contratoId)) {
@@ -113,7 +116,7 @@ export async function POST(
     }
 
     const contrato = await withTenant(tenant.id, (tx) => tx.contrato.findFirst({
-      where: { id: contratoId, tenantId: tenant.id },
+      where: { id: contratoId, tenantId: tenant.id, ...alcanceContrato(actor) },
       include: {
         propietario:  { select: { rut: true } },
         arrendatario: { select: { rut: true } },
@@ -173,9 +176,12 @@ export async function PUT(
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
-    let tenant;
-    try { tenant = await getTenant(); }
+    // getActor (y no solo el tenant): un Colaborador solo opera sobre
+    // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
+    let actor;
+    try { actor = await getActor(); }
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const tenant = actor.tenant;
 
     const { id: contratoId } = await params;
     if (!idFiltro(contratoId)) {
@@ -184,7 +190,7 @@ export async function PUT(
 
     const confirmado = await withTenant(tenant.id, async (tx) => {
       const contrato = await tx.contrato.findFirst({
-        where: { id: contratoId, tenantId: tenant.id },
+        where: { id: contratoId, tenantId: tenant.id, ...alcanceContrato(actor) },
         select: { id: true },
       });
       if (!contrato) return false;

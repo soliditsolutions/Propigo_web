@@ -55,7 +55,7 @@ Antes de abrir un PR:
 1. `npm run lint` — sin errores.
 2. `npm test -w @propigo/web` y `npm test -w @propigo/core` — verdes.
 3. `npm run build` — compila.
-4. Si tocaste el schema: `npm run db:push` + revisar `prisma/sql/setup.sql` (RLS/vistas).
+4. Si tocaste el schema: agrega la **migración** (`prisma/migrations/`, ver BRAIN.md) — nunca solo `db push` — y revisa `prisma/sql/setup.sql` (RLS/vistas). CI reconstruye la base desde cero con `db:deploy`: un cambio sin migración rompe el build.
 5. Verifica el cambio en el navegador si es observable (no solo "compila").
 
 El PR debe incluir:

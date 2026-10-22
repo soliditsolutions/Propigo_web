@@ -97,7 +97,7 @@ export async function firmarTokenBaja(personaId: string, tenantId: string): Prom
 
 export async function verificarTokenBaja(token: string): Promise<BajaPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecretoBaja());
+    const { payload } = await jwtVerify(token, getSecretoBaja(), { algorithms: ["HS256"] });
     const p = payload as BajaPayload;
     if (!p.personaId || !p.tenantId) return null;
     return p;

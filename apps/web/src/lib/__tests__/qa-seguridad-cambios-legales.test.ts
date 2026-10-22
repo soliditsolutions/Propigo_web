@@ -420,11 +420,19 @@ cuando("A — IDOR vertical portal (comprobante ↔ liquidación)", () => {
   });
 
   it("un tercero (otra persona) no alcanza ninguno de los dos", async () => {
-    const otra = await comoTenant(tenantB, (tx) =>
-      tx.persona.findFirst({ where: { tenantId: tenantB }, select: { id: true } }));
-    const a = await comoPortalVoucher("arrendatario", otra!.id, idVoucherPago);
-    const b = await comoPortalVoucher("propietario", otra!.id, idVoucherLiq);
-    expect(a).toBeNull();
-    expect(b).toBeNull();
+    // Tercero propio de otra corredora: la B del seed puede no tener personas
+    // (base recién sembrada, como en CI), y sin tercero el test no prueba nada.
+    const otra = await comoTenant(tenantB, (tx) => tx.persona.create({
+      data: { tenantId: tenantB, rut: `QA-${MARCA}-TERCERO`, nombre: "Tercero IDOR Portal QA" },
+      select: { id: true },
+    }));
+    try {
+      const a = await comoPortalVoucher("arrendatario", otra.id, idVoucherPago);
+      const b = await comoPortalVoucher("propietario", otra.id, idVoucherLiq);
+      expect(a).toBeNull();
+      expect(b).toBeNull();
+    } finally {
+      await comoTenant(tenantB, (tx) => tx.persona.delete({ where: { id: otra.id } }));
+    }
   });
 });

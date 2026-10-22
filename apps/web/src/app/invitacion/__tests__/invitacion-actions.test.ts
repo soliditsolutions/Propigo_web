@@ -25,7 +25,7 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 const mockInvitacionFindFirst = vi.fn();
-const mockInvitacionUpdate    = vi.fn().mockResolvedValue({});
+const mockInvitacionUpdate    = vi.fn().mockResolvedValue({ count: 1 });
 const mockTenantFindUnique    = vi.fn();
 const mockUsuarioCount        = vi.fn();
 const mockUsuarioCreate       = vi.fn().mockResolvedValue({
@@ -41,7 +41,7 @@ vi.mock("@/lib/db", () => {
   const models = {
     tenant:                { findUnique: mockTenantFindUnique },
     usuario:                { count: mockUsuarioCount, create: mockUsuarioCreate },
-    invitacionColaborador: { findFirst: mockInvitacionFindFirst, update: mockInvitacionUpdate },
+    invitacionColaborador: { findFirst: mockInvitacionFindFirst, updateMany: mockInvitacionUpdate },
   };
   return {
     prisma: {
@@ -74,7 +74,7 @@ beforeEach(() => {
   mockUsuarioCreate.mockResolvedValue({
     id: "new-user-1", tenantId: "tenant-1", rol: "colaborador", nombre: "Nuevo", email: "nuevo@empresa.cl",
   });
-  mockInvitacionUpdate.mockResolvedValue({});
+  mockInvitacionUpdate.mockResolvedValue({ count: 1 });
   // Orden real de las dos $queryRaw: (1) resolver tenantId, (2) unicidad de email.
   mockQueryRaw
     .mockResolvedValueOnce([{ tenant_id: "tenant-1" }])
@@ -102,7 +102,7 @@ describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", (
 
     expect(mockUsuarioCreate).toHaveBeenCalledTimes(1);
     expect(mockInvitacionUpdate).toHaveBeenCalledWith({
-      where: { id: "inv-1" },
+      where: { id: "inv-1", usadoEn: null },
       data: expect.objectContaining({ usadoEn: expect.any(Date) }),
     });
     expect(mockRedirect).toHaveBeenCalledWith("/verificar-dispositivo");
@@ -145,5 +145,17 @@ describe("aceptarInvitacionAction — validaciones existentes (regresión)", () 
     const res = await aceptarInvitacionAction(null, formData());
     expect(res).toEqual({ error: expect.stringMatching(/expiró o ya se usó/i) });
     expect(mockTenantFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("una segunda aceptación simultánea del mismo enlace no crea otra cuenta", async () => {
+    mockTenantFindUnique.mockResolvedValue({ plan: "gold" });
+    mockUsuarioCount.mockResolvedValue(0);
+    mockInvitacionUpdate.mockResolvedValue({ count: 0 }); // la otra solicitud ya la consumió
+
+    const res = await aceptarInvitacionAction(null, formData());
+
+    expect(res).toEqual({ error: expect.any(String) });
+    expect(mockUsuarioCreate).not.toHaveBeenCalled();
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 });

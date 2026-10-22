@@ -4,6 +4,16 @@ import { prisma }                      from "@/lib/db";
 import { generateResetToken, hashToken } from "@/lib/token";
 import { sendPasswordResetEmail }       from "@/lib/email";
 import { logError } from "@/lib/logger";
+import { headers } from "next/headers";
+import { getClientIpFromHeaders } from "@/lib/ip";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+// Cada solicitud válida envía un correo: sin tope, cualquiera podía inundar de
+// correos de recuperación una dirección ajena (y cargarnos el costo de envío).
+// Por correo: 3 cada 15 min. Por IP: 10 cada 15 min (frena barrer direcciones).
+const VENTANA_MS     = 15 * 60_000;
+const MAX_POR_CORREO = 3;
+const MAX_POR_IP     = 10;
 
 export type RecuperarState = { sent: true } | { error: string } | null;
 
@@ -22,6 +32,14 @@ export async function recuperarAction(
   const start      = Date.now();
   const MIN_MS     = 500;
 
+  // Ambos contadores avanzan siempre (evaluados sin cortocircuito), y al
+  // superarlos la respuesta es la misma de siempre: un límite distinto
+  // revelaría qué correos tienen cuenta.
+  const ip        = getClientIpFromHeaders(await headers());
+  const porIp     = checkRateLimit(`recuperar_ip:${ip}`, MAX_POR_IP, VENTANA_MS).allowed;
+  const porCorreo = checkRateLimit(`recuperar_correo:${email}`, MAX_POR_CORREO, VENTANA_MS).allowed;
+  const permitido = porIp && porCorreo;
+
   try {
     // Siempre generar + hashear un token (equaliza el tiempo de cómputo)
     const rawToken  = generateResetToken();
@@ -34,7 +52,7 @@ export async function recuperarAction(
     `;
     const user = rows[0] ?? null;
 
-    if (user) {
+    if (user && permitido) {
       // Invalidar tokens previos sin usar para este usuario
       await prisma.resetToken.deleteMany({
         where: { usuarioId: user.id, usadoEn: null },

@@ -61,7 +61,7 @@ describe("ExportDatosPersonaDocument — D3 inyección en el PDF", () => {
     const buf = await renderToBuffer(ExportDatosPersonaDocument({ data: datos }));
     expect(buf.length).toBeGreaterThan(1000);
     expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
-  });
+  }, 20_000); // render real de @react-pdf: lento cuando la suite corre en paralelo
 });
 
 let prisma: PrismaClient | null = null;

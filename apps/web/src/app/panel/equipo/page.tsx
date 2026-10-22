@@ -7,12 +7,13 @@ export const dynamic = "force-dynamic";
 
 export default async function EquipoPage() {
   // El proxy ya bloquea /panel/equipo para no-managers vía session.rol; este
-  // getActor() (usado dentro de getEquipo()) es la defensa en profundidad.
-  const actor = await getActor();
+  // getActor() (también dentro de cada consulta de abajo) es la defensa en
+  // profundidad: redirige antes de lanzar las tres en paralelo.
+  await getActor();
 
   const [colaboradores, invitaciones, cupo] = await Promise.all([
     getEquipo(),
-    getInvitacionesPendientes(actor.tenantId),
+    getInvitacionesPendientes(),
     getCupoInfo(),
   ]);
 

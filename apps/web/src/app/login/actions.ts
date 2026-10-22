@@ -8,6 +8,7 @@ import { withTenant }                from "@/lib/tenant-db";
 import { verifyPassword }            from "@/lib/password";
 import { signSession, setSessionCookie, DEVICE_COOKIE_NAME } from "@/lib/auth";
 import { getClientIpFromHeaders }    from "@/lib/ip";
+import { checkRateLimit }            from "@/lib/rate-limit";
 
 export type LoginState = {
   error:        string;
@@ -79,6 +80,14 @@ export async function loginAction(
     return { error: "Ingresa tu correo electrónico y contraseña." };
   }
 
+  // Tope por IP ANTES de buscar la cuenta: el conteo en BD (checkIpLimitInDb)
+  // solo corre cuando el correo existe, así que probar miles de correos
+  // inexistentes (credential stuffing) no tenía freno. Mismo umbral y ventana.
+  if (ip !== "127.0.0.1" && ip !== "::1"
+      && !checkRateLimit(`login_ip:${ip}`, IP_MAX_INTENTS, IP_WINDOW_MS).allowed) {
+    return { error: "Demasiados intentos desde tu red. Espera 15 minutos e intenta de nuevo." };
+  }
+
   // ── Buscar usuario ──────────────────────────────────────────────────────
   let user: {
     id:             string;
@@ -122,7 +131,7 @@ export async function loginAction(
 
   // ── Rate limiting por IP (BD-backed, scoped al tenant) ─────────────────
   // Solo disponible cuando el email es válido (AccesoLog requiere tenantId).
-  // Para emails inválidos el bloqueo per-IP debe gestionarse a nivel de proxy.
+  // Para correos inexistentes rige el tope en memoria de más arriba.
   if (user) {
     await registrarIntentoLogin(user.tenantId, ip);
     if (!(await checkIpLimitInDb(user.tenantId, ip))) {

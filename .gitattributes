@@ -1,0 +1,17 @@
+# Fin de línea normalizado: LF en el repositorio y en el árbol de trabajo, en
+# todo sistema operativo. Evita diffs fantasma de CRLF entre Windows y la
+# imagen Linux de despliegue (y que los scripts de shell fallen por "\r").
+* text=auto eol=lf
+
+# Binarios: nunca normalizar ni intentar diff de texto.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.docx   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary

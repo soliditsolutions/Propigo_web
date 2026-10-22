@@ -2,15 +2,10 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
-import { runStartupChecks } from "@/lib/startup-check";
 import { PGO_THEME_INIT_SCRIPT } from "@/lib/theme";
 import { MARCA, ESLOGAN, DOMINIO } from "@/lib/marca";
 import { MarcaDefs } from "@/components/public/Logo";
 import "./globals.css";
-
-// FIX A2: fail-fast en arranque — verifica variables de entorno críticas.
-// Se ejecuta una sola vez al cargar el módulo del layout (proceso Next.js).
-runStartupChecks();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -2,10 +2,14 @@
  * Comprobante de devolución de garantía en PDF (L-CM5).
  * El render en sí se prueba aquí; la fidelidad del contenido, en el snapshot.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { DevolucionGarantiaDocument } from "../garantia-devolucion-pdf";
 import { construirSnapshotGarantia } from "../comprobante";
+
+// Render real con @react-pdf (fuentes y layout): el primero de cada proceso
+// puede tardar más de los 5 s por defecto cuando la suite corre en paralelo.
+vi.setConfig({ testTimeout: 20_000 });
 
 const snap = (over: Partial<Parameters<typeof construirSnapshotGarantia>[0]> = {}) =>
   construirSnapshotGarantia({

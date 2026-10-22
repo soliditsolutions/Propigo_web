@@ -19,6 +19,7 @@ Para instalar, entender y colaborar en el código.
 | [Referencia de la API](tecnica/api-reference.md) | Contrato de los endpoints REST: rutas, métodos, parámetros, respuestas y códigos HTTP. |
 | [Modelo de datos y ER](tecnica/modelo-datos-er.md) | Diccionario de datos y diagrama entidad-relación: tablas, campos, tipos, relaciones, RLS, ledger. |
 | [Guía de levantamiento local](tecnica/guia-local.md) | Cómo correr e inspeccionar el prototipo (para demos y desarrollo). |
+| [Despliegue a producción](tecnica/despliegue-produccion.md) | Runbook: imagen Docker, migraciones, variables y secretos, primer despliegue, rollback y bloqueantes antes del lanzamiento. |
 | [CONTRIBUTING](../CONTRIBUTING.md) | Ramas, commits, PRs, estilo de código y reglas de seguridad. |
 
 ## ⚙️ Bloque Funcional — el "Qué"
@@ -49,6 +50,7 @@ Control de tiempos, alcance y calidad.
 | [Matriz de riesgos](gestion/matriz-de-riesgos.md) | Riesgos técnicos, de seguridad, legales y de negocio + mitigaciones. |
 | [Manual de usuario](gestion/manual-de-usuario.md) | Guía de operación para corredor, arrendatario e interesado. |
 | [Auditoría E2E (2026-07)](gestion/auditoria-e2e-2026-07.md) | Auditoría adversarial de los flujos corredor y cliente: hallazgos, causas raíz, soluciones y tests. |
+| [Auditoría de seguridad (2026-10)](gestion/auditoria-seguridad-2026-10.md) | OWASP Top 10 + LLM: 14 hallazgos corregidos con sus pruebas, controles revisados y riesgos aceptados (CSP pública, dependencias de desarrollo). |
 | [Auditoría UI/UX (2026-07)](gestion/auditoria-ui-ux-2026-07.md) | Auditoría de interfaz contra checklist de accesibilidad/UX (touch targets, contraste, navegación, forms) — roadmap por etapas. |
 
 ## 🧠 Contexto de desarrollo

@@ -1,22 +1,30 @@
 /**
- * Sliding-window in-memory rate limiter keyed by IP.
+ * Sliding-window in-memory rate limiter keyed by IP (or any string).
  *
- * Production note: replace the store with a Redis ZADD/ZREMRANGEBYSCORE
- * pipeline when deploying behind multiple instances.
+ * Production note: the store lives in each instance's memory. With N instances
+ * the effective limit is N × limit — move the store to Redis
+ * (ZADD/ZREMRANGEBYSCORE) before scaling horizontally
+ * (see Docs/tecnica/despliegue-produccion.md).
  */
 
-type Entry = number[]; // timestamps (ms)
+type Entry = { ts: number[]; windowMs: number }; // timestamps (ms) + the key's window
 
 const store = new Map<string, Entry>();
 
-// Cleanup stale keys every 5 minutes to avoid unbounded memory growth.
+/**
+ * Drops keys with no activity inside their OWN window. A fixed cutoff here used
+ * to delete keys from long windows (e.g. 3 per hour) after 10 idle minutes,
+ * silently resetting their limit.
+ */
+export function limpiarVencidos(ahora: number = Date.now()): void {
+  for (const [key, e] of store) {
+    if (e.ts.length === 0 || e.ts[e.ts.length - 1] < ahora - e.windowMs) store.delete(key);
+  }
+}
+
+// Cleanup every 5 minutes to avoid unbounded memory growth.
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const cutoff = Date.now() - 10 * 60 * 1000; // 10 min max window
-    for (const [key, ts] of store) {
-      if (ts[ts.length - 1] < cutoff) store.delete(key);
-    }
-  }, 5 * 60 * 1000);
+  setInterval(() => limpiarVencidos(), 5 * 60 * 1000).unref?.();
 }
 
 /**
@@ -33,11 +41,13 @@ export function checkRateLimit(
   const now    = Date.now();
   const cutoff = now - windowMs;
 
-  let ts = store.get(key);
-  if (!ts) {
-    ts = [];
-    store.set(key, ts);
+  let entry = store.get(key);
+  if (!entry) {
+    entry = { ts: [], windowMs };
+    store.set(key, entry);
   }
+  entry.windowMs = windowMs;
+  const ts = entry.ts;
 
   // Drop timestamps outside the window (slide).
   while (ts.length > 0 && ts[0] < cutoff) ts.shift();

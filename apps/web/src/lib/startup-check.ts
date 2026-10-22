@@ -1,8 +1,8 @@
 /**
  * Verificaciones de seguridad al inicio del servidor.
  *
- * Importar este módulo en el layout raíz (src/app/layout.tsx) para que
- * se ejecute una vez al arrancar el servidor de Next.js.
+ * Se ejecuta una vez al arrancar el servidor de Next.js, desde
+ * src/instrumentation.ts (no en el build: ahí no hay secretos).
  *
  * SEGURIDAD:
  * - Previene que configuraciones inseguras de desarrollo lleguen a producción.

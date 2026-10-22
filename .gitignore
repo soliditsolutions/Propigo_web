@@ -35,3 +35,10 @@ graphify-out/
 # .gitkeep para que la estructura de carpetas exista tras un clone.
 apps/web/public/uploads/**
 !apps/web/public/uploads/**/.gitkeep
+
+# Documentos privados subidos por usuarios (cédulas, contratos, comprobantes).
+# Ver src/lib/uploads.ts: viven fuera de public/ y jamás se versionan.
+apps/web/private-uploads/
+
+# Worktrees aislados de agentes (copias completas del repo)
+.claude/worktrees/

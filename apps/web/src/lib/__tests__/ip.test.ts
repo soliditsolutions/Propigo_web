@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { getClientIpFromHeaders } from "../ip";
 
 /** Simula el tipo ReadonlyHeaders con un Map simple */
@@ -6,56 +6,55 @@ function makeHeaders(obj: Record<string, string>) {
   return { get: (name: string) => obj[name] ?? null };
 }
 
-describe("getClientIpFromHeaders() — IP resolution (Fix M2)", () => {
-  it("prefiere x-real-ip sobre x-forwarded-for", () => {
-    const h = makeHeaders({
-      "x-real-ip":       "1.2.3.4",
-      "x-forwarded-for": "9.9.9.9, 8.8.8.8",
-    });
-    expect(getClientIpFromHeaders(h as never)).toBe("1.2.3.4");
-  });
+const ip = (obj: Record<string, string>) => getClientIpFromHeaders(makeHeaders(obj) as never);
 
-  it("toma el ÚLTIMO hop de x-forwarded-for (proxy más cercano)", () => {
-    const h = makeHeaders({
-      "x-forwarded-for": "203.0.113.1, 10.0.0.1, 192.168.1.1",
-    });
-    expect(getClientIpFromHeaders(h as never)).toBe("192.168.1.1");
-  });
+describe("getClientIpFromHeaders() — un proxy de confianza (por defecto)", () => {
+  afterEach(() => vi.unstubAllEnvs());
 
-  it("no toma el PRIMER hop (manipulable por el cliente)", () => {
-    const h = makeHeaders({
-      "x-forwarded-for": "1.3.3.7, 192.168.0.1",
-    });
-    expect(getClientIpFromHeaders(h as never)).not.toBe("1.3.3.7");
-    expect(getClientIpFromHeaders(h as never)).toBe("192.168.0.1");
-  });
-
-  it("maneja x-forwarded-for con un solo valor", () => {
-    const h = makeHeaders({ "x-forwarded-for": "5.5.5.5" });
-    expect(getClientIpFromHeaders(h as never)).toBe("5.5.5.5");
-  });
-
-  it("hace trim de espacios en la IP", () => {
-    const h = makeHeaders({ "x-real-ip": "  1.2.3.4  " });
-    expect(getClientIpFromHeaders(h as never)).toBe("1.2.3.4");
-  });
-
-  it("retorna 127.0.0.1 cuando no hay headers", () => {
-    const h = makeHeaders({});
-    expect(getClientIpFromHeaders(h as never)).toBe("127.0.0.1");
-  });
-
-  it("retorna 127.0.0.1 con x-forwarded-for vacío", () => {
-    const h = makeHeaders({ "x-forwarded-for": "" });
-    expect(getClientIpFromHeaders(h as never)).toBe("127.0.0.1");
+  it("toma el ÚLTIMO hop de x-forwarded-for (lo agrega el proxy propio)", () => {
+    expect(ip({ "x-forwarded-for": "203.0.113.1, 10.0.0.1, 192.168.1.1" })).toBe("192.168.1.1");
   });
 
   it("previene bypass del rate limit via header forjado (primer hop)", () => {
-    // Un atacante pone su IP falsa como primer hop; el proxy real añade la real al final.
-    // La función debe retornar la IP real (último hop), no la falsa (primer hop).
-    const h = makeHeaders({
-      "x-forwarded-for": "attacker-ip, real-proxy-ip",
-    });
-    expect(getClientIpFromHeaders(h as never)).toBe("real-proxy-ip");
+    expect(ip({ "x-forwarded-for": "attacker-ip, real-proxy-ip" })).toBe("real-proxy-ip");
+  });
+
+  it("ignora x-real-ip: en AWS el cliente puede enviarlo tal cual", () => {
+    expect(ip({ "x-real-ip": "1.3.3.7", "x-forwarded-for": "9.9.9.9" })).toBe("9.9.9.9");
+    expect(ip({ "x-real-ip": "1.3.3.7" })).toBe("127.0.0.1");
+  });
+
+  it("maneja x-forwarded-for con un solo valor y hace trim", () => {
+    expect(ip({ "x-forwarded-for": "  5.5.5.5  " })).toBe("5.5.5.5");
+  });
+
+  it("retorna 127.0.0.1 sin headers o con x-forwarded-for vacío", () => {
+    expect(ip({})).toBe("127.0.0.1");
+    expect(ip({ "x-forwarded-for": "" })).toBe("127.0.0.1");
+    expect(ip({ "x-forwarded-for": " , " })).toBe("127.0.0.1");
+  });
+});
+
+describe("getClientIpFromHeaders() — CloudFront + App Runner (PROXIES_CONFIABLES=2)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("toma el penúltimo: el último es la IP de CloudFront, compartida por muchos usuarios", () => {
+    vi.stubEnv("PROXIES_CONFIABLES", "2");
+    expect(ip({ "x-forwarded-for": "1.3.3.7, 200.1.1.1, 130.176.0.5" })).toBe("200.1.1.1");
+  });
+
+  it("un valor inyectado por el cliente a la izquierda no cambia el resultado", () => {
+    vi.stubEnv("PROXIES_CONFIABLES", "2");
+    expect(ip({ "x-forwarded-for": "6.6.6.6, 7.7.7.7, 200.1.1.1, 130.176.0.5" })).toBe("200.1.1.1");
+  });
+
+  it("con menos valores que proxies, usa el más a la izquierda disponible", () => {
+    vi.stubEnv("PROXIES_CONFIABLES", "2");
+    expect(ip({ "x-forwarded-for": "130.176.0.5" })).toBe("130.176.0.5");
+  });
+
+  it.each(["0", "-1", "abc", "1.5"])("un valor inválido (%s) cae al seguro: 1 proxy", (valor) => {
+    vi.stubEnv("PROXIES_CONFIABLES", valor);
+    expect(ip({ "x-forwarded-for": "attacker-ip, real-proxy-ip" })).toBe("real-proxy-ip");
   });
 });

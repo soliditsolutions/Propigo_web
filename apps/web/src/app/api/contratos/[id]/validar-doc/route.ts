@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getTenant } from "@/lib/queries";
+import { getActor, alcanceContrato } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { type ValidacionResultado, validarEsquema } from "../validar/route";
 import { detectarPii } from "@/lib/pii-detector";
@@ -161,9 +161,12 @@ export async function POST(
       );
     }
 
-    let tenant;
-    try { tenant = await getTenant(); }
+    // getActor (y no solo el tenant): un Colaborador solo opera sobre
+    // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
+    let actor;
+    try { actor = await getActor(); }
     catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const tenant = actor.tenant;
 
     const { id: contratoId } = await params;
     if (!idFiltro(contratoId)) {
@@ -171,7 +174,7 @@ export async function POST(
     }
 
     const contrato = await withTenant(tenant.id, (tx) => tx.contrato.findFirst({
-      where:  { id: contratoId, tenantId: tenant.id },
+      where:  { id: contratoId, tenantId: tenant.id, ...alcanceContrato(actor) },
       select: { id: true },
     }));
     if (!contrato) {

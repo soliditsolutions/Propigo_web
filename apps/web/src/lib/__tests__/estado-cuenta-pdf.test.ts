@@ -1,10 +1,14 @@
 /**
  * Estado de cuenta de deuda en PDF (L-CM1). Renderiza de verdad con @react-pdf.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EstadoCuentaDocument } from "../estado-cuenta-pdf";
 import { construirEstadoCuenta } from "../estado-cuenta";
+
+// Render real con @react-pdf (fuentes y layout): el primero de cada proceso
+// puede tardar más de los 5 s por defecto cuando la suite corre en paralelo.
+vi.setConfig({ testTimeout: 20_000 });
 
 const esPdf = (buf: Uint8Array) => Buffer.from(buf.slice(0, 5)).toString("latin1") === "%PDF-";
 

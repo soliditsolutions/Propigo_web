@@ -6,6 +6,7 @@
  */
 import "dotenv/config";
 import { adaptadorPg } from "../src/lib/pg-adaptador";
+import { verificarBaseLocal } from "./guard-base-local";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 async function hashPassword(password: string): Promise<string> {
@@ -16,6 +17,7 @@ async function hashPassword(password: string): Promise<string> {
   return `pbkdf2v1$${Buffer.from(salt).toString("base64")}$${Buffer.from(bits).toString("base64")}`;
 }
 
+verificarBaseLocal(process.env.DATABASE_URL, "e2e-bootstrap");
 const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 

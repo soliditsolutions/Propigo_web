@@ -1,6 +1,16 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Despliegue en contenedor (Dockerfile en la raíz): `next build` genera
+  // .next/standalone con server.js y solo los node_modules que se usan.
+  output: "standalone",
+  // Monorepo: trazar desde la raíz para incluir @propigo/core y las
+  // dependencias que npm workspaces instala en el node_modules de la raíz.
+  outputFileTracingRoot: path.join(__dirname, "../../"),
+  // SEC: no anunciar el framework en cada respuesta (X-Powered-By: Next.js).
+  poweredByHeader: false,
+
   // Compila el paquete de dominio del workspace (sin pre-build).
   transpilePackages: ["@propigo/core"],
   // Prisma 7 + driver adapter: dejar como externos en el servidor.

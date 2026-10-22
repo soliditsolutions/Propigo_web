@@ -51,7 +51,7 @@ export async function signPortalSession(
 
 export async function verifyPortalToken(token: string): Promise<PortalPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getPortalSecret());
+    const { payload } = await jwtVerify(token, getPortalSecret(), { algorithms: ["HS256"] });
     return payload as PortalPayload;
   } catch {
     return null;

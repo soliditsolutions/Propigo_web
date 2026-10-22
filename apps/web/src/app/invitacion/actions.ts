@@ -105,6 +105,13 @@ export async function aceptarInvitacionAction(
     // otra con tx.$transaction(), solo encadenar ambas operaciones sobre el
     // mismo `tx` para que se confirmen o reviertan juntas.
     newUser = await withTenant(tenantId, async (tx) => {
+      // Consumo atómico de la invitación (ver nueva-contrasena/actions.ts):
+      // dos aceptaciones simultáneas no deben crear dos cuentas.
+      const consumida = await tx.invitacionColaborador.updateMany({
+        where: { id: invitacion.id, usadoEn: null },
+        data:  { usadoEn: now },
+      });
+      if (consumida.count !== 1) throw new Error("invitación ya usada");
       const usuario = await tx.usuario.create({
         data: {
           tenantId,
@@ -116,10 +123,6 @@ export async function aceptarInvitacionAction(
           consentVersion: "tys-v1.0",
         },
         select: { id: true, tenantId: true, rol: true, nombre: true, email: true },
-      });
-      await tx.invitacionColaborador.update({
-        where: { id: invitacion.id },
-        data:  { usadoEn: now },
       });
       return usuario;
     });

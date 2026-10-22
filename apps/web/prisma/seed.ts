@@ -4,6 +4,7 @@
  */
 import "dotenv/config";
 import { adaptadorPg } from "../src/lib/pg-adaptador";
+import { verificarBaseLocal } from "./guard-base-local";
 import { PrismaClient } from "../src/generated/prisma/client";
 import {
   generarCalendario,
@@ -31,6 +32,7 @@ async function hashPassword(password: string): Promise<string> {
  * tenant" y no había forma de resembrar sin editar el .env a mano.
  */
 const seedUrl = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_URL;
+verificarBaseLocal(seedUrl, "db:seed");
 const adapter = adaptadorPg(seedUrl);
 const prisma = new PrismaClient({ adapter });
 

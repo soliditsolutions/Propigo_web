@@ -118,7 +118,10 @@ export async function POST(req: NextRequest) {
 
     // ── Guardar en disco ───────────────────────────────────────────────
     await mkdir(uploadDir, { recursive: true });
-    await writeFile(join(uploadDir, nombre), buffer);
+    // turbopackIgnore: es una escritura en runtime con nombre aleatorio, no un
+    // archivo que el build deba empaquetar. Sin esto Turbopack traza el proyecto
+    // entero (public/ incluido) dentro del bundle del servidor.
+    await writeFile(join(/*turbopackIgnore: true*/ uploadDir, nombre), buffer);
 
     return NextResponse.json({ url: `${urlPrefix}/${nombre}` });
   } catch (err) {

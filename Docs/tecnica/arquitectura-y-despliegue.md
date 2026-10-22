@@ -108,7 +108,7 @@ Decisión **diferida** intencionalmente (ver [ADR-0001](../decisiones/ADR-0001-n
 
 ## DevOps — Integración y Despliegue Continuo (CI/CD)
 
-> El proyecto aún no está bajo control de versiones remoto. Este es el **pipeline objetivo** (ej. GitHub Actions), listo para adoptar al conectar GitHub. Reglas de contribución en [CONTRIBUTING.md](../../CONTRIBUTING.md).
+> Repositorio en GitHub (`soliditsolutions/Propigo_web`). El pipeline de CI está **implementado** en [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml); el despliegue (imagen, migraciones, secretos, checklist) está en [despliegue-produccion.md](despliegue-produccion.md). Reglas de contribución en [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ### Entornos
 
@@ -121,15 +121,16 @@ Decisión **diferida** intencionalmente (ver [ADR-0001](../decisiones/ADR-0001-n
 ### Pipeline (por Pull Request)
 
 ```
-push / PR  →  Instalar (npm ci)  →  Lint (eslint)  →  Test (vitest: web + core)
-           →  Build (next build)  →  [PR] revisión humana ≥1 aprobación
-merge a main  →  Migrar BD (prisma db push + setup.sql)  →  Desplegar  →  Smoke test
+push / PR  →  npm ci  →  Lint  →  Tipos  →  BD efímera: migraciones + setup.sql + deriva + seeds
+           →  Test (vitest web contra Postgres + core)  →  Build  →  Imagen Docker (sin publicar)
+           →  [PR] revisión humana ≥1 aprobación
+merge a main  →  Imagen → registro  →  Tarea de migraciones (db:deploy)  →  Desplegar  →  /api/salud
 ```
 
 - **Ningún merge con checks en rojo.** `lint` + `test` + `build` son obligatorios.
-- **Migraciones:** `prisma db push` (MVP) → migraciones versionadas (`prisma migrate`) en producción; `setup.sql` aplica RLS, trigger inmutable y vistas.
+- **Migraciones:** solo versionadas (`prisma migrate deploy`), seguidas de `setup.sql` (RLS, trigger inmutable, vistas, rol de la app) — ambas en `npm run db:deploy`. CI falla si `schema.prisma` tiene cambios sin migración.
 - **Secretos:** nunca en el repo. Se inyectan por variables de entorno del proveedor / vault (ver tabla de variables en el [README](../../README.md)).
-- **Cron:** `/api/cron/recordatorios` se agenda en el scheduler del proveedor (Vercel Cron / cron-job.org) con `CRON_SECRET`.
+- **Cron:** `/api/cron/recordatorios` se agenda en el scheduler del proveedor (en AWS: EventBridge Scheduler → destino HTTP) con `Authorization: Bearer <CRON_SECRET>`.
 
 ### Objetivo de despliegue
 

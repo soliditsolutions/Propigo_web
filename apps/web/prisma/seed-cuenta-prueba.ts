@@ -17,6 +17,7 @@
  */
 import "dotenv/config";
 import { adaptadorPg } from "../src/lib/pg-adaptador";
+import { verificarBaseLocal } from "./guard-base-local";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 // ── Credenciales fijas ─────────────────────────────────────────────────────
@@ -47,29 +48,6 @@ const CUENTA = {
   region: "Región Metropolitana de Santiago",
 } as const;
 
-/**
- * Guard: este script crea una cuenta con contraseña conocida y publicada.
- * Correrlo contra una base real sería crear una puerta trasera. Solo se
- * permite contra un host local; para un caso legítimo fuera de eso hay que
- * pasar ALLOW_REMOTE_SEED=1 de forma explícita y consciente.
- */
-function verificarBaseLocal(url: string | undefined): void {
-  if (!url) throw new Error("DATABASE_URL no está definida.");
-  if (process.env.ALLOW_REMOTE_SEED === "1") {
-    console.warn("⚠️  ALLOW_REMOTE_SEED=1 — saltando el guard de base local.");
-    return;
-  }
-  const host = new URL(url).hostname;
-  const locales = ["localhost", "127.0.0.1", "::1", "host.docker.internal", "db", "propigo-db"];
-  if (!locales.includes(host)) {
-    throw new Error(
-      `Se canceló: DATABASE_URL apunta a "${host}", que no es local.\n` +
-        "Este script crea una cuenta con contraseña conocida y NO debe existir fuera de desarrollo.\n" +
-        "Si de verdad lo necesitas ahí, corre con ALLOW_REMOTE_SEED=1.",
-    );
-  }
-}
-
 /** PBKDF2-SHA256 — mismo formato que `lib/password.ts` usa en la app. */
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -83,7 +61,9 @@ async function hashPassword(password: string): Promise<string> {
   return `pbkdf2v1$${Buffer.from(salt).toString("base64")}$${Buffer.from(bits).toString("base64")}`;
 }
 
-verificarBaseLocal(process.env.DATABASE_URL);
+// Crea una cuenta con contraseña conocida y publicada: contra una base real
+// sería una puerta trasera.
+verificarBaseLocal(process.env.DATABASE_URL, "db:seed-cuenta");
 
 const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });

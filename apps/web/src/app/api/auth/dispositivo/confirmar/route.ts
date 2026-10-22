@@ -2,7 +2,7 @@
  * POST /api/auth/dispositivo/confirmar
  * Valida el código de 6 dígitos. Si es correcto:
  *  1. Crea DispositivoConfiable en DB
- *  2. Escribe cookie hw_device (httpOnly, 1 año)
+ *  2. Escribe cookie pgo_device (httpOnly, 1 año)
  *  3. Refresca el JWT con deviceToken embebido
  */
 import { NextRequest, NextResponse } from "next/server";

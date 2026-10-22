@@ -5,7 +5,8 @@
  * (arriendo / gasto común / mora), su fecha (vencimiento del período) y su lugar
  * (el inmueble). Se arma desde el estado de cuenta ya calculado (lib/estado-cuenta).
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import type { EstadoCuenta } from "./estado-cuenta";
 

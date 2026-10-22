@@ -38,7 +38,7 @@ _Ejecutado 2026-09-16. ✅ pasó · 🔧 falló y se corrigió._
 |---|---|
 | A1 | ✅ Toda acción exige `getPortalSession()`; sin sesión → `{ ok:false, error:"Tu sesión expiró…" }`, nada se escribe (test dedicado). |
 | A2 | ✅ Cada acción escribe solo sobre `session.personaId` — no hay parámetro de persona que el cliente pueda sustituir. |
-| A3 | ✅ RLS activa en ambas tablas nuevas (`relrowsecurity`, verificado tras aplicar `setup.sql`); GRANT DML a `housing_app` vía `alter default privileges` (verificado antes de re-aplicar RLS). |
+| A3 | ✅ RLS activa en ambas tablas nuevas (`relrowsecurity`, verificado tras aplicar `setup.sql`); GRANT DML a `propigo_app` vía `alter default privileges` (verificado antes de re-aplicar RLS). |
 
 ### B. Validación de entrada
 
@@ -85,7 +85,7 @@ _Ejecutado 2026-09-16. ✅ pasó · 🔧 falló y se corrigió._
 
 ### G. Regresión
 
-- Suites completas: **`apps/web` 908 ✅ · `@housing/core` 74 ✅**. Typecheck y lint limpios.
+- Suites completas: **`apps/web` 908 ✅ · `@propigo/core` 74 ✅**. Typecheck y lint limpios.
 - El refactor de `codigo-verificacion.ts` no cambió comportamiento en ninguno de los 5 sitios (mismo `sha256(código + secreto)`, mismos tests existentes en verde).
 
 ### Hallazgo

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getTenant, getActor } from "@/lib/queries";
 import { withTenant, type TenantClient } from "@/lib/tenant-db";
-import { validarRut, esRegionValida, esComunaValidaEnRegion, esOrientacionValida } from "@housing/core";
+import { validarRut, esRegionValida, esComunaValidaEnRegion, esOrientacionValida } from "@propigo/core";
 import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
 import { geocodificarDireccion } from "@/lib/geocoding";

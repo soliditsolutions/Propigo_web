@@ -1,6 +1,6 @@
 /**
  * Gestión de sesión JWT — firmado con HS256 vía jose.
- * Cookie: __Host-hw_session (prod) / hw_session (dev).
+ * Cookie: __Host-pgo_session (prod) / pgo_session (dev).
  *
  * Caduca por inactividad (el `exp` del JWT) y tiene además un tope absoluto
  * desde el login. El proxy la renueva mientras haya actividad; los tiempos y el
@@ -23,7 +23,7 @@ export type SessionPayload = JWTPayload & {
   nombre:         string;
   email:          string;
   perfilCompleto: boolean;
-  deviceToken?:   string; // UUID del dispositivo confiable (en plano — comparado contra hw_device cookie)
+  deviceToken?:   string; // UUID del dispositivo confiable (en plano — comparado contra pgo_device cookie)
   /** Instante del login original. Sobrevive a las renovaciones (ver sesion-cookies). */
   ini?:           number;
 };
@@ -119,7 +119,7 @@ export async function refreshSessionWithDevice(
 }
 
 /**
- * Versión reforzada de getSession() que además verifica que la cookie hw_device
+ * Versión reforzada de getSession() que además verifica que la cookie pgo_device
  * coincida con el deviceToken del JWT. Usar en rutas de gestión de dispositivos
  * para exigir que el propio acceso esté verificado.
  */

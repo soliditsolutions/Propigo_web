@@ -7,7 +7,7 @@
 | ID | Riesgo | Prob. | Impacto | Mitigación | Estado |
 |---|---|---|---|---|---|
 | R-T1 | `public/uploads/` no persiste entre deploys → pérdida de documentos/imágenes | Alta | Alto | Migrar a almacenamiento de objetos (S3/R2) con URL firmada antes de producción; sin cambios de schema/UI | Pendiente (documentado) |
-| R-T2 | RLS sin enforcement real (rol dueño bypassa en dev) | Media | Alto | Usar rol no-dueño `housing_app` en producción; la aislación en código es defensa complementaria | Mitigado en código |
+| R-T2 | RLS sin enforcement real (rol dueño bypassa en dev) | Media | Alto | Usar rol no-dueño `propigo_app` en producción; la aislación en código es defensa complementaria | Mitigado en código |
 | R-T3 | Serie UF/IPC sin fuente oficial → reajustes incorrectos | Media | Alto | Integrar fuente oficial (SII / Banco Central); si faltan datos, el reajuste procede sin cambio (no bloquea) | Parcial |
 | R-T4 | Prisma 7 / Next 16 son versiones nuevas con cambios de API | Media | Medio | Fijar versiones; leer `node_modules/next/dist/docs`; gotchas en `BRAIN.md` | Mitigado |
 | R-T5 | Caché de Turbopack muestra errores obsoletos | Baja | Bajo | Reiniciar dev server tras regenerar cliente Prisma; documentado en `BRAIN.md` | Conocido |

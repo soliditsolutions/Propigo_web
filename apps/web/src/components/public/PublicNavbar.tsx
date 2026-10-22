@@ -2,6 +2,7 @@ import { Logo } from "./Logo";
 import { PublicNavLinks, PublicNavLink } from "./PublicNavLinks";
 import { PublicNavMenu } from "./PublicNavMenu";
 import { getSession } from "@/lib/auth";
+import { MARCA } from "@/lib/marca";
 
 /**
  * Navbar del sitio público (home, marketplace, fichas de propiedad, portal).
@@ -16,7 +17,7 @@ export async function PublicNavbar() {
   return (
     <header className="pf-navbar">
       <div className="pf-navbar-grid mx-auto w-full max-w-7xl">
-        <PublicNavLink href="/" className="pf-navbar-logo flex items-baseline gap-1.5" aria-label="Housing — inicio">
+        <PublicNavLink href="/" className="pf-navbar-logo inline-flex items-center" aria-label={`${MARCA} — inicio`}>
           <Logo />
         </PublicNavLink>
         <PublicNavLinks />

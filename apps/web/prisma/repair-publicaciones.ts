@@ -4,13 +4,13 @@
  * Busca todas las Propiedades con estado="disponible" que no tienen
  * ninguna Publicacion con estado="publicada" y crea el registro.
  *
- * Uso: npm run db:repair -w @housing/web
+ * Uso: npm run db:repair -w @propigo/web
  */
 import "dotenv/config";
-import { PrismaPg }    from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma  = new PrismaClient({ adapter });
 
 async function main() {

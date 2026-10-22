@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Compila el paquete de dominio del workspace (sin pre-build).
-  transpilePackages: ["@housing/core"],
+  transpilePackages: ["@propigo/core"],
   // Prisma 7 + driver adapter: dejar como externos en el servidor.
   serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
 

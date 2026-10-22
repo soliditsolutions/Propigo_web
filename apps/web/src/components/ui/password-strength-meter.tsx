@@ -11,7 +11,7 @@ interface Props extends PersonalInfo {
 
 function ChecklistItem({ ok, label }: { ok: boolean; label: string }) {
   return (
-    <li className="flex items-center gap-1.5 text-xs" style={{ color: ok ? "var(--hw-success)" : "var(--hw-text-4)" }}>
+    <li className="flex items-center gap-1.5 text-xs" style={{ color: ok ? "var(--pgo-success)" : "var(--pgo-text-4)" }}>
       {ok
         ? <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
         : <X className="h-3 w-3 shrink-0" aria-hidden="true" />}
@@ -36,7 +36,7 @@ export function PasswordStrengthMeter({ password, nombre, email, rut }: Props) {
           <div
             key={i}
             className="h-1.5 flex-1 rounded-full transition-all duration-200"
-            style={{ background: i <= s.score ? s.color : "var(--hw-border-2)" }}
+            style={{ background: i <= s.score ? s.color : "var(--pgo-border-2)" }}
           />
         ))}
       </div>

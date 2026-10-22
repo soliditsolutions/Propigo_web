@@ -14,7 +14,7 @@ export function Card({
 }) {
   return (
     <Tag
-      className={`hw-card ${hoverable ? "hw-card-hover" : ""} ${className}`}
+      className={`pgo-card ${hoverable ? "pgo-card-hover" : ""} ${className}`}
     >
       {children}
     </Tag>
@@ -25,25 +25,25 @@ export function Card({
 export type BadgeTone = "slate" | "green" | "red" | "amber" | "blue";
 
 const accentBar: Record<BadgeTone, string> = {
-  red:   "var(--hw-danger)",
-  blue:  "var(--hw-primary)",
-  green: "var(--hw-success)",
-  amber: "var(--hw-warning)",
-  slate: "var(--hw-border-2)",
+  red:   "var(--pgo-danger)",
+  blue:  "var(--pgo-primary)",
+  green: "var(--pgo-success)",
+  amber: "var(--pgo-warning)",
+  slate: "var(--pgo-border-2)",
 };
 const accentText: Record<BadgeTone, string> = {
-  red:   "var(--hw-danger)",
-  blue:  "var(--hw-primary)",
-  green: "var(--hw-success)",
-  amber: "var(--hw-warning)",
-  slate: "var(--hw-text-1)",
+  red:   "var(--pgo-danger)",
+  blue:  "var(--pgo-primary)",
+  green: "var(--pgo-success)",
+  amber: "var(--pgo-warning)",
+  slate: "var(--pgo-text-1)",
 };
 const accentBg: Record<BadgeTone, string> = {
-  red:   "var(--hw-danger-lt)",
-  blue:  "var(--hw-primary-lt)",
-  green: "var(--hw-success-lt)",
-  amber: "var(--hw-warning-lt)",
-  slate: "var(--hw-surface-2)",
+  red:   "var(--pgo-danger-lt)",
+  blue:  "var(--pgo-primary-lt)",
+  green: "var(--pgo-success-lt)",
+  amber: "var(--pgo-warning-lt)",
+  slate: "var(--pgo-surface-2)",
 };
 
 export function StatCard({
@@ -61,8 +61,8 @@ export function StatCard({
 }) {
   return (
     <div
-      className="hw-card hw-card-glow hw-sheen relative overflow-hidden p-5 flex gap-4 items-start"
-      style={{ "--hw-card-glow": accentBar[tone] } as React.CSSProperties}
+      className="pgo-card pgo-card-glow pgo-sheen relative overflow-hidden p-5 flex gap-4 items-start"
+      style={{ "--pgo-card-glow": accentBar[tone] } as React.CSSProperties}
     >
       {/* Barra accent lateral */}
       <div
@@ -90,12 +90,12 @@ export function StatCard({
       <div className="pl-1 min-w-0">
         <p
           className="text-xs font-semibold uppercase tracking-wider"
-          style={{ color: "var(--hw-text-3)" }}
+          style={{ color: "var(--pgo-text-3)" }}
         >
           {label}
         </p>
         <p
-          className="mt-1.5 text-2xl font-bold leading-none hw-num"
+          className="mt-1.5 text-2xl font-bold leading-none pgo-num"
           style={{ color: accentText[tone] }}
         >
           {value}
@@ -103,7 +103,7 @@ export function StatCard({
         {sub && (
           <p
             className="mt-1.5 text-xs leading-snug"
-            style={{ color: "var(--hw-text-4)" }}
+            style={{ color: "var(--pgo-text-4)" }}
           >
             {sub}
           </p>
@@ -115,11 +115,11 @@ export function StatCard({
 
 /* ── Badge ──────────────────────────────────────────────────── */
 const badgeStyle: Record<BadgeTone, { bg: string; color: string; ring: string }> = {
-  slate: { bg: "var(--hw-surface-2)", color: "var(--hw-text-2)", ring: "var(--hw-border-2)" },
-  green: { bg: "var(--hw-success-lt)", color: "var(--hw-success)", ring: "var(--hw-success-bd)" },
-  red:   { bg: "var(--hw-danger-lt)",  color: "var(--hw-danger)",  ring: "var(--hw-danger-bd)"  },
-  amber: { bg: "var(--hw-warning-lt)", color: "var(--hw-warning)", ring: "var(--hw-warning-bd)" },
-  blue:  { bg: "var(--hw-primary-lt)", color: "var(--hw-primary)", ring: "var(--hw-primary-bd)" },
+  slate: { bg: "var(--pgo-surface-2)", color: "var(--pgo-text-2)", ring: "var(--pgo-border-2)" },
+  green: { bg: "var(--pgo-success-lt)", color: "var(--pgo-success)", ring: "var(--pgo-success-bd)" },
+  red:   { bg: "var(--pgo-danger-lt)",  color: "var(--pgo-danger)",  ring: "var(--pgo-danger-bd)"  },
+  amber: { bg: "var(--pgo-warning-lt)", color: "var(--pgo-warning)", ring: "var(--pgo-warning-bd)" },
+  blue:  { bg: "var(--pgo-primary-lt)", color: "var(--pgo-primary)", ring: "var(--pgo-primary-bd)" },
 };
 
 export function Badge({
@@ -147,7 +147,7 @@ export function Badge({
       {pulse && (
         <span
           aria-hidden="true"
-          className="hw-badge-dot h-1.5 w-1.5 shrink-0 rounded-full"
+          className="pgo-badge-dot h-1.5 w-1.5 shrink-0 rounded-full"
           style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }}
         />
       )}
@@ -208,14 +208,14 @@ export function PageTitle({
       <div className="min-w-0">
         <h1
           className="text-2xl font-bold tracking-tight"
-          style={{ color: "var(--hw-text-1)" }}
+          style={{ color: "var(--pgo-text-1)" }}
         >
           {title}
         </h1>
         {subtitle && (
           <p
             className="mt-1 text-sm"
-            style={{ color: "var(--hw-text-3)" }}
+            style={{ color: "var(--pgo-text-3)" }}
           >
             {subtitle}
           </p>
@@ -243,7 +243,7 @@ export function SectionTitle({
   return (
     <Tag
       className="mb-3 flex items-center gap-2 font-semibold"
-      style={{ color: "var(--hw-text-1)" }}
+      style={{ color: "var(--pgo-text-1)" }}
     >
       {count !== undefined && (
         <span
@@ -261,7 +261,7 @@ export function SectionTitle({
       {description && (
         <span
           className="text-xs font-normal"
-          style={{ color: "var(--hw-text-4)" }}
+          style={{ color: "var(--pgo-text-4)" }}
         >
           {description}
         </span>
@@ -285,7 +285,7 @@ export function Tabs({
       className="flex gap-1 rounded-xl p-1"
       role="tablist"
       aria-label="Seleccionar paso"
-      style={{ background: "var(--hw-border)" }}
+      style={{ background: "var(--pgo-border)" }}
     >
       {tabs.map((t) => {
         const isActive = t.key === active;
@@ -295,13 +295,13 @@ export function Tabs({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(t.key)}
-            className="hw-btn relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
+            className="pgo-btn relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
             style={{
-              background: isActive ? "var(--hw-surface)" : "transparent",
-              // --hw-text-1 flipea con el tema y contrasta el surface (dark y light);
-              // --hw-sidebar es un token de FONDO oscuro → texto invisible en dark.
-              color: isActive ? "var(--hw-text-1)" : "var(--hw-text-3)",
-              boxShadow: isActive ? "var(--hw-shadow-1)" : "none",
+              background: isActive ? "var(--pgo-surface)" : "transparent",
+              // --pgo-text-1 flipea con el tema y contrasta el surface (dark y light);
+              // --pgo-sidebar es un token de FONDO oscuro → texto invisible en dark.
+              color: isActive ? "var(--pgo-text-1)" : "var(--pgo-text-3)",
+              boxShadow: isActive ? "var(--pgo-shadow-1)" : "none",
             }}
           >
             {t.label}
@@ -311,7 +311,7 @@ export function Tabs({
                 className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold"
                 style={{
                   background: isActive ? accentBg[t.tone ?? "slate"] : "rgba(100,116,139,0.15)",
-                  color: isActive ? accentText[t.tone ?? "slate"] : "var(--hw-text-3)",
+                  color: isActive ? accentText[t.tone ?? "slate"] : "var(--pgo-text-3)",
                 }}
               >
                 {t.count}
@@ -330,7 +330,7 @@ export function Th({ children, align = "left" }: { children: ReactNode; align?: 
     <th
       scope="col"
       className={`px-5 py-3 text-xs font-semibold uppercase tracking-wide text-${align}`}
-      style={{ color: "var(--hw-text-4)" }}
+      style={{ color: "var(--pgo-text-4)" }}
     >
       {children}
     </th>
@@ -339,7 +339,7 @@ export function Th({ children, align = "left" }: { children: ReactNode; align?: 
 
 export function TableWrapper({ children }: { children: ReactNode }) {
   return (
-    <div className="hw-card overflow-hidden">
+    <div className="pgo-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="table">
           {children}
@@ -381,10 +381,10 @@ export function CupoBadge({
   const cerca = !lleno && max > 0 && usado / max >= 0.8;
 
   const tono = lleno
-    ? { bg: "var(--hw-danger-lt)",  fg: "var(--hw-danger)",  bd: "var(--hw-danger-bd)" }
+    ? { bg: "var(--pgo-danger-lt)",  fg: "var(--pgo-danger)",  bd: "var(--pgo-danger-bd)" }
     : cerca
-      ? { bg: "var(--hw-warning-lt)", fg: "var(--hw-warning)", bd: "var(--hw-warning-bd)" }
-      : { bg: "var(--hw-surface-2)",  fg: "var(--hw-text-3)",  bd: "var(--hw-border-2)" };
+      ? { bg: "var(--pgo-warning-lt)", fg: "var(--pgo-warning)", bd: "var(--pgo-warning-bd)" }
+      : { bg: "var(--pgo-surface-2)",  fg: "var(--pgo-text-3)",  bd: "var(--pgo-border-2)" };
 
   return (
     <span

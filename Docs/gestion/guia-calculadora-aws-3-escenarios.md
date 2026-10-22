@@ -1,4 +1,4 @@
-# Guía paso a paso: estimar Housing en la calculadora de AWS (3 escenarios)
+# Guía paso a paso: estimar Propigo en la calculadora de AWS (3 escenarios)
 
 > **Para usar con [calculator.aws](https://calculator.aws).** Esta guía te dice
 > **qué servicios agregar y qué valores escribir** para reproducir tú mismo la
@@ -48,7 +48,7 @@ números; todo lo demás se deriva de aquí.
 
 ---
 
-## 2. Para qué sirve cada servicio (y por qué Housing lo usa)
+## 2. Para qué sirve cada servicio (y por qué Propigo lo usa)
 
 Antes de escribir números conviene entender **qué se está contratando y por qué**.
 Cada servicio cubre una necesidad concreta de la plataforma; si alguno no aportara

@@ -58,12 +58,12 @@ export function DateFilterPanel({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
-        className="hw-btn flex h-8 items-center gap-1.5 rounded-[10px] border px-3 text-xs font-semibold"
+        className="pgo-btn flex h-8 items-center gap-1.5 rounded-[10px] border px-3 text-xs font-semibold"
         style={{
-          borderColor:  hasActive ? "var(--hw-primary)" : "var(--hw-border)",
-          background:   hasActive ? "var(--hw-primary-lt)" : "var(--hw-surface)",
-          color:        hasActive ? "var(--hw-primary-dk)" : "var(--hw-text-3)",
-          boxShadow:    open ? `0 0 0 3px var(--hw-primary-bd)` : "none",
+          borderColor:  hasActive ? "var(--pgo-primary)" : "var(--pgo-border)",
+          background:   hasActive ? "var(--pgo-primary-lt)" : "var(--pgo-surface)",
+          color:        hasActive ? "var(--pgo-primary-dk)" : "var(--pgo-text-3)",
+          boxShadow:    open ? `0 0 0 3px var(--pgo-primary-bd)` : "none",
         }}
       >
         <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
@@ -72,7 +72,7 @@ export function DateFilterPanel({
           <span
             aria-hidden="true"
             className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
-            style={{ background: "var(--hw-primary)" }}
+            style={{ background: "var(--pgo-primary)" }}
           >
             ✓
           </span>
@@ -86,13 +86,13 @@ export function DateFilterPanel({
         <div
           role="dialog"
           aria-label="Opciones de ordenamiento y filtro por fecha"
-          className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl bg-[var(--hw-surface)] p-4"
-          style={{ boxShadow: "var(--hw-shadow-3)", border: "1px solid var(--hw-border)" }}
+          className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl bg-[var(--pgo-surface)] p-4"
+          style={{ boxShadow: "var(--pgo-shadow-3)", border: "1px solid var(--pgo-border)" }}
         >
           <div className="mb-4">
             <p
               className="mb-2 text-[10px] font-bold uppercase tracking-wider"
-              style={{ color: "var(--hw-text-4)" }}
+              style={{ color: "var(--pgo-text-4)" }}
             >
               Ordenar
             </p>
@@ -105,10 +105,10 @@ export function DateFilterPanel({
                     type="button"
                     aria-pressed={active}
                     onClick={() => onChange({ ...value, sort: s.key })}
-                    className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold"
                     style={{
-                      background: active ? "var(--hw-sidebar)" : "var(--hw-surface-2)",
-                      color:      active ? "#fff" : "var(--hw-text-3)",
+                      background: active ? "var(--pgo-sidebar)" : "var(--pgo-surface-2)",
+                      color:      active ? "#fff" : "var(--pgo-text-3)",
                     }}
                   >
                     {s.label}
@@ -121,7 +121,7 @@ export function DateFilterPanel({
           <div>
             <p
               className="mb-2 text-[10px] font-bold uppercase tracking-wider"
-              style={{ color: "var(--hw-text-4)" }}
+              style={{ color: "var(--pgo-text-4)" }}
             >
               Filtrar por período
             </p>
@@ -134,10 +134,10 @@ export function DateFilterPanel({
                     type="button"
                     aria-pressed={active}
                     onClick={() => onChange({ ...value, range: r.key })}
-                    className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold"
                     style={{
-                      background: active ? "var(--hw-primary)" : "var(--hw-surface-2)",
-                      color:      active ? "#fff" : "var(--hw-text-3)",
+                      background: active ? "var(--pgo-primary)" : "var(--pgo-surface-2)",
+                      color:      active ? "#fff" : "var(--pgo-text-3)",
                     }}
                   >
                     {r.label}
@@ -151,8 +151,8 @@ export function DateFilterPanel({
             <button
               type="button"
               onClick={reset}
-              className="hw-btn mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium"
-              style={{ color: "var(--hw-danger)" }}
+              className="pgo-btn mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium"
+              style={{ color: "var(--pgo-danger)" }}
               aria-label="Limpiar todos los filtros de fecha"
             >
               <X className="h-3 w-3" aria-hidden="true" />

@@ -25,17 +25,17 @@ function iniciales(nombre: string): string {
 export function CorredorCard({ corredor }: { corredor: CorredorDestacado }) {
   return (
     <BorderGlow radius={20} className="w-64 shrink-0">
-    <div className="hw-auth-card flex w-full flex-col items-center p-3 text-center">
+    <div className="pgo-auth-card flex w-full flex-col items-center p-3 text-center">
       <div
         className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-        style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+        style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
         aria-hidden="true"
       >
         {iniciales(corredor.nombre)}
       </div>
       <p className="mt-1.5 flex items-center gap-1 text-sm font-semibold" style={{ color: "var(--pf-navy)" }}>
         {corredor.nombre}
-        <BadgeCheck className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pf-purple)" }} aria-label="Corredor verificado" />
+        <BadgeCheck className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pf-brand)" }} aria-label="Corredor verificado" />
       </p>
       <div className="mt-1">
         <RatingStars promedio={corredor.promedio} total={corredor.total} />

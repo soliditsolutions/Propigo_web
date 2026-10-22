@@ -11,7 +11,7 @@
 | Flujos auditados | Corredor (registro→panel→cobros→liquidación) · Cliente (marketplace/portal) |
 | Método | E2E en navegador (Claude Preview, eventos reales) + revisión de código de Server Actions/API + tests automatizados |
 | Hallazgos | **9** — 8 corregidos en la 1ª pasada + **1 crítico (AUD-09) hallado y corregido en la verificación E2E** |
-| Tests | 232 → **236/236** (`@housing/web`) + **47/47** (`@housing/core`) + `tsc --noEmit` limpio |
+| Tests | 232 → **236/236** (`@propigo/web`) + **47/47** (`@propigo/core`) + `tsc --noEmit` limpio |
 | Estado final | **Todos los hallazgos corregidos y verificados end-to-end en navegador**, incluido el ciclo financiero completo (crear contrato → conciliar con mora real → cerrar liquidación → voucher → portal). |
 
 **Veredicto:** la lógica de negocio (cálculo de mora, ledger, comisión, liquidación) es correcta y estaba bien protegida — pero **era inalcanzable en la práctica** hasta corregir AUD-01 (bloqueaba el onboarding) y AUD-09 (bloqueaba la conciliación de cualquier período real). Ambos bugs habían quedado invisibles en todas las sesiones anteriores porque los datos de demostración (`seed.ts`) fabricaban a mano los estados que la aplicación nunca generaba por sí sola. Esta auditoría es la primera vez que se ejercita el sistema con datos 100% generados por la propia aplicación, de principio a fin.
@@ -157,7 +157,7 @@ Todos los ítems de la 1ª pasada **y** el hallazgo crítico AUD-09 de la 2ª pa
 ### Hallazgos adicionales del QA (no numerados como AUD, corregidos igual)
 
 - **Regresión de accesibilidad en `LoginForm`:** un toast de error duplicaba `role="alert"` junto con el mensaje inline ya existente (`email-error`/`pwd-error`), rompiendo la asociación 1:1 que exige WCAG 4.1.2. Se restauró `aria-describedby` + mensaje inline y se eliminó el toast redundante (se conserva solo para el aviso de éxito de reset de contraseña, que no tiene hogar inline).
-- **Mocks desactualizados en `propiedades-actions.test.ts`:** tras el fix de RUT canónico, faltaba `formatearRut` en el mock de `@housing/core` y una aserción esperaba el RUT con puntos. Corregido + agregado test de regresión explícito.
+- **Mocks desactualizados en `propiedades-actions.test.ts`:** tras el fix de RUT canónico, faltaba `formatearRut` en el mock de `@propigo/core` y una aserción esperaba el RUT con puntos. Corregido + agregado test de regresión explícito.
 
 ## 7. Tests agregados en esta pasada
 
@@ -166,7 +166,7 @@ Todos los ítems de la 1ª pasada **y** el hallazgo crítico AUD-09 de la 2ª pa
 - `app/panel/propiedades/__tests__/propiedades-actions.test.ts` — 1 caso nuevo de regresión (AUD-03/06: mismo RUT con/sin puntos → mismo resultado canónico).
 - `app/login/__tests__/login-form.test.tsx` — sin casos nuevos, pero las 39 pruebas existentes pasaron a depender de un wrapper `<ToastProvider>` y de la eliminación del toast redundante.
 
-**Resultado final:** 236/236 tests (`@housing/web`) + 47/47 (`@housing/core`) + `tsc --noEmit` limpio + verificación E2E en navegador del ciclo financiero completo.
+**Resultado final:** 236/236 tests (`@propigo/web`) + 47/47 (`@propigo/core`) + `tsc --noEmit` limpio + verificación E2E en navegador del ciclo financiero completo.
 
 ### Pendiente para una futura pasada
 

@@ -27,21 +27,21 @@ export function InvalidDialog({ mensaje }: { mensaje: string }) {
         <div
           className="w-full max-w-sm text-center space-y-5 rounded-2xl p-8"
           style={{
-            background: "var(--hw-surface)",
-            border:     "1px solid var(--hw-border)",
+            background: "var(--pgo-surface)",
+            border:     "1px solid var(--pgo-border)",
             boxShadow:  "0 25px 60px rgba(15,31,53,0.20), 0 8px 24px rgba(15,31,53,0.12)",
-            animation:  "hw-toast-in 0.4s cubic-bezier(0.16,1,0.3,1) both",
+            animation:  "pgo-toast-in 0.4s cubic-bezier(0.16,1,0.3,1) both",
           }}
         >
           {/* Icono */}
           <div className="flex justify-center">
             <div
               className="flex h-14 w-14 items-center justify-center rounded-2xl"
-              style={{ background: "var(--hw-danger-lt)" }}
+              style={{ background: "var(--pgo-danger-lt)" }}
             >
               <AlertTriangle
                 className="h-7 w-7"
-                style={{ color: "var(--hw-danger)" }}
+                style={{ color: "var(--pgo-danger)" }}
                 aria-hidden="true"
               />
             </div>
@@ -52,13 +52,13 @@ export function InvalidDialog({ mensaje }: { mensaje: string }) {
             <h1
               id="invalid-token-title"
               className="text-xl font-bold"
-              style={{ color: "var(--hw-text-1)" }}
+              style={{ color: "var(--pgo-text-1)" }}
             >
               Enlace inválido
             </h1>
             <p
               className="mt-2 text-sm leading-relaxed"
-              style={{ color: "var(--hw-text-3)" }}
+              style={{ color: "var(--pgo-text-3)" }}
             >
               {mensaje}
             </p>
@@ -67,7 +67,7 @@ export function InvalidDialog({ mensaje }: { mensaje: string }) {
           {/* CTA */}
           <Link
             href="/recuperar-contrasena"
-            className="hw-btn-primary inline-flex justify-center"
+            className="pgo-btn-primary inline-flex justify-center"
             style={{ height: "42px", fontSize: "14px", borderRadius: "10px", padding: "0 24px" }}
           >
             Solicitar nuevo enlace

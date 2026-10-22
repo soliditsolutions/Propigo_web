@@ -93,7 +93,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                 {(["nombre", "apellido"] as const).map(campo => (
                   <div key={campo}>
                     <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                      {campo === "nombre" ? "Nombre" : "Apellido"} <span style={{ color: "var(--hw-danger)" }}>*</span>
+                      {campo === "nombre" ? "Nombre" : "Apellido"} <span style={{ color: "var(--pgo-danger)" }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -104,7 +104,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                       style={inputStyle(campo)}
                       maxLength={80}
                     />
-                    {errores[campo] && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores[campo]}</p>}
+                    {errores[campo] && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores[campo]}</p>}
                   </div>
                 ))}
               </div>
@@ -112,7 +112,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
               {/* Teléfono */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Teléfono <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Teléfono <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <input
                   type="tel"
@@ -123,13 +123,13 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                   style={inputStyle("telefono")}
                   maxLength={20}
                 />
-                {errores.telefono && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores.telefono}</p>}
+                {errores.telefono && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.telefono}</p>}
               </div>
 
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Correo electrónico <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Correo electrónico <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <input
                   type="email"
@@ -140,13 +140,13 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                   style={inputStyle("email")}
                   maxLength={120}
                 />
-                {errores.email && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores.email}</p>}
+                {errores.email && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.email}</p>}
               </div>
 
               {/* Título */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Título de la consulta <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Título de la consulta <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -157,13 +157,13 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                   style={inputStyle("titulo")}
                   maxLength={120}
                 />
-                {errores.titulo && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores.titulo}</p>}
+                {errores.titulo && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.titulo}</p>}
               </div>
 
               {/* Descripción */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Descripción <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Descripción <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <textarea
                   value={form.descripcion}
@@ -176,7 +176,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                 />
                 <div className="flex justify-between mt-1">
                   {errores.descripcion
-                    ? <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{errores.descripcion}</p>
+                    ? <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.descripcion}</p>
                     : <span />}
                   <p className="text-xs" style={{ color: "var(--pf-text-light)" }}>{form.descripcion.length}/2000</p>
                 </div>
@@ -194,7 +194,7 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
                       type="checkbox"
                       checked={form[key]}
                       onChange={e => set(key, e.target.checked)}
-                      className="h-4 w-4 rounded accent-[var(--pf-purple)]"
+                      className="h-4 w-4 rounded accent-[var(--pf-brand)]"
                     />
                     <span className="text-sm" style={{ color: "var(--pf-text-body)" }}>{label}</span>
                   </label>

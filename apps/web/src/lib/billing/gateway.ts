@@ -67,7 +67,7 @@ export type ResultadoInscripcion =
   | { estado: "error"; categoria: CategoriaErrorCobro; mensaje: string };
 
 /**
- * Medio de pago ya inscrito y reutilizable. Housing **nunca** almacena el
+ * Medio de pago ya inscrito y reutilizable. Propigo **nunca** almacena el
  * número de tarjeta: solo esta referencia opaca del proveedor y datos no
  * sensibles para mostrarle al usuario cuál tarjeta tiene registrada.
  */
@@ -83,7 +83,7 @@ export type MedioPagoInscrito = {
 
 export type SolicitudCobro = {
   /**
-   * Clave de idempotencia generada por Housing (no por el proveedor).
+   * Clave de idempotencia generada por Propigo (no por el proveedor).
    * Reintentar con la misma clave debe cobrar UNA sola vez. Es la defensa
    * contra el doble cobro cuando la red falla justo después de que el
    * proveedor ya procesó pero antes de que nos llegue la respuesta.
@@ -157,7 +157,7 @@ export type ResultadoReembolso =
 // ── Webhooks ──────────────────────────────────────────────────────────────
 
 /**
- * Evento del proveedor ya normalizado al vocabulario de Housing. Cada
+ * Evento del proveedor ya normalizado al vocabulario de Propigo. Cada
  * adaptador traduce su propio formato a esta forma, de modo que el handler
  * del webhook no sepa de qué proveedor viene.
  */
@@ -185,7 +185,7 @@ export interface BillingGateway {
   /** Nombre corto del proveedor ("flow", "transbank", "fake") — se guarda en el log de eventos. */
   readonly nombre: string;
 
-  /** Inicia la inscripción de una tarjeta. El flujo real siempre redirige: Housing nunca ve los datos. */
+  /** Inicia la inscripción de una tarjeta. El flujo real siempre redirige: Propigo nunca ve los datos. */
   inscribirMedioPago(input: SolicitudInscripcion): Promise<ResultadoInscripcion>;
 
   /** Confirma la inscripción cuando el usuario vuelve del proveedor. */
@@ -205,6 +205,6 @@ export interface BillingGateway {
    */
   verificarFirmaWebhook(cuerpoCrudo: string, headers: Record<string, string>): boolean;
 
-  /** Traduce el payload del proveedor al vocabulario de Housing. `null` si no es interpretable. */
+  /** Traduce el payload del proveedor al vocabulario de Propigo. `null` si no es interpretable. */
   parsearEvento(cuerpoCrudo: string): EventoNormalizado | null;
 }

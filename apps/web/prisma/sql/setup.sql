@@ -1,4 +1,4 @@
--- Housing — objetos que Prisma no modela en el schema.
+-- Propigo — objetos que Prisma no modela en el schema.
 -- Se aplica DESPUÉS de crear las tablas (prisma migrate / db push).
 -- Idempotente: se puede correr varias veces.
 
@@ -63,9 +63,9 @@ create trigger trg_ledger_no_update
 -- ADR-0011: para que RLS REALMENTE restrinja, la app debe conectarse con un rol
 -- SIN privilegios de dueño ni de superusuario — ambos bypassan RLS siempre,
 -- FORCE ROW LEVEL SECURITY incluido (FORCE solo afecta al dueño, nunca a un
--- superusuario). El rol 'housing' es superusuario (lo crea así la imagen oficial
+-- superusuario). El rol 'propigo' es superusuario (lo crea así la imagen oficial
 -- de Postgres vía POSTGRES_USER) — se reserva para migraciones. El rol de runtime
--- de la app es 'housing_app' (sección 6 de este archivo), que no es dueño ni
+-- de la app es 'propigo_app' (sección 6 de este archivo), que no es dueño ni
 -- superusuario, por lo que queda sujeto a esta política sin configuración extra.
 
 do $$
@@ -79,7 +79,7 @@ begin
     -- Cupo de IA por plan (Fase B0): el consumo de un tenant no debe ser
     -- visible ni alterable por otro.
     'consumo_ia_diario',
-    -- Billing (ADR-0014). Contabilidad Housing↔corredor, separada del ledger
+    -- Billing (ADR-0014). Contabilidad Propigo↔corredor, separada del ledger
     -- del arriendo, pero igual de multi-tenant: un corredor jamás debe ver los
     -- cobros ni las comisiones de otro.
     'suscripcion_tenant','cargo_billing','comision_plataforma',
@@ -160,12 +160,12 @@ create policy public_read_imagen_propiedad on imagen_propiedad
 -- ADR-0011 Fase 2: un puñado de operaciones son legítimamente cross-tenant por
 -- diseño — buscan un registro ANTES de saber a qué tenant pertenece (login por
 -- email, duplicados de email/RUT al registrarse, token de valoración del
--- marketplace). Con RLS estricto y housing_app sin bypass, esas consultas
+-- marketplace). Con RLS estricto y propigo_app sin bypass, esas consultas
 -- devolverían siempre 0 filas (current_setting sin tenant = NULL = ninguna fila
--- calza). La solución NO es darle a housing_app un privilegio amplio — es exponer
+-- calza). La solución NO es darle a propigo_app un privilegio amplio — es exponer
 -- funciones SECURITY DEFINER: corren con los privilegios de quien las creó
 -- (el rol dueño, que sí bypassa RLS) pero solo hacen exactamente la consulta
--- puntual para la que fueron escritas, y housing_app solo puede EJECUTARLAS, no
+-- puntual para la que fueron escritas, y propigo_app solo puede EJECUTARLAS, no
 -- leer las tablas subyacentes por su cuenta. `set search_path = public` evita el
 -- ataque clásico de hijacking de search_path sobre funciones SECURITY DEFINER.
 
@@ -255,15 +255,15 @@ language sql security definer set search_path = public as $$
   where c.token_valoracion = p_token limit 1;
 $$;
 
-grant execute on function auth_lookup_usuario_by_email(text) to housing_app;
-grant execute on function auth_tenant_de_usuario(uuid) to housing_app;
-grant execute on function auth_lookup_usuario_por_id(uuid) to housing_app;
-grant execute on function auth_email_existe(text) to housing_app;
-grant execute on function auth_rut_existe(text) to housing_app;
-grant execute on function auth_rut_pertenece_a_otro_usuario(text, uuid) to housing_app;
-grant execute on function auth_rut_corredora_existe(text) to housing_app;
-grant execute on function marketplace_lookup_valoracion_consulta(uuid) to housing_app;
-grant execute on function marketplace_lookup_valoracion_contrato(uuid) to housing_app;
+grant execute on function auth_lookup_usuario_by_email(text) to propigo_app;
+grant execute on function auth_tenant_de_usuario(uuid) to propigo_app;
+grant execute on function auth_lookup_usuario_por_id(uuid) to propigo_app;
+grant execute on function auth_email_existe(text) to propigo_app;
+grant execute on function auth_rut_existe(text) to propigo_app;
+grant execute on function auth_rut_pertenece_a_otro_usuario(text, uuid) to propigo_app;
+grant execute on function auth_rut_corredora_existe(text) to propigo_app;
+grant execute on function marketplace_lookup_valoracion_consulta(uuid) to propigo_app;
+grant execute on function marketplace_lookup_valoracion_contrato(uuid) to propigo_app;
 
 -- Portal de autoconsulta: buscar persona por RUT es cross-tenant por diseño
 -- (un arrendatario no sabe ni le importa a qué "tenant" pertenece su corredor
@@ -295,7 +295,7 @@ language sql security definer set search_path = public as $$
   order by (c.id is not null) desc, p.created_at asc
   limit 1;
 $$;
-grant execute on function portal_lookup_persona_por_rut(text) to housing_app;
+grant execute on function portal_lookup_persona_por_rut(text) to propigo_app;
 
 -- Verificar OTP: el otpId es el "credencial" que el cliente ya trae consigo
 -- (se lo devolvimos al solicitar el código) — no sabemos su tenant hasta
@@ -312,7 +312,7 @@ language sql security definer set search_path = public as $$
          codigo_hash, expira_en, intentos, max_intentos, usado_en
   from acceso_otp where id = p_id limit 1;
 $$;
-grant execute on function portal_lookup_acceso_otp(uuid) to housing_app;
+grant execute on function portal_lookup_acceso_otp(uuid) to propigo_app;
 
 -- Marketplace /contacto: si el tenant no configuró un email de contacto fijo,
 -- se usa el email del primer usuario admin como respaldo. Cross-tenant por
@@ -321,7 +321,7 @@ create or replace function marketplace_lookup_corredor_email_fallback(p_tenant_i
 language sql security definer set search_path = public as $$
   select email from usuario where tenant_id = p_tenant_id order by rol asc, created_at asc limit 1;
 $$;
-grant execute on function marketplace_lookup_corredor_email_fallback(uuid) to housing_app;
+grant execute on function marketplace_lookup_corredor_email_fallback(uuid) to propigo_app;
 
 -- Marketplace /denuncia: a propósito NO filtra por estado='publicada' — se
 -- puede denunciar una publicación ya dada de baja (ver revisión de
@@ -331,7 +331,7 @@ create or replace function marketplace_lookup_publicacion_titulo(p_id uuid) retu
 language sql security definer set search_path = public as $$
   select titulo from publicacion where id = p_id;
 $$;
-grant execute on function marketplace_lookup_publicacion_titulo(uuid) to housing_app;
+grant execute on function marketplace_lookup_publicacion_titulo(uuid) to propigo_app;
 
 -- ─────────────── 4. RUT único por usuario y único compuesto por tenant+persona ───────────────
 -- Se corre idempotente: si ya existe el índice/constraint, no falla.
@@ -411,37 +411,37 @@ from asiento_ledger
 group by tenant_id, contrato_id;
 
 -- ─────────────── 6. Rol de aplicación en runtime (ADR-0011) ───────────────
--- 'housing_app' es el rol con el que la app Next.js debe conectarse en TODO
+-- 'propigo_app' es el rol con el que la app Next.js debe conectarse en TODO
 -- entorno (local incluido, una vez migrado DATABASE_URL). No es dueño de las
 -- tablas ni superusuario — por eso la política tenant_isolation (sección 3)
--- sí lo restringe de verdad. 'housing' queda reservado para migraciones
+-- sí lo restringe de verdad. 'propigo' queda reservado para migraciones
 -- (prisma migrate/db push, este mismo archivo) y tareas administrativas.
 --
 -- DEV: password fijo solo para este entorno local (mismo criterio que
--- POSTGRES_PASSWORD=housing_dev en docker-compose.yml). En producción, generar
+-- POSTGRES_PASSWORD=propigo_dev en docker-compose.yml). En producción, generar
 -- un secreto real vía el gestor de secretos del proveedor — nunca reusar este valor.
 do $$
 begin
-  if not exists (select 1 from pg_roles where rolname = 'housing_app') then
-    create role housing_app with login password 'housing_app_dev';
+  if not exists (select 1 from pg_roles where rolname = 'propigo_app') then
+    create role propigo_app with login password 'propigo_app_dev';
   end if;
 end $$;
 
-grant connect on database housing to housing_app;
-grant usage on schema public to housing_app;
+grant connect on database propigo to propigo_app;
+grant usage on schema public to propigo_app;
 
 -- Tablas/secuencias/funciones existentes.
-grant select, insert, update, delete on all tables in schema public to housing_app;
-grant usage, select on all sequences in schema public to housing_app;
-grant execute on all functions in schema public to housing_app;
+grant select, insert, update, delete on all tables in schema public to propigo_app;
+grant usage, select on all sequences in schema public to propigo_app;
+grant execute on all functions in schema public to propigo_app;
 
 -- Privilegios por defecto: toda tabla/secuencia/función que se cree DESPUÉS
--- (nuevas migraciones) queda accesible para housing_app automáticamente, sin
+-- (nuevas migraciones) queda accesible para propigo_app automáticamente, sin
 -- tener que editar este archivo cada vez que el schema crece. Se define con
--- 'for role housing' porque las migraciones corren como ese rol.
-alter default privileges for role housing in schema public
-  grant select, insert, update, delete on tables to housing_app;
-alter default privileges for role housing in schema public
-  grant usage, select on sequences to housing_app;
-alter default privileges for role housing in schema public
-  grant execute on functions to housing_app;
+-- 'for role propigo' porque las migraciones corren como ese rol.
+alter default privileges for role propigo in schema public
+  grant select, insert, update, delete on tables to propigo_app;
+alter default privileges for role propigo in schema public
+  grant usage, select on sequences to propigo_app;
+alter default privileges for role propigo in schema public
+  grant execute on functions to propigo_app;

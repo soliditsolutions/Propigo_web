@@ -7,14 +7,14 @@ import { Children, useEffect, useLayoutEffect, useRef, useState } from "react";
  * destacadas). Cuando hay contenido suficiente para superar el ancho del
  * contenedor, el contenido se repite N veces y se anima con CSS puro en loop
  * infinito hacia la izquierda — sin JS de scroll ni dependencias externas.
- * Se detiene con `:hover`/`:focus-within` (ver `.hw-marquee` en globals.css)
+ * Se detiene con `:hover`/`:focus-within` (ver `.pgo-marquee` en globals.css)
  * y respeta `prefers-reduced-motion` (cae a scroll manual).
  *
  * Con pocos ítems reales (ej. un tenant nuevo con 1 propiedad), duplicar y
  * animar no tiene sentido: no hay nada nuevo "entrando por la derecha", solo
  * la misma tarjeta repitiéndose en loop. Por eso medimos el ancho real del
  * grupo (sin duplicar) contra el contenedor — si ya cabe entero, se muestra
- * una sola vez, estático, sin animación (`hw-marquee-static` en globals.css).
+ * una sola vez, estático, sin animación (`pgo-marquee-static` en globals.css).
  * Recién cuando el contenido real desborda el contenedor se activa el loop,
  * momento en el que sí hay variedad suficiente para que se sienta como una
  * cola de contenido y no como una repetición.
@@ -74,13 +74,13 @@ export function Carousel({
   return (
     <div
       ref={containerRef}
-      className={`hw-marquee${shouldLoop ? "" : " hw-marquee-static"}`}
+      className={`pgo-marquee${shouldLoop ? "" : " pgo-marquee-static"}`}
       role="group"
       aria-label={ariaLabel}
     >
       <div
-        className="hw-marquee-track"
-        style={shouldLoop ? ({ animationDuration: `${duracionSeg}s`, "--hw-marquee-shift": desplazamiento } as React.CSSProperties) : undefined}
+        className="pgo-marquee-track"
+        style={shouldLoop ? ({ animationDuration: `${duracionSeg}s`, "--pgo-marquee-shift": desplazamiento } as React.CSSProperties) : undefined}
       >
         {Array.from({ length: copias }, (_, i) => (
           <div
@@ -89,7 +89,7 @@ export function Carousel({
               if (i === 0) measureRef.current = el;
               if (i > 0) inertRefs.current[i] = el;
             }}
-            className="hw-marquee-group"
+            className="pgo-marquee-group"
             // Solo el primer grupo es contenido real — el resto son copias
             // decorativas para el loop continuo, ocultas de lectores de
             // pantalla y fuera del orden de tabulación (inert, vía ref).

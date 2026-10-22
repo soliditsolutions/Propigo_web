@@ -1,13 +1,10 @@
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { adaptadorPg } from "./pg-adaptador";
 
-// Cliente Prisma único (evita múltiples instancias en dev con HMR).
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-
-// v5: clave actualizada para forzar re-creación tras prisma generate (aceptaMascotas en Propiedad)
-const globalForPrisma = globalThis as unknown as { prisma_v5?: PrismaClient };
+// v6: clave actualizada al cambiar a un pool propio (ClienteSerializado).
+const globalForPrisma = globalThis as unknown as { prisma_v6?: PrismaClient };
 
 export const prisma =
-  globalForPrisma.prisma_v5 ?? new PrismaClient({ adapter });
+  globalForPrisma.prisma_v6 ?? new PrismaClient({ adapter: adaptadorPg(process.env.DATABASE_URL) });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma_v5 = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma_v6 = prisma;

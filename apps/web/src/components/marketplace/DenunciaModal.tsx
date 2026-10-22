@@ -5,6 +5,7 @@ import { AlertTriangle, ShieldAlert } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Modal, ModalSuccess, modalInputCls, modalInputStyle } from "@/components/ui/modal";
+import { MARCA, RAZON_SOCIAL } from "@/lib/marca";
 
 const TIPOS = [
   { value: "fraude_inmobiliario", label: "Fraude inmobiliario" },
@@ -101,7 +102,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
       onClose={onClose}
       title="Hacer una denuncia"
       subtitle="Reportar propiedad o corredor"
-      icon={<ShieldAlert className="h-5 w-5" style={{ color: "var(--hw-danger)" }} aria-hidden />}
+      icon={<ShieldAlert className="h-5 w-5" style={{ color: "var(--pgo-danger)" }} aria-hidden />}
     >
           {enviada ? (
             <ModalSuccess
@@ -120,9 +121,9 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 
               {/* Aviso legal */}
-              <div className="rounded-xl p-3 text-xs" style={{ background: "var(--hw-warning-lt)", border: "1px solid var(--hw-warning-bd)", color: "var(--hw-warning-dk)" }}>
+              <div className="rounded-xl p-3 text-xs" style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)", color: "var(--pgo-warning-dk)" }}>
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--hw-warning)" }} aria-hidden />
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--pgo-warning)" }} aria-hidden />
                   <p>
                     Las denuncias falsas o maliciosas pueden tener consecuencias legales conforme al <strong>Art. 211 del Código Penal</strong> (denuncia calumniosa). Asegúrate de que la información sea verídica.
                   </p>
@@ -140,9 +141,9 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                       onClick={() => set("objetivo", obj)}
                       className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all"
                       style={{
-                        background:   form.objetivo === obj ? "var(--pf-purple-tint)" : "var(--pf-surface)",
-                        border:       `1.5px solid ${form.objetivo === obj ? "var(--pf-purple)" : "var(--pf-border-input)"}`,
-                        color:        form.objetivo === obj ? "var(--pf-purple)" : "var(--pf-text-body)",
+                        background:   form.objetivo === obj ? "var(--pf-brand-tint)" : "var(--pf-surface)",
+                        border:       `1.5px solid ${form.objetivo === obj ? "var(--pf-brand)" : "var(--pf-border-input)"}`,
+                        color:        form.objetivo === obj ? "var(--pf-brand)" : "var(--pf-text-body)",
                       }}
                     >
                       {obj === "propiedad" ? "Una propiedad" : "Un corredor"}
@@ -154,7 +155,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
               {/* Tipo de denuncia */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Tipo de denuncia <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Tipo de denuncia <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <select
                   value={form.tipo}
@@ -167,13 +168,13 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                {errores.tipo && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores.tipo}</p>}
+                {errores.tipo && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.tipo}</p>}
               </div>
 
               {/* Descripción */}
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                  Descripción de los hechos <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  Descripción de los hechos <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <textarea
                   value={form.descripcion}
@@ -186,7 +187,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                 />
                 <div className="flex justify-between mt-1">
                   {errores.descripcion
-                    ? <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{errores.descripcion}</p>
+                    ? <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{errores.descripcion}</p>
                     : <span />}
                   <p className="text-xs" style={{ color: "var(--pf-text-light)" }}>{form.descripcion.length}/3000</p>
                 </div>
@@ -215,7 +216,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                     type="checkbox"
                     checked={form.esAnonima}
                     onChange={e => set("esAnonima", e.target.checked)}
-                    className="h-4 w-4 rounded accent-[var(--pf-purple)]"
+                    className="h-4 w-4 rounded accent-[var(--pf-brand)]"
                   />
                   <span className="text-sm font-medium" style={{ color: "var(--pf-navy)" }}>Enviar denuncia anónima</span>
                 </label>
@@ -231,7 +232,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                     {(["nombreDenunciante", "apellidoDenunciante"] as const).map(campo => (
                       <div key={campo}>
                         <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pf-navy)" }}>
-                          {campo === "nombreDenunciante" ? "Nombre" : "Apellido"} <span style={{ color: "var(--hw-danger)" }}>*</span>
+                          {campo === "nombreDenunciante" ? "Nombre" : "Apellido"} <span style={{ color: "var(--pgo-danger)" }}>*</span>
                         </label>
                         <input
                           type="text"
@@ -241,7 +242,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                           style={inputStyle(campo)}
                           maxLength={80}
                         />
-                        {errores[campo] && <p className="mt-1 text-xs" style={{ color: "var(--hw-danger)" }}>{errores[campo]}</p>}
+                        {errores[campo] && <p className="mt-1 text-xs" style={{ color: "var(--pgo-danger)" }}>{errores[campo]}</p>}
                       </div>
                     ))}
                   </div>
@@ -269,26 +270,26 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                     type="checkbox"
                     checked={form.declaraVeracidad}
                     onChange={e => set("declaraVeracidad", e.target.checked)}
-                    className="h-4 w-4 rounded accent-[var(--pf-purple)] mt-0.5 shrink-0"
+                    className="h-4 w-4 rounded accent-[var(--pf-brand)] mt-0.5 shrink-0"
                   />
                   <span className="text-xs" style={{ color: "var(--pf-text-body)" }}>
-                    <strong>Declaro que la información es verídica</strong> y entiendo que presentar una denuncia falsa puede tener consecuencias legales conforme al Art. 211 del Código Penal chileno. <span style={{ color: "var(--hw-danger)" }}>*</span>
+                    <strong>Declaro que la información es verídica</strong> y entiendo que presentar una denuncia falsa puede tener consecuencias legales conforme al Art. 211 del Código Penal chileno. <span style={{ color: "var(--pgo-danger)" }}>*</span>
                   </span>
                 </label>
-                {errores.declaraVeracidad && <p className="text-xs ml-6" style={{ color: "var(--hw-danger)" }}>{errores.declaraVeracidad}</p>}
+                {errores.declaraVeracidad && <p className="text-xs ml-6" style={{ color: "var(--pgo-danger)" }}>{errores.declaraVeracidad}</p>}
 
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.aceptaTratamientoDatos}
                     onChange={e => set("aceptaTratamientoDatos", e.target.checked)}
-                    className="h-4 w-4 rounded accent-[var(--pf-purple)] mt-0.5 shrink-0"
+                    className="h-4 w-4 rounded accent-[var(--pf-brand)] mt-0.5 shrink-0"
                   />
                   <span className="text-xs" style={{ color: "var(--pf-text-body)" }}>
-                    Acepto que mis datos personales sean tratados por Housing SOLIDIT para gestionar esta denuncia, conforme a la <strong>Ley 21.719</strong> de protección de datos personales. <span style={{ color: "var(--hw-danger)" }}>*</span>
+                    Acepto que mis datos personales sean tratados por {RAZON_SOCIAL}, responsable de {MARCA}, para gestionar esta denuncia, conforme a la <strong>Ley 21.719</strong> de protección de datos personales. <span style={{ color: "var(--pgo-danger)" }}>*</span>
                   </span>
                 </label>
-                {errores.aceptaTratamientoDatos && <p className="text-xs ml-6" style={{ color: "var(--hw-danger)" }}>{errores.aceptaTratamientoDatos}</p>}
+                {errores.aceptaTratamientoDatos && <p className="text-xs ml-6" style={{ color: "var(--pgo-danger)" }}>{errores.aceptaTratamientoDatos}</p>}
               </div>
 
               {/* Submit */}
@@ -296,7 +297,7 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
                 type="submit"
                 disabled={isPending}
                 className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: "var(--hw-danger)" }}
+                style={{ background: "var(--pgo-danger)" }}
               >
                 {isPending ? (
                   <><Spinner />Enviando…</>

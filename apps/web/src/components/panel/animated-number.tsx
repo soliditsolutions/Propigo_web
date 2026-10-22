@@ -49,7 +49,7 @@ export function AnimatedNumber({
   }, [value, durationMs, format]);
 
   return (
-    <span className="hw-num" aria-label={fmt(value)}>
+    <span className="pgo-num" aria-label={fmt(value)}>
       {display}
     </span>
   );

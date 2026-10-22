@@ -27,6 +27,7 @@ Thumbs.db
 
 # Estado local de herramientas de agente (no compartir entre máquinas)
 .claude/scheduled_tasks.lock
+graphify-out/
 
 # Subidas de usuarios — fotos de propiedades y de perfil.
 # Van a disco local (ver api/upload/route.ts); son datos de clientes, no

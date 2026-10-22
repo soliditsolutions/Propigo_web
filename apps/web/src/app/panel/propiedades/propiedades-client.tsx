@@ -24,7 +24,7 @@ import {
   previsualizarUbicacion, cambiarPropietarioPropiedad,
 } from "./actions";
 import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
-import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@housing/core";
+import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@propigo/core";
 
 // Leaflet usa `window` — debe cargarse únicamente en el navegador.
 const LeafletMapInner = dynamic(() => import("@/components/marketplace/LeafletMapInner"), { ssr: false });
@@ -78,29 +78,29 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 const TIPO_STYLE: Record<string, { bg: string; text: string; initial: string }> = {
-  casa:         { bg: "var(--hw-warning-lt)", text: "var(--hw-warning-dk)", initial: "C" },
-  departamento: { bg: "var(--hw-primary-lt)", text: "var(--hw-primary-dk)", initial: "D" },
-  cabana:       { bg: "var(--hw-success-lt)", text: "var(--hw-success-dk)", initial: "B" },
+  casa:         { bg: "var(--pgo-warning-lt)", text: "var(--pgo-warning-dk)", initial: "C" },
+  departamento: { bg: "var(--pgo-primary-lt)", text: "var(--pgo-primary-dk)", initial: "D" },
+  cabana:       { bg: "var(--pgo-success-lt)", text: "var(--pgo-success-dk)", initial: "B" },
 };
 
 function estadoStripColor(estado: string): string {
   const map: Record<string, string> = {
-    arrendada:  "var(--hw-primary)",
-    disponible: "var(--hw-success)",
-    reservada:  "var(--hw-warning)",
-    borrador:   "var(--hw-text-4)",
+    arrendada:  "var(--pgo-primary)",
+    disponible: "var(--pgo-success)",
+    reservada:  "var(--pgo-warning)",
+    borrador:   "var(--pgo-text-4)",
   };
-  return map[estado] ?? "var(--hw-border-2)";
+  return map[estado] ?? "var(--pgo-border-2)";
 }
 
 type FiltroEstado = "todas" | "borrador" | "disponible" | "reservada" | "arrendada";
 
 const FILTROS: { key: FiltroEstado; label: string; color?: string }[] = [
   { key: "todas",      label: "Todas" },
-  { key: "borrador",   label: "Borrador",    color: "var(--hw-text-3)" },
-  { key: "disponible", label: "Disponibles", color: "var(--hw-success)" },
-  { key: "reservada",  label: "Reservadas",  color: "var(--hw-warning)" },
-  { key: "arrendada",  label: "Arrendadas",  color: "var(--hw-primary)" },
+  { key: "borrador",   label: "Borrador",    color: "var(--pgo-text-3)" },
+  { key: "disponible", label: "Disponibles", color: "var(--pgo-success)" },
+  { key: "reservada",  label: "Reservadas",  color: "var(--pgo-warning)" },
+  { key: "arrendada",  label: "Arrendadas",  color: "var(--pgo-primary)" },
 ];
 
 const SORT_OPTIONS_PROP  = [
@@ -296,7 +296,7 @@ function ImagenesField({
     <div>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5"
-           style={{ color: "var(--hw-text-4)" }}>
+           style={{ color: "var(--pgo-text-4)" }}>
           <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />
           Imágenes (máx. 5 · JPG, PNG, WebP, GIF · 5 MB c/u)
         </p>
@@ -304,8 +304,8 @@ function ImagenesField({
           <button
             type="button"
             onClick={agregar}
-            className="hw-btn text-[10px] font-semibold rounded-lg px-2 py-1"
-            style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-3)" }}
+            className="pgo-btn text-[10px] font-semibold rounded-lg px-2 py-1"
+            style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-3)" }}
           >
             + Agregar
           </button>
@@ -320,7 +320,7 @@ function ImagenesField({
               {url ? (
                 /* ── Vista previa de imagen ya subida ── */
                 <div className="relative overflow-hidden rounded-xl"
-                     style={{ height: "7rem", background: "var(--hw-surface-2)" }}>
+                     style={{ height: "7rem", background: "var(--pgo-surface-2)" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
@@ -342,22 +342,22 @@ function ImagenesField({
                 /* ── Zona de subida ── */
                 <div className="flex gap-2">
                   <label
-                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 px-4 text-sm transition-colors hover:bg-[var(--hw-surface-2)]"
+                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 px-4 text-sm transition-colors hover:bg-[var(--pgo-surface-2)]"
                     style={{
-                      borderColor: error ? "var(--hw-danger-bd)" : "var(--hw-border)",
-                      background:  error ? "var(--hw-danger-lt)"  : undefined,
+                      borderColor: error ? "var(--pgo-danger-bd)" : "var(--pgo-border)",
+                      background:  error ? "var(--pgo-danger-lt)"  : undefined,
                       cursor: subiendo ? "wait" : "pointer",
                     }}
                   >
                     {subiendo ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
-                        <span style={{ color: "var(--hw-text-4)" }}>Subiendo…</span>
+                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
+                        <span style={{ color: "var(--pgo-text-4)" }}>Subiendo…</span>
                       </>
                     ) : (
                       <>
-                        <UploadCloud className="h-4 w-4" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
-                        <span style={{ color: "var(--hw-text-3)" }}>
+                        <UploadCloud className="h-4 w-4" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
+                        <span style={{ color: "var(--pgo-text-3)" }}>
                           {error ? "Reintentar" : "Seleccionar imagen"}
                         </span>
                       </>
@@ -382,8 +382,8 @@ function ImagenesField({
                       type="button"
                       onClick={() => quitar(idx)}
                       aria-label={`Eliminar slot ${idx + 1}`}
-                      className="hw-btn rounded-lg p-2 text-[var(--hw-text-4)] hover:text-[var(--hw-danger)]"
-                      style={{ background: "var(--hw-surface-2)" }}
+                      className="pgo-btn rounded-lg p-2 text-[var(--pgo-text-4)] hover:text-[var(--pgo-danger)]"
+                      style={{ background: "var(--pgo-surface-2)" }}
                     >
                       <X className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
@@ -391,7 +391,7 @@ function ImagenesField({
                 </div>
               )}
               {error && (
-                <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[var(--hw-danger)]" role="alert">
+                <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[var(--pgo-danger)]" role="alert">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   {error}
                 </p>
@@ -415,8 +415,8 @@ const CUENTA_PROP_VACIA: CuentaProp = {
 };
 
 const inputCuentaCls =
-  "w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]";
-const inputCuentaStyle = { borderColor: "var(--hw-border)" } as const;
+  "w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]";
+const inputCuentaStyle = { borderColor: "var(--pgo-border)" } as const;
 
 /**
  * Cuenta bancaria del propietario (L-DT6). Es por persona, no por propiedad:
@@ -437,14 +437,14 @@ function CuentaPropietarioSection({
     onChange({ ...(cuenta ?? CUENTA_PROP_VACIA), [k]: v });
 
   return (
-    <div className="mt-5 rounded-2xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border)" }}>
+    <div className="mt-5 rounded-2xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border)" }}>
       <div className="mb-1 flex items-center gap-2">
-        <Landmark className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
-        <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+        <Landmark className="h-4 w-4" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
+        <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
           Cuenta bancaria del propietario
         </p>
       </div>
-      <p className="mb-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
+      <p className="mb-3 text-xs" style={{ color: "var(--pgo-text-4)" }}>
         A esta cuenta se le abona la liquidación de {propietarioNombre || "el propietario"}.
         Aplica al propietario en todas sus propiedades. Dato sensible: el arrendatario no la ve.
       </p>
@@ -453,8 +453,8 @@ function CuentaPropietarioSection({
         <button
           type="button"
           onClick={() => onChange({ ...CUENTA_PROP_VACIA })}
-          className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-          style={{ background: "var(--hw-surface)", color: "var(--hw-text-2)", border: "1px solid var(--hw-border-2)" }}
+          className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+          style={{ background: "var(--pgo-surface)", color: "var(--pgo-text-2)", border: "1px solid var(--pgo-border-2)" }}
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           Agregar cuenta
@@ -463,12 +463,12 @@ function CuentaPropietarioSection({
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Banco</p>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>Banco</p>
               <input type="text" value={cuenta.banco} onChange={(e) => set("banco", e.target.value)}
                 placeholder="Banco de Chile" className={inputCuentaCls} style={inputCuentaStyle} />
             </div>
             <div>
-              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Tipo de cuenta</p>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>Tipo de cuenta</p>
               <select value={cuenta.tipo} onChange={(e) => set("tipo", e.target.value)}
                 className={inputCuentaCls} style={inputCuentaStyle}>
                 {TIPOS_CUENTA.map((t) => <option key={t} value={t}>{ETIQUETA_TIPO_CUENTA[t] ?? t}</option>)}
@@ -476,48 +476,48 @@ function CuentaPropietarioSection({
             </div>
           </div>
           <div>
-            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Número de cuenta</p>
+            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>Número de cuenta</p>
             <input type="text" inputMode="numeric" value={cuenta.numero}
               onChange={(e) => set("numero", e.target.value.replace(/[^\d\s-]/g, ""))}
               placeholder="0012345678" className={inputCuentaCls} style={inputCuentaStyle} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Titular</p>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>Titular</p>
               <input type="text" value={cuenta.titular} onChange={(e) => set("titular", e.target.value)}
                 placeholder="Nombre del titular" className={inputCuentaCls} style={inputCuentaStyle} />
             </div>
             <div>
-              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>RUT del titular</p>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>RUT del titular</p>
               <input type="text" value={cuenta.rutTitular} onChange={(e) => set("rutTitular", e.target.value)}
                 placeholder="12.345.678-9" className={inputCuentaCls} style={inputCuentaStyle} />
             </div>
           </div>
           <div>
-            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>Correo del titular (opcional)</p>
+            <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>Correo del titular (opcional)</p>
             <input type="email" value={cuenta.email} onChange={(e) => set("email", e.target.value)}
               placeholder="titular@correo.cl" className={inputCuentaCls} style={inputCuentaStyle} />
           </div>
 
           <label className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
             style={{
-              background: cuenta.visibleEnPortal ? "var(--hw-primary-lt)" : "var(--hw-surface)",
-              border: `1px solid ${cuenta.visibleEnPortal ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+              background: cuenta.visibleEnPortal ? "var(--pgo-primary-lt)" : "var(--pgo-surface)",
+              border: `1px solid ${cuenta.visibleEnPortal ? "var(--pgo-primary-bd)" : "var(--pgo-border-2)"}`,
             }}>
             <input type="checkbox" checked={cuenta.visibleEnPortal}
               onChange={(e) => set("visibleEnPortal", e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--hw-primary)" }} />
+              className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--pgo-primary)" }} />
             <span className="min-w-0">
-              <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>Visible en el portal del propietario</span>
-              <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <span className="block text-sm" style={{ color: "var(--pgo-text-1)" }}>Visible en el portal del propietario</span>
+              <span className="block text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 El propietario ve su cuenta en el portal como confirmación de dónde recibe sus liquidaciones.
               </span>
             </span>
           </label>
 
           <button type="button" onClick={() => onChange(null)}
-            className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium"
-            style={{ color: "var(--hw-danger-dk)" }}>
+            className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium"
+            style={{ color: "var(--pgo-danger-dk)" }}>
             <X className="h-3.5 w-3.5" aria-hidden="true" />
             Quitar cuenta
           </button>
@@ -574,7 +574,7 @@ function CamposProp({
     <div className="space-y-4">
       {/* Tipo */}
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Tipo *</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Tipo *</p>
         <div className="flex gap-2">
           {[
             { v: "departamento", l: "Departamento" },
@@ -588,11 +588,11 @@ function CamposProp({
                 type="button"
                 onClick={() => onChangeField("tipo", v)}
                 aria-pressed={active}
-                className="hw-btn flex-1 rounded-xl py-2 text-xs font-semibold"
+                className="pgo-btn flex-1 rounded-xl py-2 text-xs font-semibold"
                 style={{
-                  background: active ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
-                  color:      active ? "var(--hw-primary)"    : "var(--hw-text-3)",
-                  border:     `1.5px solid ${active ? "var(--hw-primary)" : "transparent"}`,
+                  background: active ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+                  color:      active ? "var(--pgo-primary)"    : "var(--pgo-text-3)",
+                  border:     `1.5px solid ${active ? "var(--pgo-primary)" : "transparent"}`,
                 }}
               >
                 {l}
@@ -605,7 +605,7 @@ function CamposProp({
       {/* Rol de Avalúo — identifica el inmueble ante el SII y va en el contrato */}
       <div>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Rol de avalúo (SII) *</p>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Rol de avalúo (SII) *</p>
           {/* El rol se guarda y va al contrato igual; esto solo decide si las
               partes lo ven en el portal. */}
           <VisibilidadRolPrincipal
@@ -618,10 +618,10 @@ function CamposProp({
           value={form.rol}
           onChange={(e) => onChangeField("rol", e.target.value)}
           placeholder="573-24"
-          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+          className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+          style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
         />
-        <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mt-1 text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Manzana y predio, como aparece en las contribuciones. También sirve con el
           código de comuna adelante.
         </p>
@@ -630,17 +630,17 @@ function CamposProp({
       {/* Avalúo fiscal. Va junto al rol porque salen del mismo papel —las
           contribuciones— y porque los dos identifican el inmueble ante el SII. */}
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Avalúo fiscal</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Avalúo fiscal</p>
         <input
           type="text"
           inputMode="numeric"
           value={form.avaluoFiscal}
           onChange={(e) => onChangeField("avaluoFiscal", e.target.value.replace(/[^0-9]/g, ""))}
           placeholder="45000000"
-          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+          className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+          style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
         />
-        <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mt-1 text-xs" style={{ color: "var(--pgo-text-4)" }}>
           En pesos, como aparece en las contribuciones. El contrato lo exige (Ley
           18.101, Art. 10) y hace falta para calcular el IVA si arriendas amoblado.
         </p>
@@ -658,15 +658,15 @@ function CamposProp({
 
       {/* Dirección */}
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Dirección *</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Dirección *</p>
         <input
           type="text"
           value={form.direccion}
           onChange={(e) => onChangeField("direccion", e.target.value)}
           onBlur={() => dispararPreview(form.direccion, form.comuna, form.region)}
           placeholder="Av. Providencia 1234, Piso 5, Depto. 501"
-          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+          className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+          style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           autoComplete="street-address"
         />
       </div>
@@ -674,13 +674,13 @@ function CamposProp({
       {/* Región + Comuna — comuna depende de la región elegida */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Región</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Región</p>
           <select
             aria-label="Región"
             value={form.region}
             onChange={(e) => { onChangeField("region", e.target.value); onChangeField("comuna", ""); }}
-            className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+            className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           >
             <option value="">Seleccionar región…</option>
             {REGIONES_CHILE.map((r) => (
@@ -689,7 +689,7 @@ function CamposProp({
           </select>
         </div>
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Comuna</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Comuna</p>
           <select
             aria-label="Comuna"
             value={form.comuna}
@@ -698,8 +698,8 @@ function CamposProp({
               dispararPreview(form.direccion, e.target.value, form.region);
             }}
             disabled={!form.region}
-            className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)] disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+            className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)] disabled:cursor-not-allowed disabled:opacity-60"
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           >
             <option value="">{form.region ? "Seleccionar comuna…" : "Primero elige una región"}</option>
             {getComunasDeRegion(form.region).map((c) => (
@@ -711,22 +711,22 @@ function CamposProp({
 
       {/* Vista previa en el mapa — ayuda a detectar direcciones mal escritas antes de guardar */}
       {(previewLoading || preview || previewError) && (
-        <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--hw-border)" }}>
+        <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--pgo-border)" }}>
           {previewLoading && (
-            <div className="flex items-center gap-2 p-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
+            <div className="flex items-center gap-2 p-3 text-xs" style={{ color: "var(--pgo-text-4)" }}>
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               Ubicando dirección…
             </div>
           )}
           {!previewLoading && previewError && (
-            <div className="flex items-center gap-2 p-3 text-xs" style={{ color: "var(--hw-danger)" }}>
+            <div className="flex items-center gap-2 p-3 text-xs" style={{ color: "var(--pgo-danger)" }}>
               <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               {previewError}
             </div>
           )}
           {!previewLoading && preview && (
             <>
-              <div className="flex items-center gap-2 px-3 pt-2 text-xs font-medium" style={{ color: "var(--hw-text-3)" }}>
+              <div className="flex items-center gap-2 px-3 pt-2 text-xs font-medium" style={{ color: "var(--pgo-text-3)" }}>
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 ¿Es esta la ubicación correcta?
               </div>
@@ -746,7 +746,7 @@ function CamposProp({
           { label: "m² tot.", key: "m2Totales" as const, placeholder: "55" },
         ].map(({ label, key, placeholder }) => (
           <div key={key}>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>{label}</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>{label}</p>
             <input
               type="number"
               inputMode="numeric"
@@ -754,8 +754,8 @@ function CamposProp({
               onChange={(e) => onChangeField(key, e.target.value)}
               placeholder={placeholder}
               min="0"
-              className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-              style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+              className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+              style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
             />
           </div>
         ))}
@@ -769,7 +769,7 @@ function CamposProp({
           { label: "Plantas",          key: "plantas"          as const, placeholder: "2" },
         ].map(({ label, key, placeholder }) => (
           <div key={key}>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>{label}</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>{label}</p>
             <input
               type="number"
               inputMode="numeric"
@@ -777,8 +777,8 @@ function CamposProp({
               onChange={(e) => onChangeField(key, e.target.value)}
               placeholder={placeholder}
               min="0"
-              className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-              style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+              className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+              style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
             />
           </div>
         ))}
@@ -787,7 +787,7 @@ function CamposProp({
       {/* Antigüedad / Orientación */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Antigüedad (años)</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Antigüedad (años)</p>
           <input
             type="number"
             inputMode="numeric"
@@ -795,18 +795,18 @@ function CamposProp({
             onChange={(e) => onChangeField("antiguedadAnios", e.target.value)}
             placeholder="12"
             min="0"
-            className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+            className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           />
         </div>
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Orientación</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Orientación</p>
           <select
             aria-label="Orientación"
             value={form.orientacion}
             onChange={(e) => onChangeField("orientacion", e.target.value)}
-            className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+            className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           >
             <option value="">Sin especificar</option>
             {ORIENTACIONES.map((o) => (
@@ -817,7 +817,7 @@ function CamposProp({
       </div>
 
       {/* Es condominio */}
-      <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
+      <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
         <label className="flex cursor-pointer items-center gap-3">
           <input
             type="checkbox"
@@ -825,14 +825,14 @@ function CamposProp({
             onChange={(e) => onChangeField("esCondominio", e.target.checked)}
             className="h-4 w-4 rounded accent-blue-600"
           />
-          <span className="text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>
             Es condominio
           </span>
         </label>
       </div>
 
       {/* Ubicación exacta en el mapa público — requiere acuerdo previo con el propietario */}
-      <div className="rounded-xl p-3" style={{ background: "var(--hw-success-lt)", border: "1px solid var(--hw-success-bd)" }}>
+      <div className="rounded-xl p-3" style={{ background: "var(--pgo-success-lt)", border: "1px solid var(--pgo-success-bd)" }}>
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
@@ -841,10 +841,10 @@ function CamposProp({
             className="mt-0.5 h-4 w-4 rounded accent-emerald-600"
           />
           <span>
-            <span className="block text-sm font-medium" style={{ color: "var(--hw-success-dk)" }}>
+            <span className="block text-sm font-medium" style={{ color: "var(--pgo-success-dk)" }}>
               Mostrar ubicación exacta en el marketplace
             </span>
-            <span className="block text-xs mt-0.5" style={{ color: "var(--hw-success-dk)" }}>
+            <span className="block text-xs mt-0.5" style={{ color: "var(--pgo-success-dk)" }}>
               Por defecto, el público solo ve la comuna/región y un área aproximada en el mapa.
               Actívalo solo si ya conversaste con el propietario — se mostrará la dirección
               completa y el pin exacto a cualquier visitante.
@@ -854,7 +854,7 @@ function CamposProp({
       </div>
 
       {/* Gasto común */}
-      <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
+      <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
         <label className="flex cursor-pointer items-center gap-3">
           <input
             type="checkbox"
@@ -862,13 +862,13 @@ function CamposProp({
             onChange={(e) => onChangeField("pagaGastosComunes", e.target.checked)}
             className="h-4 w-4 rounded accent-blue-600"
           />
-          <span className="text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>
             La propiedad cobra gasto común
           </span>
         </label>
         {form.pagaGastosComunes && (
           <div className="mt-2 pl-7">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Monto GC (CLP)</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Monto GC (CLP)</p>
             <input
               type="number"
               inputMode="numeric"
@@ -876,15 +876,15 @@ function CamposProp({
               onChange={(e) => onChangeField("valorGastosComunes", e.target.value)}
               placeholder="45000"
               min="0"
-              className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-              style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+              className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+              style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
             />
           </div>
         )}
       </div>
 
       {/* Acepta mascotas */}
-      <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
+      <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
         <label className="flex cursor-pointer items-center gap-3">
           <input
             type="checkbox"
@@ -892,7 +892,7 @@ function CamposProp({
             onChange={(e) => onChangeField("aceptaMascotas", e.target.checked)}
             className="h-4 w-4 rounded accent-blue-600"
           />
-          <span className="text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>
             Acepta mascotas
           </span>
         </label>
@@ -903,14 +903,14 @@ function CamposProp({
 
       {/* Notas */}
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Descripción / notas</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Descripción / notas</p>
         <textarea
           value={form.otrasDescripciones}
           onChange={(e) => onChangeField("otrasDescripciones", e.target.value)}
           placeholder="Incluye estacionamiento, bodega, buenas vistas…"
           rows={2}
-          className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)] resize-none"
-          style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+          className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)] resize-none"
+          style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
         />
       </div>
 
@@ -918,13 +918,13 @@ function CamposProp({
           invisible para un Colaborador, no solo deshabilitado (ROL-UI-5). */}
       {esManager && (
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Colaborador asignado</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Colaborador asignado</p>
           <select
             aria-label="Colaborador asignado"
             value={form.asignadoAId}
             onChange={(e) => onChangeField("asignadoAId", e.target.value)}
-            className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+            className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
           >
             <option value="">Sin asignar</option>
             {colaboradores.map((c) => (
@@ -936,53 +936,53 @@ function CamposProp({
 
       {/* Propietario (solo en modo crear) */}
       {showPropietario && (
-        <div className="border-t pt-4" style={{ borderColor: "var(--hw-border)" }}>
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--hw-text-4)" }}>Propietario</p>
+        <div className="border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--pgo-text-4)" }}>Propietario</p>
           <div className="space-y-3">
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Nombre completo *</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Nombre completo *</p>
               <input
                 type="text"
                 value={form.propietarioNombre}
                 onChange={(e) => onChangeField("propietarioNombre", e.target.value)}
                 placeholder="Juan Pérez Soto"
-                className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-                style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+                className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+                style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
                 autoComplete="name"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>RUT *</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>RUT *</p>
                 <input
                   type="text"
                   value={form.propietarioRut}
                   onChange={(e) => { onChangeField("propietarioRut", e.target.value); }}
                   onBlur={onRutBlur}
                   placeholder="12.345.678-9"
-                  className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
+                  className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
                   style={{
-                    borderColor: rutError ? "var(--hw-danger)" : "var(--hw-border)",
-                    background: "var(--hw-surface)",
+                    borderColor: rutError ? "var(--pgo-danger)" : "var(--pgo-border)",
+                    background: "var(--pgo-surface)",
                   }}
                   autoComplete="off"
                   inputMode="text"
                 />
                 {rutError && (
-                  <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--hw-danger)" }}>
+                  <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--pgo-danger)" }}>
                     {rutError}
                   </p>
                 )}
               </div>
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Correo</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Correo</p>
                 <input
                   type="email"
                   value={form.propietarioEmail}
                   onChange={(e) => onChangeField("propietarioEmail", e.target.value)}
                   placeholder="juan@mail.cl"
-                  className="w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-                  style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)" }}
+                  className="w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+                  style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" }}
                   autoComplete="email"
                 />
               </div>
@@ -1010,10 +1010,10 @@ function DiagramaEstado({
   const router = useRouter();
 
   const nodos: { key: string; label: string; color: string }[] = [
-    { key: "borrador",   label: "Borrador",   color: "var(--hw-text-4)" },
-    { key: "disponible", label: "Disponible", color: "var(--hw-success)" },
-    { key: "reservada",  label: "Reservada",  color: "var(--hw-warning)" },
-    { key: "arrendada",  label: "Arrendada",  color: "var(--hw-primary)" },
+    { key: "borrador",   label: "Borrador",   color: "var(--pgo-text-4)" },
+    { key: "disponible", label: "Disponible", color: "var(--pgo-success)" },
+    { key: "reservada",  label: "Reservada",  color: "var(--pgo-warning)" },
+    { key: "arrendada",  label: "Arrendada",  color: "var(--pgo-primary)" },
   ];
 
   async function doActivar() {
@@ -1037,8 +1037,8 @@ function DiagramaEstado({
   }
 
   return (
-    <div className="rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
-      <p className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--hw-text-4)" }}>
+    <div className="rounded-xl p-4" style={{ background: "var(--pgo-surface-2)" }}>
+      <p className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--pgo-text-4)" }}>
         Ciclo de vida
       </p>
 
@@ -1052,8 +1052,8 @@ function DiagramaEstado({
               <div
                 className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
                 style={{
-                  background: isCurrent ? n.color : "var(--hw-border)",
-                  color:      isCurrent ? "white"  : "var(--hw-text-4)",
+                  background: isCurrent ? n.color : "var(--pgo-border)",
+                  color:      isCurrent ? "white"  : "var(--pgo-text-4)",
                   border:     isCurrent ? `2px solid ${n.color}` : "2px solid transparent",
                   opacity:    isAuto && !isCurrent ? 0.6 : 1,
                 }}
@@ -1065,7 +1065,7 @@ function DiagramaEstado({
                 )}
               </div>
               {i < nodos.length - 1 && (
-                <ArrowRight className="h-3 w-3 shrink-0 text-[var(--hw-text-4)]" aria-hidden="true" />
+                <ArrowRight className="h-3 w-3 shrink-0 text-[var(--pgo-text-4)]" aria-hidden="true" />
               )}
             </div>
           );
@@ -1079,8 +1079,8 @@ function DiagramaEstado({
             type="button"
             onClick={doActivar}
             disabled={activando}
-            className="hw-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-white"
-            style={{ background: activando ? "var(--hw-border-2)" : "var(--hw-success)" }}
+            className="pgo-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-white"
+            style={{ background: activando ? "var(--pgo-border-2)" : "var(--pgo-success)" }}
           >
             {activando ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
             Activar → Disponible
@@ -1091,11 +1091,11 @@ function DiagramaEstado({
             type="button"
             onClick={doDesactivar}
             disabled={desactivando}
-            className="hw-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
+            className="pgo-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
             style={{
-              background: desactivando ? "var(--hw-border-2)" : "var(--hw-surface-2)",
-              color:      "var(--hw-text-3)",
-              border:     "1.5px solid var(--hw-border)",
+              background: desactivando ? "var(--pgo-border-2)" : "var(--pgo-surface-2)",
+              color:      "var(--pgo-text-3)",
+              border:     "1.5px solid var(--pgo-border)",
             }}
           >
             {desactivando ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -1103,7 +1103,7 @@ function DiagramaEstado({
           </button>
         )}
         {(estado === "reservada" || estado === "arrendada") && (
-          <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--hw-text-4)" }}>
+          <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--pgo-text-4)" }}>
             <Lock className="h-3.5 w-3.5" aria-hidden="true" />
             {estado === "reservada"
               ? "Propiedad reservada — tiene un contrato pendiente de firma."
@@ -1113,7 +1113,7 @@ function DiagramaEstado({
       </div>
 
       {err && (
-        <p className="mt-2 text-xs font-medium" style={{ color: "var(--hw-danger)" }}>{err}</p>
+        <p className="mt-2 text-xs font-medium" style={{ color: "var(--pgo-danger)" }}>{err}</p>
       )}
     </div>
   );
@@ -1407,7 +1407,7 @@ export function PropiedadesClient({
               <button
                 type="button"
                 onClick={() => { setOpenCrear(true); setErrorCrear(""); setRutErrorCrear(""); setFormCrear(FORM_CREAR_INICIAL); }}
-                className="hw-btn-primary"
+                className="pgo-btn-primary"
                 style={{ height: "32px", fontSize: "12px", padding: "0 12px" }}
                 disabled={cupoLleno}
                 title={cupoLleno ? "Alcanzaste el máximo de propiedades de tu plan. Sube de plan para cargar más." : undefined}
@@ -1425,26 +1425,26 @@ export function PropiedadesClient({
             label={f.label}
             count={counts[f.key]}
             active={filtro === f.key}
-            activeColor={f.color ?? "var(--hw-primary-dk)"}
+            activeColor={f.color ?? "var(--pgo-primary-dk)"}
             onClick={() => setFiltro(f.key)}
           />
         ))}
       </FilterToolbar>
 
       {/* ── Grid de cards ── */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 hw-stagger">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 pgo-stagger">
         {pagina.map((p) => {
-          const style    = TIPO_STYLE[p.tipo] ?? { bg: "var(--hw-surface-2)", text: "var(--hw-text-2)", initial: "P" };
+          const style    = TIPO_STYLE[p.tipo] ?? { bg: "var(--pgo-surface-2)", text: "var(--pgo-text-2)", initial: "P" };
           const miniatura = p.imagenes[0]?.url;
           return (
             <article
               key={p.id}
-              className="hw-card hw-card-glow hw-sheen overflow-hidden"
+              className="pgo-card pgo-card-glow pgo-sheen overflow-hidden"
               onClick={() => setSeleccionada(p)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSeleccionada(p); } }}
               tabIndex={0}
               aria-label={`${TIPO_LABEL[p.tipo] ?? p.tipo} en ${p.direccion}. Estado: ${p.estado}. Presiona Enter para ver detalle.`}
-              style={{ cursor: "pointer", "--hw-card-glow": estadoStripColor(p.estado) } as React.CSSProperties}
+              style={{ cursor: "pointer", "--pgo-card-glow": estadoStripColor(p.estado) } as React.CSSProperties}
             >
               {miniatura ? (
                 <div className="h-32 w-full overflow-hidden">
@@ -1469,25 +1469,25 @@ export function PropiedadesClient({
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{p.estado}</Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-[var(--hw-text-4)]" />
+                    <ChevronRight className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />
                   </div>
                 </div>
-                <h3 className="mt-3 font-semibold text-[var(--hw-text-1)]">{TIPO_LABEL[p.tipo] ?? p.tipo}</h3>
-                <p className="mt-1 flex items-center gap-1 text-sm text-[var(--hw-text-3)]">
-                  <MapPin className="h-3 w-3 shrink-0 text-[var(--hw-text-4)]" />
+                <h3 className="mt-3 font-semibold text-[var(--pgo-text-1)]">{TIPO_LABEL[p.tipo] ?? p.tipo}</h3>
+                <p className="mt-1 flex items-center gap-1 text-sm text-[var(--pgo-text-3)]">
+                  <MapPin className="h-3 w-3 shrink-0 text-[var(--pgo-text-4)]" />
                   {p.direccion}{p.comuna ? `, ${p.comuna}` : ""}
                 </p>
-                <p className="mt-0.5 text-xs text-[var(--hw-text-4)]">Propietario: {p.propietario.nombre}</p>
-                <div className="mt-3 flex flex-wrap gap-3 text-xs text-[var(--hw-text-3)]">
-                  {p.piezas    != null && <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-[var(--hw-text-4)]" />{p.piezas} pieza{p.piezas !== 1 ? "s" : ""}</span>}
-                  {p.banos     != null && <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 text-[var(--hw-text-4)]" />{p.banos} baño{p.banos !== 1 ? "s" : ""}</span>}
-                  {p.estacionamientos != null && <span className="flex items-center gap-1"><Car className="h-3.5 w-3.5 text-[var(--hw-text-4)]" />{p.estacionamientos}</span>}
+                <p className="mt-0.5 text-xs text-[var(--pgo-text-4)]">Propietario: {p.propietario.nombre}</p>
+                <div className="mt-3 flex flex-wrap gap-3 text-xs text-[var(--pgo-text-3)]">
+                  {p.piezas    != null && <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />{p.piezas} pieza{p.piezas !== 1 ? "s" : ""}</span>}
+                  {p.banos     != null && <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />{p.banos} baño{p.banos !== 1 ? "s" : ""}</span>}
+                  {p.estacionamientos != null && <span className="flex items-center gap-1"><Car className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />{p.estacionamientos}</span>}
                   {p.m2Totales != null && <span>{p.m2Totales} m²</span>}
                 </div>
                 {p.pagaGastosComunes && p.valorGastosComunes != null && (
-                  <div className="mt-3 flex items-center justify-between rounded-lg px-3 py-1.5 text-xs" style={{ background: "var(--hw-surface-2)" }}>
-                    <span className="text-[var(--hw-text-3)]">Gasto común</span>
-                    <span className="font-semibold text-[var(--hw-text-2)]">{clp(p.valorGastosComunes)}</span>
+                  <div className="mt-3 flex items-center justify-between rounded-lg px-3 py-1.5 text-xs" style={{ background: "var(--pgo-surface-2)" }}>
+                    <span className="text-[var(--pgo-text-3)]">Gasto común</span>
+                    <span className="font-semibold text-[var(--pgo-text-2)]">{clp(p.valorGastosComunes)}</span>
                   </div>
                 )}
               </div>
@@ -1495,7 +1495,7 @@ export function PropiedadesClient({
           );
         })}
         {pagina.length === 0 && (
-          <div className="col-span-full hw-card p-10 text-center text-sm text-[var(--hw-text-4)]">
+          <div className="col-span-full pgo-card p-10 text-center text-sm text-[var(--pgo-text-4)]">
             {busqueda ? `No se encontraron propiedades para "${busqueda}".` : "No hay propiedades en este estado."}
           </div>
         )}
@@ -1504,7 +1504,7 @@ export function PropiedadesClient({
       {/* Footer paginación */}
       {propiedadesFinales.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <span className="text-xs text-[var(--hw-text-4)]">
+          <span className="text-xs text-[var(--pgo-text-4)]">
             {pagina.length} de {propiedadesFinales.length} propiedad{propiedadesFinales.length !== 1 ? "es" : ""}
           </span>
           <PageSizePicker value={pageSize} onChange={setPageSize} />
@@ -1531,17 +1531,17 @@ export function PropiedadesClient({
                       <div className="mb-1.5 flex items-center gap-2">
                         <span
                           className="rounded-lg px-2 py-0.5 text-xs font-semibold"
-                          style={{ background: TIPO_STYLE[seleccionada.tipo]?.bg ?? "var(--hw-surface-2)", color: TIPO_STYLE[seleccionada.tipo]?.text ?? "var(--hw-text-3)" }}
+                          style={{ background: TIPO_STYLE[seleccionada.tipo]?.bg ?? "var(--pgo-surface-2)", color: TIPO_STYLE[seleccionada.tipo]?.text ?? "var(--pgo-text-3)" }}
                         >
                           {TIPO_LABEL[seleccionada.tipo] ?? seleccionada.tipo}
                         </span>
                         <Badge tone={estadoTone(seleccionada.estado)} pulse={estadoPulse(seleccionada.estado)}>{seleccionada.estado}</Badge>
                       </div>
-                      <DialogTitle className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+                      <DialogTitle className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
                         {seleccionada.direccion}
                       </DialogTitle>
                       {seleccionada.comuna && (
-                        <DialogDescription className="mt-0.5 flex items-center gap-1 text-sm" style={{ color: "var(--hw-text-3)" }}>
+                        <DialogDescription className="mt-0.5 flex items-center gap-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
                           <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                           {seleccionada.comuna}{seleccionada.region ? `, ${seleccionada.region}` : ""}
                         </DialogDescription>
@@ -1551,8 +1551,8 @@ export function PropiedadesClient({
                       type="button"
                       onClick={() => setSeleccionada(null)}
                       aria-label="Cerrar detalle de propiedad"
-                      className="hw-btn shrink-0 rounded-lg p-1.5"
-                      style={{ color: "var(--hw-text-4)" }}
+                      className="pgo-btn shrink-0 rounded-lg p-1.5"
+                      style={{ color: "var(--pgo-text-4)" }}
                     >
                       <X className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -1563,7 +1563,7 @@ export function PropiedadesClient({
                 {seleccionada.imagenes.length > 0 && (
                   <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
                     {seleccionada.imagenes.map((img, i) => (
-                      <div key={i} className="h-28 w-44 shrink-0 overflow-hidden rounded-xl" style={{ background: "var(--hw-surface-2)" }}>
+                      <div key={i} className="h-28 w-44 shrink-0 overflow-hidden rounded-xl" style={{ background: "var(--pgo-surface-2)" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={img.url} alt={`Imagen ${i + 1}`} className="h-full w-full object-cover" loading="lazy" />
                       </div>
@@ -1578,10 +1578,10 @@ export function PropiedadesClient({
                     { icon: <Bath      className="h-4 w-4" aria-hidden="true" />, label: "Baños",   val: seleccionada.banos },
                     { icon: <Car       className="h-4 w-4" aria-hidden="true" />, label: "Estac.",  val: seleccionada.estacionamientos },
                   ].map(({ icon, label, val }) => (
-                    <div key={label} className="flex flex-col items-center rounded-xl py-3 text-center" style={{ background: "var(--hw-surface-2)" }}>
-                      <span style={{ color: "var(--hw-text-4)" }}>{icon}</span>
-                      <span className="mt-1 text-xl font-bold hw-num" style={{ color: "var(--hw-text-1)" }}>{val ?? "—"}</span>
-                      <span className="text-[10px]" style={{ color: "var(--hw-text-4)" }}>{label}</span>
+                    <div key={label} className="flex flex-col items-center rounded-xl py-3 text-center" style={{ background: "var(--pgo-surface-2)" }}>
+                      <span style={{ color: "var(--pgo-text-4)" }}>{icon}</span>
+                      <span className="mt-1 text-xl font-bold pgo-num" style={{ color: "var(--pgo-text-1)" }}>{val ?? "—"}</span>
+                      <span className="text-[10px]" style={{ color: "var(--pgo-text-4)" }}>{label}</span>
                     </div>
                   ))}
                 </div>
@@ -1601,9 +1601,9 @@ export function PropiedadesClient({
                     { label: "Contratos",      value: String(seleccionada._count.contratos) },
                     { label: "Colaborador asignado", value: seleccionada.asignadoA?.nombre ?? "Sin asignar" },
                   ].map(({ label, value }) => (
-                    <div key={label} className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
-                      <dt className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>{label}</dt>
-                      <dd className="mt-0.5 text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>{value}</dd>
+                    <div key={label} className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
+                      <dt className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>{label}</dt>
+                      <dd className="mt-0.5 text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>{value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -1623,12 +1623,12 @@ export function PropiedadesClient({
 
                 {/* GC */}
                 {seleccionada.pagaGastosComunes && seleccionada.valorGastosComunes != null && (
-                  <div className="mb-4 flex items-center justify-between rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
-                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--hw-text-2)" }}>
-                      <ShieldCheck className="h-4 w-4" aria-hidden="true" style={{ color: "var(--hw-primary)" }} />
+                  <div className="mb-4 flex items-center justify-between rounded-xl p-4" style={{ background: "var(--pgo-surface-2)" }}>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--pgo-text-2)" }}>
+                      <ShieldCheck className="h-4 w-4" aria-hidden="true" style={{ color: "var(--pgo-primary)" }} />
                       Gasto común mensual
                     </div>
-                    <span className="text-lg font-bold hw-num" style={{ color: "var(--hw-text-1)" }}>
+                    <span className="text-lg font-bold pgo-num" style={{ color: "var(--pgo-text-1)" }}>
                       {clp(seleccionada.valorGastosComunes)}
                     </span>
                   </div>
@@ -1636,20 +1636,20 @@ export function PropiedadesClient({
 
                 {/* Descripción */}
                 {seleccionada.otrasDescripciones && (
-                  <div className="mb-4 rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>Descripción</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--hw-text-2)" }}>{seleccionada.otrasDescripciones}</p>
+                  <div className="mb-4 rounded-xl p-4" style={{ background: "var(--pgo-surface-2)" }}>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Descripción</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--pgo-text-2)" }}>{seleccionada.otrasDescripciones}</p>
                   </div>
                 )}
 
                 {/* ── Acciones (pie del modal) ── */}
-                <div className="border-t pt-4 space-y-2" style={{ borderColor: "var(--hw-border)" }}>
+                <div className="border-t pt-4 space-y-2" style={{ borderColor: "var(--pgo-border)" }}>
                   {seleccionada.estado === "borrador" ? (
                     <button
                       type="button"
                       onClick={() => abrirEditar(seleccionada)}
-                      className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
-                      style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+                      className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
+                      style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
                     >
                       <Pencil className="h-4 w-4" aria-hidden="true" />
                       Editar propiedad
@@ -1658,7 +1658,7 @@ export function PropiedadesClient({
                     <div className="space-y-2">
                       <div
                         className="rounded-xl px-4 py-3 text-xs leading-relaxed"
-                        style={{ background: "var(--hw-primary-lt)", border: "1px solid var(--hw-primary-bd)", color: "var(--hw-primary-dk)" }}
+                        style={{ background: "var(--pgo-primary-lt)", border: "1px solid var(--pgo-primary-bd)", color: "var(--pgo-primary-dk)" }}
                       >
                         <strong>Para editar esta propiedad</strong> primero debes bajarla a Borrador.
                         Esto la retira temporalmente del marketplace público.
@@ -1667,21 +1667,21 @@ export function PropiedadesClient({
                         type="button"
                         onClick={handleDesactivarDesdeModal}
                         disabled={desactivandoModal}
-                        className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
-                        style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+                        className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
+                        style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
                       >
                         {desactivandoModal
                           ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Bajando…</>
                           : <><RotateCcw className="h-4 w-4" aria-hidden="true" />Bajar a Borrador y editar</>}
                       </button>
                       {errDesactivarModal && (
-                        <p className="text-xs font-medium" style={{ color: "var(--hw-danger)" }}>{errDesactivarModal}</p>
+                        <p className="text-xs font-medium" style={{ color: "var(--pgo-danger)" }}>{errDesactivarModal}</p>
                       )}
                     </div>
                   ) : (
                     <div
                       className="flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm"
-                      style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-4)" }}
+                      style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-4)" }}
                     >
                       <Lock className="h-4 w-4" aria-hidden="true" />
                       No editable —{" "}
@@ -1694,8 +1694,8 @@ export function PropiedadesClient({
                     <button
                       type="button"
                       onClick={abrirTitularidad}
-                      className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold"
-                      style={{ color: "var(--hw-text-3)" }}
+                      className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold"
+                      style={{ color: "var(--pgo-text-3)" }}
                     >
                       <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden="true" />
                       Cambiar titularidad (nuevo propietario)
@@ -1717,10 +1717,10 @@ export function PropiedadesClient({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+            <DialogTitle className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
               Cambiar titularidad
             </DialogTitle>
-            <DialogDescription className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+            <DialogDescription className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
               {seleccionada?.direccion}
             </DialogDescription>
           </DialogHeader>
@@ -1728,7 +1728,7 @@ export function PropiedadesClient({
           <div className="space-y-4 py-2">
             <div
               className="rounded-xl px-4 py-3 text-xs leading-relaxed"
-              style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+              style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
             >
               Propietario actual: <strong>{seleccionada?.propietario.nombre}</strong>.
               Si esta propiedad tiene un contrato vigente, se avisará al
@@ -1737,19 +1737,19 @@ export function PropiedadesClient({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 Nombre del nuevo propietario
               </label>
               <input
                 type="text"
                 value={formTitularidad.nombre}
                 onChange={(e) => setFormTitularidad((f) => ({ ...f, nombre: e.target.value }))}
-                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                 placeholder="Nombre completo"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 RUT del nuevo propietario
               </label>
               <input
@@ -1757,36 +1757,36 @@ export function PropiedadesClient({
                 value={formTitularidad.rut}
                 onChange={(e) => { setFormTitularidad((f) => ({ ...f, rut: e.target.value })); if (rutErrorTitularidad) setRutErrorTitularidad(""); }}
                 onBlur={handleRutBlurTitularidad}
-                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                 placeholder="12.345.678-9"
               />
               {rutErrorTitularidad && (
-                <p className="mt-1 text-xs font-medium" style={{ color: "var(--hw-danger)" }}>{rutErrorTitularidad}</p>
+                <p className="mt-1 text-xs font-medium" style={{ color: "var(--pgo-danger)" }}>{rutErrorTitularidad}</p>
               )}
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 Correo (opcional)
               </label>
               <input
                 type="email"
                 value={formTitularidad.email}
                 onChange={(e) => setFormTitularidad((f) => ({ ...f, email: e.target.value }))}
-                className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                 placeholder="correo@ejemplo.cl"
               />
             </div>
 
             {errorTitularidad && (
-              <p className="text-sm font-medium" style={{ color: "var(--hw-danger)" }}>{errorTitularidad}</p>
+              <p className="text-sm font-medium" style={{ color: "var(--pgo-danger)" }}>{errorTitularidad}</p>
             )}
 
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setOpenTitularidad(false)}
-                className="hw-btn flex-1 rounded-xl py-2.5 text-sm font-semibold"
-                style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+                className="pgo-btn flex-1 rounded-xl py-2.5 text-sm font-semibold"
+                style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
               >
                 Cancelar
               </button>
@@ -1794,8 +1794,8 @@ export function PropiedadesClient({
                 type="button"
                 onClick={handleCambiarTitularidad}
                 disabled={isPendingTitularidad}
-                className="hw-btn flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
-                style={{ background: "var(--hw-primary)" }}
+                className="pgo-btn flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+                style={{ background: "var(--pgo-primary)" }}
               >
                 {isPendingTitularidad
                   ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Guardando…</>
@@ -1818,10 +1818,10 @@ export function PropiedadesClient({
             <DialogHeader className="mb-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <DialogTitle className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+                  <DialogTitle className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
                     Editar propiedad
                   </DialogTitle>
-                  <DialogDescription className="mt-0.5 text-sm" style={{ color: "var(--hw-text-3)" }}>
+                  <DialogDescription className="mt-0.5 text-sm" style={{ color: "var(--pgo-text-3)" }}>
                     {seleccionada?.direccion}
                   </DialogDescription>
                 </div>
@@ -1829,8 +1829,8 @@ export function PropiedadesClient({
                   type="button"
                   onClick={() => setOpenEditar(false)}
                   aria-label="Cerrar editor"
-                  className="hw-btn shrink-0 rounded-lg p-1.5"
-                  style={{ color: "var(--hw-text-4)" }}
+                  className="pgo-btn shrink-0 rounded-lg p-1.5"
+                  style={{ color: "var(--pgo-text-4)" }}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -1853,7 +1853,7 @@ export function PropiedadesClient({
                 className="mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
                 role="alert"
                 aria-live="assertive"
-                style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger)" }}
+                style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)" }}
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {errorEditar}
@@ -1886,8 +1886,8 @@ export function PropiedadesClient({
                 type="button"
                 onClick={() => setOpenEditar(false)}
                 disabled={isPendingEditar}
-                className="hw-btn rounded-xl px-4 py-2 text-sm font-semibold"
-                style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-3)" }}
+                className="pgo-btn rounded-xl px-4 py-2 text-sm font-semibold"
+                style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-3)" }}
               >
                 Cancelar
               </button>
@@ -1895,8 +1895,8 @@ export function PropiedadesClient({
                 type="button"
                 onClick={handleGuardarEdicion}
                 disabled={isPendingEditar}
-                className="hw-btn flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white"
-                style={{ background: isPendingEditar ? "var(--hw-border-2)" : "var(--hw-primary)" }}
+                className="pgo-btn flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white"
+                style={{ background: isPendingEditar ? "var(--pgo-border-2)" : "var(--pgo-primary)" }}
               >
                 {isPendingEditar ? (
                   <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Guardando…</>
@@ -1918,10 +1918,10 @@ export function PropiedadesClient({
             <DialogHeader className="mb-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <DialogTitle className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+                  <DialogTitle className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
                     Nueva propiedad
                   </DialogTitle>
-                  <DialogDescription className="mt-0.5 text-sm" style={{ color: "var(--hw-text-3)" }}>
+                  <DialogDescription className="mt-0.5 text-sm" style={{ color: "var(--pgo-text-3)" }}>
                     Se creará en estado <strong>borrador</strong>. Debes activarla para que sea visible.
                   </DialogDescription>
                 </div>
@@ -1929,8 +1929,8 @@ export function PropiedadesClient({
                   type="button"
                   onClick={() => { setOpenCrear(false); setRutErrorCrear(""); }}
                   aria-label="Cerrar formulario"
-                  className="hw-btn shrink-0 rounded-lg p-1.5"
-                  style={{ color: "var(--hw-text-4)" }}
+                  className="pgo-btn shrink-0 rounded-lg p-1.5"
+                  style={{ color: "var(--pgo-text-4)" }}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -1942,7 +1942,7 @@ export function PropiedadesClient({
                 className="mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
                 role="alert"
                 aria-live="assertive"
-                style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger)" }}
+                style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)" }}
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {errorCrear}
@@ -1965,8 +1965,8 @@ export function PropiedadesClient({
                 type="button"
                 onClick={() => { setOpenCrear(false); setRutErrorCrear(""); }}
                 disabled={isPendingCrear}
-                className="hw-btn rounded-xl px-4 py-2 text-sm font-semibold"
-                style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-3)" }}
+                className="pgo-btn rounded-xl px-4 py-2 text-sm font-semibold"
+                style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-3)" }}
               >
                 Cancelar
               </button>
@@ -1974,8 +1974,8 @@ export function PropiedadesClient({
                 type="button"
                 onClick={handleCrearPropiedad}
                 disabled={isPendingCrear || !!rutErrorCrear}
-                className="hw-btn flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white"
-                style={{ background: isPendingCrear || rutErrorCrear ? "var(--hw-border-2)" : "var(--hw-primary)" }}
+                className="pgo-btn flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white"
+                style={{ background: isPendingCrear || rutErrorCrear ? "var(--pgo-border-2)" : "var(--pgo-primary)" }}
               >
                 {isPendingCrear ? (
                   <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Guardando…</>

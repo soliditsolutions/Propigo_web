@@ -3,8 +3,8 @@ import { redondearPeso, type CLP } from "./dinero";
 /**
  * IVA del arriendo y de la comisión (DL 825).
  *
- * Hasta acá el proyecto solo conocía el IVA de la suscripción a Housing
- * (`apps/web/src/lib/plans.ts`). Ese es otro dinero: lo que Housing le cobra al
+ * Hasta acá el proyecto solo conocía el IVA de la suscripción a Propigo
+ * (`apps/web/src/lib/plans.ts`). Ese es otro dinero: lo que Propigo le cobra al
  * corredor. Este módulo trata el IVA del **arriendo**, que es plata de las
  * partes del contrato y por eso vive en el núcleo junto al resto del dominio
  * financiero. La tasa pasó a estar acá y `plans.ts` la reexporta, para que siga
@@ -15,7 +15,7 @@ import { redondearPeso, type CLP } from "./dinero";
  *  1. **El arriendo.** Por regla general el arrendamiento de inmuebles es
  *     exento. El DL 825 art. 8 letra g) lo grava cuando el inmueble se arrienda
  *     **amoblado**, o con instalaciones o maquinarias que permitan ejercer una
- *     actividad comercial o industrial. Housing hoy solo modela el caso
+ *     actividad comercial o industrial. Propigo hoy solo modela el caso
  *     amoblado (`Contrato.esAmoblado`); el de instalaciones comerciales queda
  *     fuera del alcance del producto, que es arriendo habitacional.
  *
@@ -37,7 +37,7 @@ import { redondearPeso, type CLP } from "./dinero";
 
 /**
  * Tasa del IVA en Chile. Fuente única del proyecto: tanto la suscripción a
- * Housing como el arriendo la leen de acá.
+ * Propigo como el arriendo la leen de acá.
  */
 export const IVA_PCT = 19;
 
@@ -71,7 +71,7 @@ export type DesgloseIva = {
  *
  * `mesesDelPeriodo` existe porque el art. 17 habla de un 11 % **anual** y manda
  * usar «la proporción correspondiente» cuando el arrendamiento es por períodos
- * distintos de un año. El caso normal de Housing es mensual (1).
+ * distintos de un año. El caso normal de Propigo es mensual (1).
  */
 export function deduccionAvaluo(
   avaluoFiscalCLP: CLP,

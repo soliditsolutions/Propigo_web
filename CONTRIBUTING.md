@@ -1,4 +1,4 @@
-# Guía de contribución — Housing
+# Guía de contribución — Propigo
 
 Gracias por contribuir. Estas reglas mantienen el repositorio consistente, revisable y seguro.
 
@@ -53,7 +53,7 @@ Reglas: un commit = un cambio lógico; mensaje en español; sin punto final.
 Antes de abrir un PR:
 
 1. `npm run lint` — sin errores.
-2. `npm test -w @housing/web` y `npm test -w @housing/core` — verdes.
+2. `npm test -w @propigo/web` y `npm test -w @propigo/core` — verdes.
 3. `npm run build` — compila.
 4. Si tocaste el schema: `npm run db:push` + revisar `prisma/sql/setup.sql` (RLS/vistas).
 5. Verifica el cambio en el navegador si es observable (no solo "compila").

@@ -14,6 +14,7 @@
  * corredora, y además se filtra por `tenantId` en cada consulta.
  */
 import type { TenantClient } from "./tenant-db";
+import { MARCA } from "@/lib/marca";
 
 /** Instantánea de datos personales lista para serializar. */
 export type ExportDatosPersona = {
@@ -283,7 +284,7 @@ export async function construirExportDatosPersona(
         "Ley 21.719 sobre protección de datos personales, Título III — derechos de acceso y de portabilidad.",
       responsable: { nombre: tenant.nombre, rut: tenant.rut },
       alcance:
-        "Todos los datos personales tratados por la corredora responsable a través de la plataforma Housing SOLIDIT. " +
+        `Todos los datos personales tratados por la corredora responsable a través de la plataforma ${MARCA}. ` +
         "Los datos de la contraparte de cada contrato se limitan a su nombre.",
     },
     identidad: {

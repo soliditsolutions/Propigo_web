@@ -282,7 +282,7 @@ moverlos. La holgura va de 1,7× a 8×.
 
 Comparando contra Leasity a igual tamaño de cartera:
 
-| Propiedades | Leasity | Housing | Housing es |
+| Propiedades | Leasity | Propigo | Propigo es |
 |---:|---:|---:|---|
 | 15 | 0,80 UF | 0,50 UF | 38 % más barato |
 | 50 | 1,70 UF | 0,90 UF | 47 % más barato |
@@ -317,7 +317,7 @@ Extrapolando la curva de precio por propiedad:
 | 500 | **3,10 UF** | $126.635 | $139 |
 | 1000 | **4,80 UF** | $196.080 | $215 |
 
-A 1000 propiedades Housing costaría 4,80 UF donde Leasity ni siquiera ofrece
+A 1000 propiedades Propigo costaría 4,80 UF donde Leasity ni siquiera ofrece
 tramo. El costo marginal de servir ese tenant sigue siendo de centavos, así que
 es margen casi puro.
 
@@ -334,7 +334,7 @@ No es la infraestructura, que es 1,9-11 % del ingreso. Es lo humano:
    no se acote, es el único ítem capaz de dar vuelta el margen de un cliente.**
 2. **SLA de "soporte prioritario" (N-07, abierta).** Sin definición, es costo sin techo.
 
-Con 96 % de margen de contribución, la rentabilidad de Housing se decide en
+Con 96 % de margen de contribución, la rentabilidad de Propigo se decide en
 cuántas horas humanas consume cada cliente, no en cuánto cuesta el servidor.
 
 ## Decisiones que esta definición deja tomadas

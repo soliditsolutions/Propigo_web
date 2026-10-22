@@ -14,14 +14,15 @@ import Link from "next/link";
 import { ClipboardList, Database, Users, Globe, Clock, ShieldCheck } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { ACTIVIDADES_TRATAMIENTO, retencionesDe } from "@/lib/registro-tratamiento";
+import { MARCA } from "@/lib/marca";
 
 export const metadata = {
-  title: "Registro de Actividades de Tratamiento · Housing SOLIDIT",
+  title: `Registro de Actividades de Tratamiento · ${MARCA}`,
   description:
-    "Registro de actividades de tratamiento de datos personales de Housing SOLIDIT, conforme a la Ley 21.719: qué datos, con qué finalidad, con quién se comparten y por cuánto tiempo.",
+    "Registro de actividades de tratamiento de datos personales de ${MARCA}, conforme a la Ley 21.719: qué datos, con qué finalidad, con quién se comparten y por cuánto tiempo.",
 };
 
-const ULTIMA_ACTUALIZACION = "10 de septiembre de 2026";
+const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
 
 export default function RegistroTratamientoPage() {
   return (
@@ -32,7 +33,7 @@ export default function RegistroTratamientoPage() {
         <div className="mb-8 flex items-start gap-3">
           <div
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+            style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
           >
             <ClipboardList className="h-5 w-5" aria-hidden="true" />
           </div>
@@ -50,7 +51,7 @@ export default function RegistroTratamientoPage() {
           Por cada actividad en la que tratamos datos personales: qué datos, de quién, con qué
           base legal, con quién se comparten (si con alguien) y por cuánto tiempo se conservan.
           Es el detalle operativo de lo que resume{" "}
-          <Link href="/privacidad" style={{ color: "var(--pf-purple)", fontWeight: 500 }}>
+          <Link href="/privacidad" style={{ color: "var(--pf-brand)", fontWeight: 500 }}>
             la Política de Privacidad
           </Link>.
         </p>
@@ -68,7 +69,7 @@ export default function RegistroTratamientoPage() {
                   <h2 className="text-base font-bold" style={{ color: "var(--pf-navy)" }}>{a.actividad}</h2>
                   <span
                     className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                    style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                    style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                   >
                     {a.baseLegal}
                   </span>
@@ -99,7 +100,7 @@ export default function RegistroTratamientoPage() {
                     <dd className="text-sm" style={{ color: "var(--pf-text-body)" }}>
                       {a.destinatarios ? (
                         <ul className="space-y-0.5">{a.destinatarios.map((d) => <li key={d}>{d}</li>)}</ul>
-                      ) : "Ninguno fuera de Housing SOLIDIT."}
+                      ) : `Ninguno fuera de ${MARCA}.`}
                     </dd>
                   </div>
                   <div>
@@ -127,7 +128,7 @@ export default function RegistroTratamientoPage() {
           style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
         >
           <div className="mb-3 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />
+            <ShieldCheck className="h-4 w-4" style={{ color: "var(--pf-brand)" }} aria-hidden="true" />
             <span className="font-semibold" style={{ color: "var(--pf-navy)" }}>Medidas de seguridad, en toda actividad</span>
           </div>
           <ul className="space-y-1" style={{ color: "var(--pf-text-body)" }}>
@@ -138,9 +139,9 @@ export default function RegistroTratamientoPage() {
           <p className="mt-4 text-xs" style={{ color: "var(--pf-text-light)" }}>
             No tratamos datos sensibles en los términos del art. 16 de la Ley 21.719 (salud, origen
             étnico, opiniones políticas, etc.). Puede ejercer sus derechos sobre estos datos desde{" "}
-            <Link href="/privacidad#derechos" style={{ color: "var(--pf-purple)" }}>la sección de derechos de la Política de Privacidad</Link>
+            <Link href="/privacidad#derechos" style={{ color: "var(--pf-brand)" }}>la sección de derechos de la Política de Privacidad</Link>
             {" "}o, si es arrendatario o propietario, desde{" "}
-            <Link href="/portal" style={{ color: "var(--pf-purple)" }}>el portal de autoconsulta → Mis datos</Link>.
+            <Link href="/portal" style={{ color: "var(--pf-brand)" }}>el portal de autoconsulta → Mis datos</Link>.
           </p>
         </div>
       </div>

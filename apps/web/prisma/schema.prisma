@@ -1,4 +1,4 @@
-// Housing — esquema de datos del MVP.
+// Propigo — esquema de datos del MVP.
 // Traducción de docs/04-esquema-bd.md. RLS, triggers (ledger inmutable),
 // índice único parcial y vistas de saldos se aplican por SQL aparte
 // (prisma/sql/setup.sql), porque Prisma no los modela en el schema.
@@ -357,7 +357,7 @@ model Tenant {
   auditoriasEquipo AuditoriaEquipo[]
   consentimientosIa ConsentimientoIa[]
   consumosIa       ConsumoIaDiario[]
-  // Billing (ADR-0014) — contabilidad Housing↔corredor, separada del ledger del arriendo
+  // Billing (ADR-0014) — contabilidad Propigo↔corredor, separada del ledger del arriendo
   suscripciones    SuscripcionTenant[]
   cargosBilling    CargoBilling[]
   comisiones       ComisionPlataforma[]
@@ -634,7 +634,7 @@ model Contrato {
   comisionCorredorPct Decimal            @default(0) @map("comision_corredor_pct") @db.Decimal(5, 2)
   /// Determina si el arriendo está afecto a IVA. Por regla general arrendar un
   /// inmueble es exento; el DL 825 art. 8 letra g) lo grava cuando se arrienda
-  /// amoblado. El cálculo vive en @housing/core (ivaArriendo) y necesita además
+  /// amoblado. El cálculo vive en @propigo/core (ivaArriendo) y necesita además
   /// el avalúo fiscal de la propiedad: sin él no se puede aplicar la deducción
   /// del 11 % y se le cobraría de más al arrendatario.
   esAmoblado          Boolean            @default(false) @map("es_amoblado")
@@ -777,7 +777,7 @@ model PagoEntrante {
   declaradoPor  Usuario?        @relation("PagoDeclaradoPor", fields: [declaradoPorId], references: [id])
   confirmadoPor Usuario?        @relation("PagoConfirmadoPor", fields: [confirmadoPorId], references: [id])
   asientos      AsientoLedger[]
-  /// Comisión de Housing devengada por este pago (Fase D). Opcional: solo los
+  /// Comisión de Propigo devengada por este pago (Fase D). Opcional: solo los
   /// pagos conciliados por el canal la generan, no los declarados a mano.
   comision      ComisionPlataforma?
 
@@ -1442,12 +1442,12 @@ model ConsumoIaDiario {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BILLING — Housing ↔ corredor (ADR-0014)
+// BILLING — Propigo ↔ corredor (ADR-0014)
 //
 // CONTABILIDAD SEPARADA, A PROPÓSITO. Estos modelos NO tocan `AsientoLedger`
 // ni `PagoEntrante`, que modelan el dinero del arriendo entre arrendatario,
 // propietario y corredor. Acá vive otra relación distinta: lo que el corredor
-// le debe a Housing (suscripción + comisión por usar el canal de pago).
+// le debe a Propigo (suscripción + comisión por usar el canal de pago).
 //
 // Mezclarlas contaminaría la liquidación del propietario y las vistas
 // financieras. No es una convención de estilo: hay un test de invariante que
@@ -1455,7 +1455,7 @@ model ConsumoIaDiario {
 //
 // Ojo con el nombre: `TipoAsiento.COMISION_CORREDOR` (ya existente) es la
 // comisión que el CORREDOR le cobra al PROPIETARIO por administrar. La
-// comisión de Housing es `ComisionPlataforma`, acá abajo. Son cosas distintas.
+// comisión de Propigo es `ComisionPlataforma`, acá abajo. Son cosas distintas.
 // ═══════════════════════════════════════════════════════════════════════════
 
 enum EstadoSuscripcion {
@@ -1485,7 +1485,7 @@ enum EstadoCargo {
 }
 
 enum EstadoComision {
-  devengada   // el pago de arriendo se concilió; Housing ganó la comisión
+  devengada   // el pago de arriendo se concilió; Propigo ganó la comisión
   facturada   // quedó incluida en un CargoBilling de cierre de mes
   anulada     // se revirtió el pago que la originó
 }
@@ -1500,7 +1500,7 @@ model SuscripcionTenant {
   estado   EstadoSuscripcion @default(activa)
   /// Referencia de la suscripción en el proveedor (null mientras no haya pasarela).
   gatewayRef   String? @map("gateway_ref")
-  /// Medio de pago inscrito — token opaco del proveedor. Housing NUNCA guarda
+  /// Medio de pago inscrito — token opaco del proveedor. Propigo NUNCA guarda
   /// el número de tarjeta.
   medioPagoRef String? @map("medio_pago_ref")
   /// Hasta cuándo tiene derecho al servicio. Es esto lo que decide el acceso,
@@ -1521,7 +1521,7 @@ model SuscripcionTenant {
   @@map("suscripcion_tenant")
 }
 
-/// Todo cobro de Housing a un tenant: la suscripción o el consolidado mensual
+/// Todo cobro de Propigo a un tenant: la suscripción o el consolidado mensual
 /// de comisiones.
 model CargoBilling {
   id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1545,7 +1545,7 @@ model CargoBilling {
   ufAplicada    Decimal? @map("uf_aplicada")     @db.Decimal(12, 2)
 
   // ── Ejecución ───────────────────────────────────────────────────────────
-  /// Clave de idempotencia que Housing manda al proveedor. Única global: es la
+  /// Clave de idempotencia que Propigo manda al proveedor. Única global: es la
   /// defensa contra el doble cobro si la red falla justo después de procesar.
   idempotencyKey       String  @unique @map("idempotency_key")
   gatewayRef           String? @map("gateway_ref")
@@ -1569,9 +1569,9 @@ model CargoBilling {
   @@map("cargo_billing")
 }
 
-/// Comisión que Housing devenga por cada pago de arriendo conciliado por el
+/// Comisión que Propigo devenga por cada pago de arriendo conciliado por el
 /// canal (Fase D). Se devenga por pago EFECTIVAMENTE conciliado, nunca por
-/// contrato activo: cobrar por pagos que Housing no procesó es indefendible.
+/// contrato activo: cobrar por pagos que Propigo no procesó es indefendible.
 model ComisionPlataforma {
   id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId       String         @map("tenant_id") @db.Uuid
@@ -1579,7 +1579,7 @@ model ComisionPlataforma {
   pagoEntranteId String         @unique @map("pago_entrante_id") @db.Uuid
   estado         EstadoComision @default(devengada)
   /// Monto fijo en CLP (D-14). No es un % del arriendo: desacopla el ingreso
-  /// de Housing del tamaño del arriendo.
+  /// de Propigo del tamaño del arriendo.
   montoClp       Decimal        @map("monto_clp") @db.Decimal(14, 0)
   /// Cargo de cierre de mes donde se facturó. Null mientras está devengada.
   cargoId        String?        @map("cargo_id") @db.Uuid

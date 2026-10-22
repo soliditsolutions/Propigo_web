@@ -22,7 +22,7 @@ export function TabNav({
       role="tablist"
       aria-label={ariaLabel}
       className="mb-6 flex flex-wrap gap-1 rounded-xl p-1"
-      style={{ background: "var(--hw-border)" }}
+      style={{ background: "var(--pgo-border)" }}
     >
       {tabs.map((tab) => {
         const isActive = tab.key === activeTab;
@@ -34,12 +34,12 @@ export function TabNav({
             aria-selected={isActive}
             className="relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"
             style={{
-              background: isActive ? "var(--hw-surface)" : "transparent",
-              // --hw-text-1 (texto primario) flipea con el tema y contrasta sobre
-              // --hw-surface en dark y light. Antes usaba --hw-sidebar (un token de
+              background: isActive ? "var(--pgo-surface)" : "transparent",
+              // --pgo-text-1 (texto primario) flipea con el tema y contrasta sobre
+              // --pgo-surface en dark y light. Antes usaba --pgo-sidebar (un token de
               // FONDO oscuro) que en dark daba texto oscuro sobre surface oscuro.
-              color: isActive ? "var(--hw-text-1)" : "var(--hw-text-3)",
-              boxShadow: isActive ? "var(--hw-shadow-1)" : "none",
+              color: isActive ? "var(--pgo-text-1)" : "var(--pgo-text-3)",
+              boxShadow: isActive ? "var(--pgo-shadow-1)" : "none",
               textDecoration: "none",
             }}
           >
@@ -49,8 +49,8 @@ export function TabNav({
                 aria-label={`${tab.count} elementos`}
                 className="flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-xs font-bold"
                 style={{
-                  background: isActive ? "var(--hw-primary-lt)" : "rgba(100,116,139,0.15)",
-                  color: isActive ? "var(--hw-primary)" : "var(--hw-text-3)",
+                  background: isActive ? "var(--pgo-primary-lt)" : "rgba(100,116,139,0.15)",
+                  color: isActive ? "var(--pgo-primary)" : "var(--pgo-text-3)",
                 }}
               >
                 {tab.count}

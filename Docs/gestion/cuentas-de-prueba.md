@@ -9,7 +9,7 @@
 
 | | |
 |---|---|
-| **Correo** | `corredor.prueba@housing.local` |
+| **Correo** | `corredor.prueba@propigo.local` |
 | **Contraseña** | `Kestrel.Vega_47` |
 | **Rol** | `manager` (dueño del tenant) |
 | **Plan** | `diamond` |
@@ -24,7 +24,7 @@ depurar (aparecen igual en logs, URLs y consultas SQL) y hacen el script idempot
 ## Cómo crearla o restaurarla
 
 ```bash
-npm run db:seed-cuenta -w @housing/web
+npm run db:seed-cuenta -w @propigo/web
 ```
 
 **Es idempotente**: se puede correr las veces que sea. Cada corrida además:
@@ -42,16 +42,16 @@ El orden importa — `db:seed` hace `TRUNCATE tenant … CASCADE`, así que **bo
 cuenta de prueba si se corre después**:
 
 ```bash
-npx prisma migrate reset -w @housing/web   # 1. esquema limpio
-npm run db:setup       -w @housing/web     # 2. RLS, vistas y triggers (NO lo reaplica el reset)
-npm run db:seed        -w @housing/web     # 3. datos demo — TRUNCATEA tenant, va ANTES
-npm run db:seed-cuenta -w @housing/web     # 4. cuenta de prueba — siempre al final
+npx prisma migrate reset -w @propigo/web   # 1. esquema limpio
+npm run db:setup       -w @propigo/web     # 2. RLS, vistas y triggers (NO lo reaplica el reset)
+npm run db:seed        -w @propigo/web     # 3. datos demo — TRUNCATEA tenant, va ANTES
+npm run db:seed-cuenta -w @propigo/web     # 4. cuenta de prueba — siempre al final
 ```
 
 El paso 2 es obligatorio: `prisma migrate reset` no reaplica `setup.sql`.
 
 **El paso 3 necesita `DATABASE_ADMIN_URL` en el `.env`** (rol dueño de las
-tablas). El seed arranca con un TRUNCATE y `housing_app` no puede hacerlo por
+tablas). El seed arranca con un TRUNCATE y `propigo_app` no puede hacerlo por
 diseño (ADR-0011): sin esa variable falla con `permission denied for table
 tenant`. El `.env` no se versiona, así que en una máquina nueva hay que
 agregarla — la URL del rol dueño ya viene comentada en el propio archivo.
@@ -65,7 +65,7 @@ agregarla — la URL del rol dueño ya viene comentada en el propio archivo.
 ```
 ──────────────────────────────────────────────────────
 🔐  EMAIL SIMULADO — Verificación de dispositivo
-    Para      : corredor.prueba@housing.local (Carlos Corredor)
+    Para      : corredor.prueba@propigo.local (Carlos Corredor)
     Código    : 330198
     Válido    : 10 minutos
 ──────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ La cuenta viene en `diamond` para que ninguna funcionalidad quede escondida detr
 de un gate mientras se prueba. Para ver el comportamiento de otro plan:
 
 ```bash
-docker exec housing-db psql -U housing -d housing \
+docker exec propigo-db psql -U propigo -d propigo \
   -c "UPDATE tenant SET plan='bronze' WHERE id='00000000-0000-4000-8000-000000000001';"
 ```
 
@@ -98,7 +98,7 @@ Esta cuenta tiene contraseña conocida y publicada en este documento. **No debe
 existir fuera de desarrollo local.**
 
 El script lo impide: verifica que `DATABASE_URL` apunte a un host local
-(`localhost`, `127.0.0.1`, `::1`, `host.docker.internal`, `db`, `housing-db`) y
+(`localhost`, `127.0.0.1`, `::1`, `host.docker.internal`, `db`, `propigo-db`) y
 aborta en cualquier otro caso. El bypass existe pero es explícito y hay que
 escribirlo a mano (`ALLOW_REMOTE_SEED=1`).
 
@@ -110,7 +110,7 @@ escribirlo a mano (`ALLOW_REMOTE_SEED=1`).
   el `WITH CHECK` de la política `tenant_isolation`.
   `seed.ts` no lo necesita porque corre **antes** de aplicar `setup.sql`.
 - **El RUT y la contraseña fueron validados** contra las propias funciones del
-  proyecto (`validarRut()` de `@housing/core` y `evaluatePassword()`), no elegidos a ojo.
+  proyecto (`validarRut()` de `@propigo/core` y `evaluatePassword()`), no elegidos a ojo.
 - **`e2e-bootstrap.ts` quedó obsoleto** con este script. Era de un solo uso (fallaba
   al segundo run por el UNIQUE de RUT) y estaba marcado como temporal para la
   auditoría E2E de julio 2026, que ya terminó. Se puede eliminar.

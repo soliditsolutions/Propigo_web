@@ -1,7 +1,7 @@
 /**
  * Gestión de sesión JWT para el Portal de Autoconsulta (ADR-0007).
  * Sesión de solo lectura, separada del sistema de panel.
- * Cookie: __Host-hw_portal (prod) / hw_portal (dev).
+ * Cookie: __Host-pgo_portal (prod) / pgo_portal (dev).
  *
  * Caduca por inactividad (el `exp` del JWT) y tiene un tope absoluto desde el
  * login; los tiempos y el porqué están en `sesion-cookies.ts`.

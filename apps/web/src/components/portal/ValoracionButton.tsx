@@ -18,7 +18,7 @@ export function ValoracionButton({ token }: Props) {
         className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
         style={{
           background: "rgba(245,158,11,0.10)",
-          color: "var(--hw-warning-dk)",
+          color: "var(--pgo-warning-dk)",
           border: "1px solid rgba(245,158,11,0.25)",
         }}
       >

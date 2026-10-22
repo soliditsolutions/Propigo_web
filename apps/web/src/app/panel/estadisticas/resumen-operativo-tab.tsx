@@ -6,10 +6,10 @@ import { clp, fecha } from "@/lib/format";
 import { Home, AlertTriangle, Percent, TrendingDown } from "lucide-react";
 
 const ESTADO_COLOR: Record<string, string> = {
-  borrador: "var(--hw-border-2)",
-  disponible: "var(--hw-success)",
-  reservada: "var(--hw-warning)",
-  arrendada: "var(--hw-primary)",
+  borrador: "var(--pgo-border-2)",
+  disponible: "var(--pgo-success)",
+  reservada: "var(--pgo-warning)",
+  arrendada: "var(--pgo-primary)",
 };
 const ESTADO_LABEL: Record<string, string> = {
   borrador: "Borrador",
@@ -23,7 +23,7 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
 
   const donutData = data.ocupacionDesglose
     .filter((d) => d.count > 0)
-    .map((d) => ({ label: ESTADO_LABEL[d.estado] ?? d.estado, value: d.count, color: ESTADO_COLOR[d.estado] ?? "var(--hw-border-2)" }));
+    .map((d) => ({ label: ESTADO_LABEL[d.estado] ?? d.estado, value: d.count, color: ESTADO_COLOR[d.estado] ?? "var(--pgo-border-2)" }));
 
   return (
     <div className="space-y-6">
@@ -67,12 +67,12 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
               {donutData.map((d) => (
                 <div key={d.label} className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm" style={{ background: d.color }} />
-                  <span style={{ color: "var(--hw-text-2)" }}>{d.label}</span>
-                  <span className="font-semibold" style={{ color: "var(--hw-text-1)" }}>{d.value}</span>
+                  <span style={{ color: "var(--pgo-text-2)" }}>{d.label}</span>
+                  <span className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>{d.value}</span>
                 </div>
               ))}
               {donutData.length === 0 && (
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Sin propiedades cargadas aún.</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Sin propiedades cargadas aún.</p>
               )}
             </div>
           </div>
@@ -85,8 +85,8 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
             xKey="mes"
             format="clpCompact"
             series={[
-              { key: "facturado", label: "Facturado", color: "var(--hw-border-2)" },
-              { key: "cobrado", label: "Cobrado", color: "var(--hw-success)" },
+              { key: "facturado", label: "Facturado", color: "var(--pgo-border-2)" },
+              { key: "cobrado", label: "Cobrado", color: "var(--pgo-success)" },
             ]}
           />
         </Card>
@@ -95,18 +95,18 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
       <Card className="p-5">
         <SectionTitle title="Próximos vencimientos" description="Los 5 más cercanos" />
         {data.proximosVencimientos.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>Sin períodos pendientes.</p>
+          <p className="text-sm" style={{ color: "var(--pgo-text-4)" }}>Sin períodos pendientes.</p>
         ) : (
           <div className="space-y-2">
             {data.proximosVencimientos.map((p) => (
               <div key={p.id} className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <div className="min-w-0">
-                  <span style={{ color: "var(--hw-text-1)" }}>{p.arrendatario}</span>
-                  <span className="ml-2 text-xs" style={{ color: "var(--hw-text-4)" }}>{p.direccion}</span>
+                  <span style={{ color: "var(--pgo-text-1)" }}>{p.arrendatario}</span>
+                  <span className="ml-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>{p.direccion}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs tabular-nums" style={{ color: "var(--hw-text-3)" }}>{fecha(p.fechaVencimiento)}</span>
-                  <span className="font-semibold tabular-nums" style={{ color: "var(--hw-text-1)" }}>{clp(p.montoClp)}</span>
+                  <span className="text-xs tabular-nums" style={{ color: "var(--pgo-text-3)" }}>{fecha(p.fechaVencimiento)}</span>
+                  <span className="font-semibold tabular-nums" style={{ color: "var(--pgo-text-1)" }}>{clp(p.montoClp)}</span>
                 </div>
               </div>
             ))}

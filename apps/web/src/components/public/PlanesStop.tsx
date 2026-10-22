@@ -67,7 +67,7 @@ function FeatureTip({ feature }: { feature: PlanFeature }) {
       <button
         type="button"
         aria-label={`Más información sobre: ${feature.text}`}
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full opacity-50 outline-none transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--pf-purple)]"
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full opacity-50 outline-none transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--pf-brand)]"
       >
         <Info className="h-3 w-3" aria-hidden="true" />
       </button>
@@ -100,15 +100,15 @@ function PlanCard({
   return (
     <BorderGlow radius={20} className="h-full">
     <div
-      className="hw-auth-card relative flex h-full w-full flex-col p-4 text-left transition-shadow duration-200 hover:shadow-xl"
+      className="pgo-auth-card relative flex h-full w-full flex-col p-4 text-left transition-shadow duration-200 hover:shadow-xl"
       // El plan destacado lleva un anillo púrpura + halo (Decoy Effect): el
       // ring va por box-shadow y no por border para seguir el radio de 20px
-      // que .hw-auth-card ya define, sin desalinear esquinas.
+      // que .pgo-auth-card ya define, sin desalinear esquinas.
       style={
         plan.featured
           ? {
               boxShadow:
-                "0 0 0 1.5px var(--pf-purple), 0 18px 44px -18px color-mix(in srgb, var(--pf-purple) 60%, transparent)",
+                "0 0 0 1.5px var(--pf-brand), 0 18px 44px -18px color-mix(in srgb, var(--pf-brand) 60%, transparent)",
             }
           : undefined
       }
@@ -116,10 +116,10 @@ function PlanCard({
       {plan.featured && (
         <span
           className="absolute -top-2.5 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-md"
-          style={{ background: "var(--pf-purple)" }}
+          style={{ background: "var(--pf-brand)" }}
         >
           <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
-          <span className="hw-shiny-text">Más popular</span>
+          <span className="pgo-shiny-text">Más popular</span>
         </span>
       )}
 
@@ -130,10 +130,10 @@ function PlanCard({
 
       <div className="mt-2 flex items-baseline gap-1">
         {/* key={billing} re-monta el span al alternar el toggle y dispara la
-            animación .hw-price-swap (ver globals.css). */}
+            animación .pgo-price-swap (ver globals.css). */}
         <span
           key={billing}
-          className="hw-num hw-price-swap text-2xl font-bold text-[var(--pf-navy)] lg:text-[27px]"
+          className="pgo-num pgo-price-swap text-2xl font-bold text-[var(--pf-navy)] lg:text-[27px]"
         >
           {formatearUf(precio)} UF
         </span>
@@ -146,8 +146,8 @@ function PlanCard({
       <div className="mt-1 h-[18px]">
         {billing === "anual" && (
           <span
-            className="hw-price-swap inline-flex rounded-full px-2 py-px text-[10px] font-semibold"
-            style={{ background: "var(--hw-success-lt)", color: "var(--hw-success)" }}
+            className="pgo-price-swap inline-flex rounded-full px-2 py-px text-[10px] font-semibold"
+            style={{ background: "var(--pgo-success-lt)", color: "var(--pgo-success)" }}
           >
             {plan.annualSavings}
           </span>
@@ -160,7 +160,7 @@ function PlanCard({
             key={f.text}
             className="flex items-center gap-1.5 text-[11px] leading-snug text-[var(--pf-text-body)]"
           >
-            <Check className="h-3 w-3 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
+            <Check className="h-3 w-3 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
             <span className="min-w-0 flex-1">{f.text}</span>
             <FeatureTip feature={f} />
           </li>
@@ -170,10 +170,10 @@ function PlanCard({
       <Button
         size="sm"
         variant={plan.featured ? undefined : "outline"}
-        // --pf-purple-btn, no --pf-purple: mismo motivo que el CTA del hero
-        // (page.tsx) — texto blanco sobre --pf-purple da 3.62:1 en oscuro,
+        // --pf-brand-btn, no --pf-brand: mismo motivo que el CTA del hero
+        // (page.tsx) — texto blanco sobre --pf-brand da 3.62:1 en oscuro,
         // bajo el 4.5:1 de AA.
-        className={`hw-sheen mt-auto w-full ${plan.featured ? "bg-[var(--pf-purple-btn)]" : ""}`}
+        className={`pgo-sheen mt-auto w-full ${plan.featured ? "bg-[var(--pf-brand-btn)]" : ""}`}
         onClick={() => onSelect(plan)}
       >
         Elegir {plan.name}
@@ -216,7 +216,7 @@ export function PlanesStop() {
   }
 
   return (
-    <div id="planes-card" className="hw-walk-panel mx-auto w-full max-w-5xl p-5 sm:p-6 lg:max-w-6xl xl:max-w-7xl">
+    <div id="planes-card" className="pgo-walk-panel mx-auto w-full max-w-5xl p-5 sm:p-6 lg:max-w-6xl xl:max-w-7xl">
       <div className="text-center">
         <h2 className="text-balance text-2xl font-bold tracking-tight text-[var(--pf-navy)] sm:text-3xl">
           Un plan para cada etapa de{" "}
@@ -225,7 +225,7 @@ export function PlanesStop() {
 
         <div
           className="mt-3 inline-flex items-center gap-1 rounded-full p-1"
-          style={{ background: "var(--pf-purple-tint)" }}
+          style={{ background: "var(--pf-brand-tint)" }}
         >
           {(["mensual", "anual"] as const).map((b) => (
             <button
@@ -235,7 +235,7 @@ export function PlanesStop() {
               aria-pressed={billing === b}
               className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold capitalize transition-all lg:px-4"
               style={{
-                background: billing === b ? "var(--pf-purple-btn)" : "transparent",
+                background: billing === b ? "var(--pf-brand-btn)" : "transparent",
                 color:      billing === b ? "#fff" : "var(--pf-text-muted)",
               }}
             >
@@ -246,7 +246,7 @@ export function PlanesStop() {
                   style={
                     billing === "anual"
                       ? { background: "rgba(255,255,255,0.22)", color: "#fff" }
-                      : { background: "var(--hw-success-lt)", color: "var(--hw-success)" }
+                      : { background: "var(--pgo-success-lt)", color: "var(--pgo-success)" }
                   }
                 >
                   2 meses gratis
@@ -268,9 +268,9 @@ export function PlanesStop() {
           la política completa (mismo modal informativo de siempre). */}
       <div
         className="mt-4 flex flex-col items-center gap-2 rounded-xl px-4 py-2.5 text-center sm:flex-row sm:gap-3 sm:text-left"
-        style={{ background: "var(--pf-purple-tint)" }}
+        style={{ background: "var(--pf-brand-tint)" }}
       >
-        <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
+        <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
         <p className="text-[11px] leading-snug text-[var(--pf-text-body)] lg:text-xs">
           <strong className="font-semibold text-[var(--pf-navy)]">
             Prueba sin riesgo: garantía de 10 días.
@@ -282,7 +282,7 @@ export function PlanesStop() {
             type="button"
             onClick={() => setModal({ mode: "info" })}
             className="font-medium underline-offset-2 hover:underline"
-            style={{ color: "var(--pf-purple)" }}
+            style={{ color: "var(--pf-brand)" }}
           >
             Ver política completa
           </button>
@@ -293,7 +293,7 @@ export function PlanesStop() {
         <Modal
           onClose={() => setModal(null)}
           title="Política de cancelación y reembolso"
-          icon={<ShieldCheck className="h-5 w-5" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />}
+          icon={<ShieldCheck className="h-5 w-5" style={{ color: "var(--pf-brand)" }} aria-hidden="true" />}
         >
           <PolicyList />
         </Modal>
@@ -304,15 +304,15 @@ export function PlanesStop() {
           onClose={() => setModal(null)}
           title="Antes de continuar"
           subtitle={`Plan ${modal.plan.name}`}
-          icon={<ShieldCheck className="h-5 w-5" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />}
+          icon={<ShieldCheck className="h-5 w-5" style={{ color: "var(--pf-brand)" }} aria-hidden="true" />}
         >
           <PolicyList />
-          <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-xl p-3" style={{ background: "var(--pf-purple-tint)" }}>
+          <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-xl p-3" style={{ background: "var(--pf-brand-tint)" }}>
             <input
               type="checkbox"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--pf-purple)]"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--pf-brand)]"
             />
             <span className="text-sm text-[var(--pf-navy)]">
               He leído y acepto la política de cancelación y reembolso.
@@ -322,8 +322,8 @@ export function PlanesStop() {
             size="lg"
             disabled={!accepted}
             onClick={confirmAndContinue}
-            // --pf-purple-btn: mismo motivo que los otros CTA de esta parada.
-            className="hw-sheen mt-4 w-full bg-[var(--pf-purple-btn)]"
+            // --pf-brand-btn: mismo motivo que los otros CTA de esta parada.
+            className="pgo-sheen mt-4 w-full bg-[var(--pf-brand-btn)]"
           >
             Continuar con {modal.plan.name}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

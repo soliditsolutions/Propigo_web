@@ -9,6 +9,7 @@ import { getSession } from "@/lib/auth";
 import { withTenant } from "@/lib/tenant-db";
 import { idFiltro } from "@/lib/busqueda";
 import { sendComentarioCorredorEmail } from "@/lib/email";
+import { MARCA } from "@/lib/marca";
 
 const schema = z.object({
   texto:       z.string().min(1).max(2000).trim(),
@@ -77,7 +78,7 @@ export async function POST(
           tipo:    "comentario_corredor",
           canal:   "email",
           estado:  "pendiente",
-          asunto:  "Nuevo mensaje de tu corredor — Housing",
+          asunto:  `Nuevo mensaje de tu corredor — ${MARCA}`,
           cuerpo:  texto.substring(0, 200),
         },
       }).catch(() => {});

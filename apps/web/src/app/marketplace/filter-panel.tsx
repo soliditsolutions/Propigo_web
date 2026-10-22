@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
-import { REGIONES_CHILE, getComunasDeRegion } from "@housing/core";
+import { REGIONES_CHILE, getComunasDeRegion } from "@propigo/core";
 
 export type MarketplaceFiltros = {
   q: string;
@@ -127,7 +127,7 @@ function CheckRow({ label, checked, onChange }: { label: string; checked: boolea
         type="checkbox" checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         className="h-4 w-4 rounded"
-        style={{ accentColor: "var(--pf-purple)" }}
+        style={{ accentColor: "var(--pf-brand)" }}
       />
       <span className="text-sm" style={{ color: "var(--pf-navy)" }}>{label}</span>
     </label>
@@ -185,7 +185,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
         {activeCount > 0 && (
           <span
             className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-            style={{ background: "var(--pf-purple-btn)" }}
+            style={{ background: "var(--pf-brand-btn)" }}
           >
             {activeCount}
           </span>
@@ -209,7 +209,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
         style={{
           width: "min(420px, 100vw)",
           background: "var(--pf-surface)",
-          boxShadow: "var(--hw-shadow-3)",
+          boxShadow: "var(--pgo-shadow-3)",
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
         }}
@@ -222,13 +222,13 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
           style={{ borderBottom: "1px solid var(--pf-border)" }}
         >
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--pf-purple)" }} aria-hidden />
+            <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--pf-brand)" }} aria-hidden />
             <h2 className="text-base font-bold" style={{ color: "var(--pf-navy)" }}>Filtros de búsqueda</h2>
           </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="hw-tap-target relative rounded-lg p-1.5 transition-colors hover:bg-[var(--pf-surface)]"
+            className="pgo-tap-target relative rounded-lg p-1.5 transition-colors hover:bg-[var(--pf-surface)]"
             aria-label="Cerrar filtros"
           >
             <X className="h-4 w-4" style={{ color: "var(--pf-text-muted)" }} />
@@ -240,7 +240,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
 
           {/* Ubicación */}
           <section>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-purple)" }}>
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-brand)" }}>
               Ubicación
             </h3>
             <div className="space-y-3">
@@ -282,7 +282,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
 
           {/* Características */}
           <section>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-purple)" }}>
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-brand)" }}>
               Características
             </h3>
             <div className="space-y-3">
@@ -322,7 +322,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
 
           {/* Comodidades */}
           <section>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-purple)" }}>
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-brand)" }}>
               Comodidades
             </h3>
             <div className="space-y-0.5">
@@ -336,7 +336,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
 
           {/* Precio */}
           <section>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-purple)" }}>
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-brand)" }}>
               Precio mensual (CLP)
             </h3>
             <RangeInput
@@ -352,7 +352,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
 
           {/* Fecha de publicación */}
           <section>
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-purple)" }}>
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-brand)" }}>
               Fecha de publicación
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -368,9 +368,9 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
                   onClick={() => set("publicadaDias", f.publicadaDias === opt.val ? "" : opt.val)}
                   className="rounded-xl py-2 px-3 text-sm font-medium transition-all"
                   style={{
-                    background: f.publicadaDias === opt.val ? "var(--pf-purple-tint)" : "var(--pf-surface)",
-                    color: f.publicadaDias === opt.val ? "var(--pf-purple)" : "var(--pf-text-muted)",
-                    border: `1.5px solid ${f.publicadaDias === opt.val ? "var(--pf-purple)" : "var(--pf-border)"}`,
+                    background: f.publicadaDias === opt.val ? "var(--pf-brand-tint)" : "var(--pf-surface)",
+                    color: f.publicadaDias === opt.val ? "var(--pf-brand)" : "var(--pf-text-muted)",
+                    border: `1.5px solid ${f.publicadaDias === opt.val ? "var(--pf-brand)" : "var(--pf-border)"}`,
                   }}
                 >
                   {opt.label}

@@ -19,7 +19,7 @@ describe("runStartupChecks() — Fix A2 (fail-fast en arranque)", () => {
     process.env.DATABASE_URL = "postgresql://user:pass@host:5432/db";
     process.env.GROQ_API_KEY = "gsk_test_key_abc123";
     process.env.CRON_SECRET  = "cron_secret_test_value_abc123";
-    process.env.NEXT_PUBLIC_APP_URL = "https://app.housing.cl";
+    process.env.NEXT_PUBLIC_APP_URL = "https://app.propigo.cl";
     // Variables que deben estar AUSENTES en la línea base válida: si un test
     // anterior las dejó "pegadas", afterEach (Object.assign) no las borra
     // porque no existían en originalEnv — hay que limpiarlas explícitamente.

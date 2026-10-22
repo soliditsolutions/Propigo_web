@@ -5,7 +5,7 @@
 
 export type HwTheme = "aurora-dark" | "aurora-light";
 
-export const HW_THEME_STORAGE_KEY = "hw_theme";
+export const PGO_THEME_STORAGE_KEY = "pgo_theme";
 
 export function isHwTheme(value: string | null): value is HwTheme {
   return value === "aurora-dark" || value === "aurora-light";
@@ -16,10 +16,10 @@ export function isHwTheme(value: string | null): value is HwTheme {
  * <html data-theme="..."> quede correcto desde el primer paint — sin esto,
  * se vería un destello del tema contrario cada vez que se recarga la página.
  */
-export const HW_THEME_INIT_SCRIPT = `
+export const PGO_THEME_INIT_SCRIPT = `
 (function () {
   try {
-    var KEY = "${HW_THEME_STORAGE_KEY}";
+    var KEY = "${PGO_THEME_STORAGE_KEY}";
     var saved = localStorage.getItem(KEY);
     var theme = (saved === "aurora-light" || saved === "aurora-dark")
       ? saved

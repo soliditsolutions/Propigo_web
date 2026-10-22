@@ -7,9 +7,11 @@
  * que lleva la advertencia igual de visible que el resto de los documentos
  * legales del proyecto — nunca un documento ambiguo sobre su propia validez.
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import { clp } from "./format";
+import { MARCA, RAZON_SOCIAL } from "@/lib/marca";
 
 export type BoletaDemoData = {
   tenant: { nombre: string; rut: string | null };
@@ -65,7 +67,7 @@ export function BoletaDemoDocument({ data: d }: { data: BoletaDemoData }) {
             DOCUMENTO DE EJEMPLO — no es una boleta ni factura válida ante el SII.
           </Text>
           <Text style={{ fontSize: 8, color: "#92400e", marginTop: 3 }}>
-            Housing SOLIDIT todavía no tiene una pasarela de pago real conectada para
+            {MARCA} todavía no tiene una pasarela de pago real conectada para
             cobrar la suscripción de tu cuenta (ver ADR-0014). Ningún cobro descrito
             acá ocurrió de verdad — esta vista previa existe solo para mostrar cómo se
             verá el historial de pagos una vez que la facturación esté activa.
@@ -73,7 +75,7 @@ export function BoletaDemoDocument({ data: d }: { data: BoletaDemoData }) {
         </View>
 
         <View>
-          <Text style={styles.emisorNombre}>Housing SOLIDIT</Text>
+          <Text style={styles.emisorNombre}>{MARCA} — {RAZON_SOCIAL}</Text>
           <Text style={styles.emisorLinea}>Software de administración de arriendos</Text>
         </View>
         <Text style={styles.fechaLugar}>{fechaLarga(d.fechaEmision)}</Text>

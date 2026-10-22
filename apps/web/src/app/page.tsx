@@ -13,6 +13,7 @@ import { PlanesStop } from "@/components/public/PlanesStop";
 import walkDoor from "@/images/backgrounds/scroll-walkthrough_door.png";
 import walkRoom from "@/images/backgrounds/scroll-walkthrough_keys_and_costumers.png";
 import walkContract from "@/images/backgrounds/scroll-walkthrough_signed_contract.png";
+import { MARCA } from "@/lib/marca";
 
 /** Top 10 corredores por rating agregado (ValoracionCorredor, esVisible=true). */
 async function getTopCorredores(): Promise<CorredorDestacado[]> {
@@ -138,12 +139,12 @@ export default async function Home() {
 
   /* ── Parada 0 — Puerta: presentación + acciones principales ─────────── */
   const stopHero = (
-    <div className="hw-hero-stagger hw-walk-panel mx-auto max-w-2xl p-5 text-center sm:p-7">
-      <span className="hw-glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-[var(--pf-text-body)]">
-        <ShieldCheck className="h-3.5 w-3.5 text-[var(--hw-success)]" />
+    <div className="pgo-hero-stagger pgo-walk-panel mx-auto max-w-2xl p-5 text-center sm:p-7">
+      <span className="pgo-glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-[var(--pf-text-body)]">
+        <ShieldCheck className="h-3.5 w-3.5 text-[var(--pgo-success)]" />
         PropTech para corredores de propiedades · Chile
       </span>
-      <h1 className="hw-fluid-hero mt-4 text-balance font-bold leading-tight tracking-tight text-[var(--pf-navy)]">
+      <h1 className="pgo-fluid-hero mt-4 text-balance font-bold leading-tight tracking-tight text-[var(--pf-navy)]">
         La gestión de arriendos,{" "}
         <span className="pf-headline-accent">automática y sin errores</span>.
       </h1>
@@ -152,15 +153,15 @@ export default async function Home() {
         cada contrato y deja el respaldo listo para rendirle al propietario.
         Sin planillas.
       </p>
-      {/* CTA primario — el negocio es el corredor. hw-sheen: barrido de luz al
+      {/* CTA primario — el negocio es el corredor. pgo-sheen: barrido de luz al
           hover, reservado para el CTA principal de la página. */}
       <div className="mt-5 flex justify-center">
         <Link href="/registro">
-          {/* --pf-purple-btn, no --pf-purple: texto blanco sobre --pf-purple da
-              solo 3.62:1 en tema oscuro (falla AA, 4.5:1) — --pf-purple-btn ya
+          {/* --pf-brand-btn, no --pf-brand: texto blanco sobre --pf-brand da
+              solo 3.62:1 en tema oscuro (falla AA, 4.5:1) — --pf-brand-btn ya
               existe en el token system justo para esto (4.93:1 oscuro; en claro
               son el mismo valor, sin cambio). */}
-          <Button size="lg" className="hw-sheen bg-[var(--pf-purple-btn)] hover:opacity-90">
+          <Button size="lg" className="pgo-sheen bg-[var(--pf-brand-btn)] hover:opacity-90">
             Empezar como corredor
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -177,13 +178,13 @@ export default async function Home() {
         </span>
         <div className="mt-3 flex flex-wrap justify-center gap-3">
           <Link href="/marketplace">
-            <Button size="lg" variant="outline" className="hw-cta-secondary">
+            <Button size="lg" variant="outline" className="pgo-cta-secondary">
               <Building2 className="h-4 w-4" aria-hidden="true" />
               Ver propiedades disponibles
             </Button>
           </Link>
           <Link href="/portal">
-            <Button size="lg" variant="outline" className="hw-cta-secondary">
+            <Button size="lg" variant="outline" className="pgo-cta-secondary">
               <KeyRound className="h-4 w-4" aria-hidden="true" />
               Consulta tu arriendo
             </Button>
@@ -202,11 +203,11 @@ export default async function Home() {
           apoyado sobre el fondo aurora de la página, mismo tratamiento que
           login/registro. */}
       <div className="mb-8 flex justify-center">
-        <div className="hw-walk-panel px-6 py-4 text-center sm:px-8">
-          <span className="text-xs font-bold uppercase tracking-widest text-[var(--pf-purple)]">
+        <div className="pgo-walk-panel px-6 py-4 text-center sm:px-8">
+          <span className="text-xs font-bold uppercase tracking-widest text-[var(--pf-brand)]">
             Acerca de
           </span>
-          <h2 className="hw-fluid-h2 mt-2 text-balance font-bold tracking-tight text-[var(--pf-navy)]">
+          <h2 className="pgo-fluid-h2 mt-2 text-balance font-bold tracking-tight text-[var(--pf-navy)]">
             Lo que hace{" "}
             <span className="pf-headline-accent">por ti</span>
           </h2>
@@ -222,8 +223,8 @@ export default async function Home() {
           sin cambios respecto al diseño anterior. */}
       <div className="hidden gap-5 lg:grid lg:grid-cols-3">
         {features.map((f) => (
-          <div key={f.id} className="hw-auth-card flex h-full flex-col p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-purple-tint)] text-[var(--pf-purple)]">
+          <div key={f.id} className="pgo-auth-card flex h-full flex-col p-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-brand-tint)] text-[var(--pf-brand)]">
               <f.icon className="h-5 w-5" aria-hidden="true" />
             </div>
             <h3 className="mt-4 text-balance font-semibold text-[var(--pf-navy)]">{f.title}</h3>
@@ -240,10 +241,10 @@ export default async function Home() {
           hay una siguiente y anime a deslizar en vez de leerse como una
           lista de una sola columna. */}
       <div className="lg:hidden">
-        <EmblaCarousel ariaLabel="Qué hace Housing por un corredor" autoplay={false}>
+        <EmblaCarousel ariaLabel={`Qué hace ${MARCA} por un corredor`} autoplay={false}>
           {features.map((f) => (
-            <div key={f.id} className="hw-auth-card flex h-full w-[82vw] max-w-xs shrink-0 flex-col p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-purple-tint)] text-[var(--pf-purple)]">
+            <div key={f.id} className="pgo-auth-card flex h-full w-[82vw] max-w-xs shrink-0 flex-col p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-brand-tint)] text-[var(--pf-brand)]">
                 <f.icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <h3 className="mt-4 text-balance font-semibold text-[var(--pf-navy)]">{f.title}</h3>
@@ -257,9 +258,9 @@ export default async function Home() {
 
   /* ── Parada 2 — Contrato firmado: destacado (propiedades + corredores) ── */
   const stopPropiedades = (
-    <div id="destacado-card" className="hw-auth-card p-4 sm:p-5">
+    <div id="destacado-card" className="pgo-auth-card p-4 sm:p-5">
       <div className="mb-2 flex items-center gap-2">
-        <Star className="h-5 w-5" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />
+        <Star className="h-5 w-5" style={{ color: "var(--pf-brand)" }} aria-hidden="true" />
         <h2 className="pf-headline-accent text-xl font-bold tracking-tight sm:text-2xl">Destacado</h2>
         <span className="hidden text-sm sm:inline" style={{ color: "var(--pf-text-muted)" }}>
           Las publicaciones más recientes
@@ -268,7 +269,7 @@ export default async function Home() {
             entera al fondo, poco visible y comiendo el alto justo de la parada). */}
         <Link
           href="/marketplace"
-          className="group/vt ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[var(--pf-purple)] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[var(--pf-purple)]"
+          className="group/vt ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[var(--pf-brand)] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[var(--pf-brand)]"
         >
           Ver todas
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/vt:translate-x-0.5" aria-hidden="true" />
@@ -292,7 +293,7 @@ export default async function Home() {
       {topCorredores.length > 0 && (
         <div className="mt-3.5">
           <div className="mb-2 flex items-center gap-2">
-            <Users className="h-4 w-4" style={{ color: "var(--pf-purple)" }} aria-hidden="true" />
+            <Users className="h-4 w-4" style={{ color: "var(--pf-brand)" }} aria-hidden="true" />
             <h3 className="text-base font-semibold text-[var(--pf-navy)]">Corredores mejor valorados</h3>
           </div>
           <EmblaCarousel ariaLabel="Corredores mejor valorados" autoplayDelay={5000}>
@@ -309,11 +310,11 @@ export default async function Home() {
     // overflow-x-clip (no overflow-hidden): `hidden` crea un scrollport y
     // rompería el `position: sticky` del escenario walkthrough; `clip` recorta
     // el desborde horizontal sin crear contenedor de scroll.
-    <div className="relative min-h-screen overflow-x-clip" style={{ background: "var(--hw-page)" }}>
+    <div className="relative min-h-screen overflow-x-clip" style={{ background: "var(--pgo-page)" }}>
       <HomeHashHandler />
 
       {/* Fondo aurora boreal — visible en las secciones fuera del escenario. */}
-      <div className="hw-aurora-layer" style={{ position: "fixed" }} aria-hidden="true" />
+      <div className="pgo-aurora-layer" style={{ position: "fixed" }} aria-hidden="true" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <PublicNavbar />
@@ -330,7 +331,7 @@ export default async function Home() {
               contraste calmo para comparar cifras, no una foto de fondo
               compitiendo por atención. Al desvanecerse el frame anterior sin
               uno nuevo que lo reemplace, lo que queda debajo es el mismo
-              `.hw-aurora-layer` fijo de la página (declarado arriba), ya
+              `.pgo-aurora-layer` fijo de la página (declarado arriba), ya
               usado en login/registro. */}
           <ScrollWalkthrough
             stops={[

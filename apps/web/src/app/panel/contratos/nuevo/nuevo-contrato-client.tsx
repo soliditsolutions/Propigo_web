@@ -7,7 +7,7 @@ import {
   Check, ChevronRight, Search, X, AlertCircle,
   Building2, Users, DollarSign, Calendar, Loader2,
 } from "lucide-react";
-import { generarCalendario, validarRut, formatearRut } from "@housing/core";
+import { generarCalendario, validarRut, formatearRut } from "@propigo/core";
 import { fecha, cantidad } from "@/lib/format";
 import { buscarPersonas, crearContrato } from "./actions";
 import type { PersonaBusqueda } from "./actions";
@@ -97,12 +97,12 @@ function FieldRow({
 }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
         {label}
       </p>
       {children}
       {hint && (
-        <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>{hint}</p>
+        <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{hint}</p>
       )}
     </div>
   );
@@ -113,8 +113,8 @@ function TextInput(p: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...rest}
-      className={`w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)] ${className ?? ""}`}
-      style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", ...style }}
+      className={`w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)] ${className ?? ""}`}
+      style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", ...style }}
     />
   );
 }
@@ -136,9 +136,9 @@ function RadioPill<T extends string>({
             key={opt.value}
             className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium"
             style={{
-              background: active ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
-              color:      active ? "var(--hw-primary)"    : "var(--hw-text-3)",
-              border:     `1.5px solid ${active ? "var(--hw-primary)" : "transparent"}`,
+              background: active ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+              color:      active ? "var(--pgo-primary)"    : "var(--pgo-text-3)",
+              border:     `1.5px solid ${active ? "var(--pgo-primary)" : "transparent"}`,
             }}
           >
             <input
@@ -183,21 +183,21 @@ function Step1({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
         Selecciona la propiedad
       </h2>
-      <p className="mb-4 text-sm" style={{ color: "var(--hw-text-3)" }}>
+      <p className="mb-4 text-sm" style={{ color: "var(--pgo-text-3)" }}>
         Solo se muestran propiedades disponibles o reservadas.
       </p>
 
       {propiedades.length === 0 ? (
-        <div className="rounded-xl p-8 text-center" style={{ background: "var(--hw-surface-2)" }}>
-          <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+        <div className="rounded-xl p-8 text-center" style={{ background: "var(--pgo-surface-2)" }}>
+          <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
             No hay propiedades disponibles.{" "}
             <Link
               href="/panel/propiedades"
               className="font-semibold underline"
-              style={{ color: "var(--hw-primary)" }}
+              style={{ color: "var(--pgo-primary)" }}
             >
               Crea una en Propiedades →
             </Link>
@@ -208,7 +208,7 @@ function Step1({
           <div className="relative mb-3">
             <Search
               className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
-              style={{ color: "var(--hw-text-4)" }}
+              style={{ color: "var(--pgo-text-4)" }}
               aria-hidden="true"
             />
             <TextInput
@@ -224,8 +224,8 @@ function Step1({
                 type="button"
                 onClick={() => setQ("")}
                 aria-label="Limpiar búsqueda"
-                className="hw-btn absolute right-3 top-1/2 -translate-y-1/2"
-                style={{ color: "var(--hw-text-4)" }}
+                className="pgo-btn absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--pgo-text-4)" }}
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
@@ -241,29 +241,29 @@ function Step1({
                   type="button"
                   onClick={() => onSelect(p)}
                   aria-pressed={selected}
-                  className="hw-btn w-full rounded-xl px-4 py-3 text-left"
+                  className="pgo-btn w-full rounded-xl px-4 py-3 text-left"
                   style={{
-                    background: selected ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
-                    border:     `1.5px solid ${selected ? "var(--hw-primary)" : "transparent"}`,
+                    background: selected ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+                    border:     `1.5px solid ${selected ? "var(--pgo-primary)" : "transparent"}`,
                   }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p
                         className="truncate text-sm font-semibold"
-                        style={{ color: "var(--hw-text-1)" }}
+                        style={{ color: "var(--pgo-text-1)" }}
                       >
                         {TIPO_LABEL[p.tipo] ?? p.tipo} — {p.direccion}
                         {p.comuna ? `, ${p.comuna}` : ""}
                       </p>
-                      <p className="mt-0.5 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                      <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                         Propietario: {p.propietarioNombre} · Estado: {p.estado}
                       </p>
                     </div>
                     {selected && (
                       <Check
                         className="h-4 w-4 shrink-0"
-                        style={{ color: "var(--hw-primary)" }}
+                        style={{ color: "var(--pgo-primary)" }}
                         aria-hidden="true"
                       />
                     )}
@@ -273,7 +273,7 @@ function Step1({
             })}
 
             {filtradas.length === 0 && (
-              <p className="py-6 text-center text-sm" style={{ color: "var(--hw-text-4)" }}>
+              <p className="py-6 text-center text-sm" style={{ color: "var(--pgo-text-4)" }}>
                 Sin resultados para &ldquo;{q}&rdquo;
               </p>
             )}
@@ -328,12 +328,12 @@ function NuevoArrendatarioForm({
           autoComplete="off"
           inputMode="text"
           style={{
-            borderColor: rutError ? "var(--hw-danger)" : "var(--hw-border)",
-            background: "var(--hw-surface)",
+            borderColor: rutError ? "var(--pgo-danger)" : "var(--pgo-border)",
+            background: "var(--pgo-surface)",
           }}
         />
         {rutError && (
-          <p className="text-[11px] font-medium mt-0.5" style={{ color: "var(--hw-danger)" }}>
+          <p className="text-[11px] font-medium mt-0.5" style={{ color: "var(--pgo-danger)" }}>
             {rutError}
           </p>
         )}
@@ -377,10 +377,10 @@ function Step2({
 }) {
   return (
     <div>
-      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
         Arrendatario
       </h2>
-      <p className="mb-4 text-sm" style={{ color: "var(--hw-text-3)" }}>
+      <p className="mb-4 text-sm" style={{ color: "var(--pgo-text-3)" }}>
         Busca una persona existente por RUT o nombre, o registra una nueva.
       </p>
 
@@ -392,10 +392,10 @@ function Step2({
             type="button"
             onClick={() => onSetModo(m)}
             aria-pressed={modo === m}
-            className="hw-btn rounded-xl px-3 py-1.5 text-xs font-semibold"
+            className="pgo-btn rounded-xl px-3 py-1.5 text-xs font-semibold"
             style={{
-              background: modo === m ? "var(--hw-primary)" : "var(--hw-surface-2)",
-              color:      modo === m ? "white"             : "var(--hw-text-3)",
+              background: modo === m ? "var(--pgo-primary)" : "var(--pgo-surface-2)",
+              color:      modo === m ? "white"             : "var(--pgo-text-3)",
             }}
           >
             {m === "buscar" ? "Buscar existente" : "Nuevo arrendatario"}
@@ -409,13 +409,13 @@ function Step2({
           <div
             className="flex items-center justify-between rounded-xl px-4 py-3"
             style={{
-              background: "var(--hw-success-lt)",
-              border: "1.5px solid var(--hw-success)",
+              background: "var(--pgo-success-lt)",
+              border: "1.5px solid var(--pgo-success)",
             }}
           >
             <div
               className="flex items-center gap-2 text-sm font-medium"
-              style={{ color: "var(--hw-success)" }}
+              style={{ color: "var(--pgo-success)" }}
             >
               <Check className="h-4 w-4" aria-hidden="true" />
               {arrendatarioLabel}
@@ -424,8 +424,8 @@ function Step2({
               type="button"
               onClick={onClearSeleccion}
               aria-label="Cambiar arrendatario"
-              className="hw-btn rounded-lg p-1"
-              style={{ color: "var(--hw-text-4)" }}
+              className="pgo-btn rounded-lg p-1"
+              style={{ color: "var(--pgo-text-4)" }}
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -436,7 +436,7 @@ function Step2({
             <div className="relative mb-2">
               <Search
                 className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
-                style={{ color: "var(--hw-text-4)" }}
+                style={{ color: "var(--pgo-text-4)" }}
                 aria-hidden="true"
               />
               <TextInput
@@ -451,7 +451,7 @@ function Step2({
               {buscando && (
                 <Loader2
                   className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin"
-                  style={{ color: "var(--hw-text-4)" }}
+                  style={{ color: "var(--pgo-text-4)" }}
                   aria-hidden="true"
                 />
               )}
@@ -460,28 +460,28 @@ function Step2({
             {resultados.length > 0 && (
               <div
                 className="overflow-hidden rounded-xl border"
-                style={{ borderColor: "var(--hw-border)" }}
+                style={{ borderColor: "var(--pgo-border)" }}
               >
                 {resultados.map((p, i) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => onSelectPersona(p)}
-                    className="hw-btn w-full px-4 py-2.5 text-left text-sm"
+                    className="pgo-btn w-full px-4 py-2.5 text-left text-sm"
                     style={{
-                      background:   "var(--hw-surface)",
-                      borderTop:    i > 0 ? `1px solid var(--hw-border)` : "none",
+                      background:   "var(--pgo-surface)",
+                      borderTop:    i > 0 ? `1px solid var(--pgo-border)` : "none",
                       display:      "block",
                     }}
                   >
-                    <span className="font-medium" style={{ color: "var(--hw-text-1)" }}>
+                    <span className="font-medium" style={{ color: "var(--pgo-text-1)" }}>
                       {p.nombre}
                     </span>
-                    <span className="ml-2 text-xs hw-num" style={{ color: "var(--hw-text-4)" }}>
+                    <span className="ml-2 text-xs pgo-num" style={{ color: "var(--pgo-text-4)" }}>
                       {p.rut}
                     </span>
                     {p.email && (
-                      <span className="ml-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                      <span className="ml-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                         · {p.email}
                       </span>
                     )}
@@ -491,13 +491,13 @@ function Step2({
             )}
 
             {busqueda.length >= 2 && resultados.length === 0 && !buscando && (
-              <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 No se encontró ninguna persona.{" "}
                 <button
                   type="button"
                   onClick={() => onSetModo("nuevo")}
                   className="font-semibold underline"
-                  style={{ color: "var(--hw-primary)" }}
+                  style={{ color: "var(--pgo-primary)" }}
                 >
                   Registrar nuevo arrendatario
                 </button>
@@ -533,10 +533,10 @@ function Step3({
 }) {
   return (
     <div>
-      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
         Condiciones financieras
       </h2>
-      <p className="mb-5 text-sm" style={{ color: "var(--hw-text-3)" }}>
+      <p className="mb-5 text-sm" style={{ color: "var(--pgo-text-3)" }}>
         Define monto, moneda y política de cobro.
       </p>
 
@@ -634,7 +634,7 @@ function Step3({
         </div>
 
         {/* Gasto común */}
-        <div className="rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
+        <div className="rounded-xl p-4" style={{ background: "var(--pgo-surface-2)" }}>
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
@@ -643,10 +643,10 @@ function Step3({
               className="h-4 w-4 rounded accent-blue-600"
             />
             <div className="min-w-0">
-              <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                 Cobra gasto común
               </p>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 El corredor recauda el GC y lo traslada al propietario (passthrough)
               </p>
             </div>
@@ -669,7 +669,7 @@ function Step3({
 
         {/* Amoblado — decide si el arriendo está afecto a IVA (DL 825 art. 8 g).
             No es un detalle de la ficha: cambia lo que se cobra. */}
-        <div className="rounded-xl p-4" style={{ background: "var(--hw-surface-2)" }}>
+        <div className="rounded-xl p-4" style={{ background: "var(--pgo-surface-2)" }}>
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
@@ -678,10 +678,10 @@ function Step3({
               className="h-4 w-4 rounded accent-blue-600"
             />
             <div className="min-w-0">
-              <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                 Se arrienda amoblado
               </p>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 Un arriendo amoblado está afecto a IVA. Se calcula sobre la renta
                 menos el 11 % del avalúo fiscal (DL 825 art. 17).
               </p>
@@ -690,7 +690,7 @@ function Step3({
           {data.esAmoblado && avaluoPropiedad === null && (
             <div
               className="mt-3 rounded-xl p-3 text-xs"
-              style={{ background: "var(--hw-warning-lt)", color: "var(--hw-warning-dk)", border: "1px solid var(--hw-warning-bd)" }}
+              style={{ background: "var(--pgo-warning-lt)", color: "var(--pgo-warning-dk)", border: "1px solid var(--pgo-warning-bd)" }}
             >
               Esta propiedad no tiene avalúo fiscal cargado, y sin él no se puede
               calcular el IVA del arriendo amoblado. Complétalo en la ficha de la
@@ -739,10 +739,10 @@ function Step4({
 
   return (
     <div>
-      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>
+      <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
         Garantía y vigencia
       </h2>
-      <p className="mb-5 text-sm" style={{ color: "var(--hw-text-3)" }}>
+      <p className="mb-5 text-sm" style={{ color: "var(--pgo-text-3)" }}>
         Define las fechas de inicio, duración y garantía del contrato.
       </p>
 
@@ -789,10 +789,10 @@ function Step4({
                 type="button"
                 onClick={() => set("garantiaMeses", m)}
                 aria-pressed={data.garantiaMeses === m}
-                className="hw-btn flex-1 rounded-xl py-2 text-sm font-semibold"
+                className="pgo-btn flex-1 rounded-xl py-2 text-sm font-semibold"
                 style={{
-                  background: data.garantiaMeses === m ? "var(--hw-primary)" : "var(--hw-surface-2)",
-                  color:      data.garantiaMeses === m ? "white"             : "var(--hw-text-3)",
+                  background: data.garantiaMeses === m ? "var(--pgo-primary)" : "var(--pgo-surface-2)",
+                  color:      data.garantiaMeses === m ? "white"             : "var(--pgo-text-3)",
                 }}
               >
                 {m === "0" ? "Sin garantía" : `${m} mes${m === "2" ? "es" : ""}`}
@@ -821,10 +821,10 @@ function Step4({
                     type="button"
                     onClick={() => set("garantiaDenominacion", u)}
                     aria-pressed={data.garantiaDenominacion === u}
-                    className="hw-btn rounded-xl px-3 text-sm font-semibold"
+                    className="pgo-btn rounded-xl px-3 text-sm font-semibold"
                     style={{
-                      background: data.garantiaDenominacion === u ? "var(--hw-primary)" : "var(--hw-surface-2)",
-                      color:      data.garantiaDenominacion === u ? "white"             : "var(--hw-text-3)",
+                      background: data.garantiaDenominacion === u ? "var(--pgo-primary)" : "var(--pgo-surface-2)",
+                      color:      data.garantiaDenominacion === u ? "white"             : "var(--pgo-text-3)",
                     }}
                   >
                     {u}
@@ -851,9 +851,9 @@ function Step4({
         {/* Datos legales del contrato. Todo opcional al crear: se pueden
             completar después, pero cargarlos acá evita que el borrador salga
             con marcadores. */}
-        <div className="rounded-xl p-4 space-y-4" style={{ background: "var(--hw-surface-2)" }}>
-          <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
-            Datos legales <span className="font-normal" style={{ color: "var(--hw-text-4)" }}>(opcional)</span>
+        <div className="rounded-xl p-4 space-y-4" style={{ background: "var(--pgo-surface-2)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
+            Datos legales <span className="font-normal" style={{ color: "var(--pgo-text-4)" }}>(opcional)</span>
           </p>
 
           <label className="flex cursor-pointer items-start gap-3">
@@ -864,8 +864,8 @@ function Step4({
               className="mt-0.5 h-4 w-4 rounded accent-blue-600"
             />
             <div className="min-w-0">
-              <p className="text-sm" style={{ color: "var(--hw-text-1)" }}>Se firma ante notario</p>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="text-sm" style={{ color: "var(--pgo-text-1)" }}>Se firma ante notario</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 Habilita el procedimiento monitorio si hay que cobrar rentas impagas
                 (Ley 21.461). Sin firma notarial, el cobro va por juicio ordinario.
               </p>
@@ -873,7 +873,7 @@ function Step4({
           </label>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
               Inscripción en el Conservador de Bienes Raíces
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -916,28 +916,28 @@ function Step4({
           <div>
             <p
               className="mb-2 text-xs font-semibold uppercase tracking-wide"
-              style={{ color: "var(--hw-text-4)" }}
+              style={{ color: "var(--pgo-text-4)" }}
             >
               Vista previa: primeros {cantidad(preview.length, "período", "períodos")}
             </p>
             <div
               className="overflow-hidden rounded-xl border"
-              style={{ borderColor: "var(--hw-border)" }}
+              style={{ borderColor: "var(--pgo-border)" }}
             >
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ background: "var(--hw-surface-2)" }}>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>
+                  <tr style={{ background: "var(--pgo-surface-2)" }}>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold" style={{ color: "var(--pgo-text-4)" }}>
                       Período
                     </th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold" style={{ color: "var(--pgo-text-4)" }}>
                       Vencimiento
                     </th>
-                    <th scope="col" className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "var(--pgo-text-4)" }}>
                       Arriendo
                     </th>
                     {data.cobraGastoComun && (
-                      <th scope="col" className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>
+                      <th scope="col" className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "var(--pgo-text-4)" }}>
                         GC
                       </th>
                     )}
@@ -947,21 +947,21 @@ function Step4({
                   {preview.map((p, i) => (
                     <tr
                       key={p.numero}
-                      style={{ borderTop: i > 0 ? "1px solid var(--hw-border)" : "none" }}
+                      style={{ borderTop: i > 0 ? "1px solid var(--pgo-border)" : "none" }}
                     >
-                      <td className="px-3 py-2 hw-num font-medium" style={{ color: "var(--hw-text-2)" }}>
+                      <td className="px-3 py-2 pgo-num font-medium" style={{ color: "var(--pgo-text-2)" }}>
                         #{p.numero}
                       </td>
-                      <td className="px-3 py-2 hw-num text-xs" style={{ color: "var(--hw-text-3)" }}>
+                      <td className="px-3 py-2 pgo-num text-xs" style={{ color: "var(--pgo-text-3)" }}>
                         {fecha(p.fechaVencimiento)}
                       </td>
-                      <td className="px-3 py-2 hw-num text-right font-medium" style={{ color: "var(--hw-text-1)" }}>
+                      <td className="px-3 py-2 pgo-num text-right font-medium" style={{ color: "var(--pgo-text-1)" }}>
                         {data.denominacion === "UF"
                           ? `${p.montoBase.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} UF`
                           : p.montoBase.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}
                       </td>
                       {data.cobraGastoComun && (
-                        <td className="px-3 py-2 hw-num text-right text-xs" style={{ color: "var(--hw-text-3)" }}>
+                        <td className="px-3 py-2 pgo-num text-right text-xs" style={{ color: "var(--pgo-text-3)" }}>
                           {p.montoGastoComun.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 })}
                         </td>
                       )}
@@ -971,7 +971,7 @@ function Step4({
               </table>
             </div>
             {data.tipoVigencia === "indefinido" && (
-              <p className="mt-1.5 text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="mt-1.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 Se generarán 12 períodos en total. El sistema avisará al corredor cuando queden menos de 90 días de períodos disponibles.
               </p>
             )}
@@ -1176,10 +1176,10 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
                     aria-current={current ? "step" : undefined}
                     className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
                     style={{
-                      background: done    ? "var(--hw-success)"  :
-                                  current ? "var(--hw-primary)"   :
-                                            "var(--hw-surface-2)",
-                      color:     done || current ? "white" : "var(--hw-text-4)",
+                      background: done    ? "var(--pgo-success)"  :
+                                  current ? "var(--pgo-primary)"   :
+                                            "var(--pgo-surface-2)",
+                      color:     done || current ? "white" : "var(--pgo-text-4)",
                     }}
                   >
                     {done ? <Check className="h-4 w-4" aria-hidden="true" /> : icon}
@@ -1187,9 +1187,9 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
                   <span
                     className="text-[10px] font-medium"
                     style={{
-                      color: done    ? "var(--hw-success)" :
-                             current ? "var(--hw-primary)"  :
-                                       "var(--hw-text-4)",
+                      color: done    ? "var(--pgo-success)" :
+                             current ? "var(--pgo-primary)"  :
+                                       "var(--pgo-text-4)",
                     }}
                   >
                     {label}
@@ -1199,7 +1199,7 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
                   <div
                     className="mt-4 h-0.5 flex-1 mx-1"
                     aria-hidden="true"
-                    style={{ background: step > n ? "var(--hw-success)" : "var(--hw-border)" }}
+                    style={{ background: step > n ? "var(--pgo-success)" : "var(--pgo-border)" }}
                   />
                 )}
               </li>
@@ -1214,7 +1214,7 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
           className="mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
           role="alert"
           aria-live="assertive"
-          style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger)" }}
+          style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)" }}
         >
           <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
@@ -1222,7 +1222,7 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
       )}
 
       {/* Contenido del paso actual */}
-      <div className="hw-card p-6">
+      <div className="pgo-card p-6">
         {step === 1 && (
           <Step1
             propiedades={propiedades}
@@ -1295,10 +1295,10 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
           type="button"
           onClick={handleBack}
           disabled={step === 1 || isPending}
-          className="hw-btn rounded-xl px-4 py-2 text-sm font-semibold"
+          className="pgo-btn rounded-xl px-4 py-2 text-sm font-semibold"
           style={{
-            background: "var(--hw-surface-2)",
-            color:      "var(--hw-text-3)",
+            background: "var(--pgo-surface-2)",
+            color:      "var(--pgo-text-3)",
             opacity:    step === 1 ? 0.4 : 1,
             cursor:     step === 1 ? "not-allowed" : "pointer",
           }}
@@ -1311,8 +1311,8 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
             type="button"
             onClick={handleNext}
             disabled={isPending}
-            className="hw-btn flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white"
-            style={{ background: "var(--hw-primary)" }}
+            className="pgo-btn flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white"
+            style={{ background: "var(--pgo-primary)" }}
           >
             Siguiente
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -1322,8 +1322,8 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="hw-btn flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white"
-            style={{ background: isPending ? "var(--hw-border-2)" : "var(--hw-success)" }}
+            className="pgo-btn flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white"
+            style={{ background: isPending ? "var(--pgo-border-2)" : "var(--pgo-success)" }}
           >
             {isPending ? (
               <>

@@ -24,19 +24,19 @@ function LockedTab({ tab }: { tab: AnalyticsTier }) {
   return (
     <div
       className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-20 text-center"
-      style={{ borderColor: "var(--hw-border-2)", background: "var(--hw-surface)" }}
+      style={{ borderColor: "var(--pgo-border-2)", background: "var(--pgo-surface)" }}
     >
       <div
         className="flex h-12 w-12 items-center justify-center rounded-xl"
-        style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-4)" }}
+        style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-4)" }}
       >
         <Lock className="h-5 w-5" aria-hidden="true" />
       </div>
       <div>
-        <p className="font-semibold" style={{ color: "var(--hw-text-1)" }}>
+        <p className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>
           Analítica {TIER_LABEL[tab].toLowerCase()} bloqueada
         </p>
-        <p className="mt-1 text-sm" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-4)" }}>
           Disponible desde el plan {TIER_MIN_PLAN_LABEL[tab]}.
         </p>
       </div>

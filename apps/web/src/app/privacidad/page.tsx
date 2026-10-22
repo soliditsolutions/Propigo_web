@@ -11,17 +11,17 @@ import Link from "next/link";
 import { ShieldCheck, Eye, Database, Mail, Clock, Globe, AlertTriangle } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { RETENCIONES } from "@/lib/retencion";
+import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO } from "@/lib/marca";
 
 export const metadata = {
-  title: "Política de Privacidad · Housing SOLIDIT",
+  title: `Política de Privacidad · ${MARCA}`,
   description:
-    "Política de privacidad y protección de datos personales de Housing SOLIDIT. Conozca cómo tratamos sus datos conforme a la Ley 21.719.",
+    `Política de privacidad y protección de datos personales de ${MARCA}. Conozca cómo tratamos sus datos conforme a la Ley 21.719.`,
 };
 
-const ULTIMA_ACTUALIZACION = "1 de julio de 2026";
-const RAZON_SOCIAL         = "SOLIDIT SpA";
+const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
 const RUT_EMPRESA          = "77.000.000-0"; // Actualizar al RUT real
-const EMAIL_DATOS          = "privacidad@solidit.cl";
+const EMAIL_DATOS          = CORREO.privacidad;
 const DOMICILIO            = "Santiago, Región Metropolitana, Chile";
 
 const SECCIONES = [
@@ -45,7 +45,7 @@ function Section({ id, icon, title, children }: {
       <div className="mb-4 flex items-center gap-3">
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+          style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
         >
           {icon}
         </div>
@@ -103,9 +103,9 @@ export default function PrivacidadPage() {
               </nav>
               <div
                 className="mt-4 rounded-xl p-3 flex items-start gap-2"
-                style={{ background: "var(--pf-purple-tint)" }}
+                style={{ background: "var(--pf-brand-tint)" }}
               >
-                <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--pf-purple)" }} />
+                <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--pf-brand)" }} />
                 <p className="text-xs leading-relaxed" style={{ color: "var(--pf-navy)" }}>
                   Actualizada el {ULTIMA_ACTUALIZACION}.<br />
                   Cumple Ley 21.719.
@@ -120,7 +120,7 @@ export default function PrivacidadPage() {
             <div className="mb-10">
               <div
                 className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
-                style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)", border: "1px solid var(--hw-primary-bd)" }}
+                style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)", border: "1px solid var(--pgo-primary-bd)" }}
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Ley 21.719 · Protección de Datos Personales
@@ -144,18 +144,18 @@ export default function PrivacidadPage() {
             {/* Alerta Ley 21.719 */}
             <div
               className="mb-8 flex items-start gap-3 rounded-2xl p-4"
-              style={{ background: "var(--pf-purple-tint)", border: "1px solid var(--hw-primary-bd)" }}
+              style={{ background: "var(--pf-brand-tint)", border: "1px solid var(--pgo-primary-bd)" }}
             >
-              <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--pf-purple)" }} />
+              <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--pf-brand)" }} />
               <div>
                 <p className="font-semibold text-sm mb-1" style={{ color: "var(--pf-navy)" }}>
                   Consentimiento informado
                 </p>
                 <p className="text-sm leading-relaxed" style={{ color: "var(--pf-text-body)" }}>
-                  Al utilizar Housing SOLIDIT usted declara haber leído y comprendido esta política,
+                  Al utilizar {MARCA} usted declara haber leído y comprendido esta política,
                   y consiente expresamente el tratamiento de sus datos conforme a lo aquí descrito
                   (art. 12 Ley 21.719). Puede retirar su consentimiento en cualquier momento
-                  escribiendo a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-purple)", fontWeight: 500 }}>{EMAIL_DATOS}</a>.
+                  escribiendo a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)", fontWeight: 500 }}>{EMAIL_DATOS}</a>.
                 </p>
               </div>
             </div>
@@ -173,7 +173,7 @@ export default function PrivacidadPage() {
                 <p><strong>RUT:</strong> {RUT_EMPRESA}</p>
                 <p><strong>Domicilio:</strong> {DOMICILIO}</p>
                 <p><strong>Correo datos personales:</strong>{" "}
-                  <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-purple)" }}>{EMAIL_DATOS}</a>
+                  <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)" }}>{EMAIL_DATOS}</a>
                 </p>
               </div>
             </Section>
@@ -208,7 +208,7 @@ export default function PrivacidadPage() {
                     <ul className="space-y-0.5">
                       {items.map((i) => (
                         <li key={i} className="flex items-start gap-2" style={{ color: "var(--pf-text-body)" }}>
-                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full" style={{ background: "var(--pf-purple)" }} />
+                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full" style={{ background: "var(--pf-brand)" }} />
                           {i}
                         </li>
                       ))}
@@ -240,7 +240,7 @@ export default function PrivacidadPage() {
                       <p className="font-semibold" style={{ color: "var(--pf-navy)" }}>{fin}</p>
                       <span
                         className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                        style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                        style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                       >
                         {base}
                       </span>
@@ -292,7 +292,7 @@ export default function PrivacidadPage() {
             {/* §5 */}
             <Section id="terceros" icon={<Globe className="h-4 w-4" />} title="5. Transferencia a terceros">
               <p>
-                Housing SOLIDIT no vende ni cede sus datos a terceros con fines comerciales.
+                {MARCA} no vende ni cede sus datos a terceros con fines comerciales.
                 Únicamente los compartimos con:
               </p>
               <div className="space-y-3">
@@ -379,11 +379,11 @@ export default function PrivacidadPage() {
               </div>
               <div
                 className="rounded-xl p-4 text-sm"
-                style={{ background: "var(--pf-purple-tint)", border: "1px solid var(--hw-primary-bd)" }}
+                style={{ background: "var(--pf-brand-tint)", border: "1px solid var(--pgo-primary-bd)" }}
               >
                 <p className="font-semibold mb-1" style={{ color: "var(--pf-navy)" }}>¿Cómo ejercer sus derechos?</p>
                 <p style={{ color: "var(--pf-text-body)" }}>
-                  Envíe su solicitud a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-purple)", fontWeight: 500 }}>{EMAIL_DATOS}</a> indicando
+                  Envíe su solicitud a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)", fontWeight: 500 }}>{EMAIL_DATOS}</a> indicando
                   su nombre completo, RUT y el derecho que desea ejercer. Responderemos dentro
                   de <strong>15 días hábiles</strong> conforme al art. 28 de la Ley 21.719.
                 </p>
@@ -396,7 +396,7 @@ export default function PrivacidadPage() {
                 <p className="mt-2" style={{ color: "var(--pf-text-body)" }}>
                   Si es arrendatario o propietario, puede ejercer los derechos de <strong>rectificación</strong>{" "}
                   (correo y teléfono) y de <strong>oposición</strong> al tratamiento de avisos, sin escribir un
-                  correo, desde <a href="/portal" style={{ color: "var(--pf-purple)", fontWeight: 500 }}>el portal de autoconsulta → Mis datos</a>.
+                  correo, desde <a href="/portal" style={{ color: "var(--pf-brand)", fontWeight: 500 }}>el portal de autoconsulta → Mis datos</a>.
                   Su nombre y su RUT no se editan ahí —son su identidad legal—: si están mal, ese mismo
                   formulario lo comunica a su corredora para que lo corrija.
                 </p>
@@ -406,33 +406,33 @@ export default function PrivacidadPage() {
             {/* §7 */}
             <Section id="cookies" icon={<Database className="h-4 w-4" />} title="7. Cookies y tecnologías similares">
               <p>
-                Housing SOLIDIT utiliza las siguientes tecnologías de almacenamiento en su dispositivo:
+                {MARCA} utiliza las siguientes tecnologías de almacenamiento en su dispositivo:
               </p>
               <div className="space-y-3">
                 {[
                   {
-                    nombre: "hw_session / __Host-hw_session",
+                    nombre: "pgo_session / __Host-pgo_session",
                     tipo: "Cookie de sesión (httpOnly)",
                     finalidad: "Autenticación del corredor. Sin ella no puede acceder al panel.",
                     duracion: "8 horas (se renueva automáticamente con cada uso)",
                     esencial: true,
                   },
                   {
-                    nombre: "hw_device",
+                    nombre: "pgo_device",
                     tipo: "Cookie de dispositivo confiable (httpOnly)",
                     finalidad: "Evitar solicitar 2FA en dispositivos ya verificados.",
                     duracion: "1 año",
                     esencial: true,
                   },
                   {
-                    nombre: "hw_portal_session",
+                    nombre: "pgo_portal_session",
                     tipo: "Cookie de sesión portal (httpOnly)",
                     finalidad: "Autenticación de arrendatarios en el portal de autoconsulta.",
                     duracion: "30 minutos",
                     esencial: true,
                   },
                   {
-                    nombre: "hw_tos_v2",
+                    nombre: "pgo_tos_v3",
                     tipo: "localStorage",
                     finalidad: "Registro de que el usuario aceptó los términos de uso (Ley 21.719 art. 4).",
                     duracion: "Persistente hasta borrar datos del navegador",
@@ -449,7 +449,7 @@ export default function PrivacidadPage() {
                       </code>
                       {esencial && (
                         <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}>
+                          style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}>
                           Esencial
                         </span>
                       )}
@@ -469,11 +469,11 @@ export default function PrivacidadPage() {
             {/* §8 */}
             <Section id="menores" icon={<AlertTriangle className="h-4 w-4" />} title="8. Menores de edad">
               <p>
-                Housing SOLIDIT no está dirigido a menores de 18 años. No recopilamos
+                {MARCA} no está dirigido a menores de 18 años. No recopilamos
                 intencionalmente datos de menores. Si tiene conocimiento de que un menor
                 ha proporcionado datos personales a través de nuestra plataforma, le rogamos
                 que nos lo comunique a{" "}
-                <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-purple)", fontWeight: 500 }}>{EMAIL_DATOS}</a>{" "}
+                <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)", fontWeight: 500 }}>{EMAIL_DATOS}</a>{" "}
                 para proceder a su eliminación inmediata.
               </p>
             </Section>
@@ -486,8 +486,8 @@ export default function PrivacidadPage() {
                 se lo notificaremos por correo electrónico con al menos{" "}
                 <strong>15 días hábiles de anticipación</strong> conforme al art. 15 de la
                 Ley 19.496. La versión vigente siempre estará disponible en{" "}
-                <Link href="/privacidad" style={{ color: "var(--pf-purple)", fontWeight: 500 }}>
-                  housing.solidit.cl/privacidad
+                <Link href="/privacidad" style={{ color: "var(--pf-brand)", fontWeight: 500 }}>
+                  {DOMINIO}/privacidad
                 </Link>.
               </p>
               <p>
@@ -506,7 +506,7 @@ export default function PrivacidadPage() {
                 <p><strong>Encargado de datos personales:</strong> {RAZON_SOCIAL}</p>
                 <p>
                   <strong>Correo:</strong>{" "}
-                  <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-purple)" }}>{EMAIL_DATOS}</a>
+                  <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)" }}>{EMAIL_DATOS}</a>
                 </p>
                 <p><strong>Domicilio:</strong> {DOMICILIO}</p>
                 <p><strong>Plazo de respuesta:</strong> 15 días hábiles</p>
@@ -525,7 +525,7 @@ export default function PrivacidadPage() {
               style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <ShieldCheck className="h-4 w-4" style={{ color: "var(--pf-purple)" }} />
+                <ShieldCheck className="h-4 w-4" style={{ color: "var(--pf-brand)" }} />
                 <span className="font-semibold" style={{ color: "var(--pf-navy)" }}>Marco normativo aplicado</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -533,7 +533,7 @@ export default function PrivacidadPage() {
                   <span
                     key={t}
                     className="rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                    style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                   >
                     {t}
                   </span>

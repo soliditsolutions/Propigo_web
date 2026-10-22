@@ -25,10 +25,10 @@ vi.mock("@/lib/logger", () => ({ logError: vi.fn() }));
 vi.mock("@/lib/geocoding", () => ({ geocodificarDireccion: vi.fn().mockResolvedValue(null) }));
 
 const mockValidarRut = vi.fn();
-vi.mock("@housing/core", () => ({
+vi.mock("@propigo/core", () => ({
   validarRut: mockValidarRut,
   // formatearRut: requerido por la fachada @/lib/rut.ts (canonicalRut/formatRut
-  // son alias sobre @housing/core) — sin este export el módulo lanza al cargar.
+  // son alias sobre @propigo/core) — sin este export el módulo lanza al cargar.
   formatearRut: vi.fn((r: string) => r),
   // Resto de exports que puedan importarse desde el módulo
   validarEmail: vi.fn(),

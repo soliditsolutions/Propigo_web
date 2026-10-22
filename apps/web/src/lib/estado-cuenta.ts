@@ -12,7 +12,7 @@
  * toca base. La mora se calcula a la fecha de corte con el mismo motor del
  * resto del sistema (`calcularMora`).
  */
-import { calcularMora } from "@housing/core";
+import { calcularMora } from "@propigo/core";
 
 export type PeriodoDeuda = {
   numero: number;

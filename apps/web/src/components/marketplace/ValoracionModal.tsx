@@ -59,7 +59,7 @@ export function ValoracionModal({ token, onClose }: Props) {
     <Modal
       onClose={onClose}
       title="Valorar al corredor"
-      icon={<Star className="h-5 w-5" style={{ fill: "var(--hw-warning)", color: "var(--hw-warning)" }} aria-hidden />}
+      icon={<Star className="h-5 w-5" style={{ fill: "var(--pgo-warning)", color: "var(--pgo-warning)" }} aria-hidden />}
       maxWidth="md"
     >
           {enviada ? (
@@ -90,13 +90,13 @@ export function ValoracionModal({ token, onClose }: Props) {
                       aria-label={`${n} estrella${n > 1 ? "s" : ""}`}
                       onClick={() => { setEstrellas(n); setErrorEst(false); }}
                       onMouseEnter={() => setHover(n)}
-                      className="transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hw-warning)] rounded"
+                      className="transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pgo-warning)] rounded"
                     >
                       <Star
                         className="h-9 w-9 transition-colors"
                         style={{
-                          color:    n <= active ? "var(--hw-warning)" : "var(--pf-border-input)",
-                          fill:     n <= active ? "var(--hw-warning)" : "transparent",
+                          color:    n <= active ? "var(--pgo-warning)" : "var(--pf-border-input)",
+                          fill:     n <= active ? "var(--pgo-warning)" : "transparent",
                         }}
                       />
                     </button>
@@ -104,12 +104,12 @@ export function ValoracionModal({ token, onClose }: Props) {
                 </div>
 
                 {active > 0 && (
-                  <p className="text-sm font-medium transition-all" style={{ color: "var(--hw-warning)" }}>
+                  <p className="text-sm font-medium transition-all" style={{ color: "var(--pgo-warning)" }}>
                     {ETIQUETAS[active]}
                   </p>
                 )}
                 {errorEst && (
-                  <p className="text-xs" style={{ color: "var(--hw-danger)" }}>Selecciona una calificación</p>
+                  <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>Selecciona una calificación</p>
                 )}
               </div>
 
@@ -123,7 +123,7 @@ export function ValoracionModal({ token, onClose }: Props) {
                   onChange={e => setComentario(e.target.value)}
                   placeholder="Cuéntanos más sobre tu experiencia con el corredor…"
                   rows={4}
-                  className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--pf-purple)] focus:shadow-[0_0_0_3px_var(--pf-purple-tint)]"
+                  className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--pf-brand)] focus:shadow-[0_0_0_3px_var(--pf-brand-tint)]"
                   style={{ borderColor: "var(--pf-border-input)", background: "var(--pf-surface)", color: "var(--pf-navy)", resize: "none" }}
                   maxLength={500}
                 />
@@ -135,7 +135,7 @@ export function ValoracionModal({ token, onClose }: Props) {
                 type="submit"
                 disabled={isPending}
                 className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: "var(--hw-warning)" }}
+                style={{ background: "var(--pgo-warning)" }}
               >
                 {isPending ? (
                   <><Spinner />Enviando…</>

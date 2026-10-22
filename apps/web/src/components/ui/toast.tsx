@@ -39,10 +39,10 @@ const VARIANT: Record<
   ToastType,
   { Icon: React.ElementType; iconColor: string; borderColor: string }
 > = {
-  success: { Icon: CheckCircle2,  iconColor: "var(--hw-success)",       borderColor: "var(--hw-success-bd)"  },
-  error:   { Icon: AlertCircle,   iconColor: "var(--hw-danger)",        borderColor: "var(--hw-danger-bd)"   },
-  warning: { Icon: AlertTriangle, iconColor: "var(--hw-warning)",       borderColor: "var(--hw-warning-bd)"  },
-  info:    { Icon: Info,          iconColor: "var(--hw-primary)",       borderColor: "var(--hw-primary-bd)"  },
+  success: { Icon: CheckCircle2,  iconColor: "var(--pgo-success)",       borderColor: "var(--pgo-success-bd)"  },
+  error:   { Icon: AlertCircle,   iconColor: "var(--pgo-danger)",        borderColor: "var(--pgo-danger-bd)"   },
+  warning: { Icon: AlertTriangle, iconColor: "var(--pgo-warning)",       borderColor: "var(--pgo-warning-bd)"  },
+  info:    { Icon: Info,          iconColor: "var(--pgo-primary)",       borderColor: "var(--pgo-primary-bd)"  },
 };
 
 const AUTO_DISMISS_MS = 5000;
@@ -69,10 +69,10 @@ function ToastCard({
       aria-live={item.type === "error" ? "assertive" : "polite"}
       className="flex w-full items-start gap-3 rounded-2xl px-4 py-3.5"
       style={{
-        background:  "var(--hw-surface)",
+        background:  "var(--pgo-surface)",
         border:      `1px solid ${borderColor}`,
-        boxShadow:   "var(--hw-shadow-2)",
-        animation:   "hw-toast-in 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        boxShadow:   "var(--pgo-shadow-2)",
+        animation:   "pgo-toast-in 0.3s cubic-bezier(0.16,1,0.3,1) both",
         minWidth:    "280px",
         maxWidth:    "360px",
       }}
@@ -84,7 +84,7 @@ function ToastCard({
       />
       <p
         className="flex-1 text-sm font-medium"
-        style={{ color: "var(--hw-text-1)" }}
+        style={{ color: "var(--pgo-text-1)" }}
       >
         {item.message}
       </p>
@@ -92,8 +92,8 @@ function ToastCard({
         type="button"
         onClick={onDismiss}
         aria-label="Cerrar notificación"
-        className="hw-btn shrink-0 rounded-lg p-0.5 opacity-50 hover:opacity-100 transition-opacity"
-        style={{ color: "var(--hw-text-3)" }}
+        className="pgo-btn shrink-0 rounded-lg p-0.5 opacity-50 hover:opacity-100 transition-opacity"
+        style={{ color: "var(--pgo-text-3)" }}
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </button>

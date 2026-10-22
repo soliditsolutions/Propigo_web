@@ -9,7 +9,7 @@
  *   1. Término anticipado: "renta del período faltante" (Art. 1489 Código Civil),
  *      no una multa fija — ver ADR-0009 y lib/contract-rules.ts.
  *   2. Firma: espacio para firma manuscrita, sin mencionar un proveedor de firma
- *      electrónica que Housing no tiene integrado.
+ *      electrónica que Propigo no tiene integrado.
  *
  * Datos que el sistema no captura (domicilio de las partes, estado civil,
  * inscripción en el Conservador de Bienes Raíces) se dejan como placeholder
@@ -17,9 +17,11 @@
  * declara y requiere revisión de un abogado antes de firmarse (ver memoria
  * "Contrato = borrador, no final").
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import { cantidad } from "./format";
+import { MARCA } from "@/lib/marca";
 
 export interface ContratoPdfData {
   tenantNombre: string;
@@ -263,7 +265,7 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
           las reparaciones locativas que correspondan según la ley y el uso normal.
         </Clausula>
 
-        <Clausula n="SEPTIMO">
+        <Clausula n="SÉPTIMO">
           Queda prohibido a la parte Arrendataria efectuar variaciones o modificaciones en el
           Inmueble sin autorización previa y por escrito de la parte Arrendadora, subarrendar o
           ceder el contrato, y destinar el Inmueble a un objeto distinto al pactado.
@@ -321,7 +323,7 @@ export function ContratoPdfDocument({ data }: { data: ContratoPdfData }) {
         </View>
 
         <Text style={styles.footer} fixed>
-          Borrador generado automáticamente por Housing SOLIDIT el {fechaCorta(d.generadoEl)} a
+          Borrador generado automáticamente por {MARCA} el {fechaCorta(d.generadoEl)} a
           partir de los datos del contrato en el sistema. No constituye asesoría legal ni documento
           válido para uso sin revisión previa de un abogado habilitado — los campos entre corchetes
           deben completarse antes de firmar.

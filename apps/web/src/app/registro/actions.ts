@@ -19,7 +19,7 @@ export type RegistroState = { error: string; field?: string } | null;
 
 const RESERVED_TERMS = [
   "admin", "administrador", "moderador", "soporte", "sistema",
-  "housing", "solidit", "root", "superuser",
+  "housing", "solidit", "propigo", "root", "superuser",
 ];
 
 // ── Helpers de normalización de nombre ───────────────────────────────────────

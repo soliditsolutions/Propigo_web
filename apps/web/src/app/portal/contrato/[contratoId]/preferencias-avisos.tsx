@@ -35,16 +35,16 @@ export function PreferenciasAvisos({
   return (
     <div
       className="rounded-2xl p-4"
-      style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}
+      style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           {suscrito
-            ? <Bell    className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
-            : <BellOff className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />}
+            ? <Bell    className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
+            : <BellOff className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />}
           <div className="min-w-0">
-            <p className="font-semibold" style={{ color: "var(--hw-text-1)" }}>Avisos por correo</p>
-            <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>{descripcion}</p>
+            <p className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>Avisos por correo</p>
+            <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>{descripcion}</p>
           </div>
         </div>
 
@@ -52,11 +52,11 @@ export function PreferenciasAvisos({
           type="button"
           onClick={alternar}
           disabled={isPending}
-          className="hw-btn shrink-0 rounded-xl px-4 py-2 text-sm font-semibold"
+          className="pgo-btn shrink-0 rounded-xl px-4 py-2 text-sm font-semibold"
           style={
             suscrito
-              ? { background: "var(--hw-surface)", color: "var(--hw-text-2)" }
-              : { background: "var(--hw-primary)", color: "#fff" }
+              ? { background: "var(--pgo-surface)", color: "var(--pgo-text-2)" }
+              : { background: "var(--pgo-primary)", color: "#fff" }
           }
         >
           {isPending
@@ -66,13 +66,13 @@ export function PreferenciasAvisos({
       </div>
 
       {!suscrito && (
-        <p className="mt-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mt-3 text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Mientras estén desactivados no te llegan recordatorios de vencimiento ni avisos de
           atraso. Tu contrato y tus plazos siguen igual: puedes revisarlos acá cuando quieras.
         </p>
       )}
 
-      {error && <p className="mt-2 text-sm" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+      {error && <p className="mt-2 text-sm" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
     </div>
   );
 }

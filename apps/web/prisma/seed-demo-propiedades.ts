@@ -16,21 +16,21 @@
  * Uso: npx tsx prisma/seed-demo-propiedades.ts
  */
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 function verificarBaseLocal(url: string | undefined): void {
   if (!url) throw new Error("DATABASE_URL no está definida.");
   if (process.env.ALLOW_REMOTE_SEED === "1") return;
   const host = new URL(url).hostname;
-  const locales = ["localhost", "127.0.0.1", "::1", "host.docker.internal", "db", "housing-db"];
+  const locales = ["localhost", "127.0.0.1", "::1", "host.docker.internal", "db", "propigo-db"];
   if (!locales.includes(host)) {
     throw new Error(`Se canceló: DATABASE_URL apunta a "${host}", que no es local.`);
   }
 }
 verificarBaseLocal(process.env.DATABASE_URL);
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 
 type Nueva = {

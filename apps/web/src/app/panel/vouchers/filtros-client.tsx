@@ -40,11 +40,11 @@ export function FiltrosClient({
     <form
       onSubmit={aplicar}
       className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl p-4"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
     >
       {/* Tipo */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Tipo
         </label>
         <select
@@ -52,9 +52,9 @@ export function FiltrosClient({
           defaultValue={tipoActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
           style={{
-            borderColor: "var(--hw-border)",
-            color: "var(--hw-text-2)",
-            background: "var(--hw-surface)",
+            borderColor: "var(--pgo-border)",
+            color: "var(--pgo-text-2)",
+            background: "var(--pgo-surface)",
           }}
         >
           <option value="">Todos</option>
@@ -66,7 +66,7 @@ export function FiltrosClient({
 
       {/* Desde */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Desde
         </label>
         <input
@@ -75,16 +75,16 @@ export function FiltrosClient({
           defaultValue={desdeActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
           style={{
-            borderColor: "var(--hw-border)",
-            color: "var(--hw-text-2)",
-            background: "var(--hw-surface)",
+            borderColor: "var(--pgo-border)",
+            color: "var(--pgo-text-2)",
+            background: "var(--pgo-surface)",
           }}
         />
       </div>
 
       {/* Hasta */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Hasta
         </label>
         <input
@@ -93,16 +93,16 @@ export function FiltrosClient({
           defaultValue={hastaActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
           style={{
-            borderColor: "var(--hw-border)",
-            color: "var(--hw-text-2)",
-            background: "var(--hw-surface)",
+            borderColor: "var(--pgo-border)",
+            color: "var(--pgo-text-2)",
+            background: "var(--pgo-surface)",
           }}
         />
       </div>
 
       {/* Contrato / Propiedad */}
       <div className="flex flex-col gap-1 min-w-[200px]">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Propiedad
         </label>
         <select
@@ -110,9 +110,9 @@ export function FiltrosClient({
           defaultValue={contratoIdActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
           style={{
-            borderColor: "var(--hw-border)",
-            color: "var(--hw-text-2)",
-            background: "var(--hw-surface)",
+            borderColor: "var(--pgo-border)",
+            color: "var(--pgo-text-2)",
+            background: "var(--pgo-surface)",
           }}
         >
           <option value="">Todas</option>
@@ -126,8 +126,8 @@ export function FiltrosClient({
       <div className="flex items-center gap-2 self-end">
         <button
           type="submit"
-          className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white"
-          style={{ background: "var(--hw-primary)" }}
+          className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white"
+          style={{ background: "var(--pgo-primary)" }}
         >
           <Filter className="h-3.5 w-3.5" aria-hidden />
           Filtrar
@@ -135,8 +135,8 @@ export function FiltrosClient({
         {hasFilters && (
           <a
             href="/panel/vouchers"
-            className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
-            style={{ color: "var(--hw-text-3)" }}
+            className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
+            style={{ color: "var(--pgo-text-3)" }}
             aria-label="Limpiar filtros"
           >
             <X className="h-3.5 w-3.5" aria-hidden />

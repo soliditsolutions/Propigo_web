@@ -4,7 +4,7 @@
 
 ## 1. Propósito y alcance
 
-Housing digitaliza la gestión de arriendos de una corredora chilena y conecta su oferta con el público. Cubre el ciclo completo: publicar → arrendar → cobrar → conciliar → liquidar, más el autoservicio de las partes. El MVP prioriza el **núcleo financiero real**; las integraciones externas (pago, banco, correo, UF/IPC) se **simulan** (ver [ADR-0003](../decisiones/ADR-0003-fidelidad-prototipo.md)).
+Propigo digitaliza la gestión de arriendos de una corredora chilena y conecta su oferta con el público. Cubre el ciclo completo: publicar → arrendar → cobrar → conciliar → liquidar, más el autoservicio de las partes. El MVP prioriza el **núcleo financiero real**; las integraciones externas (pago, banco, correo, UF/IPC) se **simulan** (ver [ADR-0003](../decisiones/ADR-0003-fidelidad-prototipo.md)).
 
 ## 2. Actores / roles
 
@@ -115,7 +115,7 @@ Housing digitaliza la gestión de arriendos de una corredora chilena y conecta s
 - **RNF-REND-02** Marketplace cacheable/SSR; panel transaccional separado.
 
 ### RNF-MANT — Mantenibilidad y portabilidad
-- **RNF-MANT-01** Núcleo financiero aislado y testeado (`@housing/core`), sin dependencias de framework.
+- **RNF-MANT-01** Núcleo financiero aislado y testeado (`@propigo/core`), sin dependencias de framework.
 - **RNF-MANT-02** Diseño portable (Docker + PostgreSQL estándar); nube diferida (ADR-0001).
 - **RNF-MANT-03** Trazabilidad: toda acción sobre dinero queda en el ledger; accesos en `acceso_log`.
 

@@ -24,7 +24,7 @@ Se hicieron **POCs con documentos reales** (cédula + contrato) que definieron e
 ## Decisión
 
 **Identidad (cédula) — 100% por librería, offline, sin IA.**
-QR del reverso (`zxing-wasm`) → `RUN`+DV+nombre → validación módulo 11 (`@housing/core`) + cross-check contra el formulario de registro. Fallback: MRZ (OCR-B + checksums); último recurso: OCR del frente. Captura por cámara con marco guía + upload como fallback; la **extracción y validación autoritativas son server-side** (nunca confiar en el valor decodificado por el cliente). Opción futura: verificación de autenticidad online contra el Registro Civil (servicio chileno, sin egress a IA extranjera).
+QR del reverso (`zxing-wasm`) → `RUN`+DV+nombre → validación módulo 11 (`@propigo/core`) + cross-check contra el formulario de registro. Fallback: MRZ (OCR-B + checksums); último recurso: OCR del frente. Captura por cámara con marco guía + upload como fallback; la **extracción y validación autoritativas son server-side** (nunca confiar en el valor decodificado por el cliente). Opción futura: verificación de autenticidad online contra el Registro Civil (servicio chileno, sin egress a IA extranjera).
 
 **Contrato — híbrido:**
 - **Datos sensibles** (presencia/formato de RUT, nombres, montos, cláusulas): por **librería/reglas**, local, determinístico. El motor de reglas cubre casi todo el checklist legal (garantía ≤ 2 meses art. 46, mora ≤ 1.5%, plazo, multa 1-3 meses, día 1-28, coherencia).
@@ -43,7 +43,7 @@ El análisis de IA solo necesita la **estructura de las cláusulas** (legalidad,
 
 **Baseline siempre-on:** las validaciones por librería corren **sin consentimiento** (son locales, no envían nada). Solo la prosa asesora de IA queda detrás del gate opt-in.
 
-**Cadena de responsabilidad:** Housing es *encargado* del corredor (*responsable*); el proveedor de IA es *sub-encargado*. Se requiere DPA con el proveedor + T&C que autoricen sub-encargados + transparencia del corredor hacia su cliente.
+**Cadena de responsabilidad:** Propigo es *encargado* del corredor (*responsable*); el proveedor de IA es *sub-encargado*. Se requiere DPA con el proveedor + T&C que autoricen sub-encargados + transparencia del corredor hacia su cliente.
 
 ## Alternativas consideradas
 

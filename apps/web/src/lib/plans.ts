@@ -17,11 +17,11 @@
  */
 
 /**
- * IVA chileno. La tasa vive en `@housing/core` porque también la necesita el
- * IVA del arriendo amoblado, que es dominio financiero y no billing de Housing.
+ * IVA chileno. La tasa vive en `@propigo/core` porque también la necesita el
+ * IVA del arriendo amoblado, que es dominio financiero y no billing de Propigo.
  * Se reexporta acá para no romper a quien ya la importaba desde este módulo.
  */
-import { IVA_PCT } from "@housing/core";
+import { IVA_PCT } from "@propigo/core";
 export { IVA_PCT };
 
 /** Meses que se pagan en el plan anual (12 − 2 de regalo). */

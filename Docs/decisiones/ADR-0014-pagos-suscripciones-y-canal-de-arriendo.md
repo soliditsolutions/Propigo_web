@@ -2,7 +2,7 @@
 
 - **Fecha**: 2026-08-06
 - **Estado**: Propuesta (requiere validación comercial y legal antes de implementar)
-- **Reemplaza / extiende**: complementa [ADR-0006](ADR-0006-canales-de-pago.md) (canales de pago del arriendo). No lo contradice: ADR-0006 ya definió PAC como canal confiable con conciliación automática; este ADR define **quién lo provee, cómo se cobra la comisión de Housing y cómo se cobra la suscripción**.
+- **Reemplaza / extiende**: complementa [ADR-0006](ADR-0006-canales-de-pago.md) (canales de pago del arriendo). No lo contradice: ADR-0006 ya definió PAC como canal confiable con conciliación automática; este ADR define **quién lo provee, cómo se cobra la comisión de Propigo y cómo se cobra la suscripción**.
 
 ## Contexto
 
@@ -10,7 +10,7 @@ Se solicita habilitar tres capacidades de pago:
 
 1. Cobro automático de la suscripción (mensual/anual) a tarjeta de crédito.
 2. Devoluciones automáticas (retracto legal / período de prueba).
-3. Que Housing sea canal para el pago del arriendo, **cobrando solo su comisión a fin de mes al corredor**, y que el arriendo llegue **directo al corredor**.
+3. Que Propigo sea canal para el pago del arriendo, **cobrando solo su comisión a fin de mes al corredor**, y que el arriendo llegue **directo al corredor**.
 
 Hoy no existe nada de billing en el código: `Tenant.plan` es un `String?` libre, todo signup nuevo recibe `"Gratuito"`, y `PagoEntrante.origen` vale `"simulado"`. Los cuatro planes viven en `lib/plans.ts` con precios **en USD** ($5 / $12 / $25 / $50 mensual).
 
@@ -20,27 +20,27 @@ Hoy no existe nada de billing en el código: `Tenant.plan` es un `String?` libre
 
 Antes del detalle, las tres decisiones que condicionan todo lo demás.
 
-### D1. El dinero del arriendo NUNCA pasa por Housing
+### D1. El dinero del arriendo NUNCA pasa por Propigo
 
 La instrucción del negocio ("que el pago del arriendo llegue directo al corredor") no es solo una preferencia operativa: **es la decisión de arquitectura correcta y hay que blindarla**, porque evita tres problemas graves de golpe:
 
-- **Regulatorio.** Recaudar dinero de terceros y liquidarlo después es actividad regulada. La Ley 21.521 (Fintec) creó el Registro de Prestadores de Servicios Financieros de la CMF, y la Ley 20.950 + normativa CMF regulan la "recaudación de pagos por cuenta de terceros" como actividad complementaria de operadores de tarjetas, exigiendo entre otras cosas **fondos segregados**. Si Housing recibe el arriendo en su cuenta, entra en ese terreno. Si el pago va directo del arrendatario al corredor y Housing solo **inicia y observa**, Housing es cliente de un iniciador de pagos registrado (Fintoc/Khipu) y opera **bajo la licencia de ese proveedor**, no bajo una propia.
-- **Financiero.** Sin float no hay riesgo de insolvencia, ni de que una caída de Housing congele arriendos de terceros, ni necesidad de capital de trabajo o seguros.
-- **Tributario.** El arriendo habitacional y su tratamiento de IVA quedan enteramente en la esfera corredor↔propietario. Housing solo factura su comisión (servicio afecto a IVA). Sin este diseño, Housing tendría que justificar por qué recibe dinero que no es ingreso suyo.
+- **Regulatorio.** Recaudar dinero de terceros y liquidarlo después es actividad regulada. La Ley 21.521 (Fintec) creó el Registro de Prestadores de Servicios Financieros de la CMF, y la Ley 20.950 + normativa CMF regulan la "recaudación de pagos por cuenta de terceros" como actividad complementaria de operadores de tarjetas, exigiendo entre otras cosas **fondos segregados**. Si Propigo recibe el arriendo en su cuenta, entra en ese terreno. Si el pago va directo del arrendatario al corredor y Propigo solo **inicia y observa**, Propigo es cliente de un iniciador de pagos registrado (Fintoc/Khipu) y opera **bajo la licencia de ese proveedor**, no bajo una propia.
+- **Financiero.** Sin float no hay riesgo de insolvencia, ni de que una caída de Propigo congele arriendos de terceros, ni necesidad de capital de trabajo o seguros.
+- **Tributario.** El arriendo habitacional y su tratamiento de IVA quedan enteramente en la esfera corredor↔propietario. Propigo solo factura su comisión (servicio afecto a IVA). Sin este diseño, Propigo tendría que justificar por qué recibe dinero que no es ingreso suyo.
 
 > **Consecuencia dura:** cualquier propuesta futura de "retener el arriendo unos días", "pagar al propietario nosotros" o "adelantar el arriendo" **cambia el régimen regulatorio del producto** y no puede tratarse como una mejora incremental. Debe volver a este ADR.
 
 ### D2. Dos contabilidades separadas, nunca mezcladas
 
-Ya existe en el ledger `TipoAsiento.COMISION_CORREDOR` y `Contrato.comisionCorredorPct`: es la comisión que **el corredor** le cobra **al propietario** por administrar. La comisión de Housing es otra cosa completamente distinta.
+Ya existe en el ledger `TipoAsiento.COMISION_CORREDOR` y `Contrato.comisionCorredorPct`: es la comisión que **el corredor** le cobra **al propietario** por administrar. La comisión de Propigo es otra cosa completamente distinta.
 
 | | Ledger de contrato (existe) | Ledger de billing (nuevo) |
 |---|---|---|
-| Partes | arrendatario ↔ propietario ↔ corredor | Housing ↔ tenant (corredor) |
+| Partes | arrendatario ↔ propietario ↔ corredor | Propigo ↔ tenant (corredor) |
 | Modelos | `AsientoLedger`, `PagoEntrante` | `SuscripcionTenant`, `ComisionPlataforma`, `CargoBilling` |
-| Qué mide | quién le debe qué a quién en el arriendo | qué le debe el corredor a Housing |
+| Qué mide | quién le debe qué a quién en el arriendo | qué le debe el corredor a Propigo |
 
-**Nunca** se debe imputar la comisión de Housing como asiento del contrato. Si entrara ahí, contaminaría la liquidación del propietario y las vistas financieras (`v_gasto_comun_recaudado`, billetera del propietario, estadísticas). Es el error más caro posible en este dominio y hay que prevenirlo con un test de invariante, no con disciplina.
+**Nunca** se debe imputar la comisión de Propigo como asiento del contrato. Si entrara ahí, contaminaría la liquidación del propietario y las vistas financieras (`v_gasto_comun_recaudado`, billetera del propietario, estadísticas). Es el error más caro posible en este dominio y hay que prevenirlo con un test de invariante, no con disciplina.
 
 ### D3. Los precios deben migrar de USD a CLP (idealmente indexados a UF)
 
@@ -49,7 +49,7 @@ Ya existe en el ledger `TipoAsiento.COMISION_CORREDOR` y `Contrato.comisionCorre
 - ¿A qué tipo de cambio se cobra? ¿Quién absorbe la variación mes a mes?
 - Un plan "USD $5" cobrado en CLP cambia de precio todos los meses sin que el corredor haya aceptado un alza. Eso es fricción comercial y expone a reclamos.
 
-**Recomendación:** precios en **CLP**, con opción de indexar a **UF** para el plan anual. Housing ya tiene motor de UF e IPC funcionando (usado en garantías y proyecciones) — se reutiliza en vez de construir algo nuevo. La UF es el estándar idiomático chileno para contratos recurrentes y resuelve la inflación sin necesidad de "subir precios" explícitamente.
+**Recomendación:** precios en **CLP**, con opción de indexar a **UF** para el plan anual. Propigo ya tiene motor de UF e IPC funcionando (usado en garantías y proyecciones) — se reutiliza en vez de construir algo nuevo. La UF es el estándar idiomático chileno para contratos recurrentes y resuelve la inflación sin necesidad de "subir precios" explícitamente.
 
 **Alerta de rentabilidad:** el plan Bronze a USD $5 ≈ CLP $4.700. Con comisión de pasarela (~3% + IVA + costo fijo por transacción), el costo de cobrar puede llevarse un porcentaje muy alto de ese ticket. Hay que validar que Bronze sea rentable, o convertirlo en plan anual-only (un cobro de $50 al año tiene mucho mejor relación costo/ingreso que doce de $5).
 
@@ -98,7 +98,7 @@ EventoGatewayPago       -- log crudo de webhooks, para auditoría e idempotencia
 - **Firma de webhook**: verificar siempre; sin firma válida, descartar. Es un endpoint público que mueve dinero.
 - **Dunning**: reintentos escalonados (día 1, 3, 7) → aviso → suspensión, no cancelación inmediata.
 - **Downgrade con cupo excedido** (caso real ya presente en el código): un tenant Gold con 5 usuarios que baja a Bronze (1 usuario). No se pueden borrar usuarios automáticamente. Política propuesta: bloquear invitaciones nuevas, mantener los existentes en solo-lectura y avisar al Manager para que elija a quién conservar. Debe decidirse antes de implementar.
-- **Boletas/facturas (SII)**: Housing debe emitir DTE por cada cobro. Es una integración aparte (proveedor DTE) que suele olvidarse en la estimación.
+- **Boletas/facturas (SII)**: Propigo debe emitir DTE por cada cobro. Es una integración aparte (proveedor DTE) que suele olvidarse en la estimación.
 - **Prorrateo en cambio de plan** a mitad de ciclo.
 
 ---
@@ -113,11 +113,11 @@ El texto actual en `PlanesStop.tsx` dice:
 
 Tres problemas, en orden de gravedad:
 
-1. **"Uso intensivo y exhaustivo" no es un criterio objetivo.** Es indefendible en una disputa y deja a Housing decidiendo caso a caso. Debe reemplazarse por una condición medible y verificable en base de datos (p. ej.: menos de N tokens de IA consumidos **y** cero contratos generados **y** cero pagos procesados por el canal).
+1. **"Uso intensivo y exhaustivo" no es un criterio objetivo.** Es indefendible en una disputa y deja a Propigo decidiendo caso a caso. Debe reemplazarse por una condición medible y verificable en base de datos (p. ej.: menos de N tokens de IA consumidos **y** cero contratos generados **y** cero pagos procesados por el canal).
 2. **La invocación de la ley probablemente no es correcta para este caso.** El art. 3 bis de la Ley 19.496 protege al *consumidor* (destinatario final). Un corredor que contrata un software para operar su negocio es un usuario profesional, no un consumidor final — la aplicabilidad es, como mínimo, discutible. Además, para servicios, la ley señala que el reembolso cubre **solo las sumas que no correspondan a servicios ya prestados** — es decir, la ley admite descontar lo consumido, mientras la copy promete el 100 %.
-3. Prometer más que la ley es perfectamente válido, pero **debe presentarse como lo que es**: una garantía comercial voluntaria de Housing, no como cumplimiento legal. Presentarla como obligación legal cuando probablemente no lo es repite exactamente el problema que ya se corrigió en `contract-rules.ts` con la cita falsa del art. 46 (ver ADR-0012 y el commit de legal review).
+3. Prometer más que la ley es perfectamente válido, pero **debe presentarse como lo que es**: una garantía comercial voluntaria de Propigo, no como cumplimiento legal. Presentarla como obligación legal cuando probablemente no lo es repite exactamente el problema que ya se corrigió en `contract-rules.ts` con la cita falsa del art. 46 (ver ADR-0012 y el commit de legal review).
 
-**Recomendación:** reformular como *"Garantía Housing de 10 días"*, con condiciones objetivas, y **someter el texto a revisión de un abogado** antes de publicarlo junto con el cobro real. Mientras no haya cobro real, no hay exposición: hoy nadie paga. Esa es la ventana para corregirlo.
+**Recomendación:** reformular como *"Garantía Propigo de 10 días"*, con condiciones objetivas, y **someter el texto a revisión de un abogado** antes de publicarlo junto con el cobro real. Mientras no haya cobro real, no hay exposición: hoy nadie paga. Esa es la ventana para corregirlo.
 
 ### Diseño técnico
 
@@ -141,7 +141,7 @@ Con arriendo promedio de referencia **CLP $500.000**:
 
 **Conclusión: el arriendo no se cobra con tarjeta.** No es una preferencia estética:
 
-- Si Housing cobrara ~1 % de comisión ($5.000), el costo de un riel de tarjeta (~$17.500) sería **más de tres veces la comisión completa**. El modelo de negocio no cierra.
+- Si Propigo cobrara ~1 % de comisión ($5.000), el costo de un riel de tarjeta (~$17.500) sería **más de tres veces la comisión completa**. El modelo de negocio no cierra.
 - Pagar el arriendo con tarjeta de crédito implica que el arrendatario financia su arriendo a tasa de tarjeta — malo para él y fuente previsible de reclamos.
 - ADR-0006 ya había llegado a la misma conclusión por otra vía al elegir **PAC** como canal confiable. Este ADR lo confirma con la economía y le pone proveedor.
 
@@ -149,16 +149,16 @@ Con arriendo promedio de referencia **CLP $500.000**:
 
 ### Modelo de comisión: tarifa plana por pago procesado
 
-Contexto de mercado: el corredor ya cobra entre **7 % y 10 %** del arriendo mensual por administración, y esa administración *ya incluye* la gestión de cobro. La comisión de Housing no es un cargo nuevo para el arrendatario: es **una porción del fee que el corredor ya gana**, a cambio de automatizarle el trabajo.
+Contexto de mercado: el corredor ya cobra entre **7 % y 10 %** del arriendo mensual por administración, y esa administración *ya incluye* la gestión de cobro. La comisión de Propigo no es un cargo nuevo para el arrendatario: es **una porción del fee que el corredor ya gana**, a cambio de automatizarle el trabajo.
 
 Por eso se recomienda **monto fijo por pago conciliado** (orden de $2.000–3.000 CLP) en vez de porcentaje:
 
 - Es predecible para el corredor y fácil de explicar ("$2.500 por arriendo cobrado automáticamente").
-- Desacopla el ingreso de Housing del tamaño del arriendo: no hay incentivo perverso ni percepción de "quedarse con parte del arriendo".
+- Desacopla el ingreso de Propigo del tamaño del arriendo: no hay incentivo perverso ni percepción de "quedarse con parte del arriendo".
 - Sobre un fee de administración de $35.000–50.000, es claramente absorbible.
 - Evita el problema de un porcentaje que en arriendos altos parece abusivo y en bajos no cubre el costo del riel.
 
-**Decisión comercial pendiente:** el monto exacto y quién absorbe el costo del riel A2A (Housing con cargo a su margen, o se traspasa). Debe fijarse con la cotización real en mano.
+**Decisión comercial pendiente:** el monto exacto y quién absorbe el costo del riel A2A (Propigo con cargo a su margen, o se traspasa). Debe fijarse con la cotización real en mano.
 
 ### Flujo
 
@@ -166,9 +166,9 @@ Por eso se recomienda **monto fijo por pago conciliado** (orden de $2.000–3.00
 1. Corredor conecta su cuenta bancaria de destino (una vez, verificada).
 2. Arrendatario autoriza el pago recurrente (mandato PAC/A2A) desde el Portal.
 3. Cada mes el proveedor ejecuta el cobro → el dinero va DIRECTO al banco del corredor.
-4. Webhook confirma → Housing crea PagoEntrante(canal=PAC, origen="gateway")
+4. Webhook confirma → Propigo crea PagoEntrante(canal=PAC, origen="gateway")
    y concilia contra el PeriodoPago (calce exacto de monto, según ADR-0006).
-5. Housing devenga ComisionPlataforma por ese pago conciliado.
+5. Propigo devenga ComisionPlataforma por ese pago conciliado.
 6. Cierre de mes: se suman las comisiones devengadas y se cobran al corredor
    por el MISMO riel de tarjeta de la suscripción (Parte 1).
    - Plan mensual → un cargo: suscripción + comisiones.
@@ -179,9 +179,9 @@ Este flujo encaja sin fricción con lo que ya existe: `PagoEntrante` ya tiene `c
 
 ### Riesgos específicos
 
-- **Fuga de comisión.** Si el arrendatario paga por fuera (transferencia directa), Housing no lo ve y no devenga. Política: se cobra comisión **solo** por pagos efectivamente conciliados por el canal. Intentar cobrar por pagos que Housing no procesó sería indefendible.
+- **Fuga de comisión.** Si el arrendatario paga por fuera (transferencia directa), Propigo no lo ve y no devenga. Política: se cobra comisión **solo** por pagos efectivamente conciliados por el canal. Intentar cobrar por pagos que Propigo no procesó sería indefendible.
 - **Verificación de la cuenta del corredor.** Si se carga mal el número de cuenta, el arriendo de un tercero se va a una cuenta equivocada. Requiere verificación de titularidad (RUT del titular = RUT del tenant) y confirmación en dos pasos ante cualquier cambio — el mismo criterio ya aplicado a cambio de contacto por OTP.
-- **Datos bancarios y Ley 21.719.** Housing **no** debe almacenar credenciales bancarias del arrendatario; eso vive en el proveedor. Housing guarda solo el identificador del mandato.
+- **Datos bancarios y Ley 21.719.** Propigo **no** debe almacenar credenciales bancarias del arrendatario; eso vive en el proveedor. Propigo guarda solo el identificador del mandato.
 - **Comisión devengada pero impaga.** Si el corredor no paga sus comisiones a fin de mes, se suspende el canal para nuevos cobros — pero **jamás** se interrumpe un mandato ya autorizado por un arrendatario sin avisarle: él no es parte del conflicto comercial.
 - **Verificar en el Registro de la CMF** que el proveedor elegido esté efectivamente inscrito y autorizado. Es el sustento de todo el diseño D1.
 
@@ -235,7 +235,7 @@ Son las reglas que **nunca** pueden romperse, verificadas en cada build:
 Antes de abrir a clientes:
 
 - 2–3 corredores reales aceptando explícitamente ser piloto, con montos bajos.
-- Conciliación **manual diaria** contra las cartolas reales del proveedor y del corredor durante el primer mes: cada peso movido debe calzar con un registro en Housing.
+- Conciliación **manual diaria** contra las cartolas reales del proveedor y del corredor durante el primer mes: cada peso movido debe calzar con un registro en Propigo.
 - Runbook de incidentes escrito **antes** de arrancar: cómo se revierte un cobro erróneo, a quién se llama, en qué plazo se le responde al afectado.
 - Criterio de salida explícito: cero descalces durante N días consecutivos.
 
@@ -260,4 +260,4 @@ Antes de abrir a clientes:
 - Se introduce un dominio de billing **separado** del ledger de contratos, con su propia RLS por tenant.
 - La integración de pasarela queda tras un puerto propio, permitiendo cambiar de proveedor sin reescribir el dominio.
 - `Tenant.plan` deja de ser fuente de verdad; pasa a derivarse de la suscripción.
-- Housing queda expresamente fuera del circuito de fondos de terceros, y esa restricción se documenta como invariante de producto, no como detalle de implementación.
+- Propigo queda expresamente fuera del circuito de fondos de terceros, y esa restricción se documenta como invariante de producto, no como detalle de implementación.

@@ -17,9 +17,9 @@ function fondoDe(usado: number, max: number): string {
   return (container.firstChild as HTMLElement).style.background;
 }
 
-const NORMAL = "var(--hw-surface-2)";
-const CERCA  = "var(--hw-warning-lt)";
-const LLENO  = "var(--hw-danger-lt)";
+const NORMAL = "var(--pgo-surface-2)";
+const CERCA  = "var(--pgo-warning-lt)";
+const LLENO  = "var(--pgo-danger-lt)";
 
 describe("CupoBadge", () => {
   it("muestra el consumo y el plan cuando se le pasa", () => {

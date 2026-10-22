@@ -9,11 +9,12 @@
  */
 
 import { logError } from "./logger";
+import { MARCA, CORREO } from "@/lib/marca";
 
 export type Coordenadas = { latitud: number; longitud: number };
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-const USER_AGENT = "HousingSOLIDIT/1.0 (contacto@solidit.cl)";
+const USER_AGENT = `${MARCA}/1.0 (${CORREO.tecnologia})`;
 
 // Nominatim geocodifica a nivel de edificio/calle, no de unidad interna —
 // un segmento como "depto 12" o "oficina 304" en la dirección hace que la

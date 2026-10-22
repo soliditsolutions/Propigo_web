@@ -1,17 +1,17 @@
 {
-  "name": "housing",
+  "name": "propigo",
   "private": true,
   "version": "0.1.0",
-  "description": "Housing — plataforma PropTech de gestión de arriendos (monorepo)",
+  "description": "Propigo — plataforma PropTech de gestión de arriendos (monorepo)",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @housing/web",
-    "build": "npm run build --workspace @housing/web",
-    "start": "npm run start --workspace @housing/web",
-    "lint": "npm run lint --workspace @housing/web",
+    "dev": "npm run dev --workspace @propigo/web",
+    "build": "npm run build --workspace @propigo/web",
+    "start": "npm run start --workspace @propigo/web",
+    "lint": "npm run lint --workspace @propigo/web",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down"
   },

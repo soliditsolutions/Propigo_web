@@ -16,7 +16,7 @@ export function FilterChip({
   label,
   count,
   active,
-  activeColor = "var(--hw-primary-dk)",
+  activeColor = "var(--pgo-primary-dk)",
   onClick,
 }: {
   label: string;
@@ -30,7 +30,7 @@ export function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="hw-chip"
+      className="pgo-chip"
       style={
         active
           ? {
@@ -41,22 +41,22 @@ export function FilterChip({
               transform: "translateY(-0.5px)",
             }
           : {
-              background: "var(--hw-surface)",
-              color: "var(--hw-text-2)",
-              border: "1px solid var(--hw-border-2)",
-              boxShadow: "var(--hw-input-shadow)",
+              background: "var(--pgo-surface)",
+              color: "var(--pgo-text-2)",
+              border: "1px solid var(--pgo-border-2)",
+              boxShadow: "var(--pgo-input-shadow)",
             }
       }
     >
       {label}
       {count !== undefined && (
         <span
-          className="hw-chip-count"
+          className="pgo-chip-count"
           style={{
             background: active
               ? "rgba(255,255,255,0.22)"
               : "rgba(100,116,139,0.12)",
-            color: active ? "rgba(255,255,255,0.9)" : "var(--hw-text-3)",
+            color: active ? "rgba(255,255,255,0.9)" : "var(--pgo-text-3)",
             fontWeight: 700,
           }}
         >
@@ -115,9 +115,9 @@ export function FilterToolbar({
           {/* Búsqueda ocupa el espacio restante a la izquierda */}
           <div className="flex-1 min-w-0">
             {tieneBusqueda && (
-              <div className="relative hw-input-search-wrap">
+              <div className="relative pgo-input-search-wrap">
                 <Search
-                  className="hw-search-icon absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 pointer-events-none"
+                  className="pgo-search-icon absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 pointer-events-none"
                   aria-hidden="true"
                 />
                 <input
@@ -125,7 +125,7 @@ export function FilterToolbar({
                   placeholder={searchPlaceholder}
                   value={busqueda}
                   onChange={(e) => onBusquedaChange(e.target.value)}
-                  className="hw-input-search"
+                  className="pgo-input-search"
                   aria-label={searchPlaceholder}
                 />
                 {busqueda && (
@@ -133,8 +133,8 @@ export function FilterToolbar({
                     type="button"
                     onClick={() => onBusquedaChange("")}
                     aria-label="Limpiar búsqueda"
-                    className="hw-btn absolute right-3 top-1/2 -translate-y-1/2 rounded"
-                    style={{ color: "var(--hw-text-4)" }}
+                    className="pgo-btn absolute right-3 top-1/2 -translate-y-1/2 rounded"
+                    style={{ color: "var(--pgo-text-4)" }}
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>

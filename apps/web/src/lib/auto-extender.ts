@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { generarCalendario, type PeriodoCalendario } from "@housing/core";
+import { generarCalendario, type PeriodoCalendario } from "@propigo/core";
 
 const DIAS_UMBRAL    = 90;  // extiende cuando queden < 90 días en el último período
 const MESES_EXTENSION = 12; // cuántos meses adicionales generar

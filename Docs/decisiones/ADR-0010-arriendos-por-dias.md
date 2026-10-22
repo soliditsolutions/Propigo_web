@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-07  
 **Estado:** Propuesto — pendiente de decisión de alcance  
-**Autores:** Housing · sesión de análisis de mercado
+**Autores:** Propigo · sesión de análisis de mercado
 
 ---
 
@@ -14,14 +14,14 @@ en 2024 (4,6 millones de noches reservadas; USD 350 M en ingresos) y proyecta +1
 Los retornos de STR son 2×–3× superiores al arriendo mensual en zonas turísticas.
 
 Un corredor moderno recibe cada vez más mandatos de propietarios que quieren rentar por días
-vía Airbnb, Booking.com o canales propios. La pregunta es: **¿debe Housing soportar STR,
+vía Airbnb, Booking.com o canales propios. La pregunta es: **¿debe Propigo soportar STR,
 y en qué alcance?**
 
 ---
 
 ## Pregunta de decisión
 
-¿Implementamos soporte de arriendos por días como parte de Housing y en qué fase?
+¿Implementamos soporte de arriendos por días como parte de Propigo y en qué fase?
 
 ---
 
@@ -37,7 +37,7 @@ y en qué alcance?**
 | Regulación municipal | Sin ordenanza específica | **Vacío legal** — no existe ordenanza municipal en Santiago ni en otras ciudades (a junio 2026) |
 
 > **Riesgo regulatorio:** El vacío municipal puede cerrarse con legislación futura (modelo europeo).
-> Housing debe incluir un alerta configurable si se activa alguna restricción en la ciudad de la propiedad.
+> Propigo debe incluir un alerta configurable si se activa alguna restricción en la ciudad de la propiedad.
 
 ---
 
@@ -52,11 +52,11 @@ y en qué alcance?**
 | **Booking.com (online)** | 100 % al reservar (Booking retiene) | Liquidación mensual |
 | **Booking.com (en propiedad)** | Sin anticipo online | Huésped paga al llegar |
 
-> **Conclusión para Housing:** el porcentaje de anticipo (reserva) **no es fijo por ley**; lo
+> **Conclusión para Propigo:** el porcentaje de anticipo (reserva) **no es fijo por ley**; lo
 > define cada plataforma/corredor. El estándar de mercado es **30 %–50 %** cuando se cobra
 > anticipadamente en plataformas propias. El 100 % es común en Airbnb por su seguro AirCover.
 >
-> Cuando Housing gestione reservas STR propias (sin integración Airbnb), debe permitir al
+> Cuando Propigo gestione reservas STR propias (sin integración Airbnb), debe permitir al
 > corredor configurar un **% mínimo de reserva** (recomendado 30 %, obligatorio para proteger
 > al propietario de cancelaciones de último minuto).
 
@@ -71,7 +71,7 @@ y en qué alcance?**
 
 ---
 
-## Análisis de brecha técnica — qué falta en Housing para STR
+## Análisis de brecha técnica — qué falta en Propigo para STR
 
 El schema y la lógica actual están **diseñados exclusivamente para arriendo mensual**.
 Las brechas son estructurales y no menores:

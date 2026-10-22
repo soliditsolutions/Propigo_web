@@ -1,6 +1,6 @@
 # Modelo de dominio (núcleo financiero)
 
-> Esta es la parte que **debe funcionar de verdad** incluso en el MVP local (ver [ADR-0003](../decisiones/ADR-0003-fidelidad-prototipo.md)). Es lo que diferencia a Housing.
+> Esta es la parte que **debe funcionar de verdad** incluso en el MVP local (ver [ADR-0003](../decisiones/ADR-0003-fidelidad-prototipo.md)). Es lo que diferencia a Propigo.
 >
 > Reglas de negocio validadas con el cliente el 2026-06-03 → ver [ADR-0004](../decisiones/ADR-0004-reglas-financieras.md).
 

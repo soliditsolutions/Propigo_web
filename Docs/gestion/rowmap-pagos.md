@@ -175,15 +175,15 @@ un "leer, comparar, escribir" en pasos separados.
 
 La tesis comercial ("50 % más barato que Leasity en el tramo alto") **se sostiene con los números**:
 
-| Tramo | Leasity | Housing | Ahorro |
+| Tramo | Leasity | Propigo | Ahorro |
 |---|---|---|---|
 | 200 propiedades / mes | 3,5 UF | 1,70 UF | **51,4 %** |
 | 200 propiedades / año | 33,6 UF (con su 20 % anual) | 17 UF | **49,4 %** |
 | UF por propiedad (tope) | 0,0175 | 0,0085 | **51 %** |
 
-Housing queda más barato por propiedad **en todos los tramos**, no solo en el alto.
+Propigo queda más barato por propiedad **en todos los tramos**, no solo en el alto.
 
-> **Matiz honesto:** "2 meses gratis" en el anual equivale a **16,7 %** de descuento, mientras Leasity ofrece **20 %**. El precio final sigue siendo ~50 % menor, pero *el descuento anual de Housing es menos generoso que el de Leasity*. No conviene usar "mejor descuento anual" como argumento de venta; el argumento fuerte es el precio absoluto.
+> **Matiz honesto:** "2 meses gratis" en el anual equivale a **16,7 %** de descuento, mientras Leasity ofrece **20 %**. El precio final sigue siendo ~50 % menor, pero *el descuento anual de Propigo es menos generoso que el de Leasity*. No conviene usar "mejor descuento anual" como argumento de venta; el argumento fuerte es el precio absoluto.
 
 ---
 
@@ -201,14 +201,14 @@ D-01 (precios) · D-05 (downgrade) · D-07 (DTE, dirección) · D-10 (mora) · D
 | **N-01** | **Contradicción con la estrategia:** se apunta a agencias de "150-200 o **1000** propiedades", pero Diamond topa en **200**. Una agencia de 500 no tiene plan que contratar. ¿Se crea un tramo Enterprise? **El análisis de costos (2026-08-19) refuerza que conviene: el costo marginal de un tenant grande es de centavos, así que un Enterprise es margen casi puro.** | 🔴 | P-B1b | Agregar **Enterprise: >200 props, precio a convenir**, con CTA de contacto en vez de autoservicio. Sin esto, el segmento que financia la estrategia no puede comprar. | **Abierta** |
 | **N-02** | Diamond dice "IA de alto uso". El sistema necesita **un número** para aplicar el límite. ¿Cuántos tokens diarios? | 🔴 | P-B0.1, P-B0.3 | 100/día. "Ilimitado" real es un riesgo de costo abierto contra la API de IA; "alto uso" sin número no es implementable ni defendible ante un reclamo. | **Abierta** |
 | **N-03** | Precio en UF, cobro en CLP: ¿con qué valor de UF se convierte? ¿Y si la fuente de UF falla el día del cobro? | 🔴 | P-B4 | UF del **día de emisión del cargo**, congelada en el `CargoBilling` y visible en el DTE. Si la fuente falla: **no cobrar** y reintentar al día siguiente (nunca cobrar con un valor estimado). | **Abierta** |
-| **N-04** | IVA: ¿19 % como constante configurable? ¿La UI muestra neto, bruto o ambos? | 🟡 | P-B1 | Constante única `IVA_PCT`. UI muestra **neto + "+ IVA"**; el total bruto en CLP va en el checkout. | ✅ **Resuelta** 2026-08-06 — quedó como `IVA_PCT = 19` en `lib/plans.ts` (no en `@housing/core`: la tabla de planes ya vive ahí y separarlos obligaba a importar dos módulos para calcular un precio) |
+| **N-04** | IVA: ¿19 % como constante configurable? ¿La UI muestra neto, bruto o ambos? | 🟡 | P-B1 | Constante única `IVA_PCT`. UI muestra **neto + "+ IVA"**; el total bruto en CLP va en el checkout. | ✅ **Resuelta** 2026-08-06 — quedó como `IVA_PCT = 19` en `lib/plans.ts` (no en `@propigo/core`: la tabla de planes ya vive ahí y separarlos obligaba a importar dos módulos para calcular un precio) |
 | **N-05** | El límite de propiedades, ¿cuenta todas o solo las activas? (borrador / disponible / arrendada / pausada) | 🟡 | P-B0.1, P-B0.2 | Todas menos las eliminadas — coherente con el tooltip ya publicado ("cuentan las disponibles, las arrendadas y las en pausa"). | **Abierta** |
 | **N-06** | Gold promete "**Roles y permisos de usuarios**" y Diamond "avanzados", pero ADR-0013 implementó **exactamente 2 roles fijos** (manager/colaborador) sin permisos configurables. ¿Se construye la feature o se corrige la card? | 🔴 | P-B1 | Corregir la card a "Roles Manager y Colaborador" (lo que existe). Vender permisos configurables sin tenerlos es una promesa incumplible al primer cliente Gold. | **Abierta** |
 | **N-07** | "Soporte prioritario" (Gold/Diamond) vs "estándar": ¿qué SLA concreto? | 🟡 | P-B1 | Definir tiempos de respuesta reales y alcanzables antes de publicarlo. Sin capacidad detrás, genera reclamos. | **Abierta** |
 | **N-08** | Diamond incluye migración asistida, onboarding personalizado y capacitación. Son **servicios humanos**, no software. ¿Quién los entrega y con qué capacidad? | 🟡 | P-B1 | Definir alcance y límite (p. ej. "hasta X horas") antes de venderlo. | **Abierta** |
 | **D-02** | ¿Proveedor de suscripción: Flow, Transbank directo, u otro? | 🔴 | P-B2 | Flow al arranque, migrable por el puerto `BillingGateway` (P-A1). | **Abierta — planteada y pospuesta explícitamente el 2026-08-19.** Datos levantados para retomarla abajo |
 | **D-03** | ¿Proveedor A2A: Fintoc o Khipu? ¿Tarifa negociada? | 🔴 | P-D1, P-D2 | Cotizar ambos; exigir tarifa plana por volumen. Verificar inscripción CMF. | Abierta |
-| **D-04** | ¿Monto de la comisión por pago procesado? ¿Quién absorbe el riel? | 🔴 | P-D5 | Tarifa plana $2.000–3.000 CLP; Housing absorbe el riel. | Abierta |
+| **D-04** | ¿Monto de la comisión por pago procesado? ¿Quién absorbe el riel? | 🔴 | P-D5 | Tarifa plana $2.000–3.000 CLP; Propigo absorbe el riel. | Abierta |
 | **D-06** | ¿Revisión legal del texto de retracto antes del cobro real? | 🔴 | P-C1 | Sí. Reencuadrar como garantía comercial voluntaria. | Abierta |
 | **D-07b** | DTE: dirección decidida (proveedor externo vía API). Falta **elegir cuál**. | 🟡 | P-B9 | Comparar Haulmer/OpenFactura vs Bsale por precio y calidad de API. | Abierta |
 | **D-08** | ¿Período de prueba gratuito? | 🟡 | P-B3 | Sin trial: la garantía de 10 días ya cumple esa función. | Abierta |
@@ -266,8 +266,8 @@ todos.
 
 | Fecha | ID | Decisión | Razón | Origen |
 |---|---|---|---|---|
-| 2026-08-06 | — | Housing nunca recibe el dinero del arriendo | Evita actividad regulada (Ley 21.521 / 20.950), elimina float y aísla el tratamiento tributario | ADR-0014 |
-| 2026-08-06 | — | Ledger de billing separado del ledger de contratos | Imputar la comisión de Housing en `AsientoLedger` corrompería la liquidación del propietario | ADR-0014 |
+| 2026-08-06 | — | Propigo nunca recibe el dinero del arriendo | Evita actividad regulada (Ley 21.521 / 20.950), elimina float y aísla el tratamiento tributario | ADR-0014 |
+| 2026-08-06 | — | Ledger de billing separado del ledger de contratos | Imputar la comisión de Propigo en `AsientoLedger` corrompería la liquidación del propietario | ADR-0014 |
 | 2026-08-06 | — | Integración de pasarela detrás de un puerto propio | Permite construir Fase A sin decidir proveedor | ADR-0014 |
 | 2026-08-06 | **D-01** | **Precios en UF + IVA**: Bronze 0,25 · Silver 0,50 · Gold 0,90 · Diamond 1,70 (mensual); ×10 en anual (2 meses gratis). Cupos 10/25/75/200 propiedades, 1/3/10/20 usuarios | Posicionamiento ~50 % bajo Leasity en el tramo alto para captar agencias consolidadas por ahorro, apostando a volumen. La UF resuelve además la indexación sin alzas explícitas | Negocio |
 | 2026-08-06 | **D-01b** | Se agrega tramo intermedio de **75** propiedades (Gold) | El salto 50→200 dejaba sin plan adecuado a las agencias medianas | Negocio |
@@ -276,14 +276,14 @@ todos.
 | 2026-08-06 | **D-13** | Sin reembolsos prorrateados fuera de la ventana de retracto | Coherente con la política de cancelación ya publicada | Negocio (implícito en D-05) |
 | 2026-08-06 | **D-14** | Suscripción en UF; comisión de plataforma en CLP fijo | La UF es idiomática para recurrencia; la comisión fija es más simple de comunicar | Negocio + ADR-0014 |
 | 2026-08-06 | **D-07** | DTE vía **proveedor externo con API**, no integración directa al SII. Requisitos: emitir automáticamente, consultar estado, obtener PDF/XML y enviar por correo | Menor costo y riesgo que integrar el SII directamente | Negocio |
-| 2026-08-06 | — | Las migraciones se generan con `prisma migrate diff` y se aplican con `psql -U housing`, **no** con `migrate dev` ni `db execute` | `DATABASE_URL` usa el rol de runtime `housing_app`, que no puede crear la shadow database ni hacer DDL. Es correcto que sea así (ADR-0011). Ver "Notas operativas" al final | Hallazgo al implementar P-A2 |
+| 2026-08-06 | — | Las migraciones se generan con `prisma migrate diff` y se aplican con `psql -U propigo`, **no** con `migrate dev` ni `db execute` | `DATABASE_URL` usa el rol de runtime `propigo_app`, que no puede crear la shadow database ni hacer DDL. Es correcto que sea así (ADR-0011). Ver "Notas operativas" al final | Hallazgo al implementar P-A2 |
 | 2026-08-06 | **N-02** | Diamond = **100 tokens diarios** de IA | "IA de alto uso" no es implementable: el sistema necesita un número para aplicarlo. "Ilimitado" sería un costo abierto contra la API de IA. Aplicada como recomendación por defecto del rowMap | Default del rowMap |
 | 2026-08-06 | **N-05** | El cupo de propiedades cuenta **todos los estados** (borrador, disponible, reservada, arrendada) | Coherente con el tooltip ya publicado: "cuentan las disponibles, las arrendadas y las en pausa" | Default del rowMap |
 | 2026-08-06 | **N-04** | IVA como constante única `IVA_PCT = 19` en `lib/plans.ts`; la UI muestra neto + "+ IVA" | Una sola fuente para la tasa; el DTE necesita neto e IVA por separado (D-07) | Default del rowMap |
 | 2026-08-06 | **N-06** | Se **quita** "Roles y permisos de usuarios" de las cards | El sistema tiene exactamente 2 roles fijos (Manager/Colaborador, ADR-0013), sin permisos configurables. Vender la capacidad se cae con el primer cliente Gold que la busque | Corrección de H-06 |
 | 2026-08-06 | — | El cupo de IA **no** aplica al escaneo de cédula del registro | Ese flujo ocurre antes de que exista el tenant, así que no hay plan contra el cual descontar. El tooltip publicado ya define el token como "una revisión de contrato con IA" | Hallazgo al implementar B0.3 |
 | 2026-08-19 | — | El indicador de cupo avisa en **ámbar desde el 80 %**, no solo en rojo al tope | Un indicador que solo se enciende cuando ya no se puede hacer nada no es un aviso. El ámbar deja margen para subir de plan o liberar cupo mientras todavía se puede decidir | Decisión de diseño en P-B0.5 |
-| 2026-08-19 | — | Par de tokens `--hw-accent-teal-btn` / `--hw-on-accent-teal` para el botón sólido teal | El acento suelto no sirve de fondo de botón: blanco sobre `#5EEAD4` da **1,48:1** (AA pide 4,5:1) y el texto se veía literalmente invisible. Se corrigió sin tocar `--hw-accent-teal`, que en gradientes y auroras sí funciona | Fallo preexistente detectado en el QA de P-B0.5 |
+| 2026-08-19 | — | Par de tokens `--pgo-accent-teal-btn` / `--pgo-on-accent-teal` para el botón sólido teal | El acento suelto no sirve de fondo de botón: blanco sobre `#5EEAD4` da **1,48:1** (AA pide 4,5:1) y el texto se veía literalmente invisible. Se corrigió sin tocar `--pgo-accent-teal`, que en gradientes y auroras sí funciona | Fallo preexistente detectado en el QA de P-B0.5 |
 
 ---
 
@@ -307,7 +307,7 @@ todos.
 ### Cómo crear una migración en este proyecto
 
 `prisma migrate dev` **no funciona**: `DATABASE_URL` apunta al rol de runtime
-`housing_app`, que por diseño (ADR-0011) no es dueño ni superusuario, así que no
+`propigo_app`, que por diseño (ADR-0011) no es dueño ni superusuario, así que no
 puede crear la shadow database ni ejecutar DDL. Eso es correcto — es justamente
 lo que hace que RLS restrinja de verdad. El procedimiento es:
 
@@ -317,14 +317,14 @@ npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prism
   > prisma/migrations/<timestamp>_<nombre>/migration.sql
 
 # 2. Aplicarlo con el rol dueño
-docker exec -i housing-db psql -U housing -d housing -v ON_ERROR_STOP=1 \
+docker exec -i propigo-db psql -U propigo -d propigo -v ON_ERROR_STOP=1 \
   < prisma/migrations/<timestamp>_<nombre>/migration.sql
 
 # 3. Registrarla en el historial de Prisma
 npx prisma migrate resolve --applied <timestamp>_<nombre>
 
 # 4. Reaplicar setup.sql (RLS de las tablas nuevas, índices parciales)
-docker exec -i housing-db psql -U housing -d housing < prisma/sql/setup.sql
+docker exec -i propigo-db psql -U propigo -d propigo < prisma/sql/setup.sql
 
 # 5. Verificar que no quedó drift
 npx prisma migrate status
@@ -359,4 +359,4 @@ aislamiento entre tenants y nada avisa. El invariante 7 de
 de billing.
 
 Los **permisos** sí son automáticos: `alter default privileges` en setup.sql ya
-otorga CRUD a `housing_app` sobre toda tabla que cree el rol `housing`.
+otorga CRUD a `propigo_app` sobre toda tabla que cree el rol `propigo`.

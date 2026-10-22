@@ -110,8 +110,31 @@ describe("HTML de correos — escapado de datos de personas", () => {
 
   it("el nombre de la corredora no inyecta en la invitación a un colaborador", async () => {
     const { sendCollaboratorInviteEmail } = await import("../email");
-    await sendCollaboratorInviteEmail("c@b.cl", "Colab", PAYLOAD, "tok");
+    // Firma: (email, nombre, rawToken, nombreEmpresa)
+    await sendCollaboratorInviteEmail("c@b.cl", "Colab", "tok", PAYLOAD);
 
     expect(enviados[0].html).not.toContain("<img src=x");
+    expect(enviados[0].html).toContain("&lt;img src=x");
+  });
+
+  it("el nombre del interesado (formulario público) no inyecta en el acuse de contacto", async () => {
+    const { sendAcuseContactoEmail } = await import("../email");
+    await sendAcuseContactoEmail({
+      emailCliente: "x@y.cl", nombreCliente: PAYLOAD, tituloPub: "Depto", nombreCorredor: "Corredor",
+    });
+
+    expect(enviados[0].html).not.toContain("<img src=x");
+    expect(enviados[0].html).toContain("&lt;img src=x");
+  });
+
+  it("la dirección de la propiedad no inyecta en el mensaje del corredor", async () => {
+    const { sendComentarioCorredorEmail } = await import("../email");
+    await sendComentarioCorredorEmail({
+      emailArrendatario: "a@b.cl", nombreArrendatario: "Ana", nombreCorredor: "Corredor",
+      direccionPropiedad: PAYLOAD, texto: "Hola", tieneDocumentos: false,
+    });
+
+    expect(enviados[0].html).not.toContain("<img src=x");
+    expect(enviados[0].html).toContain("&lt;img src=x");
   });
 });

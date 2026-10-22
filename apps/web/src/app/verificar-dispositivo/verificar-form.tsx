@@ -32,7 +32,7 @@ function ExpiryClock({ secsLeft }: { secsLeft: number }) {
   return (
     <div
       className="flex items-center justify-center gap-1.5 text-xs mt-1"
-      style={{ color: urgent ? "var(--hw-danger)" : "var(--hw-text-3)" }}
+      style={{ color: urgent ? "var(--pgo-danger)" : "var(--pgo-text-3)" }}
     >
       <Clock className="h-3 w-3" aria-hidden />
       <span>Código válido por: <strong>{formatTime(secsLeft)}</strong></span>
@@ -42,11 +42,11 @@ function ExpiryClock({ secsLeft }: { secsLeft: number }) {
 
 function IntentosRestantesBadge({ restantes }: { restantes: number }) {
   if (restantes >= MAX_INTENTOS) return null;
-  const color = restantes === 1 ? "var(--hw-danger)" : "var(--hw-warning)";
+  const color = restantes === 1 ? "var(--pgo-danger)" : "var(--pgo-warning)";
   return (
     <div
       className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs mt-1.5"
-      style={{ background: restantes === 1 ? "var(--hw-danger-lt)" : "var(--hw-warning-lt)", color }}
+      style={{ background: restantes === 1 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)", color }}
       role="status"
       aria-live="polite"
     >
@@ -78,7 +78,7 @@ function ReenviarButton({
       onClick={onClick}
       disabled={disabled}
       className="flex items-center justify-center gap-1.5 text-sm transition-opacity disabled:opacity-40"
-      style={{ color: "var(--hw-primary)" }}
+      style={{ color: "var(--pgo-primary)" }}
     >
       {enviando ? (
         <><Loader2 className="h-3.5 w-3.5 animate-spin" />Enviando…</>
@@ -98,13 +98,13 @@ function CodigoExpiradoPanel({
     <div
       className="rounded-xl p-4 text-center"
       role="alert"
-      style={{ background: "var(--hw-warning-lt)", border: "1px solid var(--hw-warning-bd)" }}
+      style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}
     >
-      <Clock className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--hw-warning)" }} aria-hidden />
-      <p className="text-sm font-semibold mb-1" style={{ color: "var(--hw-warning-dk)" }}>
+      <Clock className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--pgo-warning)" }} aria-hidden />
+      <p className="text-sm font-semibold mb-1" style={{ color: "var(--pgo-warning-dk)" }}>
         Tu código expiró
       </p>
-      <p className="text-xs mb-3" style={{ color: "var(--hw-warning-dk)" }}>
+      <p className="text-xs mb-3" style={{ color: "var(--pgo-warning-dk)" }}>
         Los códigos son válidos por 10 minutos. Solicita uno nuevo para continuar.
       </p>
       <ReenviarButton
@@ -124,13 +124,13 @@ function IntentosAgotadosPanel({
     <div
       className="rounded-xl p-4 text-center"
       role="alert"
-      style={{ background: "var(--hw-danger-lt)", border: "1px solid var(--hw-danger-bd)" }}
+      style={{ background: "var(--pgo-danger-lt)", border: "1px solid var(--pgo-danger-bd)" }}
     >
-      <XCircle className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--hw-danger)" }} aria-hidden />
-      <p className="text-sm font-semibold mb-1" style={{ color: "var(--hw-danger-dk)" }}>
+      <XCircle className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--pgo-danger)" }} aria-hidden />
+      <p className="text-sm font-semibold mb-1" style={{ color: "var(--pgo-danger-dk)" }}>
         Intentos agotados ({MAX_INTENTOS}/{MAX_INTENTOS})
       </p>
-      <p className="text-xs mb-3" style={{ color: "var(--hw-danger-dk)" }}>
+      <p className="text-xs mb-3" style={{ color: "var(--pgo-danger-dk)" }}>
         Has superado el máximo de {MAX_INTENTOS} intentos para este código.
         Solicita uno nuevo para continuar.
       </p>
@@ -293,26 +293,26 @@ export default function VerificarForm({
   const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
 
   return (
-    <div className="hw-auth-card w-full max-w-md p-8">
+    <div className="pgo-auth-card w-full max-w-md p-8">
       {/* Icono */}
       <div className="mb-6 flex justify-center">
         <div
           className="flex h-16 w-16 items-center justify-center rounded-2xl"
-          style={{ background: "linear-gradient(135deg, var(--hw-primary-lt) 0%, var(--hw-primary-bd) 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--pgo-primary-lt) 0%, var(--pgo-primary-bd) 100%)" }}
         >
-          <Shield className="h-8 w-8" style={{ color: "var(--hw-primary)" }} />
+          <Shield className="h-8 w-8" style={{ color: "var(--pgo-primary)" }} />
         </div>
       </div>
 
       {/* Título */}
-      <h1 className="mb-2 text-center text-xl font-semibold" style={{ color: "var(--hw-text-1)" }}>
+      <h1 className="mb-2 text-center text-xl font-semibold" style={{ color: "var(--pgo-text-1)" }}>
         Nuevo dispositivo detectado
       </h1>
-      <p className="mb-6 text-center text-sm" style={{ color: "var(--hw-text-3)" }}>
+      <p className="mb-6 text-center text-sm" style={{ color: "var(--pgo-text-3)" }}>
         {enviado ? (
           <>
             Enviamos un código de 6 dígitos a{" "}
-            <span className="font-medium" style={{ color: "var(--hw-text-1)" }}>{maskedEmail}</span>.
+            <span className="font-medium" style={{ color: "var(--pgo-text-1)" }}>{maskedEmail}</span>.
             Válido por 10 minutos.
           </>
         ) : enviando ? (
@@ -351,7 +351,7 @@ export default function VerificarForm({
             <label
               htmlFor="codigo"
               className="mb-1.5 block text-sm font-medium"
-              style={{ color: "var(--hw-text-2)" }}
+              style={{ color: "var(--pgo-text-2)" }}
             >
               Código de verificación
             </label>
@@ -372,15 +372,15 @@ export default function VerificarForm({
               autoComplete="one-time-code"
               className="w-full rounded-xl px-4 py-3 text-center text-2xl font-bold tracking-[0.4em] outline-none transition-all"
               style={{
-                background:    "var(--hw-surface-2)",
-                border:        hasError ? "1.5px solid var(--hw-danger)" : "1.5px solid var(--hw-border-2)",
-                color:         "var(--hw-text-1)",
+                background:    "var(--pgo-surface-2)",
+                border:        hasError ? "1.5px solid var(--pgo-danger)" : "1.5px solid var(--pgo-border-2)",
+                color:         "var(--pgo-text-1)",
                 letterSpacing: "0.4em",
               }}
-              onFocus={(e) => (e.currentTarget.style.border = "1.5px solid var(--hw-primary)")}
+              onFocus={(e) => (e.currentTarget.style.border = "1.5px solid var(--pgo-primary)")}
               onBlur={(e)  => (e.currentTarget.style.border = hasError
-                ? "1.5px solid var(--hw-danger)"
-                : "1.5px solid var(--hw-border-2)")}
+                ? "1.5px solid var(--pgo-danger)"
+                : "1.5px solid var(--pgo-border-2)")}
             />
 
             <IntentosRestantesBadge restantes={intentosRestantes} />
@@ -395,7 +395,7 @@ export default function VerificarForm({
             type="submit"
             disabled={cargando || codigo.length < 6}
             className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
-            style={{ background: "var(--hw-primary)" }}
+            style={{ background: "var(--pgo-primary)" }}
           >
             {cargando ? (
               <><Loader2 className="h-4 w-4 animate-spin" />Verificando…</>
@@ -421,20 +421,20 @@ export default function VerificarForm({
       {IS_DEV && (
         <div
           className="mt-4 flex items-start gap-2.5 rounded-xl px-3.5 py-3 text-xs"
-          style={{ background: "var(--hw-success-lt)", border: "1px solid var(--hw-success-bd)", color: "var(--hw-success-dk)" }}
+          style={{ background: "var(--pgo-success-lt)", border: "1px solid var(--pgo-success-bd)", color: "var(--pgo-success-dk)" }}
         >
           <Terminal className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden />
           <span>
             <strong>Modo desarrollo:</strong> el código de 6 dígitos aparece en la{" "}
             <strong>consola del servidor</strong> (terminal donde corre{" "}
-            <code className="rounded bg-[var(--hw-success-lt)] px-1 font-mono">npm run dev</code>), no en tu email.
+            <code className="rounded bg-[var(--pgo-success-lt)] px-1 font-mono">npm run dev</code>), no en tu email.
           </span>
         </div>
       )}
 
       {/* Cerrar sesión */}
-      <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--hw-border)" }}>
-        <p className="mb-3 text-center text-xs" style={{ color: "var(--hw-text-4)" }}>
+      <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--pgo-border)" }}>
+        <p className="mb-3 text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
           ¿No eres tú o quieres cambiar de cuenta?
         </p>
         <button
@@ -443,9 +443,9 @@ export default function VerificarForm({
           disabled={loggingOut}
           className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
           style={{
-            borderColor: loggingOut ? "var(--hw-border-2)" : "var(--hw-danger-bd)",
-            background:  loggingOut ? "var(--hw-surface-2)"  : "var(--hw-danger-lt)",
-            color:       loggingOut ? "var(--hw-text-4)"  : "var(--hw-danger)",
+            borderColor: loggingOut ? "var(--pgo-border-2)" : "var(--pgo-danger-bd)",
+            background:  loggingOut ? "var(--pgo-surface-2)"  : "var(--pgo-danger-lt)",
+            color:       loggingOut ? "var(--pgo-text-4)"  : "var(--pgo-danger)",
           }}
         >
           {loggingOut

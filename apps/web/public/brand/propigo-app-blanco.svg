@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Propigo"><title>Propigo</title><rect width="512" height="512" rx="112" fill="#fff"/><g transform="translate(76 72) scale(5.6)"><defs>
+<linearGradient id="ab-g" x1="10" y1="6" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1E6FE8"/><stop offset="1" stop-color="#2E9BFF"/></linearGradient>
+<linearGradient id="ab-p" x1="8" y1="6" x2="22" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1553C4"/><stop offset="1" stop-color="#1E6FE8"/></linearGradient>
+<mask id="ab-c" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64"><path d="M10 56 V24 L32 6.5 L54 24 V39 C54 42.2 52.4 44.5 49.4 45.6 L27 53 V56 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/></mask>
+</defs>
+<path d="M10 56 V24 L32 6.5 L54 24 V39 C54 42.2 52.4 44.5 49.4 45.6 L27 53 V56 Z" fill="url(#ab-g)" stroke="url(#ab-g)" stroke-width="5" stroke-linejoin="round"/>
+<path d="M8 23 L32 4 V9.6 L19.5 20 V58 H8 Z" fill="url(#ab-p)" opacity=".85" mask="url(#ab-c)"/>
+<path d="M19.5 29.5 L32 19 L44.5 29.5 V37.6 L19.5 46 Z" fill="#fff" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>
+<rect x="25" y="30.5" width="8.5" height="8.5" rx="2" fill="#1E6FE8"/></g></svg>

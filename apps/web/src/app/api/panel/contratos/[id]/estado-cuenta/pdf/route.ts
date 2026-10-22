@@ -10,7 +10,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
-import { convertirUfAClp } from "@housing/core";
+import { convertirUfAClp } from "@propigo/core";
 import { getUfCLPTx } from "@/lib/queries";
 import { construirEstadoCuenta, type PeriodoDeuda } from "@/lib/estado-cuenta";
 import { idFiltro } from "@/lib/busqueda";

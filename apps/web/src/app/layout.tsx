@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { runStartupChecks } from "@/lib/startup-check";
-import { HW_THEME_INIT_SCRIPT } from "@/lib/theme";
+import { PGO_THEME_INIT_SCRIPT } from "@/lib/theme";
+import { MARCA, ESLOGAN, DOMINIO } from "@/lib/marca";
+import { MarcaDefs } from "@/components/public/Logo";
 import "./globals.css";
 
 // FIX A2: fail-fast en arranque — verifica variables de entorno críticas.
@@ -20,10 +22,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DESCRIPCION =
+  "Software chileno para corredores de propiedades: administra contratos de arriendo, cobra la renta mensual y publica tu catálogo.";
+
 export const metadata: Metadata = {
-  title: "Housing — Gestión de arriendos",
-  description:
-    "Software chileno para corredores de propiedades: administra contratos de arriendo, cobra la renta mensual y publica tu catálogo.",
+  // Base absoluta para la imagen de redes (opengraph-image.png) y enlaces canónicos.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? `https://${DOMINIO}`),
+  title: `${MARCA} | ${ESLOGAN}`,
+  description: DESCRIPCION,
+  applicationName: MARCA,
+  openGraph: {
+    siteName: MARCA,
+    title: `${MARCA} | ${ESLOGAN}`,
+    description: DESCRIPCION,
+    locale: "es_CL",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({
@@ -52,10 +66,11 @@ export default async function RootLayout({
         <script
           nonce={nonce}
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: HW_THEME_INIT_SCRIPT }}
+          dangerouslySetInnerHTML={{ __html: PGO_THEME_INIT_SCRIPT }}
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <MarcaDefs />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
+import { Logo } from "@/components/public/Logo";
 
 const CODE_TTL_MS  = 10 * 60 * 1000; // 10 min — debe coincidir con el backend
 const MAX_INTENTOS = 3;
@@ -29,7 +30,7 @@ function ExpiryClock({ secsLeft }: { secsLeft: number }) {
   return (
     <div
       className="flex items-center gap-1.5 text-xs"
-      style={{ color: urgent ? "var(--hw-danger)" : "var(--pf-text-muted)" }}
+      style={{ color: urgent ? "var(--pgo-danger)" : "var(--pf-text-muted)" }}
     >
       <Clock className="h-3 w-3 shrink-0" aria-hidden />
       <span>Código válido por: <strong>{formatTime(secsLeft)}</strong></span>
@@ -43,9 +44,9 @@ function IntentosRestantesBadge({ restantes }: { restantes: number }) {
     <div
       className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs"
       style={{
-        background: restantes === 1 ? "var(--hw-danger-lt)" : "var(--hw-warning-lt)",
-        color:      restantes === 1 ? "var(--hw-danger)"    : "var(--hw-warning-dk)",
-        border:     `1px solid ${restantes === 1 ? "var(--hw-danger-bd)" : "var(--hw-warning-bd)"}`,
+        background: restantes === 1 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)",
+        color:      restantes === 1 ? "var(--pgo-danger)"    : "var(--pgo-warning-dk)",
+        border:     `1px solid ${restantes === 1 ? "var(--pgo-danger-bd)" : "var(--pgo-warning-bd)"}`,
       }}
       role="status"
       aria-live="polite"
@@ -72,17 +73,17 @@ function PanelFinal({
       <div
         className="flex flex-col items-center gap-2 rounded-xl p-4 text-center"
         style={{
-          background: esExpirado ? "var(--hw-warning-lt)" : "var(--hw-danger-lt)",
-          border:     `1px solid ${esExpirado ? "var(--hw-warning-bd)" : "var(--hw-danger-bd)"}`,
+          background: esExpirado ? "var(--pgo-warning-lt)" : "var(--pgo-danger-lt)",
+          border:     `1px solid ${esExpirado ? "var(--pgo-warning-bd)" : "var(--pgo-danger-bd)"}`,
         }}
       >
         {esExpirado
-          ? <Clock className="h-6 w-6" style={{ color: "var(--hw-warning)" }} aria-hidden />
-          : <XCircle className="h-6 w-6" style={{ color: "var(--hw-danger)" }} aria-hidden />}
-        <p className="text-sm font-semibold" style={{ color: esExpirado ? "var(--hw-warning-dk)" : "var(--hw-danger-dk)" }}>
+          ? <Clock className="h-6 w-6" style={{ color: "var(--pgo-warning)" }} aria-hidden />
+          : <XCircle className="h-6 w-6" style={{ color: "var(--pgo-danger)" }} aria-hidden />}
+        <p className="text-sm font-semibold" style={{ color: esExpirado ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
           {esExpirado ? "Código expirado" : `Intentos agotados (${MAX_INTENTOS}/${MAX_INTENTOS})`}
         </p>
-        <p className="text-xs" style={{ color: esExpirado ? "var(--hw-warning-dk)" : "var(--hw-danger-dk)" }}>
+        <p className="text-xs" style={{ color: esExpirado ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
           {esExpirado
             ? "El código ya no es válido. Vuelve al portal para solicitar uno nuevo."
             : "Has superado el máximo de intentos. Vuelve al portal para solicitar un nuevo código."}
@@ -195,7 +196,7 @@ function VerificarOtpForm() {
           className="flex h-12 w-12 items-center justify-center rounded-full"
           style={{ background: "rgba(34,197,94,0.12)" }}
         >
-          <CheckCircle2 className="h-6 w-6" style={{ color: "var(--hw-success)" }} />
+          <CheckCircle2 className="h-6 w-6" style={{ color: "var(--pgo-success)" }} />
         </div>
         <p className="font-semibold" style={{ color: "var(--pf-navy)" }}>Acceso verificado</p>
         <p className="text-sm" style={{ color: "var(--pf-text-muted)" }}>Redirigiendo a tu portal…</p>
@@ -229,7 +230,7 @@ function VerificarOtpForm() {
             height:        "56px",
             width:         "100%",
             borderRadius:  "12px",
-            border:        `1px solid ${inputError ? "var(--hw-danger)" : "var(--pf-border-input)"}`,
+            border:        `1px solid ${inputError ? "var(--pgo-danger)" : "var(--pf-border-input)"}`,
             background:    "var(--pf-surface)",
             color:         "var(--pf-navy)",
             fontSize:      "28px",
@@ -244,8 +245,8 @@ function VerificarOtpForm() {
           }}
           onFocus={(e) => {
             if (!inputError) {
-              e.currentTarget.style.borderColor = "var(--pf-purple)";
-              e.currentTarget.style.boxShadow   = "0 0 0 3px rgba(99,91,255,0.15)";
+              e.currentTarget.style.borderColor = "var(--pf-brand)";
+              e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb, var(--pf-brand) 15%, transparent)";
             }
           }}
           onBlur={(e) => {
@@ -256,7 +257,7 @@ function VerificarOtpForm() {
           }}
         />
         {inputError && (
-          <p id="portal-otp-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+          <p id="portal-otp-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
             {inputError}
           </p>
         )}
@@ -295,7 +296,7 @@ function VerificarOtpForm() {
         <a
           href="/portal"
           className="inline-flex items-center gap-1.5 text-sm"
-          style={{ color: "var(--hw-text-3)" }}
+          style={{ color: "var(--pgo-text-3)" }}
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
           Volver y solicitar nuevo código
@@ -317,9 +318,8 @@ export default function VerificarPortalPage() {
 
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Link href="/marketplace" className="inline-block">
-            <span className="text-2xl font-bold tracking-tight" style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}>Housing</span>
-            <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--pf-text-light)" }}>SOLIDIT</span>
+          <Link href="/marketplace" className="inline-flex">
+            <Logo size="lg" />
           </Link>
           <p className="mt-1 text-sm" style={{ color: "var(--pf-text-muted)" }}>Portal de autoconsulta</p>
         </div>
@@ -335,7 +335,7 @@ export default function VerificarPortalPage() {
             Ingresa el código de 6 dígitos que enviamos a tu correo registrado.
           </p>
 
-          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl" style={{ background: "var(--pf-purple-tint)" }} />}>
+          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl" style={{ background: "var(--pf-brand-tint)" }} />}>
             <VerificarOtpForm />
           </Suspense>
         </div>

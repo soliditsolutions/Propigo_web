@@ -5,7 +5,8 @@
  * que el JSON de portabilidad, pero en un PDF que la persona pueda leer sin
  * herramientas. Se dibuja al vuelo desde `ExportDatosPersona`.
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import type { ExportDatosPersona } from "./export-datos-persona";
 
@@ -190,7 +191,7 @@ export function ExportDatosPersonaDocument({ data }: { data: ExportDatosPersona 
 
         <Seccion titulo="Valoraciones dejadas" vacia={d.valoraciones.length === 0}>
           {d.valoraciones.map((v, i) => (
-            <Campo key={i} label={fechaLegible(v.fecha)} valor={`${v.estrellas}★ ${v.comentario ?? ""}`.trim()} />
+            <Campo key={i} label={fechaLegible(v.fecha)} valor={`${v.estrellas} de 5 estrellas${v.comentario ? ` — ${v.comentario}` : ""}`} />
           ))}
         </Seccion>
 

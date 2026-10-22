@@ -4,7 +4,7 @@
 - **Estado**: Aceptada
 
 ## Contexto
-El MVP debe ser local y "cada funcionalidad simulada, pero dando certeza de lo que se quiere lograr". Si se simula **todo** (incluido el núcleo financiero), el prototipo se ve bien pero no prueba lo que diferencia a Housing ni valida su viabilidad técnica.
+El MVP debe ser local y "cada funcionalidad simulada, pero dando certeza de lo que se quiere lograr". Si se simula **todo** (incluido el núcleo financiero), el prototipo se ve bien pero no prueba lo que diferencia a Propigo ni valida su viabilidad técnica.
 
 ## Decisión
 Trazar una línea clara de fidelidad:
@@ -13,7 +13,7 @@ Trazar una línea clara de fidelidad:
 - **Integraciones externas = SIMULADAS** con mocks creíbles: pasarela de pago/PAC, banco (detección de transferencias), envío de correos, feed de la UF.
 
 ## Justificación
-- El valor de Housing está en hacer **bien la lógica financiera** (fallos #1 y #7 de Leasity). Falsearla tiraría a la basura la parte difícil y la única que importa.
+- El valor de Propigo está en hacer **bien la lógica financiera** (fallos #1 y #7 de Leasity). Falsearla tiraría a la basura la parte difícil y la única que importa.
 - Mantener el dominio real permite **demostrar de verdad** que los problemas centrales están resueltos, sin depender aún de Transbank, un banco o un proveedor de correo.
 - Simular solo los **bordes externos** mantiene el MVP barato, local y rápido de iterar.
 

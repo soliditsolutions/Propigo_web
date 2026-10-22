@@ -211,7 +211,7 @@ sola vez**, **a tiempo**, y que se entienda. Los tres se rompen distinto.
   contrario.
 
 **Lo que este rol NO es:** no define si el reajuste corresponde ni con qué
-frecuencia — eso ya está en el contrato y en `@housing/core`. Tampoco es asesoría
+frecuencia — eso ya está en el contrato y en `@propigo/core`. Tampoco es asesoría
 legal sobre plazos de notificación: si el contrato o la ley exigen una antelación
 específica, esa es una decisión del cliente (ver G-04).
 

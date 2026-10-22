@@ -6,7 +6,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import { getActor, getUfCLPTx, type Actor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
-import { generarCalendario, type PeriodoCalendario } from "@housing/core";
+import { generarCalendario, type PeriodoCalendario } from "@propigo/core";
 import { CausalTermino } from "@/generated/prisma/enums";
 import { esc } from "@/lib/html";
 import { logError } from "@/lib/logger";
@@ -17,6 +17,7 @@ import { construirSnapshotGarantia } from "@/lib/comprobante";
 import {
   validarRetenciones, calcularDevolucionGarantia, type RetencionGarantia,
 } from "@/lib/garantia-devolucion";
+import { MARCA, ESLOGAN, RAZON_SOCIAL } from "@/lib/marca";
 
 export type ResultadoOk =
   | { ok: true }
@@ -503,7 +504,7 @@ export async function generarReconocimientoDeuda(
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Reconocimiento de Deuda — Housing SOLIDIT</title>
+<title>Reconocimiento de Deuda — ${MARCA}</title>
 <style>
   body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#1e293b;font-size:14px;line-height:1.6}
   h1{font-size:20px;color:#0f1f35;border-bottom:2px solid #0f1f35;padding-bottom:8px}
@@ -517,8 +518,8 @@ export async function generarReconocimientoDeuda(
 <body>
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
   <div>
-    <p style="margin:0;font-size:18px;font-weight:bold;color:#0f1f35">Housing</p>
-    <p style="margin:0;font-size:10px;color:#64748b;letter-spacing:.1em">SOLIDIT</p>
+    <p style="margin:0;font-size:18px;font-weight:bold;color:#0f1f35">${MARCA}</p>
+    <p style="margin:0;font-size:10px;color:#64748b">${ESLOGAN}</p>
   </div>
   <p style="margin:0;font-size:12px;color:#64748b">${fechaDoc}</p>
 </div>
@@ -552,7 +553,7 @@ export async function generarReconocimientoDeuda(
 </p>
 <p style="margin-top:24px">__________________________________<br>Firma deudor: ${esc(contrato.arrendatario.nombre)}</p>
 <div class="footer">
-  <p>Documento generado el ${fechaDoc} por Housing SOLIDIT | Gestión de Arriendos</p>
+  <p>Documento generado el ${fechaDoc} por ${MARCA}, un producto de ${RAZON_SOCIAL}</p>
   <p>Los datos personales son tratados conforme a la Ley N° 21.719 sobre Protección de Datos Personales.</p>
 </div>
 </body>

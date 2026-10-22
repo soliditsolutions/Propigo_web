@@ -184,4 +184,4 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió · ⚠️ hallazg
 | 1 | Media (fuga cruzada de detalle de comisión) | El export incluía comprobantes de ambos tipos; el arrendatario veía el folio/monto de la liquidación del propietario. | Filtro por `tipo` según el rol de la persona en el contrato. |
 | 2 | Media (opinión de un tercero) | El export del propietario incluía la valoración dejada por el arrendatario. | Valoraciones solo en el export del arrendatario. |
 
-Suites tras los cambios: **`apps/web` 862 ✅ · `@housing/core` 74 ✅**.
+Suites tras los cambios: **`apps/web` 862 ✅ · `@propigo/core` 74 ✅**.

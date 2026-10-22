@@ -8,8 +8,8 @@ import {
 } from "@/lib/propiedad-datos";
 
 const INPUT =
-  "w-full rounded-xl border bg-[var(--hw-surface)] text-[var(--hw-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--hw-primary)] focus:ring-2 focus:ring-[var(--hw-primary-bd)]";
-const BORDE = { borderColor: "var(--hw-border)", background: "var(--hw-surface)" };
+  "w-full rounded-xl border bg-[var(--pgo-surface)] text-[var(--pgo-text-1)] py-2 px-3 text-sm outline-none focus:border-[var(--pgo-primary)] focus:ring-2 focus:ring-[var(--pgo-primary-bd)]";
+const BORDE = { borderColor: "var(--pgo-border)", background: "var(--pgo-surface)" };
 
 const ETIQUETA: Record<string, string> = Object.fromEntries(
   SERVICIOS_OBLIGATORIOS.map((s) => [s.tipo, s.etiqueta]),
@@ -39,11 +39,11 @@ function BotonVisibilidad({
       aria-pressed={visible}
       aria-label={visible ? `Dejar de compartir ${queEs} en el portal` : `Compartir ${queEs} en el portal`}
       title={visible ? "Las partes del contrato lo ven en el portal" : "Oculto para las partes del contrato"}
-      className="hw-btn flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold"
+      className="pgo-btn flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold"
       style={{
-        background: visible ? "var(--hw-surface-2)" : "transparent",
-        color: visible ? "var(--hw-text-3)" : "var(--hw-text-4)",
-        border: `1px solid ${visible ? "var(--hw-border)" : "var(--hw-border-2)"}`,
+        background: visible ? "var(--pgo-surface-2)" : "transparent",
+        color: visible ? "var(--pgo-text-3)" : "var(--pgo-text-4)",
+        border: `1px solid ${visible ? "var(--pgo-border)" : "var(--pgo-border-2)"}`,
       }}
     >
       {visible
@@ -87,10 +87,10 @@ export function CuentasServicioFields({
 
   return (
     <div>
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
         Cuentas de servicios *
       </p>
-      <p className="mb-3 text-xs" style={{ color: "var(--hw-text-4)" }}>
+      <p className="mb-3 text-xs" style={{ color: "var(--pgo-text-4)" }}>
         Si la propiedad no tiene alguno de estos servicios, márcalo como “no aplica”.
         Marca como oculta la cuenta que no quieras compartir en el portal.
       </p>
@@ -104,10 +104,10 @@ export function CuentasServicioFields({
             <div
               key={s.tipo}
               className="rounded-xl p-3"
-              style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}
+              style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}
             >
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                <span className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                   {ETIQUETA[s.tipo]}
                 </span>
                 <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function CuentasServicioFields({
                       queEs={`la cuenta de ${ETIQUETA[s.tipo].toLowerCase()}`}
                     />
                   )}
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs" style={{ color: "var(--hw-text-3)" }}>
+                  <label className="flex cursor-pointer items-center gap-1.5 text-xs" style={{ color: "var(--pgo-text-3)" }}>
                     <input
                       type="checkbox"
                       checked={noAplica}
@@ -131,7 +131,7 @@ export function CuentasServicioFields({
                         })
                       }
                       className="h-3.5 w-3.5"
-                      style={{ accentColor: "var(--hw-primary)" }}
+                      style={{ accentColor: "var(--pgo-primary)" }}
                     />
                     No aplica
                   </label>
@@ -182,7 +182,7 @@ export function CuentasServicioFields({
       {/* ── Cuentas adicionales ─────────────────────────────────────────── */}
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
             Otras cuentas
           </p>
           <button
@@ -191,18 +191,18 @@ export function CuentasServicioFields({
               tipo: "otro", estado: "registrada", etiqueta: "",
               numero: "", empresa: "", titular: "", paga: "arrendatario",
             }])}
-            className="hw-btn flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold"
-            style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+            className="pgo-btn flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold"
+            style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
           >
             <Plus className="h-3 w-3" aria-hidden="true" /> Agregar
           </button>
         </div>
-        <p className="mb-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mb-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Internet, alarma, TV cable o cualquier otra que la propiedad tenga contratada.
         </p>
 
         {adicionales.length === 0 ? (
-          <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
             Sin cuentas adicionales.
           </p>
         ) : (
@@ -211,7 +211,7 @@ export function CuentasServicioFields({
               <div
                 key={i}
                 className="rounded-xl p-3"
-                style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}
+                style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}
               >
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <input
@@ -231,8 +231,8 @@ export function CuentasServicioFields({
                       type="button"
                       onClick={() => onChange(cuentas.filter((_, idx) => idx !== i))}
                       aria-label={`Quitar la cuenta ${c.etiqueta?.trim() || `adicional ${orden + 1}`}`}
-                      className="hw-btn shrink-0 rounded-lg p-1.5"
-                      style={{ color: "var(--hw-text-4)" }}
+                      className="pgo-btn shrink-0 rounded-lg p-1.5"
+                      style={{ color: "var(--pgo-text-4)" }}
                     >
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -307,24 +307,24 @@ export function RolesComplementariosFields({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Estacionamiento o bodega
         </p>
         <button
           type="button"
           onClick={() => onChange([...roles, { tipo: "estacionamiento", rol: "", descripcion: "" }])}
-          className="hw-btn flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold"
-          style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+          className="pgo-btn flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold"
+          style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
         >
           <Plus className="h-3 w-3" aria-hidden="true" /> Agregar
         </button>
       </div>
-      <p className="mb-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+      <p className="mb-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
         En edificios cada unidad tiene su propio rol. Es opcional.
       </p>
 
       {roles.length === 0 ? (
-        <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Sin unidades adicionales.
         </p>
       ) : (
@@ -364,8 +364,8 @@ export function RolesComplementariosFields({
                 type="button"
                 onClick={() => onChange(roles.filter((_, idx) => idx !== i))}
                 aria-label={`Quitar unidad ${i + 1}`}
-                className="hw-btn shrink-0 rounded-lg p-2"
-                style={{ color: "var(--hw-text-4)" }}
+                className="pgo-btn shrink-0 rounded-lg p-2"
+                style={{ color: "var(--pgo-text-4)" }}
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>

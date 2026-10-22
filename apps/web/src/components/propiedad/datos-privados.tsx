@@ -51,7 +51,7 @@ function ChipOculto() {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-      style={{ background: "var(--hw-surface-3, var(--hw-surface))", color: "var(--hw-text-4)", border: "1px solid var(--hw-border-2)" }}
+      style={{ background: "var(--pgo-surface-3, var(--pgo-surface))", color: "var(--pgo-text-4)", border: "1px solid var(--pgo-border-2)" }}
       title="No se comparte en el portal del propietario ni del arrendatario"
     >
       <EyeOff className="h-2.5 w-2.5" aria-hidden="true" />
@@ -118,11 +118,11 @@ export function DatosPrivadosPropiedad({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--hw-text-4)" }}>
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--pgo-text-4)" }}>
             <Lock className="h-3 w-3" aria-hidden="true" />
             Servicios y rol de avalúo
           </div>
-          <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p className="mt-1 text-xs" style={{ color: "var(--pgo-text-4)" }}>
             {visibilidad}
           </p>
         </div>
@@ -132,8 +132,8 @@ export function DatosPrivadosPropiedad({
             type="button"
             onClick={() => setVisible((v) => !v)}
             aria-pressed={visible}
-            className="hw-btn flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
-            style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)", border: "1px solid var(--hw-border)" }}
+            className="pgo-btn flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+            style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)", border: "1px solid var(--pgo-border)" }}
           >
             {visible
               ? <><EyeOff className="h-3.5 w-3.5" aria-hidden="true" /> Ocultar</>
@@ -143,7 +143,7 @@ export function DatosPrivadosPropiedad({
       </div>
 
       {oculto && (
-        <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Los datos están ocultos por si alguien más está mirando la pantalla.
         </p>
       )}
@@ -151,25 +151,25 @@ export function DatosPrivadosPropiedad({
       {/* Rol de avalúo. Se omite entero si el corredor no lo comparte: no se
           anuncia que existe algo oculto, simplemente no está. */}
       {(rol || complementos.length > 0) && (
-      <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
+      <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
         {rol && <>
-          <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+          <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
             Rol de avalúo (SII)
             {marcarOcultos && rolCompartido === false && <ChipOculto />}
           </p>
           <Dato
             valor={rol} oculto={oculto}
-            className="mt-0.5 block text-sm font-semibold hw-num"
-            style={{ color: "var(--hw-text-1)" }}
+            className="mt-0.5 block text-sm font-semibold pgo-num"
+            style={{ color: "var(--pgo-text-1)" }}
           />
         </>}
 
         {complementos.length > 0 && (
-          <ul className="mt-2 space-y-1 border-t pt-2" style={{ borderColor: "var(--hw-border)" }}>
+          <ul className="mt-2 space-y-1 border-t pt-2" style={{ borderColor: "var(--pgo-border)" }}>
             {complementos.map((c, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs" style={{ color: "var(--hw-text-3)" }}>
+              <li key={i} className="flex items-center gap-2 text-xs" style={{ color: "var(--pgo-text-3)" }}>
                 {ICONO_COMPLEMENTO[c.tipo]}
-                <Dato valor={c.rol} oculto={oculto} className="hw-num font-semibold" style={{ color: "var(--hw-text-2)" }} />
+                <Dato valor={c.rol} oculto={oculto} className="pgo-num font-semibold" style={{ color: "var(--pgo-text-2)" }} />
                 <span>{c.descripcion || ETIQUETA_COMPLEMENTO[c.tipo]}</span>
                 {marcarOcultos && c.visibleEnPortal === false && <ChipOculto />}
               </li>
@@ -181,24 +181,24 @@ export function DatosPrivadosPropiedad({
 
       {/* Cuentas de servicios */}
       <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Cuentas de servicios
         </p>
 
         {declaradas.length === 0 ? (
-          <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Sin cuentas registradas.</p>
+          <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Sin cuentas registradas.</p>
         ) : (
           <div className="space-y-2">
             {declaradas.map((c, i) => (
-              <div key={i} className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
+              <div key={i} className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                  <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                     {nombreCuenta(c)}
                     {marcarOcultos && c.visibleEnPortal === false && <ChipOculto />}
                   </span>
-                  <Dato valor={c.numero ?? ""} oculto={oculto} className="hw-num text-sm" style={{ color: "var(--hw-text-2)" }} />
+                  <Dato valor={c.numero ?? ""} oculto={oculto} className="pgo-num text-sm" style={{ color: "var(--pgo-text-2)" }} />
                 </div>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                   {[
                     c.empresa,
                     // El titular es el nombre de una persona: se tapa igual que
@@ -216,7 +216,7 @@ export function DatosPrivadosPropiedad({
             declarado como inexistente es información, y su ausencia se leería
             como un dato que falta cargar. */}
         {noAplican.length > 0 && (
-          <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
             {noAplican.length === 1
               ? `La propiedad no tiene ${nombreCuenta(noAplican[0]).toLowerCase()}.`
               : `La propiedad no tiene ${noAplican

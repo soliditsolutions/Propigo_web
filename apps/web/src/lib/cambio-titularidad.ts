@@ -1,4 +1,4 @@
-import { formatearRut } from "@housing/core";
+import { formatearRut } from "@propigo/core";
 
 /**
  * L-CM6 — aviso al arrendatario cuando la propiedad que ocupa cambia de

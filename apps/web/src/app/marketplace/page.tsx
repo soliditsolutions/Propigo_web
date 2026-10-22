@@ -22,6 +22,7 @@ import { clpOrUf, plural } from "@/lib/format";
 import { tipoMeta } from "@/lib/propiedad-meta";
 import Image from "next/image";
 import marketplaceHero from "@/images/backgrounds/001_Marketplace.png";
+import { MARCA } from "@/lib/marca";
 
 type SP = {
   q?: string; tipo?: string; corredor?: string;
@@ -250,33 +251,33 @@ export default async function MarketplacePage({
           style={{ background: "linear-gradient(to bottom, transparent 0%, transparent 70%, var(--pf-surface) 100%)" }}
         />
         {/* Acento aurora — mismo lenguaje visual del home, atenuado para no competir con el buscador */}
-        <div className="hw-aurora-layer" style={{ opacity: 0.5 }} aria-hidden="true" />
+        <div className="pgo-aurora-layer" style={{ opacity: 0.5 }} aria-hidden="true" />
         <div
           className="absolute top-0 right-0 pointer-events-none"
           aria-hidden="true"
           style={{
             width: "600px", height: "500px", opacity: 0.28,
-            background: "radial-gradient(circle at 80% 20%, rgba(99,91,255,0.22) 0%, transparent 60%)",
+            background: "radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--pf-brand) 22%, transparent) 0%, transparent 60%)",
           }}
         />
 
         <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
           <span
             className="mb-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-            style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+            style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
           >
             <CheckCircle2 className="h-3 w-3" aria-hidden />
-            Corredores verificados · Housing SOLIDIT
+            Corredores verificados · {MARCA}
           </span>
 
           <h1
-            className="hw-enter hw-fluid-hero mt-2 font-bold tracking-tight"
+            className="pgo-enter pgo-fluid-hero mt-2 font-bold tracking-tight"
             style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
           >
             Propiedades <span className="pf-headline-accent">disponibles</span>
           </h1>
           <p className="mt-4 text-lg" style={{ color: "var(--pf-text-body)", animationDelay: "60ms" }}>
-            Arriendos en Chile gestionados por corredores certificados Housing
+            Arriendos en Chile gestionados por corredores certificados {MARCA}
           </p>
 
           {/* Buscador + botón filtros */}
@@ -343,9 +344,9 @@ export default async function MarketplacePage({
                   href={`/marketplace${params.toString() ? `?${params}` : ""}`}
                   className="shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all"
                   style={{
-                    background:  active ? "var(--pf-purple-btn)" : "transparent",
+                    background:  active ? "var(--pf-brand-btn)" : "transparent",
                     color:       active ? "#fff" : "var(--pf-text-muted)",
-                    border:      active ? "1px solid var(--pf-purple-btn)" : "1px solid transparent",
+                    border:      active ? "1px solid var(--pf-brand-btn)" : "1px solid transparent",
                   }}
                 >
                   {t.label}
@@ -372,9 +373,9 @@ export default async function MarketplacePage({
                   href={`/marketplace${params.toString() ? `?${params}` : ""}`}
                   className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all"
                   style={{
-                    background: isActive ? "var(--pf-purple-tint)" : "var(--pf-surface)",
-                    color:      isActive ? "var(--pf-purple)" : "var(--pf-text-muted)",
-                    border:     `1.5px solid ${isActive ? "var(--pf-purple)" : "var(--pf-border)"}`,
+                    background: isActive ? "var(--pf-brand-tint)" : "var(--pf-surface)",
+                    color:      isActive ? "var(--pf-brand)" : "var(--pf-text-muted)",
+                    border:     `1.5px solid ${isActive ? "var(--pf-brand)" : "var(--pf-border)"}`,
                   }}
                 >
                   <PfIcon className="h-3 w-3" aria-hidden />
@@ -415,12 +416,12 @@ export default async function MarketplacePage({
         {corredorFiltro && (
           <div
             className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3"
-            style={{ background: "var(--pf-purple-tint)", border: "1px solid color-mix(in srgb, var(--pf-purple) 25%, transparent)" }}
+            style={{ background: "var(--pf-brand-tint)", border: "1px solid color-mix(in srgb, var(--pf-brand) 25%, transparent)" }}
           >
             <p className="text-sm" style={{ color: "var(--pf-navy)" }}>
               Mostrando propiedades de <strong>{corredorFiltro.nombre}</strong>
             </p>
-            <Link href="/marketplace" className="text-xs font-semibold" style={{ color: "var(--pf-purple)" }}>
+            <Link href="/marketplace" className="text-xs font-semibold" style={{ color: "var(--pf-brand)" }}>
               Ver todos los corredores ✕
             </Link>
           </div>
@@ -429,9 +430,9 @@ export default async function MarketplacePage({
           <div className="flex flex-col items-center gap-4 py-24 text-center">
             <div
               className="flex h-16 w-16 items-center justify-center rounded-2xl"
-              style={{ background: "var(--pf-purple-tint)" }}
+              style={{ background: "var(--pf-brand-tint)" }}
             >
-              <Search className="h-7 w-7" style={{ color: "var(--pf-purple)" }} aria-hidden />
+              <Search className="h-7 w-7" style={{ color: "var(--pf-brand)" }} aria-hidden />
             </div>
             <p className="text-lg font-semibold" style={{ color: "var(--pf-navy)" }}>
               {q || tipo !== "todas" || hayFiltrosActivos
@@ -454,7 +455,7 @@ export default async function MarketplacePage({
               {q && <> para <strong style={{ color: "var(--pf-navy)" }}>&ldquo;{q}&rdquo;</strong></>}
             </p>
 
-            <div className="hw-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="pgo-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {publicaciones.map((pub) => {
                 const prop = pub.propiedad;
                 const meta = tipoMeta(prop.tipo);
@@ -486,7 +487,7 @@ export default async function MarketplacePage({
                       {/* Badge tipo */}
                       <span
                         className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                        style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                        style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                       >
                         {meta.label}
                       </span>
@@ -545,7 +546,7 @@ export default async function MarketplacePage({
                           {prop.aceptaMascotas && (
                             <span
                               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                              style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                              style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                             >
                               <PawPrint className="h-2.5 w-2.5" aria-hidden />
                               Mascotas
@@ -563,7 +564,7 @@ export default async function MarketplacePage({
                       )}
 
                       <div className="mt-auto pt-4">
-                        <p className="text-base font-bold" style={{ color: "var(--pf-purple)" }}>
+                        <p className="text-base font-bold" style={{ color: "var(--pf-brand)" }}>
                           {clpOrUf(pub.precioReferencia?.toNumber() ?? null, pub.denominacionPrecio)} /mes
                         </p>
                         <p className="mt-0.5 text-[11px]" style={{ color: "var(--pf-text-light)" }}>
@@ -577,10 +578,10 @@ export default async function MarketplacePage({
                       className="flex items-center justify-between px-4 py-2.5"
                       style={{ borderTop: "1px solid var(--pf-border)" }}
                     >
-                      <span className="text-xs font-semibold" style={{ color: "var(--pf-purple)" }}>Ver detalle</span>
+                      <span className="text-xs font-semibold" style={{ color: "var(--pf-brand)" }}>Ver detalle</span>
                       <ArrowRight
                         className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-1"
-                        style={{ color: "var(--pf-purple)" }}
+                        style={{ color: "var(--pf-brand)" }}
                         aria-hidden
                       />
                     </div>

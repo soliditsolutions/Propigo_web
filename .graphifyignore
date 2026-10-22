@@ -1,0 +1,25 @@
+# Solo código fuente: fuera documentación, assets, builds y código generado
+node_modules/
+.next/
+dist/
+build/
+out/
+coverage/
+graphify-out/
+Docs/
+.claude/
+.agents/
+apps/web/public/
+apps/web/src/generated/
+apps/web/src/images/
+*.md
+*.json
+*.lock
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg
+*.pdf
+*.docx
+*.css

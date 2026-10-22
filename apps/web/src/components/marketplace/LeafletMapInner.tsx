@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { COLOR } from "@/lib/marca";
 
 export type LeafletMapInnerProps = {
   latitud: number;
@@ -35,9 +36,9 @@ export default function LeafletMapInner({ latitud, longitud, exacta }: LeafletMa
       // (marker-icon.png, etc.) resuelven mal con bundlers como Turbopack,
       // que no reescriben las rutas relativas que usa L.Icon.Default.
       const pinIcon = L.divIcon({
-        className: "hw-map-pin",
+        className: "pgo-map-pin",
         html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.27 21.73 0 14 0z" fill="#7C3AED"/>
+          <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.27 21.73 0 14 0z" fill="${COLOR.azul}"/>
           <circle cx="14" cy="14" r="5.5" fill="white"/>
         </svg>`,
         iconSize: [28, 40],
@@ -47,9 +48,9 @@ export default function LeafletMapInner({ latitud, longitud, exacta }: LeafletMa
     } else {
       const circulo = L.circle([latitud, longitud], {
         radius: 400,
-        color: "#7C3AED",
+        color: COLOR.azul,
         weight: 1.5,
-        fillColor: "#7C3AED",
+        fillColor: COLOR.azul,
         fillOpacity: 0.15,
       }).addTo(mapa);
       mapa.fitBounds(circulo.getBounds());

@@ -1,8 +1,8 @@
 {
-  "name": "@housing/core",
+  "name": "@propigo/core",
   "version": "0.1.0",
   "private": true,
-  "description": "Núcleo de dominio financiero de Housing (sin dependencias de framework)",
+  "description": "Núcleo de dominio financiero de Propigo (sin dependencias de framework)",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

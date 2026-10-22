@@ -11,7 +11,7 @@
  */
 import "dotenv/config";
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../generated/prisma/client";
 import { renderToBuffer } from "@react-pdf/renderer";
 import {
@@ -84,7 +84,7 @@ async function comoTenant<T>(t: string, fn: (tx: PrismaClient) => Promise<T>): P
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try { await prisma.$queryRaw`SELECT 1`; } catch {
     await prisma.$disconnect().catch(() => {}); prisma = null; return false;
   }

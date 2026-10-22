@@ -9,7 +9,8 @@
  * Lleva el pie obligatorio (L-CP10): es un comprobante de gestión de la
  * corredora, no un documento tributario. El DTE lo emite el SII por otra vía.
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import { PIE_COMPROBANTE, type SnapshotPago, type SnapshotLiquidacion } from "./comprobante";
 import { ETIQUETA_TIPO_CUENTA } from "./cuenta-bancaria";

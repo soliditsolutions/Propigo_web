@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Menu, X, LogOut } from "lucide-react";
 import { Nav } from "@/components/panel/nav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Logo } from "@/components/public/Logo";
+import { MARCA } from "@/lib/marca";
 
 interface Props {
   tenant:   { nombre: string; plan: string | null };
@@ -29,13 +31,13 @@ export function PanelShell({ tenant, user, children }: Props) {
 
   // Cargar preferencia guardada
   useEffect(() => {
-    if (localStorage.getItem("hw_sidebar_collapsed") === "1") queueMicrotask(() => setCollapsed(true));
+    if (localStorage.getItem("pgo_sidebar_collapsed") === "1") queueMicrotask(() => setCollapsed(true));
   }, []);
 
   function toggleCollapse() {
     setCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem("hw_sidebar_collapsed", next ? "1" : "0");
+      localStorage.setItem("pgo_sidebar_collapsed", next ? "1" : "0");
       return next;
     });
   }
@@ -76,25 +78,21 @@ export function PanelShell({ tenant, user, children }: Props) {
           <div className="flex flex-col items-center gap-2">
             <Link
               href="/"
-              aria-label="Housing — ir al inicio"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-base font-black transition-opacity hover:opacity-80"
-              style={{
-                background: "var(--hw-panel-nav-surface-2)",
-                color: "var(--hw-panel-nav-text)",
-                letterSpacing: "-0.02em",
-              }}
+              aria-label={`${MARCA} — ir al inicio`}
+              className="flex h-9 w-9 items-center justify-center rounded-xl transition-opacity hover:opacity-80"
+              style={{ background: "var(--pgo-panel-nav-surface-2)" }}
             >
-              H
+              <Logo iconOnly size="sm" />
             </Link>
             <button
               type="button"
               onClick={toggleCollapse}
               aria-label="Expandir menú lateral"
               title="Expandir"
-              className="hw-btn hw-tap-target relative flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+              className="pgo-btn pgo-tap-target relative flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
               style={{
-                color: "var(--hw-panel-nav-muted)",
-                background: "var(--hw-panel-nav-surface)",
+                color: "var(--pgo-panel-nav-muted)",
+                background: "var(--pgo-panel-nav-surface)",
               }}
             >
               <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -106,22 +104,11 @@ export function PanelShell({ tenant, user, children }: Props) {
             <div className="flex items-center justify-between gap-2">
               <Link
                 href="/"
-                className="group flex items-baseline gap-2 min-w-0"
-                aria-label="Housing — ir al inicio"
+                className="group inline-flex min-w-0"
+                aria-label={`${MARCA} — ir al inicio`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <span
-                  className="text-xl font-bold tracking-tight"
-                  style={{ color: "var(--hw-panel-nav-text)" }}
-                >
-                  Housing
-                </span>
-                <span
-                  className="text-[9px] font-semibold uppercase tracking-widest"
-                  style={{ color: "var(--hw-panel-nav-faint)" }}
-                >
-                  SOLIDIT
-                </span>
+                <Logo size="md" wordColor="var(--pgo-panel-nav-text)" />
               </Link>
               {!isMobile && (
                 <button
@@ -129,17 +116,17 @@ export function PanelShell({ tenant, user, children }: Props) {
                   onClick={toggleCollapse}
                   aria-label="Colapsar menú lateral"
                   title="Colapsar"
-                  className="hw-btn hw-tap-target relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors"
+                  className="pgo-btn pgo-tap-target relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors"
                   style={{
-                    color: "var(--hw-panel-nav-muted)",
-                    background: "var(--hw-panel-nav-surface)",
+                    color: "var(--pgo-panel-nav-muted)",
+                    background: "var(--pgo-panel-nav-surface)",
                   }}
                 >
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               )}
             </div>
-            <p className="mt-1 text-[11px]" style={{ color: "var(--hw-panel-nav-muted)" }}>
+            <p className="mt-1 text-[11px]" style={{ color: "var(--pgo-panel-nav-muted)" }}>
               Panel del corredor
             </p>
           </>
@@ -149,11 +136,11 @@ export function PanelShell({ tenant, user, children }: Props) {
       <div
         aria-hidden="true"
         className="mx-2 shrink-0"
-        style={{ borderTop: "1px solid var(--hw-panel-nav-border)" }}
+        style={{ borderTop: "1px solid var(--pgo-panel-nav-border)" }}
       />
 
-      {/* Nav — sin hw-scroll-dark: el scrollbar ya sigue el tema activo
-          globalmente (html { scrollbar-color: var(--hw-border-2) ... }); ese
+      {/* Nav — sin pgo-scroll-dark: el scrollbar ya sigue el tema activo
+          globalmente (html { scrollbar-color: var(--pgo-border-2) ... }); ese
           override fijaba blanco siempre, pensado para un sidebar que ya no
           es fijo. */}
       <div
@@ -171,7 +158,7 @@ export function PanelShell({ tenant, user, children }: Props) {
         {!isMobile && collapsed ? (
           <div
             className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold mx-auto cursor-default"
-            style={{ background: "var(--hw-panel-nav-surface-2)", color: "var(--hw-panel-nav-text)" }}
+            style={{ background: "var(--pgo-panel-nav-surface-2)", color: "var(--pgo-panel-nav-text)" }}
             title={`${user.nombre} · ${tenant.nombre}`}
           >
             {userInitials}
@@ -179,12 +166,12 @@ export function PanelShell({ tenant, user, children }: Props) {
         ) : (
           <div
             className="rounded-xl p-3"
-            style={{ background: "var(--hw-panel-nav-surface)", border: "1px solid var(--hw-panel-nav-border)" }}
+            style={{ background: "var(--pgo-panel-nav-surface)", border: "1px solid var(--pgo-panel-nav-border)" }}
           >
-            <p className="text-xs font-semibold truncate" style={{ color: "var(--hw-panel-nav-text)" }}>
+            <p className="text-xs font-semibold truncate" style={{ color: "var(--pgo-panel-nav-text)" }}>
               {user.nombre}
             </p>
-            <p className="mt-0.5 text-[10px] truncate" style={{ color: "var(--hw-panel-nav-muted)" }}>
+            <p className="mt-0.5 text-[10px] truncate" style={{ color: "var(--pgo-panel-nav-muted)" }}>
               {tenant.nombre} · {tenant.plan ?? "demo"}
             </p>
           </div>
@@ -194,15 +181,15 @@ export function PanelShell({ tenant, user, children }: Props) {
   );
 
   return (
-    <div className="relative h-dvh hw-page-bg overflow-hidden">
+    <div className="relative h-dvh pgo-page-bg overflow-hidden">
       {/* Fondo — en claro, mismo blob suave que login/registro/home; en
           oscuro, variante "beams" (franjas de luz, aproximación CSS-only del
-          componente Beams de React Bits — ver .hw-beams-layer). Solo se
+          componente Beams de React Bits — ver .pgo-beams-layer). Solo se
           asoma a través de las superficies de vidrio (sidebar via
-          .hw-auth-aside, header via .hw-glass); <main> abajo lleva fondo
+          .pgo-auth-aside, header via .pgo-glass); <main> abajo lleva fondo
           opaco propio para no quedar detrás de tablas/formularios densos
-          (ver nota "usar con moderación" en .hw-aurora-bg de globals.css). */}
-      <div className="hw-beams-layer" aria-hidden="true" />
+          (ver nota "usar con moderación" en .pgo-aurora-bg de globals.css). */}
+      <div className="pgo-beams-layer" aria-hidden="true" />
 
       <div className="relative z-10 flex h-dvh">
       {/* FIX UI-C4 — Skip link: permite a usuarios de teclado/lector de pantalla
@@ -212,9 +199,9 @@ export function PanelShell({ tenant, user, children }: Props) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[999] focus:rounded-xl focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:shadow-lg"
         style={{
-          background: "var(--hw-surface)",
-          color:      "var(--hw-primary)",
-          border:     "2px solid var(--hw-primary)",
+          background: "var(--pgo-surface)",
+          color:      "var(--pgo-primary)",
+          border:     "2px solid var(--pgo-primary)",
           outline:    "none",
         }}
       >
@@ -231,14 +218,14 @@ export function PanelShell({ tenant, user, children }: Props) {
         />
       )}
 
-      {/* Sidebar desktop — colapsable. hw-panel-aside: vidrio propio del
-          panel (navy en oscuro, blanco/gris en claro vía --hw-panel-nav-bg),
-          distinto de hw-auth-aside (fijo oscuro, solo para login/registro). */}
+      {/* Sidebar desktop — colapsable. pgo-panel-aside: vidrio propio del
+          panel (navy en oscuro, blanco/gris en claro vía --pgo-panel-nav-bg),
+          distinto de pgo-auth-aside (fijo oscuro, solo para login/registro). */}
       <aside
-        className="hw-panel-aside hidden md:flex flex-col shrink-0"
+        className="pgo-panel-aside hidden md:flex flex-col shrink-0"
         style={{
           width: collapsed ? 64 : 240,
-          boxShadow: "var(--hw-shadow-2)",
+          boxShadow: "var(--pgo-shadow-2)",
           transition: "width 280ms cubic-bezier(0.16,1,0.3,1)",
           overflow: "hidden",
         }}
@@ -249,9 +236,9 @@ export function PanelShell({ tenant, user, children }: Props) {
 
       {/* Sidebar mobile (drawer) */}
       <aside
-        className="hw-panel-aside fixed inset-y-0 left-0 z-50 flex w-72 flex-col md:hidden"
+        className="pgo-panel-aside fixed inset-y-0 left-0 z-50 flex w-72 flex-col md:hidden"
         style={{
-          boxShadow: "var(--hw-shadow-2)",
+          boxShadow: "var(--pgo-shadow-2)",
           transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 300ms cubic-bezier(0.16,1,0.3,1)",
         }}
@@ -262,8 +249,8 @@ export function PanelShell({ tenant, user, children }: Props) {
           type="button"
           onClick={() => setSidebarOpen(false)}
           aria-label="Cerrar menú"
-          className="hw-btn absolute right-1.5 top-2.5 rounded-lg p-3"
-          style={{ color: "var(--hw-panel-nav-muted)" }}
+          className="pgo-btn absolute right-1.5 top-2.5 rounded-lg p-3"
+          style={{ color: "var(--pgo-panel-nav-muted)" }}
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -274,8 +261,8 @@ export function PanelShell({ tenant, user, children }: Props) {
       <div className="flex flex-1 min-w-0 min-h-0 flex-col">
         {/* Header glassmorfismo sticky */}
         <header
-          className="hw-glass flex h-14 shrink-0 items-center justify-between px-4 md:px-6 sticky top-0 z-20"
-          style={{ borderBottom: "1px solid var(--hw-border)" }}
+          className="pgo-glass flex h-14 shrink-0 items-center justify-between px-4 md:px-6 sticky top-0 z-20"
+          style={{ borderBottom: "1px solid var(--pgo-border)" }}
           role="banner"
         >
           <div className="flex items-center gap-3">
@@ -284,18 +271,18 @@ export function PanelShell({ tenant, user, children }: Props) {
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menú de navegación"
               aria-expanded={sidebarOpen}
-              className="hw-btn hw-tap-target relative rounded-lg p-2 md:hidden"
-              style={{ color: "var(--hw-text-1)" }}
+              className="pgo-btn pgo-tap-target relative rounded-lg p-2 md:hidden"
+              style={{ color: "var(--pgo-text-1)" }}
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="text-sm font-semibold truncate" style={{ color: "var(--hw-text-1)" }}>
+            <span className="text-sm font-semibold truncate" style={{ color: "var(--pgo-text-1)" }}>
               {tenant.nombre}
             </span>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <span className="hidden sm:block text-sm truncate max-w-[160px]" style={{ color: "var(--hw-text-3)" }}>
+            <span className="hidden sm:block text-sm truncate max-w-[160px]" style={{ color: "var(--pgo-text-3)" }}>
               {user.nombre}
             </span>
 
@@ -305,8 +292,8 @@ export function PanelShell({ tenant, user, children }: Props) {
               aria-label={`Usuario: ${user.nombre}`}
               title={user.email}
               style={{
-                background: "linear-gradient(135deg, var(--hw-primary) 0%, var(--hw-sidebar) 100%)",
-                boxShadow: "0 2px 6px rgba(99,91,255,0.35)",
+                background: "linear-gradient(135deg, var(--pgo-primary) 0%, var(--pgo-sidebar) 100%)",
+                boxShadow: "0 2px 6px color-mix(in srgb, var(--pgo-primary) 35%, transparent)",
               }}
             >
               {userInitials}
@@ -321,8 +308,8 @@ export function PanelShell({ tenant, user, children }: Props) {
               disabled={loggingOut}
               aria-label="Cerrar sesión"
               title="Cerrar sesión"
-              className="hw-btn hw-tap-target relative rounded-lg p-1.5"
-              style={{ color: "var(--hw-text-3)" }}
+              className="pgo-btn pgo-tap-target relative rounded-lg p-1.5"
+              style={{ color: "var(--pgo-text-3)" }}
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -330,10 +317,13 @@ export function PanelShell({ tenant, user, children }: Props) {
         </header>
 
         {/* Fondo opaco propio: el contenido del panel (tablas, formularios)
-            es denso — la aurora no debe traslucir aquí, solo en sidebar/header. */}
+            es denso — la aurora no debe traslucir aquí, solo en sidebar/header.
+            Sin scroll horizontal: las tablas traen el suyo, y el resplandor
+            decorativo (.pgo-aurora-bg, que se extiende fuera de su caja) no
+            debe volver desplazable toda la página. */}
         <main
-          className="flex-1 min-h-0 overflow-auto p-4 md:p-6"
-          style={{ background: "var(--hw-page)" }}
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6"
+          style={{ background: "var(--pgo-page)" }}
           id="main-content"
         >
           {children}

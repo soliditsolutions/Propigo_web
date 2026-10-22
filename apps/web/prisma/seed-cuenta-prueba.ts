@@ -16,7 +16,7 @@
  * Doc:  Docs/gestion/cuentas-de-prueba.md
  */
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 // ── Credenciales fijas ─────────────────────────────────────────────────────
@@ -36,8 +36,8 @@ const CUENTA = {
   // se prueba. Para probar el gating por plan, ver el doc (hay un one-liner).
   plan: "diamond",
   nombre: "Carlos Corredor",
-  email: "corredor.prueba@housing.local",
-  // RUT con DV verificado contra `validarRut()` de @housing/core (16.358.920-6).
+  email: "corredor.prueba@propigo.local",
+  // RUT con DV verificado contra `validarRut()` de @propigo/core (16.358.920-6).
   rut: "16358920-6",
   telefono: "+56912345678",
   password: "Kestrel.Vega_47",
@@ -60,7 +60,7 @@ function verificarBaseLocal(url: string | undefined): void {
     return;
   }
   const host = new URL(url).hostname;
-  const locales = ["localhost", "127.0.0.1", "::1", "host.docker.internal", "db", "housing-db"];
+  const locales = ["localhost", "127.0.0.1", "::1", "host.docker.internal", "db", "propigo-db"];
   if (!locales.includes(host)) {
     throw new Error(
       `Se canceló: DATABASE_URL apunta a "${host}", que no es local.\n` +
@@ -85,7 +85,7 @@ async function hashPassword(password: string): Promise<string> {
 
 verificarBaseLocal(process.env.DATABASE_URL);
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

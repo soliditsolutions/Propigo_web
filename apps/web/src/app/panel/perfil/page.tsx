@@ -9,8 +9,9 @@ import { PerfilForm }          from "./perfil-form";
 import { DispositivosSection } from "./dispositivos-section";
 import { MiPlanSection }       from "./mi-plan-section";
 import { TabNav }              from "@/components/panel/tab-nav";
+import { titulo } from "@/lib/marca";
 
-export const metadata = { title: "Mi perfil — Housing" };
+export const metadata = { title: titulo("Mi perfil") };
 
 export default async function PerfilPage({
   searchParams,
@@ -105,11 +106,11 @@ export default async function PerfilPage({
         <div className="mb-6">
           <h1
             className="text-2xl font-bold"
-            style={{ color: "var(--hw-text-1)" }}
+            style={{ color: "var(--pgo-text-1)" }}
           >
             Mi perfil
           </h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--hw-text-3)" }}>
+          <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
             Configura tus datos personales y de seguridad.
           </p>
         </div>

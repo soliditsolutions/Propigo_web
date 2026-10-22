@@ -2,7 +2,9 @@
 
 > Checklist que actualizamos en cada etapa. `[x]` hecho · `[~]` en curso · `[ ]` pendiente.
 
-_Última actualización: 2026-08-26 — **Etapa 8**: Grupo 1 cerrado (rol de avalúo SII, cuentas de servicios y roles complementarios, visibles al corredor y a las partes del contrato, nunca al público) y blindaje del sitio público: se encontraron atacando la aplicación corriendo tres fallos reales — `?q=%` devolvía el catálogo completo porque Prisma no escapa los comodines de `LIKE`, doce parámetros del marketplace lo tumbaban con un 500, y la ficha daba 500 en vez de 404 con un id no válido. Ninguno ejecutó SQL. Cerrado el Grupo 1, un barrido de QA manejando la aplicación encontró **siete defectos más**, el peor: editar una propiedad descartaba el rol y las cuentas en silencio, con el diálogo cerrándose sin error. Además, los datos privados ahora salen **tapados** en el portal (se muestran con un botón) y el corredor decide cuáles comparte, con cuentas adicionales que puede agregar y quitar. Y un bug que reportó el cliente: el panel del corredor y el portal del arrendatario quedaban abiertos a la vez en el mismo navegador — ahora abrir una sesión cierra la otra, y ambas caducan por inactividad. Detalle en Etapa 8. 
+_Última actualización: 2026-10-21 — **Cambio de marca a Propigo** (dominio `propigo.cl`, eslogan "Publica más. Complica menos."): nombre, logo con isotipo, favicon, títulos, correos (`@propigo.cl`), PDFs y legales (con nueva fecha y re-aceptación del aviso anti-fraude, `pgo_tos_v3`) pasan a la marca nueva; SOLIDIT SpA queda solo como razón social. Toda la identidad vive en `apps/web/src/lib/marca.ts` y el logo en un único componente (antes estaba copiado a mano en 13 pantallas). 923/923 tests, typecheck y lint limpios; revisado en el navegador en desktop y mobile, temas claro y oscuro. Pendiente: archivos SVG oficiales del logo y las tareas de gestión de `tareas-gestion-lanzamiento-propigo.md`._
+
+_Etapa anterior: 2026-08-26 — **Etapa 8**: Grupo 1 cerrado (rol de avalúo SII, cuentas de servicios y roles complementarios, visibles al corredor y a las partes del contrato, nunca al público) y blindaje del sitio público: se encontraron atacando la aplicación corriendo tres fallos reales — `?q=%` devolvía el catálogo completo porque Prisma no escapa los comodines de `LIKE`, doce parámetros del marketplace lo tumbaban con un 500, y la ficha daba 500 en vez de 404 con un id no válido. Ninguno ejecutó SQL. Cerrado el Grupo 1, un barrido de QA manejando la aplicación encontró **siete defectos más**, el peor: editar una propiedad descartaba el rol y las cuentas en silencio, con el diálogo cerrándose sin error. Además, los datos privados ahora salen **tapados** en el portal (se muestran con un botón) y el corredor decide cuáles comparte, con cuentas adicionales que puede agregar y quitar. Y un bug que reportó el cliente: el panel del corredor y el portal del arrendatario quedaban abiertos a la vez en el mismo navegador — ahora abrir una sesión cierra la otra, y ambas caducan por inactividad. Detalle en Etapa 8. 
 
 _Etapa anterior: 2026-08-19 — **Etapa 7**: Fase A de billing (puerto, webhook, modelos) y Fase B0 completas — los cupos que venden los planes ahora se aplican de verdad, verificado con 10 consumos en paralelo contra Postgres real. Se encontraron y corrigieron dos fallos que llevaban meses invisibles: **cinco de ocho notificaciones nunca se enviaban** (se creaban como `simulada` y el despachador solo toma las `pendiente`) y **HTML sin escapar en los correos**, alcanzable desde los formularios públicos del marketplace. Precios en UF validados contra costo: se mantienen, con 96 % de margen de contribución. Detalle en Etapa 7 al final._
 
@@ -37,13 +39,13 @@ _Actualización anterior: 2026-07-01 — Reconciliación del roadmap con el cód
 - [x] Modelo de dominio (02) — **validado**
 - [x] Roadmap del MVP (03)
 - [x] Esquema de BD (04) y guía de levantamiento local (05) + README raíz
-- [x] Resumen ejecutivo v3 para el directorio (`Docs/Resumen Ejecutivo - Housing (Actualizado).docx`)
+- [x] Resumen ejecutivo v3 para el directorio (`Docs/Resumen Ejecutivo - Propigo (Actualizado).docx`)
 
 ## Etapa 1 — Andamiaje del prototipo
 - [x] Monorepo (workspaces): `apps/web` + `packages/core`
 - [x] Next.js 16 (App Router) + TypeScript
 - [x] Tailwind v4 + shadcn/ui (Button + tema)
-- [x] Paquete de dominio aislado `@housing/core` (dinero, UF, IPC) cableado a la UI
+- [x] Paquete de dominio aislado `@propigo/core` (dinero, UF, IPC) cableado a la UI
 - [x] Landing branded que calcula en vivo con el dominio real
 - [x] Build de producción verde (typecheck OK)
 - [x] `docker-compose.yml` para Postgres listo
@@ -81,10 +83,10 @@ _Actualización anterior: 2026-07-01 — Reconciliación del roadmap con el cód
 - [x] Asistente de liquidación: conciliar (paso 1) → cerrar con ajustes (paso 2) — `/panel/cobros`, verificado en vivo
 - [x] Bug fix: serialización de `Decimal` de Prisma a Client Components (288 errores → 0)
 - [x] **Design System v2** — `Docs/funcional/sistema-diseno-ui.md` (investigación + auditoría + plan)
-- [x] **Fase A** — Tokens CSS `--hw-*` definitivos, `div→button`, `aria-*`, `tabular-nums hw-num`, `transition` explícitas, `prefers-reduced-motion`, `text-wrap:balance`, `min-w-0`
+- [x] **Fase A** — Tokens CSS `--pgo-*` definitivos, `div→button`, `aria-*`, `tabular-nums pgo-num`, `transition` explícitas, `prefers-reduced-motion`, `text-wrap:balance`, `min-w-0`
 - [x] **Fase B** — Radix Dialog en modal propiedades, URL state en tab cobros (`?tab=`), `autocomplete`/`name`/`inputmode` en forms, `role="alert"` + `aria-live` en feedback
-- [x] **Fase C** — Barra de progreso de liquidaciones del mes (cobros), badge "por vencer" en contratos, empty states con copy humano, `hw-num` en todos los montos
-- [x] **Auditoría UI/Seguridad** — 11 bugs corregidos: S1 type-constrained `sumView`, S2 validación server-side en actions, F1 `hw-btn-transition`→`hw-btn` (3 archivos), F2 fecha inconsistente Paso1Form, F3 `focusRingColor` inválido, F4 `notificaciones/page.tsx` creado + nav item agregado, A1 `aria-label` botones X (3 archivos), A2 `aria-pressed` filtros (4 archivos), A3 `aria-hidden` ShieldCheck, A4 `scope="col"` tablas (4 archivos), W1 `data-scroll-behavior` en layout
+- [x] **Fase C** — Barra de progreso de liquidaciones del mes (cobros), badge "por vencer" en contratos, empty states con copy humano, `pgo-num` en todos los montos
+- [x] **Auditoría UI/Seguridad** — 11 bugs corregidos: S1 type-constrained `sumView`, S2 validación server-side en actions, F1 `pgo-btn-transition`→`pgo-btn` (3 archivos), F2 fecha inconsistente Paso1Form, F3 `focusRingColor` inválido, F4 `notificaciones/page.tsx` creado + nav item agregado, A1 `aria-label` botones X (3 archivos), A2 `aria-pressed` filtros (4 archivos), A3 `aria-hidden` ShieldCheck, A4 `scope="col"` tablas (4 archivos), W1 `data-scroll-behavior` en layout
 - [x] Mes de garantía (registro + retención/devolución) — asientos `RETENCION_GARANTIA`/`DEVOLUCION_GARANTIA` en `terminarContrato` (contratos/[id]/actions.ts), vista `v_garantia_retenida`
 - [x] Recordatorios automáticos (cadencia ADR-0008, simulados) — `generarRecordatorios` + `enviarNotificacionesPendientes` (notificaciones/actions.ts) + cron `/api/cron/recordatorios` con `CRON_SECRET`
 - [x] Reconocimiento de deuda (documento generado del ledger) — `generarReconocimientoDeuda` (contratos/[id]/actions.ts:271) + UI en `AnexosSection`
@@ -147,16 +149,16 @@ _Actualización anterior: 2026-07-01 — Reconciliación del roadmap con el cód
   - **SEC-6 (baja)** Defensa en profundidad: 4 queries internas de cobros sin `tenantId` explícito — agregado.
   - **Lógica de negocio**: 47/47 tests de dominio verdes. **Gap encontrado**: el reajuste IPC (`esPeriodoDeReajuste`) existe en core pero ninguna action lo aplica al conciliar → próximos pasos.
   - **UI/UX**: pantallas auditadas contra Design System v2 (desktop + mobile 375px), 0 errores de consola. Decisión con cliente: **pulido moderno sin 3D** (three.js descartado para el panel operativo; candidato para landing V2).
-  - **Pulido implementado**: animación de entrada por navegación (`template.tsx` + `.hw-enter`), contadores animados en KPIs del dashboard (`AnimatedNumber`, respeta `prefers-reduced-motion`), skeleton loaders con shimmer (`loading.tsx` del panel). View Transitions API evaluada y descartada por experimental.
+  - **Pulido implementado**: animación de entrada por navegación (`template.tsx` + `.pgo-enter`), contadores animados en KPIs del dashboard (`AnimatedNumber`, respeta `prefers-reduced-motion`), skeleton loaders con shimmer (`loading.tsx` del panel). View Transitions API evaluada y descartada por experimental.
 - [x] Historial de vouchers con filtros — `/panel/vouchers` + `FiltrosClient` (tipo, rango de fechas, contrato)
-- [x] Portal de autoconsulta de partes (OTP + sesión de solo lectura) — `/portal` (RUT → OTP → `/portal/verificar` → `/portal/contrato/[id]`), cookie JWT `hw_portal`, anti-enumeración (ADR-0007)
+- [x] Portal de autoconsulta de partes (OTP + sesión de solo lectura) — `/portal` (RUT → OTP → `/portal/verificar` → `/portal/contrato/[id]`), cookie JWT `pgo_portal`, anti-enumeración (ADR-0007)
 - [x] Documentos del arriendo + descarga autenticada — `/api/portal/documento/[id]` (verifica tenant + contrato, audit log, `Cache-Control: no-store`)
 
 ### Próximos pasos — Contratos (arriendo mensual) — **reconciliado 2026-07-01**
 
 | Estado | Ítem | Nota |
 |---|---|---|
-| ✅ Hecho | **Portal OTP arrendatario/propietario** | `/portal` end-to-end + auth de `/panel` (JWT `hw_session`) y gate en `/api/upload` |
+| ✅ Hecho | **Portal OTP arrendatario/propietario** | `/portal` end-to-end + auth de `/panel` (JWT `pgo_session`) y gate en `/api/upload` |
 | ✅ Hecho | **Recordatorios automáticos** | `generarRecordatorios` + cron `/api/cron/recordatorios` (cadencia ADR-0008) |
 | ✅ Hecho | **Aplicar reajuste IPC al conciliar** | Gap cerrado: `simularPago` usa `esPeriodoDeReajuste` + `aplicarReajusteIpc` para CLP con reajuste activo |
 | ✅ Hecho | **Anexos de contrato** | `AnexosSection` + `adjuntarAnexo` (documento `tipo=anexo` a contrato vigente) |
@@ -193,7 +195,7 @@ Cuando se inicie la Fase 2, el orden de implementación propuesto es:
 
 ### Portal de autoconsulta (ADR-0007) — completo
 - [x] `/portal`: ingreso por RUT → solicita OTP (`/api/portal/solicitar-otp`), respuesta anti-enumeración (idéntica exista o no el RUT)
-- [x] `/portal/verificar`: código de un solo uso, TTL 10 min, máx. 3 intentos; sesión JWT `hw_portal` (30 min, solo lectura)
+- [x] `/portal/verificar`: código de un solo uso, TTL 10 min, máx. 3 intentos; sesión JWT `pgo_portal` (30 min, solo lectura)
 - [x] `/portal/contrato/[id]`: contrato, pagos con **filtro por año**, documentos descargables, mensajes del corredor, datos registrados
 - [x] Descarga segura `/api/portal/documento/[id]`: verifica tenant + acceso al contrato, audit log `acceso_log`, `Cache-Control: no-store, private`
 
@@ -217,7 +219,7 @@ Cuando se inicie la Fase 2, el orden de implementación propuesto es:
 
 ### Calidad de código
 - [x] **Auditoría UX/copy (2026-07-01)**: unificación de nomenclatura (`/portal` tenía 4 etiquetas), enlaces legales muertos (`href="#"`) corregidos, pluralización, ortografía
-- [x] **Refactor DRY (2026-07-01)**: `lib/format` (`clpOrUf`, `plural`), `lib/propiedad-meta`, `<Spinner>`, `<Modal>`/`<ModalSuccess>`, `<PublicNavbar>`/`<PublicFooter>`/`<Logo>`, y fachada única de RUT sobre `@housing/core`. Verificado en Claude Preview.
+- [x] **Refactor DRY (2026-07-01)**: `lib/format` (`clpOrUf`, `plural`), `lib/propiedad-meta`, `<Spinner>`, `<Modal>`/`<ModalSuccess>`, `<PublicNavbar>`/`<PublicFooter>`/`<Logo>`, y fachada única de RUT sobre `@propigo/core`. Verificado en Claude Preview.
 
 ## Etapa 6 — Garantía UF/CLP, estadísticas por plan, UI/UX Pro Max y tema Aurora en el panel (2026-07-03 → 2026-07-27)
 
@@ -239,7 +241,7 @@ Sistema de analítica con 3 niveles de acceso por plan del corredor (básica/med
   - Motor de comparables de mercado: mediana de renta por tipo+comuna sobre publicaciones activas del marketplace (cross-tenant, vía la política RLS pública de `publicacion`), exige ≥3 muestras, banda ±10% para clasificar bajo/en/sobre mercado
   - Turnover y retención de cartera
   - Ranking de arrendatarios sin atrasos (fidelización)
-  - Proyección de ingresos con motor IPC real (`esPeriodoDeReajuste` + `aplicarReajusteIpc` de `@housing/core`, solo si hay ≥13 meses de serie IPC — sin dato fabricado)
+  - Proyección de ingresos con motor IPC real (`esPeriodoDeReajuste` + `aplicarReajusteIpc` de `@propigo/core`, solo si hay ≥13 meses de serie IPC — sin dato fabricado)
   - Stress-test simple de cartera (escenarios +10/25/40% de mora)
   - Riesgo por arrendatario heurístico basado en historial propio de atrasos (**rotulado explícitamente como heurística, no un credit score real**, para no sobre-representar la capacidad predictiva del sistema)
 - [x] 3 bugs de integridad de datos encontrados y corregidos vía verificación contra SQL directo (no solo "compila"):
@@ -252,7 +254,7 @@ Sistema de analítica con 3 niveles de acceso por plan del corredor (básica/med
 Antes bloqueado ("requiere definición") por la duda de qué tan "legal" debía ser el resultado. Definición confirmada con el usuario: el generador produce un **borrador de trabajo** — el flujo real siempre pasa por revisión y legalización de un abogado antes de firmarse, así que el estándar es realismo y ausencia de citas legales falsas, no certificación legal (ver ADR-0009, sección "Revisión legal").
 
 - [x] **Plantilla fija + datos reales** (`lib/contrato-pdf.tsx`, `@react-pdf/renderer`) — sin redacción libre de IA (decisión confirmada con el usuario): la estructura de cláusulas sigue el mismo criterio que un contrato de arriendo real usado como referencia, parafraseada (no copiada textual), rellenada con los datos del `Contrato`/`Persona`/`Propiedad` en BD.
-- [x] Correcciones deliberadas respecto al contrato de referencia: término anticipado = renta del período faltante (Art. 1489 CC), no una multa fija; espacio para firma manuscrita, sin mencionar un proveedor de firma electrónica que Housing no tiene integrado; protección de datos actualizada a Ley 21.719 (la vigente).
+- [x] Correcciones deliberadas respecto al contrato de referencia: término anticipado = renta del período faltante (Art. 1489 CC), no una multa fija; espacio para firma manuscrita, sin mencionar un proveedor de firma electrónica que Propigo no tiene integrado; protección de datos actualizada a Ley 21.719 (la vigente).
 - [x] Datos que el sistema no captura (domicilio de las partes, estado civil, inscripción CBR) se dejan como placeholder entre corchetes en el propio PDF — nunca se inventan.
 - [x] Ruta `GET /api/contratos/[id]/pdf` — mismo guard de ownership que el resto de `/panel/contratos` (ADR-0013 Fase D: 404, no 403, para un Colaborador sin acceso a la propiedad). Botón "Descargar borrador (PDF)" en el detalle del contrato.
 - [x] **Bug encontrado y corregido durante la verificación**: si el contrato no tenía garantía pactada, la cláusula NOVENO se omitía por completo y la numeración saltaba de OCTAVO a DÉCIMO — un vacío que se lee como un error en un documento legal real. Corregido para que la cláusula siempre esté presente, con texto distinto según haya o no garantía.
@@ -262,17 +264,17 @@ Antes bloqueado ("requiere definición") por la duda de qué tan "legal" debía 
 Auditoría de las 5 superficies del producto (Home público, Marketplace + ficha, Autenticación, Portal de autoconsulta, Panel corredor) contra checklist de accesibilidad/UX, seguida de una implementación por etapas:
 - [x] **Etapa 1** — hit-areas de 44×44px (Button, filtros, sidebar, toggle contraseña), error persistente inline en OTP del portal
 - [x] **Etapa 2** — breakpoints unificados hero/features del Home, `aria-current` en navbar público, labels asociados en filtros, `inert` en drawer cerrado
-- [x] **Etapa 3** — contraste del overlay en feature cards, duración de `.hw-scroll-reveal`, stagger en cards, remoción de hover-lift engañoso
-- [x] **Etapa 4** — `.hw-num` (tabular-nums) en contadores del Home
+- [x] **Etapa 3** — contraste del overlay en feature cards, duración de `.pgo-scroll-reveal`, stagger en cards, remoción de hover-lift engañoso
+- [x] **Etapa 4** — `.pgo-num` (tabular-nums) en contadores del Home
 - [x] Rediseño de **Home 2026**: walkthrough de scroll fijado con 4 "paradas" (crossfade cinematográfico con scrub/lerp), navbar sincronizado por scroll-spy, sección "Nuestros Planes" (pricing cards + política de cancelación), snap automático a la parada más cercana al soltar el scroll — **suavizado el 2026-07-27** (el snap saltaba instantáneo; ahora usa `behavior: "smooth"`, confirmado con muestreo de `scrollY` mostrando desaceleración gradual en ~700ms)
-- [x] Botones secundarios del hero ("Ver propiedades disponibles", "Consulta tu arriendo") rediseñados el 2026-07-27: el fondo (`--hw-surface-glass`, ~4% opacidad) era casi invisible sobre el panel de vidrio del hero (`--hw-glass-card`, ~42-48%) — se leían como solo un borde con texto flotando. Ahora usan `--hw-glass-card` + tinte de marca (`.hw-cta-secondary` en `globals.css`).
+- [x] Botones secundarios del hero ("Ver propiedades disponibles", "Consulta tu arriendo") rediseñados el 2026-07-27: el fondo (`--pgo-surface-glass`, ~4% opacidad) era casi invisible sobre el panel de vidrio del hero (`--pgo-glass-card`, ~42-48%) — se leían como solo un borde con texto flotando. Ahora usan `--pgo-glass-card` + tinte de marca (`.pgo-cta-secondary` en `globals.css`).
 
 ### Tema Aurora Dark/Light — rollout completo al sidebar del panel (2026-07-27)
-El tema dual Aurora (glassmorphism + fondo animado) ya cubría sitio público, autenticación, legales y portal (ver `Docs/gestion/fase2-aurora-sitio-completo-2026-07.md`). El sidebar del **panel** corredor quedaba pendiente y usaba los tokens `--hw-sidebar*`, que son **intencionalmente fijos** (navy en ambos temas — pensados para el aside de marca de login, no para navegación de trabajo diaria):
-- [x] Fondo del sidebar: de sólido plano a `.hw-panel-aside` (vidrio esmerilado) sobre `.hw-beams-layer` (franjas de luz, aproximación **CSS-only** — sin three.js/WebGL — de un componente "Beams" evaluado y descartado por costo: ~250 KB de bundle adicional y sin soporte nativo de `prefers-reduced-motion`, ver detalle de la evaluación en el historial de sesión)
-- [x] Interactividad del sidebar: `--hw-sidebar-hover` estaba definido en los tokens desde el diseño original pero **sin ningún consumidor** — el hover no hacía nada. Conectado vía clase `.hw-sidebar-link`.
-- [x] **Diseño real para tema claro** (no solo "aclarar la paleta oscura"): tokens nuevos `--hw-panel-nav-*` (themeados, paralelos a `--hw-sidebar-*` que sigue intacto para login/registro) — en claro, vidrio blanco real (`--hw-surface`) + texto oscuro + acento índigo en el ítem activo, en vez de overlays blancos que sobre una base clara no se veían. Ver `BRAIN.md` §2 para la lección de arquitectura de tokens.
-- [x] Ajuste de contraste/intensidad de `.hw-beams-layer` en ambos temas (opacidad y saturación de color bajadas ~35-40%) tras verificación visual — la primera versión resultaba demasiado intensa, en particular en la esquina del header.
+El tema dual Aurora (glassmorphism + fondo animado) ya cubría sitio público, autenticación, legales y portal (ver `Docs/gestion/fase2-aurora-sitio-completo-2026-07.md`). El sidebar del **panel** corredor quedaba pendiente y usaba los tokens `--pgo-sidebar*`, que son **intencionalmente fijos** (navy en ambos temas — pensados para el aside de marca de login, no para navegación de trabajo diaria):
+- [x] Fondo del sidebar: de sólido plano a `.pgo-panel-aside` (vidrio esmerilado) sobre `.pgo-beams-layer` (franjas de luz, aproximación **CSS-only** — sin three.js/WebGL — de un componente "Beams" evaluado y descartado por costo: ~250 KB de bundle adicional y sin soporte nativo de `prefers-reduced-motion`, ver detalle de la evaluación en el historial de sesión)
+- [x] Interactividad del sidebar: `--pgo-sidebar-hover` estaba definido en los tokens desde el diseño original pero **sin ningún consumidor** — el hover no hacía nada. Conectado vía clase `.pgo-sidebar-link`.
+- [x] **Diseño real para tema claro** (no solo "aclarar la paleta oscura"): tokens nuevos `--pgo-panel-nav-*` (themeados, paralelos a `--pgo-sidebar-*` que sigue intacto para login/registro) — en claro, vidrio blanco real (`--pgo-surface`) + texto oscuro + acento índigo en el ítem activo, en vez de overlays blancos que sobre una base clara no se veían. Ver `BRAIN.md` §2 para la lección de arquitectura de tokens.
+- [x] Ajuste de contraste/intensidad de `.pgo-beams-layer` en ambos temas (opacidad y saturación de color bajadas ~35-40%) tras verificación visual — la primera versión resultaba demasiado intensa, en particular en la esquina del header.
 - [x] Verificado en navegador: ambos temas, desktop + mobile (drawer), hover, estado colapsado, `tsc`/`eslint` limpios.
 
 ### Cuentas multi-usuario (Manager/Collaborator) — Fase A completa (2026-07-28)
@@ -428,7 +430,7 @@ corredor y la del arrendatario. Volver atrás mostraba el panel y avanzar entrab
 al portal, sin que ninguna se cerrara. Reproducido: `/panel` y
 `/portal/contrato/…` devolvían 200 desde el mismo navegador.
 
-**La causa.** `hw_session` y `hw_portal` son cookies independientes por diseño
+**La causa.** `pgo_session` y `pgo_portal` son cookies independientes por diseño
 —dominios de autenticación separados, ADR-0007— y nada cerraba una al abrir la
 otra. En el computador de la oficina, donde el arrendatario firma, eso deja dos
 identidades activas.

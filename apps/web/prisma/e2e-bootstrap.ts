@@ -5,7 +5,7 @@
  * Eliminar al terminar la auditoría.
  */
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 async function hashPassword(password: string): Promise<string> {
@@ -16,7 +16,7 @@ async function hashPassword(password: string): Promise<string> {
   return `pbkdf2v1$${Buffer.from(salt).toString("base64")}$${Buffer.from(bits).toString("base64")}`;
 }
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
@@ -33,7 +33,7 @@ async function main() {
         nombre:         "Carlos Corredor",
         rut:            "11111111-1",
         email:          "corredor.e2e@test.cl",
-        passwordHash:   await hashPassword("PruebaE2E.Housing2026!"),
+        passwordHash:   await hashPassword("PruebaE2E.Propigo2026!"),
         consentGivenAt: now,
         consentVersion: "tys-v1.0",
       },

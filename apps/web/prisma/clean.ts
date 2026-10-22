@@ -1,6 +1,6 @@
 /**
  * Limpieza de datos de usuario para pruebas E2E desde cero.
- * Ejecutar: npm run db:clean -w @housing/web
+ * Ejecutar: npm run db:clean -w @propigo/web
  *
  * Trunca todo el grafo de datos de tenants (usuarios, personas, propiedades,
  * contratos, ledger, etc.) vía CASCADE. CONSERVA las series de referencia
@@ -8,11 +8,11 @@
  * UF→CLP y reajuste IPC). Si faltan, las regenera.
  */
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { redondearPeso } from "@housing/core";
+import { redondearPeso } from "@propigo/core";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = adaptadorPg(process.env.DATABASE_URL);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

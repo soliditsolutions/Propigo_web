@@ -39,7 +39,7 @@ function setWalkthroughLayoutMode(mode: "pinned" | "stacked") {
 export type WalkStop = {
   /**
    * Fotograma de fondo de esta parada. Opcional: una parada sin foto (ej.
-   * "Nuestros Planes") muestra el `--hw-page` liso que ya queda detrás del
+   * "Nuestros Planes") muestra el `--pgo-page` liso que ya queda detrás del
    * crossfade — el mismo tratamiento "tarjeta glass sobre aurora, no sobre
    * foto" que login/registro y que el modo apilado ya le daba a esta parada.
    * Una decisión de compra necesita más calma visual que una parada narrativa.
@@ -136,7 +136,7 @@ function wheelDeltaToPx(e: WheelEvent) {
  * de cada parada entra y sale sobre la escena.
  *
  * El layout fijado (pista de N×100vh + `sticky`) vive en CSS — ver
- * `.hw-walk-*` en globals.css — para que el primer paint ya sea correcto.
+ * `.pgo-walk-*` en globals.css — para que el primer paint ya sea correcto.
  * Este componente solo calcula el progreso y anima opacidad/desplazamiento.
  *
  * Scrub con inercia: el valor mostrado persigue al objetivo con un lerp
@@ -150,11 +150,11 @@ function wheelDeltaToPx(e: WheelEvent) {
 export function ScrollWalkthrough({
   stops,
   /** % de color de página mezclado sobre la foto (legibilidad). Menor = foto más visible.
-   * Bajado de {58,30,62}: --hw-page es un extremo opuesto por tema (casi negro en
+   * Bajado de {58,30,62}: --pgo-page es un extremo opuesto por tema (casi negro en
    * oscuro, casi blanco en claro) — con esos valores la MISMA intensidad lavaba la
    * foto hacia negro en un tema y hacia blanco en el otro, perdiendo nitidez en
    * ambos. El texto no depende de este velo para contraste: cada parada vive sobre
-   * su propia tarjeta glass (.hw-walk-panel / .hw-auth-card), así que se puede
+   * su propia tarjeta glass (.pgo-walk-panel / .pgo-auth-card), así que se puede
    * bajar bastante sin comprometer legibilidad. */
   scrim = { top: 30, mid: 12, bottom: 34 },
 }: {
@@ -423,21 +423,21 @@ export function ScrollWalkthrough({
 
   const scrimBg =
     `linear-gradient(to bottom,` +
-    ` color-mix(in srgb, var(--hw-page) ${scrim.top}%, transparent) 0%,` +
-    ` color-mix(in srgb, var(--hw-page) ${scrim.mid}%, transparent) 40%,` +
-    ` color-mix(in srgb, var(--hw-page) ${scrim.mid}%, transparent) 60%,` +
-    ` color-mix(in srgb, var(--hw-page) ${scrim.bottom}%, transparent) 100%)`;
+    ` color-mix(in srgb, var(--pgo-page) ${scrim.top}%, transparent) 0%,` +
+    ` color-mix(in srgb, var(--pgo-page) ${scrim.mid}%, transparent) 40%,` +
+    ` color-mix(in srgb, var(--pgo-page) ${scrim.mid}%, transparent) 60%,` +
+    ` color-mix(in srgb, var(--pgo-page) ${scrim.bottom}%, transparent) 100%)`;
 
 
   return (
     <section
       ref={sectionRef}
-      className="hw-walk-section"
+      className="pgo-walk-section"
       // La última parada solo necesita la pantalla final (100vh); el
       // recorrido hasta ahí son (n-1) tramos de SCROLL_PER_STOP_VH — así
       // travel/(n-1) da exactamente SCROLL_PER_STOP_VH, que es lo que usan
       // los marcadores de ancla de abajo para alinearse con pos === i.
-      style={{ "--hw-walk-height": `${(n - 1) * SCROLL_PER_STOP_VH + 100}vh` } as CSSProperties}
+      style={{ "--pgo-walk-height": `${(n - 1) * SCROLL_PER_STOP_VH + 100}vh` } as CSSProperties}
     >
       {/* Marcadores de ancla — invisibles, a la altura de scroll de cada parada.
           Gateados por `pinned` (listo antes del primer paint, ver arriba) y no
@@ -469,17 +469,19 @@ export function ScrollWalkthrough({
           ) : null,
         )}
 
-      <div className="hw-walk-stage">
+      <div className="pgo-walk-stage">
         {/* ── Fondo: fotogramas + velo de legibilidad ── */}
-        <div className="hw-walk-frames" aria-hidden="true">
+        <div className="pgo-walk-frames" aria-hidden="true">
           {stops.map((s, i) => {
-            // Los fotogramas 2..N solo se montan con el efecto activo: en
-            // mobile no se descargan, y en desktop a progreso 0 igual solo
-            // se vería el primero (así que no hay parpadeo al hidratar).
-            if (!motionEnabled && i !== 0) return null;
+            // Los fotogramas solo se montan con el efecto activo. Hasta
+            // entonces (y siempre en modo apilado) la escena inicial la pone
+            // el fondo de la parada 0, así nunca hay una copia oculta de la
+            // misma foto: el mismo src y `sizes` comparten URL, así que al
+            // montarse el fotograma 0 sale de caché sin parpadeo.
+            if (!motionEnabled) return null;
             // Parada sin foto (ver WalkStop.image): no hay fotograma que
             // montar — el frame anterior ya se encarga de desvanecerse con
-            // su propia distancia, dejando ver el --hw-page liso detrás.
+            // su propia distancia, dejando ver el --pgo-page liso detrás.
             if (!s.image) return null;
             const dist = Math.abs(pos - i);
             const opacity = active ? Math.max(0, 1 - dist) : i === 0 ? 1 : 0;
@@ -491,9 +493,9 @@ export function ScrollWalkthrough({
                 src={s.image}
                 alt=""
                 fill
-                // Todos con priority: son el asset principal del recorrido y
-                // deben estar decodificados antes del primer scrub.
-                priority
+                // Eager: son el asset principal del recorrido y deben estar
+                // decodificados antes del primer scrub.
+                loading="eager"
                 sizes="100vw"
                 className="object-cover"
                 onLoad={() => setLoaded((c) => c + 1)}
@@ -505,7 +507,7 @@ export function ScrollWalkthrough({
         </div>
 
         {/* ── UI: cada parada entra y sale sobre la escena ── */}
-        <div className="hw-walk-ui">
+        <div className="pgo-walk-ui">
           {stops.map((s, i) => {
             const d = pos - i;
             // La opacidad debe llegar a 0 antes del punto medio entre paradas
@@ -524,7 +526,7 @@ export function ScrollWalkthrough({
                 ref={(el) => { stopRefs.current[i] = el; }}
                 // Apilado (mobile/sin JS) el ancla sí puede vivir en la parada.
                 id={!pinned ? s.anchorId : undefined}
-                className={`hw-walk-stop${i === 0 ? " hw-walk-stop-hero" : ""}`}
+                className={`pgo-walk-stop${i === 0 ? " pgo-walk-stop-hero" : ""}`}
                 style={
                   active
                     ? {
@@ -536,28 +538,35 @@ export function ScrollWalkthrough({
                     : undefined
                 }
               >
-                {/* Fondo por-parada — SOLO en la parada 0 (Inicio) y SOLO en
-                    modo apilado (mobile/reduced-motion/sin JS; en desktop lo
-                    apaga el CSS y la foto la pone el crossfade de arriba).
+                {/* Fondo por-parada — SOLO en la parada 0 (Inicio). Es la escena
+                    inicial en todos los modos: en apilado (mobile/reduced-
+                    motion/sin JS) siempre, y en escritorio hasta que el
+                    crossfade de arriba está listo (`active`), momento en que
+                    se apaga y la foto la pone el fotograma 0, idéntico.
                     Las paradas 1+ NO llevan foto en apilado: son fotogramas
                     compuestos para 100vh de escritorio, y recortados por
                     `object-cover` a la altura variable de una tarjeta de
                     texto se ven como una porción arbitraria de la escena
                     (a veces sin ningún elemento reconocible) — y esa porción
                     cambia parada a parada según cuánto texto tenga cada una.
-                    Sin fondo, se ve el `--hw-page` + `.hw-aurora-layer` de
+                    Sin fondo, se ve el `--pgo-page` + `.pgo-aurora-layer` de
                     la página (mismo tratamiento que login/registro/Nuestros
-                    Planes: tarjeta glass sobre aurora, no sobre foto). Sin
-                    `priority`: aunque solo queda esta, entra lazy igual que
-                    antes; en desktop, aunque oculta, comparte URL con la del
-                    crossfade así que el navegador la deduplica. */}
+                    Planes: tarjeta glass sobre aurora, no sobre foto). Es el
+                    LCP de la portada: carga eager y con prioridad alta (React
+                    además la precarga en el <head> con el mismo srcset). */}
                 {i === 0 && s.image && (
-                  <div className="hw-walk-stop-bg" aria-hidden="true">
+                  <div
+                    className="pgo-walk-stop-bg"
+                    aria-hidden="true"
+                    style={active ? { display: "none" } : undefined}
+                  >
                     <Image
                       src={s.image}
                       alt=""
                       fill
                       sizes="100vw"
+                      loading="eager"
+                      fetchPriority="high"
                       className="object-cover"
                     />
                     <div className="absolute inset-0" style={{ background: scrimBg }} />
@@ -586,7 +595,7 @@ export function ScrollWalkthrough({
             segundo control idéntico es nav duplicado, no una ayuda. */}
         {pinned && (
           <div
-            className="hw-walk-hint"
+            className="pgo-walk-hint"
             aria-hidden="true"
             style={{ opacity: Math.max(0, 1 - pos * 4) }}
           >

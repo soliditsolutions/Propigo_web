@@ -1,5 +1,5 @@
 /**
- * @housing/core — Núcleo de dominio financiero de Housing.
+ * @propigo/core — Núcleo de dominio financiero de Propigo.
  *
  * Paquete framework-agnóstico (sin imports de Next.js ni React), extraíble como
  * servicio privado en producción (ver docs/decisiones/ADR-0002-stack-y-seguridad.md).

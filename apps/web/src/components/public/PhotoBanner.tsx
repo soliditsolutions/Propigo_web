@@ -11,13 +11,13 @@ import Image, { type StaticImageData } from "next/image";
 export function PhotoBanner({
   src,
   objectPosition = "72% center",
-  overlay = "linear-gradient(175deg, color-mix(in srgb, var(--hw-sidebar) 91%, transparent) 0%, color-mix(in srgb, var(--hw-sidebar) 97%, transparent) 100%)",
-  priority = false,
+  overlay = "linear-gradient(175deg, color-mix(in srgb, var(--pgo-sidebar) 91%, transparent) 0%, color-mix(in srgb, var(--pgo-sidebar) 97%, transparent) 100%)",
+  preload = false,
 }: {
   src: StaticImageData;
   objectPosition?: string;
   overlay?: string;
-  priority?: boolean;
+  preload?: boolean;
 }) {
   return (
     <>
@@ -25,7 +25,7 @@ export function PhotoBanner({
         src={src}
         alt=""
         fill
-        priority={priority}
+        preload={preload}
         sizes="(max-width: 1024px) 100vw, 480px"
         className="object-cover"
         style={{ objectPosition }}

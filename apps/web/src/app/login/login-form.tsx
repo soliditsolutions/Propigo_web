@@ -35,15 +35,15 @@ function WarningBanner({ attempts }: { attempts: number }) {
       role="alert"
       className="rounded-xl px-4 py-3 text-sm"
       style={{
-        background: "var(--hw-warning-lt)",
-        border:     "1px solid var(--hw-warning-bd)",
-        color:      "var(--hw-warning-dk)",
+        background: "var(--pgo-warning-lt)",
+        border:     "1px solid var(--pgo-warning-bd)",
+        color:      "var(--pgo-warning-dk)",
       }}
     >
       <div className="flex items-start gap-2.5">
-        <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--hw-warning)" }} aria-hidden="true" />
+        <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--pgo-warning)" }} aria-hidden="true" />
         <div className="space-y-1.5 w-full">
-          <p className="font-semibold" style={{ color: "var(--hw-warning-dk)" }}>
+          <p className="font-semibold" style={{ color: "var(--pgo-warning-dk)" }}>
             Atención — quedan {5 - attempts} intento{5 - attempts !== 1 ? "s" : ""} antes del bloqueo
           </p>
           <ul className="space-y-0.5">
@@ -55,7 +55,7 @@ function WarningBanner({ attempts }: { attempts: number }) {
               >
                 <span
                   className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
-                  style={{ background: "var(--hw-warning)" }}
+                  style={{ background: "var(--pgo-warning)" }}
                   aria-hidden="true"
                 />
                 <span>
@@ -104,22 +104,22 @@ function LockPanel({
       role="alert"
       className="rounded-xl px-4 py-4 text-sm space-y-3"
       style={{
-        background: is5min ? "var(--hw-warning-lt)"  : "var(--hw-danger-lt)",
-        border:     is5min ? "1px solid var(--hw-warning-bd)" : "1px solid var(--hw-danger-bd)",
+        background: is5min ? "var(--pgo-warning-lt)"  : "var(--pgo-danger-lt)",
+        border:     is5min ? "1px solid var(--pgo-warning-bd)" : "1px solid var(--pgo-danger-bd)",
       }}
     >
       {/* Cabecera */}
       <div className="flex items-start gap-2.5">
         <Lock
           className="h-4 w-4 mt-0.5 shrink-0"
-          style={{ color: is5min ? "var(--hw-warning)" : "var(--hw-danger)" }}
+          style={{ color: is5min ? "var(--pgo-warning)" : "var(--pgo-danger)" }}
           aria-hidden="true"
         />
         <div>
-          <p className="font-semibold" style={{ color: is5min ? "var(--hw-warning-dk)" : "var(--hw-danger-dk)" }}>
+          <p className="font-semibold" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
             {is5min ? "Cuenta bloqueada por 5 minutos" : "Cuenta bloqueada por 1 hora"}
           </p>
-          <p className="mt-0.5" style={{ color: is5min ? "var(--hw-warning-dk)" : "var(--hw-danger-dk)" }}>
+          <p className="mt-0.5" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
             Demasiados intentos fallidos. Espera o cambia tu contraseña.
           </p>
         </div>
@@ -130,8 +130,8 @@ function LockPanel({
         <div
           className="flex items-center justify-center gap-2 rounded-lg py-2 font-mono text-lg font-bold tracking-widest"
           style={{
-            background: is5min ? "var(--hw-warning-lt)" : "var(--hw-danger-lt)",
-            color:      is5min ? "var(--hw-warning)" : "var(--hw-danger)",
+            background: is5min ? "var(--pgo-warning-lt)" : "var(--pgo-danger-lt)",
+            color:      is5min ? "var(--pgo-warning)" : "var(--pgo-danger)",
           }}
           aria-live="polite"
           aria-label={`Tiempo restante: ${formatCountdown(secsLeft)}`}
@@ -142,12 +142,12 @@ function LockPanel({
       )}
 
       {/* Enlace cambio de contraseña */}
-      <p className="text-xs text-center" style={{ color: is5min ? "var(--hw-warning-dk)" : "var(--hw-danger-dk)" }}>
+      <p className="text-xs text-center" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
         ¿No quieres esperar?{" "}
         <Link
           href="/recuperar-contrasena"
           className="font-semibold underline underline-offset-2 hover:opacity-70 transition-opacity"
-          style={{ color: is5min ? "var(--hw-warning)" : "var(--hw-danger)" }}
+          style={{ color: is5min ? "var(--pgo-warning)" : "var(--pgo-danger)" }}
         >
           Cambia tu contraseña ahora
         </Link>
@@ -155,7 +155,7 @@ function LockPanel({
 
       {/* Aviso escalación (solo en bloqueo de 5min: siguiente es 1hr) */}
       {is5min && (
-        <p className="text-xs text-center opacity-75" style={{ color: "var(--hw-warning-dk)" }}>
+        <p className="text-xs text-center opacity-75" style={{ color: "var(--pgo-warning-dk)" }}>
           El siguiente intento fallido bloqueará tu cuenta por 1 hora.
         </p>
       )}
@@ -164,7 +164,7 @@ function LockPanel({
       {isWarned && (
         <p
           className="text-xs text-center font-semibold"
-          style={{ color: "var(--hw-danger-dk)" }}
+          style={{ color: "var(--pgo-danger-dk)" }}
         >
           ⚠️ El siguiente intento fallido bloqueará permanentemente tu cuenta.
         </p>
@@ -180,17 +180,17 @@ function BlockedPanel() {
       role="alert"
       className="rounded-xl px-4 py-4 text-sm space-y-3"
       style={{
-        background: "var(--hw-danger-lt)",
-        border:     "1px solid var(--hw-danger-bd)",
+        background: "var(--pgo-danger-lt)",
+        border:     "1px solid var(--pgo-danger-bd)",
       }}
     >
       <div className="flex items-start gap-2.5">
-        <ShieldAlert className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--hw-danger-dk)" }} aria-hidden="true" />
+        <ShieldAlert className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--pgo-danger-dk)" }} aria-hidden="true" />
         <div>
-          <p className="font-bold" style={{ color: "var(--hw-danger-dk)" }}>
+          <p className="font-bold" style={{ color: "var(--pgo-danger-dk)" }}>
             Cuenta bloqueada por seguridad
           </p>
-          <p className="mt-1 leading-relaxed" style={{ color: "var(--hw-danger-dk)" }}>
+          <p className="mt-1 leading-relaxed" style={{ color: "var(--pgo-danger-dk)" }}>
             Detectamos demasiados intentos fallidos y bloqueamos tu cuenta para proteger
             tu información.
           </p>
@@ -199,7 +199,7 @@ function BlockedPanel() {
       <Link
         href="/recuperar-contrasena"
         className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-opacity hover:opacity-80"
-        style={{ background: "var(--hw-danger)", color: "#fff" }}
+        style={{ background: "var(--pgo-danger)", color: "#fff" }}
       >
         <ShieldAlert className="h-4 w-4" aria-hidden="true" />
         Solicitar cambio de contraseña
@@ -250,7 +250,7 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
         <label
           htmlFor="email"
           className="block text-sm font-semibold"
-          style={{ color: "var(--hw-text-2)" }}
+          style={{ color: "var(--pgo-text-2)" }}
         >
           Correo electrónico
         </label>
@@ -268,27 +268,27 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
             height:      "44px",
             width:       "100%",
             borderRadius:"12px",
-            border:      `1px solid ${emailError ? "var(--hw-danger)" : "var(--hw-border-2)"}`,
-            background:  "var(--hw-glass-input)",
-            color:       "var(--hw-text-1)",
+            border:      `1px solid ${emailError ? "var(--pgo-danger)" : "var(--pgo-border-2)"}`,
+            background:  "var(--pgo-glass-input)",
+            color:       "var(--pgo-text-1)",
             fontSize:    "14px",
             padding:     "0 14px",
             outline:     "none",
-            boxShadow:   "var(--hw-input-shadow)",
+            boxShadow:   "var(--pgo-input-shadow)",
             transition:  "border-color 150ms ease, box-shadow 150ms ease",
             opacity:     formDisabled ? 0.5 : 1,
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "var(--hw-primary)";
-            e.currentTarget.style.boxShadow   = "var(--hw-input-shadow-focus)";
+            e.currentTarget.style.borderColor = "var(--pgo-primary)";
+            e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = emailError ? "var(--hw-danger)" : "var(--hw-border-2)";
-            e.currentTarget.style.boxShadow   = "var(--hw-input-shadow)";
+            e.currentTarget.style.borderColor = emailError ? "var(--pgo-danger)" : "var(--pgo-border-2)";
+            e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
           }}
         />
         {emailError && (
-          <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+          <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
             {emailError}
           </p>
         )}
@@ -300,14 +300,14 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
           <label
             htmlFor="password"
             className="block text-sm font-semibold"
-            style={{ color: "var(--hw-text-2)" }}
+            style={{ color: "var(--pgo-text-2)" }}
           >
             Contraseña
           </label>
           <Link
             href="/recuperar-contrasena"
             className="text-xs font-medium transition-opacity hover:opacity-70"
-            style={{ color: "var(--hw-primary)" }}
+            style={{ color: "var(--pgo-primary)" }}
           >
             ¿Olvidaste la contraseña?
           </Link>
@@ -327,31 +327,31 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
               height:      "44px",
               width:       "100%",
               borderRadius:"12px",
-              border:      `1px solid ${pwdError ? "var(--hw-danger)" : "var(--hw-border-2)"}`,
-              background:  "var(--hw-surface)",
-              color:       "var(--hw-text-1)",
+              border:      `1px solid ${pwdError ? "var(--pgo-danger)" : "var(--pgo-border-2)"}`,
+              background:  "var(--pgo-surface)",
+              color:       "var(--pgo-text-1)",
               fontSize:    "14px",
               padding:     "0 44px 0 14px",
               outline:     "none",
-              boxShadow:   "var(--hw-input-shadow)",
+              boxShadow:   "var(--pgo-input-shadow)",
               transition:  "border-color 150ms ease, box-shadow 150ms ease",
               opacity:     formDisabled ? 0.5 : 1,
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--hw-primary)";
-              e.currentTarget.style.boxShadow   = "var(--hw-input-shadow-focus)";
+              e.currentTarget.style.borderColor = "var(--pgo-primary)";
+              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = pwdError ? "var(--hw-danger)" : "var(--hw-border-2)";
-              e.currentTarget.style.boxShadow   = "var(--hw-input-shadow)";
+              e.currentTarget.style.borderColor = pwdError ? "var(--pgo-danger)" : "var(--pgo-border-2)";
+              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
             }}
           />
           <button
             type="button"
             onClick={() => setShowPwd(!showPwd)}
             aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-            className="hw-tap-target absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70 transition-opacity"
-            style={{ color: "var(--hw-text-4)" }}
+            className="pgo-tap-target absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70 transition-opacity"
+            style={{ color: "var(--pgo-text-4)" }}
           >
             {showPwd
               ? <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -359,7 +359,7 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
           </button>
         </div>
         {pwdError && (
-          <p id="pwd-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+          <p id="pwd-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
             {pwdError}
           </p>
         )}
@@ -386,7 +386,7 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
       <button
         type="submit"
         disabled={formDisabled}
-        className="hw-btn-primary w-full justify-center"
+        className="pgo-btn-primary w-full justify-center"
         style={{ height: "46px", fontSize: "15px", borderRadius: "12px" }}
         aria-busy={pending}
       >

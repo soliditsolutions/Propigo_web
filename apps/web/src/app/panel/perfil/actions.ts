@@ -31,8 +31,9 @@ export type PasswordState = {
   field?: string;
 } | null;
 
-import { esRegionValida, esComunaValidaEnRegion } from "@housing/core";
+import { esRegionValida, esComunaValidaEnRegion } from "@propigo/core";
 import { validateRut, canonicalRut } from "@/lib/rut";
+import { MARCA } from "@/lib/marca";
 
 // ── Guardar perfil ───────────────────────────────────────────────────────────
 
@@ -81,7 +82,7 @@ export async function guardarPerfilAction(
   // otro usuario ya registrado con ese RUT. usuario.rut es único GLOBAL (no
   // por tenant, ver setup.sql sección 4), así que este chequeo es
   // legítimamente cross-tenant. Igual que en login/registro, se resuelve con
-  // una función SECURITY DEFINER de alcance mínimo, no dándole a housing_app
+  // una función SECURITY DEFINER de alcance mínimo, no dándole a propigo_app
   // acceso directo a leer la tabla usuario completa (ver ADR-0011 Fase 2).
   if (!actual.rut) {
     const rutDupeRows = await prisma.$queryRaw<{ existe: boolean }[]>`
@@ -124,7 +125,7 @@ export async function guardarPerfilAction(
   const hoy18 = new Date();
   hoy18.setFullYear(hoy18.getFullYear() - 18);
   if (fechaNac > hoy18) {
-    return { ok: false, error: "Debes tener al menos 18 años para usar Housing.", field: "fechaNacimiento" };
+    return { ok: false, error: `Debes tener al menos 18 años para usar ${MARCA}.`, field: "fechaNacimiento" };
   }
 
   if (!direccion) {
@@ -134,7 +135,7 @@ export async function guardarPerfilAction(
     return { ok: false, error: "La dirección debe tener entre 5 y 255 caracteres.", field: "direccion" };
   }
 
-  // SEC: región/comuna deben venir de la lista cerrada de @housing/core —
+  // SEC: región/comuna deben venir de la lista cerrada de @propigo/core —
   // el <select> del cliente ya lo restringe, pero un request manual podría
   // enviar cualquier string, así que se valida también en el servidor.
   if (!region) {

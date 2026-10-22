@@ -155,12 +155,12 @@ export default async function MarketplaceFichaPage({
               <div className="overflow-hidden rounded-2xl">
                 {imagenes.length === 1 ? (
                   <div className="relative h-72 w-full overflow-hidden rounded-2xl sm:h-96" style={{ background: "var(--pf-hero-1)" }}>
-                    <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 100vw, 768px" priority />
+                    <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 100vw, 768px" preload />
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <div className="relative h-60 overflow-hidden rounded-2xl sm:h-80" style={{ background: "var(--pf-hero-1)" }}>
-                      <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 50vw, 384px" priority />
+                      <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 50vw, 384px" preload />
                     </div>
                     <div className="grid gap-2">
                       {imagenes.slice(1, 3).map((img, i) => (
@@ -190,7 +190,7 @@ export default async function MarketplaceFichaPage({
               <div className="mb-2 flex items-center gap-2">
                 <span
                   className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                  style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+                  style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                 >
                   {meta.label}
                 </span>
@@ -251,7 +251,7 @@ export default async function MarketplaceFichaPage({
             {prop.pagaGastosComunes && prop.valorGastosComunes != null && (
               <div className="pf-card flex items-center justify-between px-5 py-4">
                 <div className="flex items-center gap-2 text-sm" style={{ color: "var(--pf-text-body)" }}>
-                  <CheckCircle2 className="h-4 w-4" style={{ color: "var(--pf-purple)" }} aria-hidden />
+                  <CheckCircle2 className="h-4 w-4" style={{ color: "var(--pf-brand)" }} aria-hidden />
                   Incluye gastos comunes
                 </div>
                 <span className="font-semibold" style={{ color: "var(--pf-navy)" }}>
@@ -278,7 +278,7 @@ export default async function MarketplaceFichaPage({
 
             {/* Notas adicionales */}
             {prop.otrasDescripciones && (
-              <div className="rounded-2xl border p-4 text-sm" style={{ borderColor: "var(--hw-warning-bd)", background: "var(--hw-warning-lt)", color: "var(--hw-warning-dk)" }}>
+              <div className="rounded-2xl border p-4 text-sm" style={{ borderColor: "var(--pgo-warning-bd)", background: "var(--pgo-warning-lt)", color: "var(--pgo-warning-dk)" }}>
                 <p className="font-semibold mb-1">Información adicional</p>
                 <p className="leading-relaxed">{prop.otrasDescripciones}</p>
               </div>

@@ -39,7 +39,7 @@ Lo que el mercado **hace mal o no automatiza** (nuestro foco):
 
 ## 5. Cobertura — verificación
 
-| Punto del mercado | Estado en Housing |
+| Punto del mercado | Estado en Propigo |
 |---|---|
 | Reajuste IPC por aniversario | ✅ implementado y verificado |
 | UF diaria | ✅ |

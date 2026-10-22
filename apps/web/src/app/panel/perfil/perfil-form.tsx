@@ -11,7 +11,7 @@ import {
   guardarPerfilAction, cambiarPasswordAction,
   solicitarCambioContactoAction, confirmarCambioContactoAction,
 } from "./actions";
-import { REGIONES_CHILE, getComunasDeRegion } from "@housing/core";
+import { REGIONES_CHILE, getComunasDeRegion } from "@propigo/core";
 import type { PerfilState, PasswordState, CampoContacto } from "./actions";
 import { useToast }                from "@/components/ui/toast";
 import { validateRut, formatRut }  from "@/lib/rut";
@@ -83,14 +83,14 @@ function AvatarSection({
       {/* Avatar */}
       <div className="relative shrink-0">
         {hasFoto ? (
-          <div className="relative h-20 w-20 overflow-hidden rounded-full" style={{ border: "3px solid var(--hw-border)" }}>
+          <div className="relative h-20 w-20 overflow-hidden rounded-full" style={{ border: "3px solid var(--pgo-border)" }}>
             <Image src={fotoPerfil} alt="Foto de perfil" fill className="object-cover" sizes="80px" />
           </div>
         ) : (
           <div
             className="flex h-20 w-20 items-center justify-center rounded-full text-xl font-bold text-white"
             style={{
-              background: "linear-gradient(135deg, var(--hw-primary) 0%, var(--hw-sidebar) 100%)",
+              background: "linear-gradient(135deg, var(--pgo-primary) 0%, var(--pgo-sidebar) 100%)",
             }}
           >
             {initials(nombre)}
@@ -101,8 +101,8 @@ function AvatarSection({
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
           aria-label="Cambiar foto de perfil"
-          className="hw-btn absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-white shadow-md"
-          style={{ background: "var(--hw-primary)" }}
+          className="pgo-btn absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-white shadow-md"
+          style={{ background: "var(--pgo-primary)" }}
         >
           {uploading
             ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
@@ -118,8 +118,8 @@ function AvatarSection({
         />
       </div>
       <div>
-        <p className="font-semibold" style={{ color: "var(--hw-text-1)" }}>{nombre}</p>
-        <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+        <p className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>{nombre}</p>
+        <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
           {hasFoto ? "Haz clic en la cámara para cambiar tu foto" : "Sube una foto de perfil (opcional)"}
         </p>
       </div>
@@ -145,19 +145,19 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
 
   const inputStyle = {
     height: "44px", width: "100%", borderRadius: "12px",
-    border: "1px solid var(--hw-border-2)", background: "var(--hw-surface)",
-    color: "var(--hw-text-1)", fontSize: "14px", padding: "0 44px 0 14px",
-    outline: "none", boxShadow: "var(--hw-input-shadow)",
+    border: "1px solid var(--pgo-border-2)", background: "var(--pgo-surface)",
+    color: "var(--pgo-text-1)", fontSize: "14px", padding: "0 44px 0 14px",
+    outline: "none", boxShadow: "var(--pgo-input-shadow)",
   };
 
   return (
     <section
       className="rounded-2xl p-6"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
     >
       <div className="flex items-center gap-2 mb-5">
-        <Lock className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
-        <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>
+        <Lock className="h-4 w-4" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
+        <h2 className="text-base font-semibold" style={{ color: "var(--pgo-text-1)" }}>
           Cambiar contraseña
         </h2>
       </div>
@@ -165,7 +165,7 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
       <form action={formAction} className="space-y-4">
         {/* Contraseña actual */}
         <div className="space-y-1.5">
-          <label htmlFor="passwordActual" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="passwordActual" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Contraseña actual
           </label>
           <div className="relative">
@@ -175,24 +175,24 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
               autoComplete="current-password"
               required disabled={pending}
               style={{ ...inputStyle, opacity: pending ? 0.6 : 1 }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
             />
             <button type="button" onClick={() => setShowActual(!showActual)}
               aria-label={showActual ? "Ocultar contraseña" : "Mostrar contraseña"}
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70"
-              style={{ color: "var(--hw-text-4)" }}>
+              style={{ color: "var(--pgo-text-4)" }}>
               {showActual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           {!state?.ok && state?.field === "passwordActual" && (
-            <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{state.error}</p>
+            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
         {/* Nueva contraseña */}
         <div className="space-y-1.5">
-          <label htmlFor="passwordNuevo" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="passwordNuevo" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Nueva contraseña
           </label>
           <div className="relative">
@@ -204,26 +204,26 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               style={{ ...inputStyle, opacity: pending ? 0.6 : 1 }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
             />
             <button type="button" onClick={() => setShowNuevo(!showNuevo)}
               aria-label={showNuevo ? "Ocultar contraseña" : "Mostrar contraseña"}
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70"
-              style={{ color: "var(--hw-text-4)" }}>
+              style={{ color: "var(--pgo-text-4)" }}>
               {showNuevo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
 
           <PasswordStrengthMeter password={pwd} nombre={nombre} email={email} />
           {!state?.ok && state?.field === "passwordNuevo" && (
-            <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{state.error}</p>
+            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
         {/* Confirmar */}
         <div className="space-y-1.5">
-          <label htmlFor="passwordConfirm" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="passwordConfirm" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Confirmar nueva contraseña
           </label>
           <input
@@ -232,24 +232,24 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
             autoComplete="new-password"
             required disabled={pending}
             style={{ ...inputStyle, padding: "0 14px", opacity: pending ? 0.6 : 1 }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
           />
           {!state?.ok && state?.field === "passwordConfirm" && (
-            <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{state.error}</p>
+            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
         {/* Error global */}
         {!state?.ok && state?.error && !state.field && (
-          <p className="text-sm rounded-xl px-4 py-2.5" style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger)", border: "1px solid var(--hw-danger-bd)" }}>
+          <p className="text-sm rounded-xl px-4 py-2.5" style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)", border: "1px solid var(--pgo-danger-bd)" }}>
             {state.error}
           </p>
         )}
 
         <button
           type="submit" disabled={pending || !passes}
-          className="hw-btn-primary"
+          className="pgo-btn-primary"
           style={{ height: "42px", fontSize: "14px", borderRadius: "10px", opacity: (!passes && pwd.length > 0) ? 0.5 : 1 }}
         >
           {pending ? <><Loader2 className="h-4 w-4 animate-spin" />Actualizando…</> : "Actualizar contraseña"}
@@ -335,9 +335,9 @@ function CambiarContactoField({
 
   const fieldStyle: React.CSSProperties = {
     height: "44px", width: "100%", borderRadius: "12px",
-    border: "1px solid var(--hw-border-2)", background: "var(--hw-surface)",
-    color: "var(--hw-text-1)", fontSize: "14px", padding: "0 14px",
-    outline: "none", boxShadow: "var(--hw-input-shadow)",
+    border: "1px solid var(--pgo-border-2)", background: "var(--pgo-surface)",
+    color: "var(--pgo-text-1)", fontSize: "14px", padding: "0 14px",
+    outline: "none", boxShadow: "var(--pgo-input-shadow)",
     opacity: isPending ? 0.6 : 1,
     transition: "border-color 150ms ease, box-shadow 150ms ease",
   };
@@ -346,26 +346,26 @@ function CambiarContactoField({
   };
   const btnGhostStyle: React.CSSProperties = {
     height: "40px", borderRadius: "10px", padding: "0 14px", fontSize: "13px", fontWeight: 600,
-    background: "var(--hw-surface-2)", color: "var(--hw-text-3)", border: "1px solid var(--hw-border)",
+    background: "var(--pgo-surface-2)", color: "var(--pgo-text-3)", border: "1px solid var(--pgo-border)",
     display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: 0,
     transition: "background 150ms ease, border-color 150ms ease, color 150ms ease",
   };
   const ghostHover = {
     onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.background   = "var(--hw-surface-3, var(--hw-border))";
-      e.currentTarget.style.borderColor  = "var(--hw-border-2)";
-      e.currentTarget.style.color        = "var(--hw-text-1)";
+      e.currentTarget.style.background   = "var(--pgo-surface-3, var(--pgo-border))";
+      e.currentTarget.style.borderColor  = "var(--pgo-border-2)";
+      e.currentTarget.style.color        = "var(--pgo-text-1)";
     },
     onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.background   = "var(--hw-surface-2)";
-      e.currentTarget.style.borderColor  = "var(--hw-border)";
-      e.currentTarget.style.color        = "var(--hw-text-3)";
+      e.currentTarget.style.background   = "var(--pgo-surface-2)";
+      e.currentTarget.style.borderColor  = "var(--pgo-border)";
+      e.currentTarget.style.color        = "var(--pgo-text-3)";
     },
   };
 
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+      <label className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
         {icon}
         {label}
       </label>
@@ -379,7 +379,7 @@ function CambiarContactoField({
           />
           <button
             type="button" onClick={() => setPaso("nuevo")}
-            className="hw-btn" style={btnGhostStyle} {...ghostHover}
+            className="pgo-btn" style={btnGhostStyle} {...ghostHover}
           >
             Cambiar
           </button>
@@ -393,8 +393,8 @@ function CambiarContactoField({
             onChange={(e) => setNuevoValor(e.target.value)}
             placeholder={placeholder} disabled={isPending}
             style={fieldStyle} autoFocus
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
           />
           <div className="relative">
             <input
@@ -403,30 +403,30 @@ function CambiarContactoField({
               placeholder="Tu contraseña actual" disabled={isPending}
               autoComplete="current-password"
               style={{ ...fieldStyle, paddingRight: "40px" }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
             />
             <button
               type="button" onClick={() => setShowPwd((v) => !v)}
               aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70"
-              style={{ color: "var(--hw-text-4)" }}
+              style={{ color: "var(--pgo-text-4)" }}
             >
               {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <p className="text-[11px]" style={{ color: "var(--hw-text-4)" }}>
+          <p className="text-[11px]" style={{ color: "var(--pgo-text-4)" }}>
             Confirma tu contraseña para pedir el código de verificación.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button" onClick={handleEnviarCodigo} disabled={isPending || !nuevoValor.trim() || !password}
-              className="hw-btn-primary" style={{ ...btnPrimaryStyle, opacity: (!nuevoValor.trim() || !password) ? 0.5 : 1 }}
+              className="pgo-btn-primary" style={{ ...btnPrimaryStyle, opacity: (!nuevoValor.trim() || !password) ? 0.5 : 1 }}
             >
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Send className="h-3.5 w-3.5" aria-hidden="true" />}
               {isPending ? "Enviando…" : "Enviar código"}
             </button>
-            <button type="button" onClick={cancelar} disabled={isPending} className="hw-btn" style={btnGhostStyle} {...ghostHover}>
+            <button type="button" onClick={cancelar} disabled={isPending} className="pgo-btn" style={btnGhostStyle} {...ghostHover}>
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               Cancelar
             </button>
@@ -436,9 +436,9 @@ function CambiarContactoField({
 
       {paso === "codigo" && (
         <div className="space-y-2">
-          <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>
+          <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>
             Enviamos un código de 6 dígitos a tu correo actual para confirmar el cambio a{" "}
-            <strong style={{ color: "var(--hw-text-2)" }}>{nuevoValor}</strong>.
+            <strong style={{ color: "var(--pgo-text-2)" }}>{nuevoValor}</strong>.
           </p>
           <input
             type="text" inputMode="numeric" maxLength={6}
@@ -447,25 +447,25 @@ function CambiarContactoField({
             placeholder="000000" disabled={isPending}
             style={{ ...fieldStyle, letterSpacing: "0.3em", textAlign: "center" }}
             autoFocus
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hw-primary)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)"; }}
-            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--hw-border-2)"; e.currentTarget.style.boxShadow = "var(--hw-input-shadow)"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
+            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
           />
           <div className="flex flex-wrap gap-2">
             <button
               type="button" onClick={handleConfirmar} disabled={isPending || codigo.length !== 6}
-              className="hw-btn-primary" style={{ ...btnPrimaryStyle, opacity: codigo.length !== 6 ? 0.5 : 1 }}
+              className="pgo-btn-primary" style={{ ...btnPrimaryStyle, opacity: codigo.length !== 6 ? 0.5 : 1 }}
             >
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
               {isPending ? "Confirmando…" : "Confirmar"}
             </button>
             <button
               type="button" onClick={handleEnviarCodigo} disabled={isPending || cooldown > 0}
-              className="hw-btn" style={{ ...btnGhostStyle, opacity: cooldown > 0 ? 0.6 : 1 }} {...ghostHover}
+              className="pgo-btn" style={{ ...btnGhostStyle, opacity: cooldown > 0 ? 0.6 : 1 }} {...ghostHover}
             >
               <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
               {cooldown > 0 ? `Reenviar (${cooldown}s)` : "Reenviar código"}
             </button>
-            <button type="button" onClick={cancelar} disabled={isPending} className="hw-btn" style={btnGhostStyle} {...ghostHover}>
+            <button type="button" onClick={cancelar} disabled={isPending} className="pgo-btn" style={btnGhostStyle} {...ghostHover}>
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               Cancelar
             </button>
@@ -474,11 +474,11 @@ function CambiarContactoField({
       )}
 
       {error && (
-        <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{error}</p>
+        <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>
       )}
 
       {paso !== "idle" && (
-        <p className="text-[11px]" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-[11px]" style={{ color: "var(--pgo-text-4)" }}>
           ¿No tienes acceso a tu correo? Contacta a soporte.
         </p>
       )}
@@ -492,24 +492,24 @@ function TwoFASection() {
   return (
     <section
       className="rounded-2xl p-6"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
     >
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
-          <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>
+          <Shield className="h-4 w-4" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
+          <h2 className="text-base font-semibold" style={{ color: "var(--pgo-text-1)" }}>
             Autenticación de dos factores (2FA)
           </h2>
         </div>
         <span
           className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold"
-          style={{ background: "var(--hw-primary-lt)", color: "var(--hw-primary-dk)", border: "1px solid var(--hw-primary-bd)" }}
+          style={{ background: "var(--pgo-primary-lt)", color: "var(--pgo-primary-dk)", border: "1px solid var(--pgo-primary-bd)" }}
         >
           Próximamente
         </span>
       </div>
 
-      <p className="text-sm mb-5" style={{ color: "var(--hw-text-3)" }}>
+      <p className="text-sm mb-5" style={{ color: "var(--pgo-text-3)" }}>
         El 2FA agrega una segunda capa de verificación al iniciar sesión. Usarás una app
         autenticadora (Google Authenticator, Authy u otra) para generar códigos de un solo uso.
       </p>
@@ -522,10 +522,10 @@ function TwoFASection() {
           <div
             key={item.title}
             className="rounded-xl px-4 py-3"
-            style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border)" }}
+            style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border)" }}
           >
-            <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--hw-text-1)" }}>{item.title}</p>
-            <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>{item.desc}</p>
+            <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--pgo-text-1)" }}>{item.title}</p>
+            <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>{item.desc}</p>
           </div>
         ))}
       </div>
@@ -535,7 +535,7 @@ function TwoFASection() {
         disabled
         aria-disabled="true"
         title="Disponible próximamente"
-        className="hw-btn-primary opacity-40 cursor-not-allowed"
+        className="pgo-btn-primary opacity-40 cursor-not-allowed"
         style={{ height: "42px", fontSize: "14px", borderRadius: "10px" }}
       >
         <Shield className="h-4 w-4" aria-hidden="true" />
@@ -586,24 +586,24 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
     }
   }, [state, toast, router, perfil.perfilCompleto]);
 
-  const labelStyle  = { color: "var(--hw-text-2)" };
+  const labelStyle  = { color: "var(--pgo-text-2)" };
   const inputBase   = {
     height: "44px", width: "100%", borderRadius: "12px",
-    border: "1px solid var(--hw-border-2)", background: "var(--hw-surface)",
-    color: "var(--hw-text-1)", fontSize: "14px", padding: "0 14px",
+    border: "1px solid var(--pgo-border-2)", background: "var(--pgo-surface)",
+    color: "var(--pgo-text-1)", fontSize: "14px", padding: "0 14px",
     outline: "none",
-    boxShadow: "var(--hw-input-shadow)",
+    boxShadow: "var(--pgo-input-shadow)",
     transition: "border-color 150ms ease, box-shadow 150ms ease",
     opacity: pending ? 0.6 : 1,
   };
   const focusHandlers = {
     onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-      e.currentTarget.style.borderColor = "var(--hw-primary)";
-      e.currentTarget.style.boxShadow   = "var(--hw-input-shadow-focus)";
+      e.currentTarget.style.borderColor = "var(--pgo-primary)";
+      e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
     },
     onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-      e.currentTarget.style.borderColor = "var(--hw-border-2)";
-      e.currentTarget.style.boxShadow   = "var(--hw-input-shadow)";
+      e.currentTarget.style.borderColor = "var(--pgo-border-2)";
+      e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
     },
   };
 
@@ -620,7 +620,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
       {/* Sección: foto + nombre */}
       <section
         className="rounded-2xl p-6"
-        style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+        style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
       >
         <AvatarSection
           nombre={perfil.nombre}
@@ -636,11 +636,11 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
 
         <section
           className="rounded-2xl p-6 space-y-5"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
         >
           <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
-            <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>
+            <User className="h-4 w-4" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
+            <h2 className="text-base font-semibold" style={{ color: "var(--pgo-text-1)" }}>
               Información personal
             </h2>
           </div>
@@ -659,7 +659,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                   type="text" value={perfil.nombre} disabled readOnly
                   style={{ ...inputBase, opacity: 0.55, cursor: "not-allowed", paddingRight: "38px" }}
                 />
-                <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
+                <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
               </div>
             </div>
 
@@ -683,20 +683,20 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                     paddingRight: "38px",
                     ...(rutBloqueado
                       ? { opacity: 0.55, cursor: "not-allowed" }
-                      : { borderColor: (rutInlineError || fieldError("rut")) ? "var(--hw-danger)" : undefined }),
+                      : { borderColor: (rutInlineError || fieldError("rut")) ? "var(--pgo-danger)" : undefined }),
                   }}
                   {...(rutBloqueado ? {} : focusHandlers)}
                 />
                 {rutBloqueado && (
-                  <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
+                  <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
                 )}
               </div>
               {(rutInlineError || fieldError("rut")) && (
-                <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("rut") ?? rutInlineError}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("rut") ?? rutInlineError}</p>
               )}
             </div>
           </div>
-          <p className="-mt-2 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--hw-text-4)" }}>
+          <p className="-mt-2 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--pgo-text-4)" }}>
             <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
             Verificados con tu cédula al crear la cuenta — no se pueden modificar.
           </p>
@@ -706,7 +706,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
             <label htmlFor="fechaNacimiento" className="flex items-center gap-1.5 text-sm font-semibold" style={labelStyle}>
               <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
               Fecha de nacimiento{" "}
-              {!perfil.fechaNacimiento && <span style={{ color: "var(--hw-danger)" }}>*</span>}
+              {!perfil.fechaNacimiento && <span style={{ color: "var(--pgo-danger)" }}>*</span>}
             </label>
             <div className="relative sm:w-1/2 sm:pr-2">
               <input
@@ -721,11 +721,11 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 {...focusHandlers}
               />
               {perfil.fechaNacimiento && (
-                <Lock className="pointer-events-none absolute right-7 top-1/2 h-3.5 w-3.5 -translate-y-1/2 sm:right-3.5" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
+                <Lock className="pointer-events-none absolute right-7 top-1/2 h-3.5 w-3.5 -translate-y-1/2 sm:right-3.5" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
               )}
             </div>
             {fieldError("fechaNacimiento") && (
-              <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("fechaNacimiento")}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("fechaNacimiento")}</p>
             )}
           </div>
 
@@ -744,7 +744,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 <label htmlFor="telefono" className="flex items-center gap-1.5 text-sm font-semibold" style={labelStyle}>
                   <Phone className="h-3.5 w-3.5" aria-hidden="true" />
                   Teléfono{" "}
-                  <span style={{ color: "var(--hw-danger)" }}>*</span>
+                  <span style={{ color: "var(--pgo-danger)" }}>*</span>
                 </label>
                 <input
                   id="telefono" name="telefono" type="tel"
@@ -754,7 +754,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                   {...focusHandlers}
                 />
                 {fieldError("telefono") && (
-                  <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("telefono")}</p>
+                  <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("telefono")}</p>
                 )}
               </div>
             )}
@@ -771,11 +771,11 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
         {/* Sección: dirección */}
         <section
           className="rounded-2xl p-6 space-y-5 mt-6"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
         >
           <div className="flex items-center gap-2 mb-1">
-            <MapPin className="h-4 w-4" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
-            <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>
+            <MapPin className="h-4 w-4" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
+            <h2 className="text-base font-semibold" style={{ color: "var(--pgo-text-1)" }}>
               Dirección profesional
             </h2>
           </div>
@@ -784,7 +784,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
           <div className="space-y-1.5">
             <label htmlFor="direccion" className="block text-sm font-semibold" style={labelStyle}>
               Dirección{" "}
-              <span style={{ color: "var(--hw-danger)" }}>*</span>
+              <span style={{ color: "var(--pgo-danger)" }}>*</span>
             </label>
             <input
               id="direccion" name="direccion" type="text"
@@ -795,7 +795,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
               {...focusHandlers}
             />
             {fieldError("direccion") && (
-              <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("direccion")}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("direccion")}</p>
             )}
           </div>
 
@@ -804,7 +804,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
             <div className="space-y-1.5">
               <label htmlFor="region" className="block text-sm font-semibold" style={labelStyle}>
                 Región{" "}
-                <span style={{ color: "var(--hw-danger)" }}>*</span>
+                <span style={{ color: "var(--pgo-danger)" }}>*</span>
               </label>
               <select
                 id="region" name="region"
@@ -825,7 +825,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 ))}
               </select>
               {fieldError("region") && (
-                <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("region")}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("region")}</p>
               )}
             </div>
 
@@ -833,7 +833,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
             <div className="space-y-1.5">
               <label htmlFor="ciudad" className="block text-sm font-semibold" style={labelStyle}>
                 Ciudad / comuna{" "}
-                <span style={{ color: "var(--hw-danger)" }}>*</span>
+                <span style={{ color: "var(--pgo-danger)" }}>*</span>
               </label>
               <select
                 id="ciudad" name="ciudad"
@@ -854,7 +854,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 ))}
               </select>
               {fieldError("ciudad") && (
-                <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{fieldError("ciudad")}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("ciudad")}</p>
               )}
             </div>
           </div>
@@ -865,7 +865,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
           <div
             className="mt-4 flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm"
             role="alert"
-            style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger)", border: "1px solid var(--hw-danger-bd)" }}
+            style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)", border: "1px solid var(--pgo-danger-bd)" }}
           >
             {state.error}
           </div>
@@ -875,7 +875,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
         <div className="mt-6 flex items-center gap-4">
           <button
             type="submit" disabled={pending}
-            className="hw-btn-primary"
+            className="pgo-btn-primary"
             style={{ height: "46px", fontSize: "15px", borderRadius: "12px", padding: "0 28px" }}
           >
             {pending ? (
@@ -891,7 +891,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
             )}
           </button>
           {state?.ok && (
-            <span className="text-sm" style={{ color: "var(--hw-success)" }}>
+            <span className="text-sm" style={{ color: "var(--pgo-success)" }}>
               ✓ Cambios guardados
             </span>
           )}

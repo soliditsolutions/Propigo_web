@@ -69,7 +69,7 @@ export default async function CobrosPage() {
       {/* Barra de progreso del mes */}
       {totalMes > 0 && (
         <div
-          className="hw-card mb-6 px-5 py-4"
+          className="pgo-card mb-6 px-5 py-4"
           role="region"
           aria-label="Progreso de liquidaciones del mes"
         >
@@ -78,22 +78,22 @@ export default async function CobrosPage() {
               <CheckCircle2
                 className="h-4 w-4"
                 aria-hidden="true"
-                style={{ color: progresoPct === 100 ? "var(--hw-success)" : "var(--hw-text-4)" }}
+                style={{ color: progresoPct === 100 ? "var(--pgo-success)" : "var(--pgo-text-4)" }}
               />
-              <span className="text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>
+              <span className="text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>
                 Progreso total de liquidaciones
               </span>
             </div>
             <span
-              className="text-sm font-bold hw-num"
-              style={{ color: progresoPct === 100 ? "var(--hw-success)" : "var(--hw-primary)" }}
+              className="text-sm font-bold pgo-num"
+              style={{ color: progresoPct === 100 ? "var(--pgo-success)" : "var(--pgo-primary)" }}
             >
               {liquidadosMes} / {totalMes} liquidados ({progresoPct}%)
             </span>
           </div>
           <div
             className="h-2 w-full overflow-hidden rounded-full"
-            style={{ background: "var(--hw-border)" }}
+            style={{ background: "var(--pgo-border)" }}
             role="progressbar"
             aria-valuenow={progresoPct}
             aria-valuemin={0}
@@ -105,11 +105,11 @@ export default async function CobrosPage() {
               style={{
                 width: `${progresoPct}%`,
                 background: progresoPct === 100
-                  ? "var(--hw-success)"
-                  : `linear-gradient(90deg, var(--hw-primary) 0%, var(--hw-primary-dk) 100%)`,
+                  ? "var(--pgo-success)"
+                  : `linear-gradient(90deg, var(--pgo-primary) 0%, var(--pgo-primary-dk) 100%)`,
                 boxShadow: progresoPct === 100
                   ? "0 0 10px rgba(52,211,153,0.6)"
-                  : "0 0 10px rgba(99,102,241,0.6)",
+                  : "0 0 10px color-mix(in srgb, var(--pgo-primary) 60%, transparent)",
               }}
             />
           </div>

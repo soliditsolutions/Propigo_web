@@ -5,7 +5,7 @@
  * identifican a personas. Hay dos maneras de perderlos: que se filtren entre
  * corredoras, o que salgan por una inyección. Este archivo ataca ambas.
  *
- * Corre contra la base de verdad y con el rol de la aplicación (`housing_app`,
+ * Corre contra la base de verdad y con el rol de la aplicación (`propigo_app`,
  * sujeto a RLS). Es la única forma de probar aislamiento: un test que mockea
  * Prisma nunca ejecuta una política de fila, así que pasaría igual aunque RLS
  * estuviera apagado.
@@ -18,7 +18,7 @@
 // Los tests del proyecto corren sin .env; este necesita la cadena de conexión.
 import "dotenv/config";
 import { describe, it, expect, afterAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../generated/prisma/client";
 import { terminoBusqueda } from "../busqueda";
 
@@ -63,7 +63,7 @@ async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
 
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch {

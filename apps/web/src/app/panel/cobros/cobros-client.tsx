@@ -9,9 +9,10 @@ import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { type DateFilterState } from "@/components/panel/date-filter";
 import { Badge, estadoTone, estadoPulse, Tabs } from "@/components/panel/ui";
 import { clp, num, fecha } from "@/lib/format";
-import { calcularMora, diasEntre } from "@housing/core";
+import { calcularMora, diasEntre } from "@propigo/core";
 import type { PeriodoPendiente } from "@/lib/queries";
 import { simularPago, cerrarLiquidacion, type AjusteForm } from "./actions";
+import { MARCA } from "@/lib/marca";
 
 type AjusteLocal = AjusteForm & { tempId: string };
 
@@ -178,58 +179,58 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
     }
 
     return (
-      <form onSubmit={onSubmit} className="mt-4 space-y-4 border-t border-[var(--hw-border)] pt-4">
-        <div className="rounded-xl bg-[var(--hw-primary-lt)] border border-[var(--hw-primary-bd)] px-4 py-3 text-sm text-[var(--hw-primary-dk)]">
-          <span className="font-semibold">Fecha real del pago</span> — Housing usa esta fecha
+      <form onSubmit={onSubmit} className="mt-4 space-y-4 border-t border-[var(--pgo-border)] pt-4">
+        <div className="rounded-xl bg-[var(--pgo-primary-lt)] border border-[var(--pgo-primary-bd)] px-4 py-3 text-sm text-[var(--pgo-primary-dk)]">
+          <span className="font-semibold">Fecha real del pago</span> — {MARCA} usa esta fecha
           para calcular si hay mora, <em>no la de hoy ni la de liquidación</em>. Eso elimina los
           intereses fantasma.
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-[var(--hw-text-3)] mb-1">Fecha real del pago</label>
+            <label className="block text-xs font-medium text-[var(--pgo-text-3)] mb-1">Fecha real del pago</label>
             <input type="date" name="fecha_pago_real" autoComplete="off"
               value={fechaStr} onChange={(e) => handleFechaChange(e.target.value)}
               max={fechaISOHoy}
-              className="w-full rounded-lg border px-3 py-2 text-sm hw-num focus:outline-none focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-              style={{ borderColor: "var(--hw-border)" }}
+              className="w-full rounded-lg border px-3 py-2 text-sm pgo-num focus:outline-none focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+              style={{ borderColor: "var(--pgo-border)" }}
               aria-label="Fecha real en que el arrendatario realizó el pago" />
-            {diasAtraso > 0 && <p className="mt-1 text-xs text-[var(--hw-danger)]">{diasAtraso} días de atraso efectivos</p>}
+            {diasAtraso > 0 && <p className="mt-1 text-xs text-[var(--pgo-danger)]">{diasAtraso} días de atraso efectivos</p>}
             {diasAtraso === 0 && diasEntre(p.fechaVencimiento, fechaPago) > 0 && (
-              <p className="mt-1 text-xs text-[var(--hw-success)]">Dentro del período de gracia</p>
+              <p className="mt-1 text-xs text-[var(--pgo-success)]">Dentro del período de gracia</p>
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-[var(--hw-text-3)] mb-1">Monto recibido (CLP)</label>
+            <label className="block text-xs font-medium text-[var(--pgo-text-3)] mb-1">Monto recibido (CLP)</label>
             <input type="text" inputMode="decimal" name="monto_recibido" autoComplete="off"
               value={montoStr} onChange={(e) => { setMontoManual(e.target.value); setMismatch(null); }}
-              className="w-full rounded-lg border px-3 py-2 text-sm hw-num focus:outline-none focus:ring-2"
-              style={{ borderColor: "var(--hw-border)" }}
+              className="w-full rounded-lg border px-3 py-2 text-sm pgo-num focus:outline-none focus:ring-2"
+              style={{ borderColor: "var(--pgo-border)" }}
               aria-label="Monto recibido en pesos chilenos" />
           </div>
         </div>
 
-        <div className="rounded-xl bg-[var(--hw-surface-2)] p-4 text-sm space-y-1">
-          <div className="flex justify-between text-[var(--hw-text-2)]"><span>Arriendo</span><span>{clp(p.arriendoCLP)}</span></div>
-          {p.montoGastoComun > 0 && <div className="flex justify-between text-[var(--hw-text-2)]"><span>Gasto común</span><span>{clp(p.montoGastoComun)}</span></div>}
-          {interesCLP > 0 && <div className="flex justify-between text-[var(--hw-danger)] font-medium"><span>Interés por mora ({diasAtraso} días)</span><span>+ {clp(interesCLP)}</span></div>}
-          <div className="flex justify-between font-semibold text-[var(--hw-text-1)] border-t border-[var(--hw-border-2)] pt-1"><span>Total esperado</span><span>{clp(totalEsperado)}</span></div>
+        <div className="rounded-xl bg-[var(--pgo-surface-2)] p-4 text-sm space-y-1">
+          <div className="flex justify-between text-[var(--pgo-text-2)]"><span>Arriendo</span><span>{clp(p.arriendoCLP)}</span></div>
+          {p.montoGastoComun > 0 && <div className="flex justify-between text-[var(--pgo-text-2)]"><span>Gasto común</span><span>{clp(p.montoGastoComun)}</span></div>}
+          {interesCLP > 0 && <div className="flex justify-between text-[var(--pgo-danger)] font-medium"><span>Interés por mora ({diasAtraso} días)</span><span>+ {clp(interesCLP)}</span></div>}
+          <div className="flex justify-between font-semibold text-[var(--pgo-text-1)] border-t border-[var(--pgo-border-2)] pt-1"><span>Total esperado</span><span>{clp(totalEsperado)}</span></div>
         </div>
 
         {/* Panel de diferencia — aparece cuando el monto no calza */}
         {mismatch && (
-          <div className="rounded-xl border-2 border-[var(--hw-warning-bd)] bg-[var(--hw-warning-lt)] p-4 space-y-3">
+          <div className="rounded-xl border-2 border-[var(--pgo-warning-bd)] bg-[var(--pgo-warning-lt)] p-4 space-y-3">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 text-lg" aria-hidden="true">⚠️</span>
               <div className="space-y-1">
-                <p className="font-semibold text-[var(--hw-warning-dk)] text-sm">El monto no calza exactamente</p>
-                <p className="text-xs text-[var(--hw-warning-dk)]">
+                <p className="font-semibold text-[var(--pgo-warning-dk)] text-sm">El monto no calza exactamente</p>
+                <p className="text-xs text-[var(--pgo-warning-dk)]">
                   Esperado: <strong>{clp(mismatch.totalEsperado)}</strong> —{" "}
                   {mismatch.diferencia > 0
                     ? <>Pagó <strong>{clp(mismatch.diferencia)}</strong> de más</>
                     : <>Faltan <strong>{clp(Math.abs(mismatch.diferencia))}</strong></>}
                 </p>
-                <p className="text-xs text-[var(--hw-warning-dk)]">
+                <p className="text-xs text-[var(--pgo-warning-dk)]">
                   {mismatch.diferencia > 0
                     ? "El arrendatario pagó más de lo esperado. Como corredor, puedes aceptar y registrar el monto real en el ledger."
                     : "Como corredor, puedes aceptar esta diferencia y marcar el período como pagado. El monto real quedará registrado en el ledger."}
@@ -241,8 +242,8 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
                 type="button"
                 disabled={isPending}
                 onClick={() => confirmarPago(true)}
-                className="hw-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                style={{ background: "var(--hw-warning)" }}
+                className="pgo-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                style={{ background: "var(--pgo-warning)" }}
               >
                 {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Aceptar diferencia y confirmar
@@ -250,7 +251,7 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
               <button
                 type="button"
                 onClick={() => setMismatch(null)}
-                className="hw-btn rounded-lg px-3 py-2 text-sm text-[var(--hw-warning-dk)] border border-[var(--hw-warning-bd)] bg-[var(--hw-surface)]"
+                className="pgo-btn rounded-lg px-3 py-2 text-sm text-[var(--pgo-warning-dk)] border border-[var(--pgo-warning-bd)] bg-[var(--pgo-surface)]"
               >
                 Corregir monto
               </button>
@@ -261,12 +262,12 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
         {!mismatch && (
           <div className="flex items-center gap-3">
             <button type="submit" disabled={isPending}
-              className="hw-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, var(--hw-primary) 0%, var(--hw-sidebar) 100%)", boxShadow: "0 2px 8px rgba(99,91,255,0.3)" }}>
+              className="pgo-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg, var(--pgo-primary) 0%, var(--pgo-sidebar) 100%)", boxShadow: "0 2px 8px color-mix(in srgb, var(--pgo-primary) 30%, transparent)" }}>
               {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Confirmar pago
             </button>
-            <button type="button" onClick={() => toggle(p.id)} className="text-sm text-[var(--hw-text-4)] hover:text-[var(--hw-text-2)]">Cancelar</button>
+            <button type="button" onClick={() => toggle(p.id)} className="text-sm text-[var(--pgo-text-4)] hover:text-[var(--pgo-text-2)]">Cancelar</button>
           </div>
         )}
       </form>
@@ -312,22 +313,22 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
     }
 
     return (
-      <form onSubmit={onSubmit} className="mt-4 space-y-4 border-t border-[var(--hw-border)] pt-4">
-        <div className="rounded-xl bg-[var(--hw-surface-2)] p-4 text-sm space-y-1">
-          <p className="font-medium text-[var(--hw-text-2)] mb-2">Distribución</p>
-          <div className="flex justify-between text-[var(--hw-text-2)]"><span>Arriendo recibido</span><span>{clp(p.arriendoCLP)}</span></div>
-          <div className="flex justify-between text-[var(--hw-text-2)]"><span>Comisión corredor ({p.comisionPct}%)</span><span className="text-[var(--hw-danger)]">− {clp(comision)}</span></div>
+      <form onSubmit={onSubmit} className="mt-4 space-y-4 border-t border-[var(--pgo-border)] pt-4">
+        <div className="rounded-xl bg-[var(--pgo-surface-2)] p-4 text-sm space-y-1">
+          <p className="font-medium text-[var(--pgo-text-2)] mb-2">Distribución</p>
+          <div className="flex justify-between text-[var(--pgo-text-2)]"><span>Arriendo recibido</span><span>{clp(p.arriendoCLP)}</span></div>
+          <div className="flex justify-between text-[var(--pgo-text-2)]"><span>Comisión corredor ({p.comisionPct}%)</span><span className="text-[var(--pgo-danger)]">− {clp(comision)}</span></div>
           {(tieneAjustesPrevios || descuentoProp > 0) && (
-            <div className="flex justify-between text-[var(--hw-warning)]"><span>Ajustes / descuentos</span><span>− {clp(descuentoProp)}</span></div>
+            <div className="flex justify-between text-[var(--pgo-warning)]"><span>Ajustes / descuentos</span><span>− {clp(descuentoProp)}</span></div>
           )}
-          <div className="flex justify-between font-semibold text-[var(--hw-text-1)] border-t border-[var(--hw-border-2)] pt-2 text-base">
+          <div className="flex justify-between font-semibold text-[var(--pgo-text-1)] border-t border-[var(--pgo-border-2)] pt-2 text-base">
             <span>Neto al propietario</span>
-            <span className={netoProp < 0 ? "text-[var(--hw-danger)]" : "text-[var(--hw-success-dk)]"}>{clp(Math.max(0, netoProp))}</span>
+            <span className={netoProp < 0 ? "text-[var(--pgo-danger)]" : "text-[var(--pgo-success-dk)]"}>{clp(Math.max(0, netoProp))}</span>
           </div>
         </div>
 
         {tieneAjustesPrevios && (
-          <div className="rounded-xl border border-[var(--hw-warning-bd)] bg-[var(--hw-warning-lt)] p-3 text-xs text-[var(--hw-warning-dk)] space-y-1">
+          <div className="rounded-xl border border-[var(--pgo-warning-bd)] bg-[var(--pgo-warning-lt)] p-3 text-xs text-[var(--pgo-warning-dk)] space-y-1">
             <p className="font-semibold mb-1">Ajustes previos:</p>
             {p.ajustes.map((a) => (
               <div key={a.id} className="flex justify-between"><span>{a.descripcion}</span><span>{clp(Number(a.montoCLP))}</span></div>
@@ -336,9 +337,9 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
         )}
 
         {ajustesForm.map((a) => (
-          <div key={a.tempId} className="grid gap-2 sm:grid-cols-3 bg-[var(--hw-surface-2)] rounded-xl p-3">
+          <div key={a.tempId} className="grid gap-2 sm:grid-cols-3 bg-[var(--pgo-surface-2)] rounded-xl p-3">
             <select value={a.tipo} onChange={(e) => updateAjuste(a.tempId, "tipo", e.target.value)}
-              className="rounded-lg border border-[var(--hw-border-2)] px-2 py-1.5 text-sm">
+              className="rounded-lg border border-[var(--pgo-border-2)] px-2 py-1.5 text-sm">
               <option value="descuento_propietario">Desc. propietario</option>
               <option value="cargo_arrendatario">Cargo arrendatario</option>
               <option value="retencion">Retención</option>
@@ -347,13 +348,13 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
               placeholder="Monto CLP…" aria-label="Monto del ajuste en pesos"
               value={a.montoCLP || ""}
               onChange={(e) => updateAjuste(a.tempId, "montoCLP", Number(e.target.value.replace(/\D/g, "")))}
-              className="rounded-lg border px-2 py-1.5 text-sm hw-num" style={{ borderColor: "var(--hw-border)" }} />
+              className="rounded-lg border px-2 py-1.5 text-sm pgo-num" style={{ borderColor: "var(--pgo-border)" }} />
             <div className="flex gap-2">
               <input type="text" placeholder="Descripción" value={a.descripcion}
                 onChange={(e) => updateAjuste(a.tempId, "descripcion", e.target.value)}
-                className="flex-1 rounded-lg border border-[var(--hw-border-2)] px-2 py-1.5 text-sm" />
+                className="flex-1 rounded-lg border border-[var(--pgo-border-2)] px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => removeAjuste(a.tempId)}
-                aria-label="Eliminar este ajuste" className="hw-btn rounded-lg p-1" style={{ color: "var(--hw-text-4)" }}>
+                aria-label="Eliminar este ajuste" className="pgo-btn rounded-lg p-1" style={{ color: "var(--pgo-text-4)" }}>
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -361,7 +362,7 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
         ))}
 
         <button type="button" onClick={addAjuste}
-          className="hw-btn flex items-center gap-1 text-sm hover:underline" style={{ color: "var(--hw-primary)" }}
+          className="pgo-btn flex items-center gap-1 text-sm hover:underline" style={{ color: "var(--pgo-primary)" }}
           aria-label="Agregar un ajuste a esta liquidación">
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           Agregar ajuste (reparación, descuento…)
@@ -369,12 +370,12 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
 
         <div className="flex items-center gap-3">
           <button type="submit" disabled={isPending || netoProp < 0}
-            className="hw-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, var(--hw-success) 0%, var(--hw-success-dk) 100%)", boxShadow: "0 2px 8px var(--hw-glow-success)" }}>
+            className="pgo-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, var(--pgo-success) 0%, var(--pgo-success-dk) 100%)", boxShadow: "0 2px 8px var(--pgo-glow-success)" }}>
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             Cerrar y liquidar
           </button>
-          <button type="button" onClick={() => toggle(p.id)} className="text-sm text-[var(--hw-text-4)] hover:text-[var(--hw-text-2)]">Cancelar</button>
+          <button type="button" onClick={() => toggle(p.id)} className="text-sm text-[var(--pgo-text-4)] hover:text-[var(--pgo-text-2)]">Cancelar</button>
         </div>
       </form>
     );
@@ -389,53 +390,53 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
 
     return (
       <div
-        className="hw-card hw-sheen overflow-hidden transition-all duration-200"
+        className="pgo-card pgo-sheen overflow-hidden transition-all duration-200"
         style={{
-          borderColor: activo ? "var(--hw-primary)" : "var(--hw-border)",
+          borderColor: activo ? "var(--pgo-primary)" : "var(--pgo-border)",
           borderWidth: activo ? "1.5px" : "1px",
-          boxShadow: activo ? "0 0 0 3px rgba(37,99,235,0.08), var(--hw-shadow-1)" : "var(--hw-shadow-1)",
+          boxShadow: activo ? "0 0 0 3px rgba(37,99,235,0.08), var(--pgo-shadow-1)" : "var(--pgo-shadow-1)",
         }}
       >
-        <div className="h-0.5" style={{ background: esPaso1 ? "var(--hw-danger)" : "var(--hw-success)" }} />
+        <div className="h-0.5" style={{ background: esPaso1 ? "var(--pgo-danger)" : "var(--pgo-success)" }} />
         <button type="button"
           aria-expanded={activo}
           aria-controls={`cobro-detalle-${p.id}`}
           aria-label={`${esPaso1 ? "Conciliar" : "Cerrar liquidación"}: ${p.contrato.arrendatario.nombre} — ${p.contrato.propiedad.direccion}`}
           onClick={() => toggle(p.id)}
-          className="hw-btn flex w-full items-start gap-4 p-4 text-left"
+          className="pgo-btn flex w-full items-start gap-4 p-4 text-left"
         >
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-            style={{ background: esPaso1 ? "linear-gradient(135deg,var(--hw-danger),var(--hw-danger-dk))" : "linear-gradient(135deg,var(--hw-success),var(--hw-success-dk))" }}>
+            style={{ background: esPaso1 ? "linear-gradient(135deg,var(--pgo-danger),var(--pgo-danger-dk))" : "linear-gradient(135deg,var(--pgo-success),var(--pgo-success-dk))" }}>
             {esPaso1 ? "P1" : "P2"}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-[var(--hw-text-1)]">{p.contrato.arrendatario.nombre}</span>
+              <span className="font-semibold text-[var(--pgo-text-1)]">{p.contrato.arrendatario.nombre}</span>
               <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>
                 {esPaso1 ? `atrasado${diasAtrasado > 0 ? ` · ${diasAtrasado}d` : ""}` : "por cerrar"}
               </Badge>
             </div>
-            <p className="mt-0.5 text-sm text-[var(--hw-text-3)]">
+            <p className="mt-0.5 text-sm text-[var(--pgo-text-3)]">
               {p.contrato.propiedad.direccion}{p.contrato.propiedad.comuna ? `, ${p.contrato.propiedad.comuna}` : ""}
             </p>
             <div className="mt-2 flex flex-wrap gap-4 text-sm">
-              <span className="text-[var(--hw-text-4)]">Vence <span className="font-medium text-[var(--hw-text-2)]">{fecha(p.fechaVencimiento)}</span></span>
-              <span className="text-[var(--hw-text-4)]">Arriendo <span className="font-semibold text-[var(--hw-text-1)]">
+              <span className="text-[var(--pgo-text-4)]">Vence <span className="font-medium text-[var(--pgo-text-2)]">{fecha(p.fechaVencimiento)}</span></span>
+              <span className="text-[var(--pgo-text-4)]">Arriendo <span className="font-semibold text-[var(--pgo-text-1)]">
                 {p.contrato.denominacion === "UF" ? `${num(p.montoBase)} UF ≈ ${clp(p.arriendoCLP)}` : clp(p.arriendoCLP)}
               </span></span>
-              {p.montoGastoComun > 0 && <span className="text-[var(--hw-text-4)]">GC <span className="font-medium text-[var(--hw-text-2)]">{clp(p.montoGastoComun)}</span></span>}
+              {p.montoGastoComun > 0 && <span className="text-[var(--pgo-text-4)]">GC <span className="font-medium text-[var(--pgo-text-2)]">{clp(p.montoGastoComun)}</span></span>}
             </div>
           </div>
           <div aria-hidden="true" className="ml-2 shrink-0 rounded-lg p-1.5"
-            style={{ background: activo ? "var(--hw-border)" : "transparent" }}>
-            {activo ? <ChevronUp className="h-4 w-4" style={{ color: "var(--hw-text-3)" }} /> : <ChevronDown className="h-4 w-4" style={{ color: "var(--hw-text-4)" }} />}
+            style={{ background: activo ? "var(--pgo-border)" : "transparent" }}>
+            {activo ? <ChevronUp className="h-4 w-4" style={{ color: "var(--pgo-text-3)" }} /> : <ChevronDown className="h-4 w-4" style={{ color: "var(--pgo-text-4)" }} />}
           </div>
         </button>
 
         {activo && (
           <div id={`cobro-detalle-${p.id}`} role="region"
             aria-label={`Detalle: ${p.contrato.arrendatario.nombre}`}
-            className="px-4 pb-5 pt-1" style={{ borderTop: "1px solid var(--hw-border)" }}>
+            className="px-4 pb-5 pt-1" style={{ borderTop: "1px solid var(--pgo-border)" }}>
             {esPaso1 ? <Paso1Form p={p} /> : <Paso2Form p={p} />}
           </div>
         )}
@@ -492,13 +493,13 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
                 label={f.label}
                 count={f.count}
                 active={subFiltro === f.key}
-                activeColor="var(--hw-primary-dk)"
+                activeColor="var(--pgo-primary-dk)"
                 onClick={() => { setSubFiltro(f.key); setActivoId(null); }}
               />
             ))}
           </FilterToolbar>
 
-          <p className="text-xs text-[var(--hw-text-4)]">
+          <p className="text-xs text-[var(--pgo-text-4)]">
             {tab === "paso1"
               ? "Declara la fecha real del pago y el monto recibido para registrar sin intereses fantasma."
               : "Revisa el pago recibido, agrega ajustes (descuentos, cargos) y cierra la liquidación al propietario."}
@@ -507,9 +508,9 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
       )}
 
       {/* Lista */}
-      <div className="space-y-3 hw-stagger">
+      <div className="space-y-3 pgo-stagger">
         {pagina.length === 0 && periodosMostrados.length > 0 ? (
-          <div className="hw-card p-8 text-center text-sm text-[var(--hw-text-4)]">
+          <div className="pgo-card p-8 text-center text-sm text-[var(--pgo-text-4)]">
             Sin resultados para los filtros seleccionados.
           </div>
         ) : (
@@ -520,16 +521,16 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
       {/* Footer paginación */}
       {periodosFinales.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs text-[var(--hw-text-4)]">{pagina.length} de {periodosFinales.length} período{periodosFinales.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-[var(--pgo-text-4)]">{pagina.length} de {periodosFinales.length} período{periodosFinales.length !== 1 ? "s" : ""}</span>
           <PageSizePicker value={pageSize} onChange={setPageSize} />
         </div>
       )}
 
       {atrasados.length === 0 && porCerrar.length === 0 && (
-        <div className="hw-card p-12 text-center" role="status" aria-label="No hay cobros pendientes">
-          <CheckCircle2 className="mx-auto h-10 w-10" aria-hidden="true" style={{ color: "var(--hw-success)" }} />
-          <p className="mt-3 font-semibold" style={{ color: "var(--hw-text-1)" }}>Todo al día — excelente trabajo</p>
-          <p className="mt-1 text-sm" style={{ color: "var(--hw-text-3)" }}>No hay períodos pendientes de conciliar ni liquidar este mes.</p>
+        <div className="pgo-card p-12 text-center" role="status" aria-label="No hay cobros pendientes">
+          <CheckCircle2 className="mx-auto h-10 w-10" aria-hidden="true" style={{ color: "var(--pgo-success)" }} />
+          <p className="mt-3 font-semibold" style={{ color: "var(--pgo-text-1)" }}>Todo al día — excelente trabajo</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>No hay períodos pendientes de conciliar ni liquidar este mes.</p>
         </div>
       )}
     </div>

@@ -42,8 +42,8 @@ export default async function NuevoContratoPage() {
       <div className="mb-4">
         <Link
           href="/panel/contratos"
-          className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium"
-          style={{ color: "var(--hw-text-3)" }}
+          className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium"
+          style={{ color: "var(--pgo-text-3)" }}
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           Volver a contratos

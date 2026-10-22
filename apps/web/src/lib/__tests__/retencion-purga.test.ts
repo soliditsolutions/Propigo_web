@@ -13,7 +13,7 @@
  */
 import "dotenv/config";
 import { describe, it, expect, afterAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../generated/prisma/client";
 import { purgarDatosVencidos, purgaVacia, sumarPurgas } from "../retencion-purga";
 import { retencion, fechaCorte } from "../retencion";
@@ -39,7 +39,7 @@ async function comoTenant<T>(t: string, fn: (tx: PrismaClient) => Promise<T>): P
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch {

@@ -49,7 +49,7 @@ export async function GET(
   }
 
   // 2. Buscar documento — scoped al tenant del usuario (previene IDOR).
-  //    ADR-0011 Fase 2: bajo housing_app + RLS, un documento de otro tenant
+  //    ADR-0011 Fase 2: bajo propigo_app + RLS, un documento de otro tenant
   //    ya ni siquiera es visible a nivel de fila — el filtro tenantId de la
   //    query es ahora un segundo respaldo sobre lo que la BD ya garantiza.
   const doc = await withTenant(session.tenantId, (tx) => tx.documento.findFirst({

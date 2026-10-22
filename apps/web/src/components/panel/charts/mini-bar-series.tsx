@@ -23,7 +23,7 @@ export function MiniBarSeries({
     return (
       <div
         className="flex items-center justify-center text-xs"
-        style={{ height, color: "var(--hw-text-4)" }}
+        style={{ height, color: "var(--pgo-text-4)" }}
       >
         Sin datos aún
       </div>
@@ -33,15 +33,15 @@ export function MiniBarSeries({
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--hw-border)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--pgo-border)" vertical={false} />
           <XAxis
             dataKey={xKey}
-            tick={{ fill: "var(--hw-text-4)", fontSize: 11 }}
-            axisLine={{ stroke: "var(--hw-border)" }}
+            tick={{ fill: "var(--pgo-text-4)", fontSize: 11 }}
+            axisLine={{ stroke: "var(--pgo-border)" }}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: "var(--hw-text-4)", fontSize: 11 }}
+            tick={{ fill: "var(--pgo-text-4)", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             width={40}
@@ -50,11 +50,11 @@ export function MiniBarSeries({
           <Tooltip
             formatter={(value, name) => [formatChartValue(Number(value ?? 0), format), String(name)]}
             contentStyle={{
-              background: "var(--hw-surface)",
-              border: "1px solid var(--hw-border)",
+              background: "var(--pgo-surface)",
+              border: "1px solid var(--pgo-border)",
               borderRadius: 8,
               fontSize: 12,
-              color: "var(--hw-text-1)",
+              color: "var(--pgo-text-1)",
             }}
           />
           {series.map((s) => (

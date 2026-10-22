@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Housing es una aplicación web para la **gestión de arriendos** de casas, departamentos y cabañas en Chile, dirigida a **corredores de propiedades** y dueños de inmuebles. Soporta arriendos de **periodo largo** (contratos anuales, indexados a UF/IPC) y **periodo corto** (días, tipo Airbnb).
+Propigo es una aplicación web para la **gestión de arriendos** de casas, departamentos y cabañas en Chile, dirigida a **corredores de propiedades** y dueños de inmuebles. Soporta arriendos de **periodo largo** (contratos anuales, indexados a UF/IPC) y **periodo corto** (días, tipo Airbnb).
 
 Modelo de negocio: **suscripción SaaS en UF** (mensual/trimestral/anual), con precio escalonado según la cantidad de propiedades gestionadas.
 
@@ -10,7 +10,7 @@ Modelo de negocio: **suscripción SaaS en UF** (mensual/trimestral/anual), con p
 
 Del levantamiento con la usuaria (Caro), los fallos concretos a resolver:
 
-| # | Dolor de Leasity | Qué exige a Housing |
+| # | Dolor de Leasity | Qué exige a Propigo |
 |---|---|---|
 | 1 | El sistema solo reconoce el pago cuando el corredor "liquida" manualmente. Si vence el día 5 y liquida el 7, marca 2 días de atraso y cobra intereses injustos. | **Detección/conciliación automática del pago con su fecha real.** |
 | 2 | No se pueden personalizar fechas ni montos de pago. | **Fechas y montos configurables por contrato.** |

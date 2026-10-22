@@ -10,9 +10,10 @@
  * judicialmente o por un notario. El aviso es la comunicación de gestión, no la
  * notificación legal.
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
-import { plazoRestitucionDesahucio } from "@housing/core";
+import { plazoRestitucionDesahucio } from "@propigo/core";
 import type { CausalTermino } from "@/generated/prisma/enums";
 
 /** Cómo se redacta cada causal en el aviso. */

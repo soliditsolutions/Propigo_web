@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
-import { HW_THEME_STORAGE_KEY, isHwTheme, type HwTheme } from "@/lib/theme";
+import { PGO_THEME_STORAGE_KEY, isHwTheme, type HwTheme } from "@/lib/theme";
 
 /**
  * Switch de tema Aurora Claro/Oscuro. Lee el valor ya fijado por el script
@@ -23,7 +23,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
     try {
-      localStorage.setItem(HW_THEME_STORAGE_KEY, next);
+      localStorage.setItem(PGO_THEME_STORAGE_KEY, next);
     } catch {
       /* localStorage puede fallar en modo privado — el tema igual se aplica en esta sesión */
     }
@@ -37,8 +37,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggle}
       aria-label={isLight ? "Cambiar a tema oscuro" : "Cambiar a tema claro"}
       title={isLight ? "Tema oscuro" : "Tema claro"}
-      className={`hw-btn hw-tap-target relative rounded-lg p-1.5 ${className ?? ""}`}
-      style={{ color: "var(--hw-text-3)", visibility: theme === null ? "hidden" : "visible" }}
+      className={`pgo-btn pgo-tap-target relative rounded-lg p-1.5 ${className ?? ""}`}
+      style={{ color: "var(--pgo-text-3)", visibility: theme === null ? "hidden" : "visible" }}
     >
       {isLight ? <Moon className="h-4 w-4" aria-hidden="true" /> : <Sun className="h-4 w-4" aria-hidden="true" />}
     </button>

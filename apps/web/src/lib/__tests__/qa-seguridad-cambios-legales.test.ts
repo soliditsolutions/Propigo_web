@@ -1,7 +1,7 @@
 /**
  * QA + Seguridad de los cambios legales/billing de la sesión 2026-09.
  *
- * Contra Postgres real y con el rol de la aplicación (`housing_app`, sujeto a
+ * Contra Postgres real y con el rol de la aplicación (`propigo_app`, sujeto a
  * RLS). Cubre lo que los tests existentes no tocan de esta tanda:
  *   · aislamiento de `folio_counter` entre corredoras;
  *   · la restricción UNIQUE del RUT de la corredora;
@@ -16,7 +16,7 @@
  */
 import "dotenv/config";
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../generated/prisma/client";
 import { validarCuentaBancaria } from "../cuenta-bancaria";
 import { siguienteFolio } from "../folio";
@@ -39,7 +39,7 @@ async function comoTenant<T>(t: string, fn: (tx: PrismaClient) => Promise<T>): P
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try { await prisma.$queryRaw`SELECT 1`; } catch {
     await prisma.$disconnect().catch(() => {}); prisma = null; return false;
   }
@@ -115,10 +115,10 @@ cuando("B — folio_counter no cruza de corredora", () => {
     expect(fuga).toHaveLength(0);
   });
 
-  it("housing_app tiene los GRANT sobre folio_counter y cuenta_bancaria", async () => {
+  it("propigo_app tiene los GRANT sobre folio_counter y cuenta_bancaria", async () => {
     const grants = await prisma!.$queryRaw<{ table_name: string; privilege_type: string }[]>`
       SELECT table_name, privilege_type FROM information_schema.role_table_grants
-      WHERE grantee = 'housing_app' AND table_name IN ('folio_counter', 'cuenta_bancaria')`;
+      WHERE grantee = 'propigo_app' AND table_name IN ('folio_counter', 'cuenta_bancaria')`;
     for (const t of ["folio_counter", "cuenta_bancaria"]) {
       const priv = grants.filter((g) => g.table_name === t).map((g) => g.privilege_type).sort();
       expect(priv, t).toEqual(["DELETE", "INSERT", "SELECT", "UPDATE"]);

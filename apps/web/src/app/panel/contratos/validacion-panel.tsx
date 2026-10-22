@@ -26,9 +26,9 @@ interface Props {
 const TONE: Record<ValidacionEstado, {
   bg: string; border: string; text: string; badge: string; badgeBg: string;
 }> = {
-  aprobado:          { bg: "var(--hw-success-lt)", border: "var(--hw-success-bd)", text: "var(--hw-success-dk)", badge: "var(--hw-success)", badgeBg: "var(--hw-success-lt)" },
-  con_alertas:       { bg: "var(--hw-warning-lt)", border: "var(--hw-warning-bd)", text: "var(--hw-warning-dk)", badge: "var(--hw-warning)", badgeBg: "var(--hw-warning-lt)" },
-  requiere_revision: { bg: "var(--hw-primary-lt)", border: "var(--hw-primary-bd)", text: "var(--hw-primary-dk)", badge: "var(--hw-primary)", badgeBg: "var(--hw-primary-lt)" },
+  aprobado:          { bg: "var(--pgo-success-lt)", border: "var(--pgo-success-bd)", text: "var(--pgo-success-dk)", badge: "var(--pgo-success)", badgeBg: "var(--pgo-success-lt)" },
+  con_alertas:       { bg: "var(--pgo-warning-lt)", border: "var(--pgo-warning-bd)", text: "var(--pgo-warning-dk)", badge: "var(--pgo-warning)", badgeBg: "var(--pgo-warning-lt)" },
+  requiere_revision: { bg: "var(--pgo-primary-lt)", border: "var(--pgo-primary-bd)", text: "var(--pgo-primary-dk)", badge: "var(--pgo-primary)", badgeBg: "var(--pgo-primary-lt)" },
 };
 
 const ESTADO_LABEL: Record<ValidacionEstado, string> = {
@@ -85,46 +85,46 @@ function CategoriaRow({
   return (
     <div
       className="rounded-xl overflow-hidden"
-      style={{ border: `1px solid ${ok ? "var(--hw-success-bd)" : "var(--hw-warning-bd)"}` }}
+      style={{ border: `1px solid ${ok ? "var(--pgo-success-bd)" : "var(--pgo-warning-bd)"}` }}
     >
       <button
         type="button"
         onClick={() => alertas.length > 0 && setExpandido(v => !v)}
-        className="hw-btn flex w-full items-center gap-3 px-4 py-3 text-left"
-        style={{ background: ok ? "var(--hw-success-lt)" : "var(--hw-warning-lt)", cursor: alertas.length > 0 ? "pointer" : "default" }}
+        className="pgo-btn flex w-full items-center gap-3 px-4 py-3 text-left"
+        style={{ background: ok ? "var(--pgo-success-lt)" : "var(--pgo-warning-lt)", cursor: alertas.length > 0 ? "pointer" : "default" }}
         aria-expanded={expandido}
       >
         <Icon
           className="h-4 w-4 shrink-0"
-          style={{ color: ok ? "var(--hw-success)" : "var(--hw-warning)" }}
+          style={{ color: ok ? "var(--pgo-success)" : "var(--pgo-warning)" }}
           aria-hidden="true"
         />
-        <span className="flex-1 text-sm font-medium" style={{ color: ok ? "var(--hw-success-dk)" : "var(--hw-warning-dk)" }}>
+        <span className="flex-1 text-sm font-medium" style={{ color: ok ? "var(--pgo-success-dk)" : "var(--pgo-warning-dk)" }}>
           {label}
         </span>
         {alertas.length > 0 && (
           <span
             className="rounded-full px-2 py-0.5 text-xs font-semibold"
-            style={{ background: "var(--hw-warning-bd)", color: "var(--hw-warning-dk)" }}
+            style={{ background: "var(--pgo-warning-bd)", color: "var(--pgo-warning-dk)" }}
           >
             {alertas.length}
           </span>
         )}
         {ok
-          ? <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
+          ? <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
           : alertas.length > 0
             ? expandido
-              ? <ChevronUp  className="h-4 w-4 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
-              : <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden="true" />
+              ? <ChevronUp  className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
+              : <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-text-4)" }} aria-hidden="true" />
             : null
         }
       </button>
 
       {expandido && alertas.length > 0 && (
-        <ul className="px-4 pb-3 pt-2 space-y-2" style={{ background: "var(--hw-warning-lt)" }}>
+        <ul className="px-4 pb-3 pt-2 space-y-2" style={{ background: "var(--pgo-warning-lt)" }}>
           {alertas.map((a, i) => (
-            <li key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--hw-warning-dk)" }}>
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--hw-warning)" }} aria-hidden="true" />
+            <li key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--pgo-warning-dk)" }}>
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--pgo-warning)" }} aria-hidden="true" />
               {a}
             </li>
           ))}
@@ -242,27 +242,27 @@ export function ValidacionPanel({
   return (
     <div
       className="overflow-hidden rounded-2xl border"
-      style={{ borderColor: tono?.border ?? "var(--hw-border)", background: tono?.bg ?? "var(--hw-surface-2)" }}
+      style={{ borderColor: tono?.border ?? "var(--pgo-border)", background: tono?.bg ?? "var(--pgo-surface-2)" }}
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div
         className="flex flex-wrap items-center gap-3 px-5 py-3.5"
         style={{
-          background:   tono ? tono.bg    : "var(--hw-surface-2)",
-          borderBottom: `1px solid ${tono?.border ?? "var(--hw-border)"}`,
+          background:   tono ? tono.bg    : "var(--pgo-surface-2)",
+          borderBottom: `1px solid ${tono?.border ?? "var(--pgo-border)"}`,
         }}
       >
         <BrainCircuit
           className="h-5 w-5 shrink-0"
-          style={{ color: tono?.badge ?? "var(--hw-text-3)" }}
+          style={{ color: tono?.badge ?? "var(--pgo-text-3)" }}
           aria-hidden="true"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold" style={{ color: tono?.text ?? "var(--hw-text-1)" }}>
+          <p className="text-sm font-semibold" style={{ color: tono?.text ?? "var(--pgo-text-1)" }}>
             {cfg.titulo}
           </p>
           {fechaVal && (
-            <p className="text-xs mt-0.5" style={{ color: tono?.badge ?? "var(--hw-text-3)", opacity: 0.8 }}>
+            <p className="text-xs mt-0.5" style={{ color: tono?.badge ?? "var(--pgo-text-3)", opacity: 0.8 }}>
               Analizado el{" "}
               {new Date(fechaVal).toLocaleString("es-CL", {
                 day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
@@ -278,7 +278,7 @@ export function ValidacionPanel({
 
         {/* Descripción inicial */}
         {!resultado && (
-          <p className="text-xs leading-relaxed" style={{ color: "var(--hw-text-3)" }}>
+          <p className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-3)" }}>
             {cfg.descripcion}
           </p>
         )}
@@ -287,7 +287,7 @@ export function ValidacionPanel({
         {error && (
           <div
             className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs"
-            style={{ background: "var(--hw-danger-lt)", border: "1px solid var(--hw-danger-bd)", color: "var(--hw-danger-dk)" }}
+            style={{ background: "var(--pgo-danger-lt)", border: "1px solid var(--pgo-danger-bd)", color: "var(--pgo-danger-dk)" }}
           >
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
             {error}
@@ -296,7 +296,7 @@ export function ValidacionPanel({
 
         {/* Resumen del análisis */}
         {resultado && (
-          <p className="text-xs leading-relaxed font-medium" style={{ color: tono?.text ?? "var(--hw-text-1)" }}>
+          <p className="text-xs leading-relaxed font-medium" style={{ color: tono?.text ?? "var(--pgo-text-1)" }}>
             {resultado.resumen}
           </p>
         )}
@@ -305,13 +305,13 @@ export function ValidacionPanel({
         {resultado && resultado.alertas_criticas.length > 0 && (
           <div
             className="rounded-xl px-4 py-3 space-y-2"
-            style={{ background: "var(--hw-danger-lt)", border: "1px solid var(--hw-danger-bd)" }}
+            style={{ background: "var(--pgo-danger-lt)", border: "1px solid var(--pgo-danger-bd)" }}
           >
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-danger-dk)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-danger-dk)" }}>
               Puntos que requieren atención
             </p>
             {resultado.alertas_criticas.map((a, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--hw-danger-dk)" }}>
+              <div key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--pgo-danger-dk)" }}>
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
                 {a}
               </div>
@@ -338,13 +338,13 @@ export function ValidacionPanel({
         {resultado && resultado.recomendaciones.length > 0 && (
           <div
             className="rounded-xl px-4 py-3 space-y-2"
-            style={{ background: "var(--hw-primary-lt)", border: "1px solid var(--hw-primary-bd)" }}
+            style={{ background: "var(--pgo-primary-lt)", border: "1px solid var(--pgo-primary-bd)" }}
           >
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-primary-dk)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-primary-dk)" }}>
               Sugerencias para fortalecer el contrato
             </p>
             {resultado.recomendaciones.map((r, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--hw-primary-dk)" }}>
+              <div key={i} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: "var(--pgo-primary-dk)" }}>
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
                 {r}
               </div>
@@ -356,20 +356,20 @@ export function ValidacionPanel({
         {necesitaConfirmacion && (
           <div
             className="rounded-xl px-4 py-3"
-            style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}
+            style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}
           >
-            <p className="text-xs mb-2.5" style={{ color: "var(--hw-text-3)" }}>
+            <p className="text-xs mb-2.5" style={{ color: "var(--pgo-text-3)" }}>
               El corredor tiene la decisión final. Si revisaste las observaciones y decides proceder, confírmalo aquí:
             </p>
             <button
               type="button"
               onClick={handleConfirmar}
               disabled={confirmando}
-              className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
+              className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold"
               style={{
-                background: confirmando ? "var(--hw-surface-2)" : "var(--hw-surface)",
-                border: `1.5px solid ${confirmando ? "var(--hw-border-2)" : "var(--hw-primary)"}`,
-                color: confirmando ? "var(--hw-text-4)" : "var(--hw-primary)",
+                background: confirmando ? "var(--pgo-surface-2)" : "var(--pgo-surface)",
+                border: `1.5px solid ${confirmando ? "var(--pgo-border-2)" : "var(--pgo-primary)"}`,
+                color: confirmando ? "var(--pgo-text-4)" : "var(--pgo-primary)",
               }}
             >
               {confirmando ? (
@@ -385,10 +385,10 @@ export function ValidacionPanel({
         {fechaConfirm && estado !== "aprobado" && (
           <div
             className="flex items-center gap-2 rounded-xl px-4 py-2.5"
-            style={{ background: "var(--hw-success-lt)", border: "1px solid var(--hw-success-bd)" }}
+            style={{ background: "var(--pgo-success-lt)", border: "1px solid var(--pgo-success-bd)" }}
           >
-            <ThumbsUp className="h-4 w-4 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
-            <p className="text-xs font-medium" style={{ color: "var(--hw-success-dk)" }}>
+            <ThumbsUp className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
+            <p className="text-xs font-medium" style={{ color: "var(--pgo-success-dk)" }}>
               Revisado y confirmado por el corredor el{" "}
               {new Date(fechaConfirm).toLocaleString("es-CL", {
                 day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
@@ -402,7 +402,7 @@ export function ValidacionPanel({
           type="button"
           onClick={handleValidar}
           disabled={cargando}
-          className="hw-btn-primary flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+          className="pgo-btn-primary flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
           style={{
             opacity: cargando ? 0.6 : 1,
             cursor: cargando ? "not-allowed" : "pointer",
@@ -417,9 +417,9 @@ export function ValidacionPanel({
 
         {/* ── Separador ─────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-px" style={{ background: "var(--hw-border)" }} />
-          <span className="text-xs" style={{ color: "var(--hw-text-4)" }}>o sube el documento</span>
-          <div className="flex-1 h-px" style={{ background: "var(--hw-border)" }} />
+          <div className="flex-1 h-px" style={{ background: "var(--pgo-border)" }} />
+          <span className="text-xs" style={{ color: "var(--pgo-text-4)" }}>o sube el documento</span>
+          <div className="flex-1 h-px" style={{ background: "var(--pgo-border)" }} />
         </div>
 
         {/* Cupo diario de IA — va acá, antes del selector de archivo, porque
@@ -437,9 +437,9 @@ export function ValidacionPanel({
             <label
               className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors"
               style={{
-                background:   "var(--hw-surface-2)",
-                border:       "1.5px dashed var(--hw-border-2)",
-                color:        "var(--hw-text-3)",
+                background:   "var(--pgo-surface-2)",
+                border:       "1.5px dashed var(--pgo-border-2)",
+                color:        "var(--pgo-text-3)",
                 minWidth:     0,
               }}
             >
@@ -461,8 +461,8 @@ export function ValidacionPanel({
               <button
                 type="button"
                 onClick={() => setArchivoSeleccionado(null)}
-                className="hw-btn shrink-0 rounded-lg p-1.5"
-                style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-4)" }}
+                className="pgo-btn shrink-0 rounded-lg p-1.5"
+                style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-4)" }}
                 aria-label="Quitar archivo"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -480,9 +480,9 @@ export function ValidacionPanel({
                   checked={consentIaDoc}
                   onChange={(e) => setConsentIaDoc(e.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 rounded"
-                  style={{ accentColor: "var(--hw-primary)" }}
+                  style={{ accentColor: "var(--pgo-primary)" }}
                 />
-                <span className="text-xs leading-relaxed" style={{ color: "var(--hw-text-3)" }}>
+                <span className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-3)" }}>
                   Acepto que el texto de este documento sea enviado a nuestro proveedor
                   de análisis por IA (Groq) exclusivamente para esta revisión.
                 </span>
@@ -492,12 +492,12 @@ export function ValidacionPanel({
                 type="button"
                 onClick={handleValidarDoc}
                 disabled={cargandoDoc || !consentIaDoc || sinCupoIa}
-                className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
+                className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
                 style={{
                   // Fondo y tinta van en par (ver globals.css): el acento teal
                   // suelto con texto blanco no llega al mínimo AA.
-                  background: cargandoDoc ? "var(--hw-text-4)" : "var(--hw-accent-teal-btn)",
-                  color:      cargandoDoc ? "var(--hw-bg)"     : "var(--hw-on-accent-teal)",
+                  background: cargandoDoc ? "var(--pgo-text-4)" : "var(--pgo-accent-cyan-btn)",
+                  color:      cargandoDoc ? "var(--pgo-bg)"     : "var(--pgo-on-accent-cyan)",
                   cursor:     cargandoDoc || !consentIaDoc || sinCupoIa ? "not-allowed" : "pointer",
                 }}
               >
@@ -513,7 +513,7 @@ export function ValidacionPanel({
           )}
         </div>
 
-        <p className="text-center text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
           Groq · Llama 3.3 70B · Ley 18.101 + Ley 21.461 Chile 2026 · Las observaciones son informativas
         </p>
       </div>

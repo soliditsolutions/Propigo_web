@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldCheck, Building2, Wallet, Globe2, ArrowRight } from "lucide-react";
 import { Logo } from "./Logo";
+import { MARCA, ESLOGAN, RAZON_SOCIAL } from "@/lib/marca";
 
 const PRODUCTO = [
   { href: "/marketplace", label: "Explorar propiedades", icon: Globe2 },
@@ -43,16 +44,15 @@ export function PublicFooter({ className = "" }: { className?: string }) {
 
           {/* Marca */}
           <div className="lg:col-span-1">
-            <div className="flex items-baseline gap-1.5">
-              <Logo size="md" />
-            </div>
+            <Logo size="md" />
+            <p className="mt-2 text-sm font-semibold" style={{ color: "var(--pf-text-muted)" }}>{ESLOGAN}</p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed" style={{ color: "var(--pf-text-body)" }}>
               Software de administración de arriendos para corredores de
               propiedades en Chile.
             </p>
             <div
               className="mt-4 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs"
-              style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+              style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
             >
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               Datos tratados conforme a la Ley 21.719
@@ -121,7 +121,7 @@ export function PublicFooter({ className = "" }: { className?: string }) {
             <Link
               href="/registro"
               className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
-              style={{ color: "var(--pf-purple)" }}
+              style={{ color: "var(--pf-brand)" }}
             >
               Crear cuenta gratuita
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -134,7 +134,7 @@ export function PublicFooter({ className = "" }: { className?: string }) {
           className="mt-10 flex flex-col items-center justify-between gap-3 pt-6 text-xs sm:flex-row"
           style={{ borderTop: "1px solid var(--pf-border)", color: "var(--pf-text-light)" }}
         >
-          <span>© {new Date().getFullYear()} Housing SOLIDIT. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} {MARCA}, un producto de {RAZON_SOCIAL}. Todos los derechos reservados.</span>
           <span>Hecho en Chile</span>
         </div>
       </div>

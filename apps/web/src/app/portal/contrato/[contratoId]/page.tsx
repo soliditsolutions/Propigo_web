@@ -1,6 +1,6 @@
 /**
  * Portal de autoconsulta — vista del contrato (ADR-0007).
- * Solo lectura · Acceso por JWT portal (hw_portal cookie) · 30 min.
+ * Solo lectura · Acceso por JWT portal (pgo_portal cookie) · 30 min.
  * Arrendatario: ve contrato, períodos, documentos, mensajes del corredor. NO ve comisión.
  * Propietario:  ve contrato, liquidaciones recibidas, estado de la propiedad.
  */
@@ -20,6 +20,8 @@ import { ValoracionButton } from "@/components/portal/ValoracionButton";
 import { UbicacionSection } from "@/components/portal/UbicacionSection";
 import { PagosSection } from "@/components/portal/PagosSection";
 import { ComentariosSection } from "@/components/portal/ComentariosSection";
+import { Logo } from "@/components/public/Logo";
+import { MARCA } from "@/lib/marca";
 
 async function registrarAccesoVista(tenantId: string, personaId: string, ip: string | null) {
   await withTenant(tenantId, (tx) => tx.accesoLog.create({
@@ -189,38 +191,30 @@ export default async function PortalContratoPage({
   const atrasadosCount  = contrato.periodos.filter(p => p.estado === "atrasado").length;
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--hw-page)" }}>
+    <div className="min-h-screen" style={{ background: "var(--pgo-page)" }}>
 
       {/* ── Header ── */}
       <header
         className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-6"
-        style={{ background: "var(--hw-surface)", borderBottom: "1px solid var(--hw-border)", boxShadow: "0 1px 4px rgba(15,31,53,0.06)" }}
+        style={{ background: "var(--pgo-surface)", borderBottom: "1px solid var(--pgo-border)", boxShadow: "0 1px 4px rgba(15,31,53,0.06)" }}
       >
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
-            style={{ background: "var(--hw-primary)" }}
-            aria-hidden
-          >H</div>
-          <div>
-            <span className="text-sm font-bold" style={{ color: "var(--hw-text-1)" }}>Housing</span>
-            <span className="ml-1 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--hw-text-4)" }}>SOLIDIT</span>
-            <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Portal de autoconsulta</p>
-          </div>
+        <div>
+          <Logo size="sm" wordColor="var(--pgo-text-1)" />
+          <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>Portal de autoconsulta</p>
         </div>
         <div className="flex items-center gap-1">
           <a
             href="/portal/mis-datos"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
-            style={{ color: "var(--hw-text-3)" }}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
+            style={{ color: "var(--pgo-text-3)" }}
           >
             <User className="h-3.5 w-3.5" aria-hidden />
             Mis datos
           </a>
           <a
             href="/api/portal/logout"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-danger-lt)]"
-            style={{ color: "var(--hw-danger)" }}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--pgo-danger-lt)]"
+            style={{ color: "var(--pgo-danger)" }}
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden />
             Cerrar sesión
@@ -233,7 +227,7 @@ export default async function PortalContratoPage({
         {/* ── Hero — propiedad ── */}
         <div
           className="rounded-2xl p-5 relative overflow-hidden"
-          style={{ background: "var(--hw-sidebar)", color: "var(--hw-sidebar-text)" }}
+          style={{ background: "var(--pgo-sidebar)", color: "var(--pgo-sidebar-text)" }}
         >
           <div className="flex items-start gap-3">
             <div
@@ -241,15 +235,15 @@ export default async function PortalContratoPage({
               style={{ background: "rgba(255,255,255,0.12)" }}
             >
               {p.tipo === "departamento"
-                ? <Building2 className="h-5 w-5" style={{ color: "var(--hw-primary-bd)" }} aria-hidden />
-                : <Home      className="h-5 w-5" style={{ color: "var(--hw-primary-bd)" }} aria-hidden />}
+                ? <Building2 className="h-5 w-5" style={{ color: "var(--pgo-primary-bd)" }} aria-hidden />
+                : <Home      className="h-5 w-5" style={{ color: "var(--pgo-primary-bd)" }} aria-hidden />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-base leading-tight" style={{ color: "var(--hw-sidebar-text)" }}>
+              <p className="font-bold text-base leading-tight" style={{ color: "var(--pgo-sidebar-text)" }}>
                 {p.direccion}
               </p>
               {(p.comuna || p.region) && (
-                <p className="text-sm mt-0.5" style={{ color: "var(--hw-sidebar-muted)" }}>
+                <p className="text-sm mt-0.5" style={{ color: "var(--pgo-sidebar-muted)" }}>
                   {[p.comuna, p.region].filter(Boolean).join(", ")}
                 </p>
               )}
@@ -257,7 +251,7 @@ export default async function PortalContratoPage({
                 <span className="rounded-full px-2 py-0.5 text-xs font-medium capitalize" style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.75)" }}>
                   {p.tipo}
                 </span>
-                <span className="rounded-full px-2 py-0.5 text-xs font-medium capitalize" style={{ background: "var(--hw-success-lt)", color: "var(--hw-success)" }}>
+                <span className="rounded-full px-2 py-0.5 text-xs font-medium capitalize" style={{ background: "var(--pgo-success-lt)", color: "var(--pgo-success)" }}>
                   {contrato.estado.replace(/_/g, " ")}
                 </span>
                 {p.m2Construidos && (
@@ -289,16 +283,16 @@ export default async function PortalContratoPage({
               border:     `1px solid ${diasProximo < 0 ? "rgba(239,68,68,0.3)" : "rgba(245,158,11,0.3)"}`,
             }}
           >
-            <Calendar className="h-5 w-5 shrink-0 mt-0.5" style={{ color: diasProximo < 0 ? "var(--hw-danger)" : "var(--hw-warning)" }} aria-hidden />
+            <Calendar className="h-5 w-5 shrink-0 mt-0.5" style={{ color: diasProximo < 0 ? "var(--pgo-danger)" : "var(--pgo-warning)" }} aria-hidden />
             <div>
-              <p className="text-sm font-semibold" style={{ color: diasProximo < 0 ? "var(--hw-danger-dk)" : "var(--hw-warning-dk)" }}>
+              <p className="text-sm font-semibold" style={{ color: diasProximo < 0 ? "var(--pgo-danger-dk)" : "var(--pgo-warning-dk)" }}>
                 {diasProximo < 0
                   ? `Pago #${proximoPendiente.numero} vencido hace ${Math.abs(diasProximo)} día${Math.abs(diasProximo) !== 1 ? "s" : ""}`
                   : diasProximo === 0
                     ? `Pago #${proximoPendiente.numero} vence hoy`
                     : `Pago #${proximoPendiente.numero} vence en ${diasProximo} día${diasProximo !== 1 ? "s" : ""}`}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: diasProximo < 0 ? "var(--hw-danger-dk)" : "var(--hw-warning-dk)" }}>
+              <p className="text-xs mt-0.5" style={{ color: diasProximo < 0 ? "var(--pgo-danger-dk)" : "var(--pgo-warning-dk)" }}>
                 {renta} · {fecha(proximoPendiente.fechaVencimiento)}
               </p>
             </div>
@@ -318,43 +312,43 @@ export default async function PortalContratoPage({
         {/* ── Resumen del contrato ── */}
         <div
           className="rounded-2xl p-5"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
         >
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
             <FileText className="h-4 w-4" aria-hidden />
             Mi contrato
           </h2>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
             <div>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>{esArrendatario ? "Arrendatario" : "Propietario"}</p>
-              <p className="mt-0.5 font-semibold text-sm" style={{ color: "var(--hw-text-1)" }}>{persona.nombre}</p>
-              <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>{persona.rut}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{esArrendatario ? "Arrendatario" : "Propietario"}</p>
+              <p className="mt-0.5 font-semibold text-sm" style={{ color: "var(--pgo-text-1)" }}>{persona.nombre}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>{persona.rut}</p>
             </div>
             <div>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Renta mensual</p>
-              <p className="mt-0.5 font-bold hw-num" style={{ color: "var(--hw-text-1)", fontSize: "17px" }}>{renta}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Renta mensual</p>
+              <p className="mt-0.5 font-bold pgo-num" style={{ color: "var(--pgo-text-1)", fontSize: "17px" }}>{renta}</p>
               {contrato.denominacion === "UF" && (
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>+ conv. al día de pago</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>+ conv. al día de pago</p>
               )}
             </div>
             <div>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Inicio contrato</p>
-              <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>{fecha(contrato.fechaInicio)}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Inicio contrato</p>
+              <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>{fecha(contrato.fechaInicio)}</p>
             </div>
             {contrato.fechaFin && (
               <div>
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Vencimiento</p>
-                <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>{fecha(contrato.fechaFin)}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Vencimiento</p>
+                <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>{fecha(contrato.fechaFin)}</p>
               </div>
             )}
             <div>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Pago mensual</p>
-              <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--hw-text-2)" }}>Día {contrato.diaVencimiento}</p>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Pago mensual</p>
+              <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--pgo-text-2)" }}>Día {contrato.diaVencimiento}</p>
             </div>
             {contrato.reajuste !== "ninguna" && (
               <div>
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Reajuste</p>
-                <p className="mt-0.5 text-sm font-medium capitalize" style={{ color: "var(--hw-text-2)" }}>{contrato.reajuste}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Reajuste</p>
+                <p className="mt-0.5 text-sm font-medium capitalize" style={{ color: "var(--pgo-text-2)" }}>{contrato.reajuste}</p>
               </div>
             )}
           </div>
@@ -363,26 +357,26 @@ export default async function PortalContratoPage({
           {esArrendatario && totalPeriodos > 0 && (
             <div
               className="mt-4 pt-4 grid grid-cols-3 gap-3"
-              style={{ borderTop: "1px solid var(--hw-border)" }}
+              style={{ borderTop: "1px solid var(--pgo-border)" }}
             >
-              <div className="rounded-xl p-3 text-center" style={{ background: "var(--hw-surface-2)" }}>
-                <p className="text-lg font-bold tabular-nums" style={{ color: "var(--hw-text-1)" }}>{totalPeriodos}</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--hw-text-4)" }}>Períodos</p>
+              <div className="rounded-xl p-3 text-center" style={{ background: "var(--pgo-surface-2)" }}>
+                <p className="text-lg font-bold tabular-nums" style={{ color: "var(--pgo-text-1)" }}>{totalPeriodos}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pgo-text-4)" }}>Períodos</p>
               </div>
               <div className="rounded-xl p-3 text-center" style={{ background: "rgba(5,150,105,0.06)" }}>
-                <p className="text-lg font-bold tabular-nums" style={{ color: "var(--hw-success)" }}>{pagadosCount}</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--hw-text-4)" }}>Pagados</p>
+                <p className="text-lg font-bold tabular-nums" style={{ color: "var(--pgo-success)" }}>{pagadosCount}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pgo-text-4)" }}>Pagados</p>
               </div>
               {atrasadosCount > 0
                 ? (
                   <div className="rounded-xl p-3 text-center" style={{ background: "rgba(239,68,68,0.06)" }}>
-                    <p className="text-lg font-bold tabular-nums" style={{ color: "var(--hw-danger)" }}>{atrasadosCount}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--hw-text-4)" }}>Atrasados</p>
+                    <p className="text-lg font-bold tabular-nums" style={{ color: "var(--pgo-danger)" }}>{atrasadosCount}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--pgo-text-4)" }}>Atrasados</p>
                   </div>
                 ) : (
                   <div className="rounded-xl p-3 text-center" style={{ background: "rgba(37,99,235,0.06)" }}>
-                    <p className="text-lg font-bold tabular-nums" style={{ color: "var(--hw-primary)" }}>{totalPeriodos - pagadosCount}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--hw-text-4)" }}>Pendientes</p>
+                    <p className="text-lg font-bold tabular-nums" style={{ color: "var(--pgo-primary)" }}>{totalPeriodos - pagadosCount}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--pgo-text-4)" }}>Pendientes</p>
                   </div>
                 )}
             </div>
@@ -393,28 +387,28 @@ export default async function PortalContratoPage({
         {contrato.documentos.length > 0 && (
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+            style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
           >
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--hw-border)" }}>
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--pgo-border)" }}>
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 <Download className="h-4 w-4" aria-hidden />
                 Mis documentos
               </h2>
             </div>
-            <div className="divide-y" style={{ borderColor: "var(--hw-border)" }}>
+            <div className="divide-y" style={{ borderColor: "var(--pgo-border)" }}>
               {contrato.documentos.map((doc) => (
                 <div key={doc.id} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[var(--pf-surface)]">
-                  <FileText className="h-4 w-4 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden />
+                  <FileText className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-text-4)" }} aria-hidden />
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-medium" style={{ color: "var(--hw-text-1)" }}>{doc.nombre}</p>
-                    <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                    <p className="truncate text-sm font-medium" style={{ color: "var(--pgo-text-1)" }}>{doc.nombre}</p>
+                    <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                       {TIPO_DOC_LABEL[doc.tipo] ?? doc.tipo} · {fecha(doc.createdAt)}
                     </p>
                   </div>
                   <a
                     href={`/api/portal/documento/${doc.id}`}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors hover:opacity-80"
-                    style={{ background: "var(--hw-surface-2)", color: "var(--hw-primary)", border: "1px solid var(--hw-border)" }}
+                    style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-primary)", border: "1px solid var(--pgo-border)" }}
                     download
                     aria-label={`Descargar ${doc.nombre}`}
                   >
@@ -440,27 +434,27 @@ export default async function PortalContratoPage({
         {contrato.vouchers && contrato.vouchers.length > 0 && (
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+            style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
           >
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--hw-border)" }}>
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--pgo-border)" }}>
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 <CreditCard className="h-4 w-4" aria-hidden />
                 {esArrendatario ? "Mis comprobantes de pago" : "Liquidaciones recibidas"}
               </h2>
             </div>
-            <div className="divide-y" style={{ borderColor: "var(--hw-border)" }}>
+            <div className="divide-y" style={{ borderColor: "var(--pgo-border)" }}>
               {contrato.vouchers.map((v) => (
                 <div key={v.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
-                  <span className="text-sm" style={{ color: "var(--hw-text-3)" }}>{fecha(v.fecha)}</span>
+                  <span className="text-sm" style={{ color: "var(--pgo-text-3)" }}>{fecha(v.fecha)}</span>
                   <div className="flex items-center gap-3">
-                    <span className="hw-num font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                    <span className="pgo-num font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                       {clp(Number(v.montoClp))}
                     </span>
                     {v.folio && (
                       <a
                         href={`/api/portal/voucher/${v.id}/pdf`}
-                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
-                        style={{ color: "var(--hw-primary)" }}
+                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
+                        style={{ color: "var(--pgo-primary)" }}
                         aria-label={`Descargar comprobante ${v.folio}`}
                       >
                         <Download className="h-3.5 w-3.5" aria-hidden />
@@ -485,18 +479,18 @@ export default async function PortalContratoPage({
           return (
             <div
               className="rounded-2xl p-5"
-              style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+              style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
             >
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
                 <CreditCard className="h-4 w-4" aria-hidden />
                 Cuenta donde recibo mis liquidaciones
               </h2>
-              <div className="space-y-1 text-sm" style={{ color: "var(--hw-text-3)" }}>
-                <p><span style={{ color: "var(--hw-text-4)" }}>Banco:</span> {cb.banco}</p>
-                <p><span style={{ color: "var(--hw-text-4)" }}>N° de cuenta:</span> {cb.numero}</p>
-                <p><span style={{ color: "var(--hw-text-4)" }}>Titular:</span> {cb.titular} ({cb.rutTitular})</p>
+              <div className="space-y-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
+                <p><span style={{ color: "var(--pgo-text-4)" }}>Banco:</span> {cb.banco}</p>
+                <p><span style={{ color: "var(--pgo-text-4)" }}>N° de cuenta:</span> {cb.numero}</p>
+                <p><span style={{ color: "var(--pgo-text-4)" }}>Titular:</span> {cb.titular} ({cb.rutTitular})</p>
               </div>
-              <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 Si estos datos no son correctos, avísale a tu corredora.
               </p>
             </div>
@@ -506,18 +500,18 @@ export default async function PortalContratoPage({
         {/* ── Mis datos registrados ── */}
         <div
           className="rounded-2xl p-5"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
         >
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
             <User className="h-4 w-4" aria-hidden />
             Mis datos registrados
           </h2>
           <div className="space-y-1">
-            <p className="font-semibold" style={{ color: "var(--hw-text-1)" }}>{persona.nombre}</p>
-            <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>{persona.rut}</p>
-            {persona.email && <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>{persona.email}</p>}
+            <p className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>{persona.nombre}</p>
+            <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>{persona.rut}</p>
+            {persona.email && <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>{persona.email}</p>}
             {esArrendatario && contrato.arrendatario.telefono && (
-              <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>{contrato.arrendatario.telefono}</p>
+              <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>{contrato.arrendatario.telefono}</p>
             )}
           </div>
         </div>
@@ -530,15 +524,15 @@ export default async function PortalContratoPage({
         {esArrendatario && contrato.tokenValoracion && contrato.valoracionDada && (
           <div
             className="rounded-2xl p-5"
-            style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+            style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
           >
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4" style={{ color: "var(--hw-warning-dk)" }} aria-hidden />
-              <h2 className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+              <Star className="h-4 w-4" style={{ color: "var(--pgo-warning-dk)" }} aria-hidden />
+              <h2 className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                 Ya evaluaste a este corredor
               </h2>
             </div>
-            <p className="mt-1 text-xs" style={{ color: "var(--hw-text-3)" }}>
+            <p className="mt-1 text-xs" style={{ color: "var(--pgo-text-3)" }}>
               Gracias por tu opinión. Cada contrato permite una sola evaluación,
               así que no es posible modificarla ni enviar otra.
             </p>
@@ -548,15 +542,15 @@ export default async function PortalContratoPage({
         {esArrendatario && contrato.tokenValoracion && !contrato.valoracionDada && (
           <div
             className="rounded-2xl p-5"
-            style={{ background: "var(--hw-surface)", border: "1px solid rgba(245,158,11,0.3)", boxShadow: "var(--hw-shadow)" }}
+            style={{ background: "var(--pgo-surface)", border: "1px solid rgba(245,158,11,0.3)", boxShadow: "var(--pgo-shadow)" }}
           >
             <div className="flex items-center gap-2 mb-1">
-              <Star className="h-4 w-4" style={{ color: "var(--hw-warning-dk)" }} aria-hidden />
-              <h2 className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+              <Star className="h-4 w-4" style={{ color: "var(--pgo-warning-dk)" }} aria-hidden />
+              <h2 className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                 ¿Cómo fue tu experiencia con el corredor?
               </h2>
             </div>
-            <p className="mb-3 text-xs" style={{ color: "var(--hw-text-3)" }}>
+            <p className="mb-3 text-xs" style={{ color: "var(--pgo-text-3)" }}>
               Tu opinión ayuda a otros arrendatarios. Puedes dejar tu valoración una sola vez.
             </p>
             <ValoracionButton token={contrato.tokenValoracion} />
@@ -568,7 +562,7 @@ export default async function PortalContratoPage({
             marco, y se leía como un pie de página y no como una sección. */}
         <div
           className="rounded-2xl p-5"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
         >
           <DatosPrivadosPropiedad
             /* Si el corredor no lo comparte, no llega ningún valor: el bloque
@@ -596,16 +590,16 @@ export default async function PortalContratoPage({
         </div>
 
         {/* ── Footer ── */}
-        <div className="pb-4 flex flex-col items-center gap-1 text-center text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <div className="pb-4 flex flex-col items-center gap-1 text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--hw-success)" }} aria-hidden />
+            <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--pgo-success)" }} aria-hidden />
             Información confidencial — Acceso personal y no transferible
           </div>
           {/* El texto anterior decía "válida por 30 minutos" a secas, y ahora
               hay dos relojes: se cierra a los 15 minutos sin uso y a los 30 en
               total. Decir solo el segundo haría creer que se puede dejar la
               pantalla abierta media hora. */}
-          <p>Se cierra sola a los 15 minutos sin uso · Housing SOLIDIT · Ley 21.719</p>
+          <p>Se cierra sola a los 15 minutos sin uso · {MARCA} · Ley 21.719</p>
         </div>
 
       </main>

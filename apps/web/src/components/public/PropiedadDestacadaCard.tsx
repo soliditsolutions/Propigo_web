@@ -32,7 +32,7 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
     <BorderGlow radius={20} className="w-72 shrink-0">
     <Link
       href={`/marketplace/${propiedad.publicacionId}`}
-      className="hw-auth-card group flex w-full flex-col overflow-hidden p-0"
+      className="pgo-auth-card group flex w-full flex-col overflow-hidden p-0"
     >
       <div className={`relative h-24 w-full overflow-hidden ${propiedad.imagenUrl ? "" : "pf-img-empty"}`}>
         {propiedad.imagenUrl ? (
@@ -56,13 +56,13 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
         )}
         <span
           className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-          style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+          style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
         >
           {meta.label}
         </span>
         <span
           className="absolute right-3 top-3 rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
-          style={{ background: "var(--hw-success-lt)", color: "var(--hw-success-dk)" }}
+          style={{ background: "var(--pgo-success-lt)", color: "var(--pgo-success-dk)" }}
         >
           Disponible
         </span>
@@ -78,7 +78,7 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
         </p>
 
         <div className="mt-2 flex items-center justify-between">
-          <p className="text-sm font-bold" style={{ color: "var(--pf-purple)" }}>
+          <p className="text-sm font-bold" style={{ color: "var(--pf-brand)" }}>
             {clpOrUf(propiedad.precioReferencia, propiedad.denominacionPrecio)} /mes
           </p>
         </div>
@@ -97,7 +97,7 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
           </div>
           <ArrowRight
             className="h-4 w-4 shrink-0 transition-transform duration-150 group-hover:translate-x-1"
-            style={{ color: "var(--pf-purple)" }}
+            style={{ color: "var(--pf-brand)" }}
             aria-hidden="true"
           />
         </div>

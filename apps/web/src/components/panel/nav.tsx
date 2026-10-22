@@ -52,26 +52,26 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       aria-label={collapsed ? label : undefined}
-      className="hw-btn hw-sidebar-link relative flex items-center rounded-xl text-sm font-medium"
+      className="pgo-btn pgo-sidebar-link relative flex items-center rounded-xl text-sm font-medium"
       style={{
         gap:             collapsed ? 0 : 12,
         padding:         collapsed ? "10px 0" : "10px 12px",
         justifyContent:  collapsed ? "center" : "flex-start",
         // background/color/boxShadow SOLO se fijan inline cuando active=true.
-        // Si no, se omiten (undefined) para que .hw-sidebar-link (color base) y
-        // .hw-sidebar-link:hover (background+color) en CSS puedan aplicar — un
+        // Si no, se omiten (undefined) para que .pgo-sidebar-link (color base) y
+        // .pgo-sidebar-link:hover (background+color) en CSS puedan aplicar — un
         // inline explícito le ganaría siempre a cualquier regla de CSS, sin
         // importar especificidad de selector.
-        background:      active ? "var(--hw-panel-nav-active-bg)" : undefined,
-        color:           active ? "var(--hw-panel-nav-text)" : undefined,
-        boxShadow:       active ? "0 0 14px -6px var(--hw-panel-nav-glow), inset 0 1px 0 var(--hw-panel-nav-inset)" : undefined,
+        background:      active ? "var(--pgo-panel-nav-active-bg)" : undefined,
+        color:           active ? "var(--pgo-panel-nav-text)" : undefined,
+        boxShadow:       active ? "0 0 14px -6px var(--pgo-panel-nav-glow), inset 0 1px 0 var(--pgo-panel-nav-inset)" : undefined,
       }}
     >
       {active && !collapsed && (
         <span
           aria-hidden="true"
           className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full"
-          style={{ background: "var(--hw-primary)", boxShadow: "0 0 6px var(--hw-panel-nav-glow)" }}
+          style={{ background: "var(--pgo-primary)", boxShadow: "0 0 6px var(--pgo-panel-nav-glow)" }}
         />
       )}
       <Icon

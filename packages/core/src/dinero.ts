@@ -1,5 +1,5 @@
 /**
- * Utilidades de dinero para Housing.
+ * Utilidades de dinero para Propigo.
  *
  * Reglas (ver docs/02-modelo-dominio.md):
  * - CLP se maneja en pesos enteros (sin centavos).

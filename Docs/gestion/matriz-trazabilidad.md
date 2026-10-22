@@ -29,7 +29,7 @@
 | RF-CONT-09 | Validación con IA | ✅ | `api/contratos/[id]/validar*`, `validacion-panel.tsx` | test (anti-injection) |
 | RF-CONT-10 | Anexos | ✅ | `contratos/[id]/anexos-section.tsx` | manual |
 | RF-COB-01..02 | Registrar + conciliar pago | ✅ | `app/panel/cobros/actions.ts` (`simularPago`) | test (47/47 core) |
-| RF-COB-03 | Reajuste IPC al conciliar | ✅ | `cobros/actions.ts` + `@housing/core` | test |
+| RF-COB-03 | Reajuste IPC al conciliar | ✅ | `cobros/actions.ts` + `@propigo/core` | test |
 | RF-COB-04 | Asistente de liquidación | ✅ | `app/panel/cobros/` (2 pasos) | manual |
 | RF-COB-05 | Vouchers inmutables | ✅ | `Voucher` + snapshot | test |
 | RF-COB-06 | Ledger append-only | ✅ | `AsientoLedger` + trigger SQL | test |
@@ -69,8 +69,8 @@
 | RNF-LEG-02 | Garantía ≤ 2 rentas | ✅ | Validación en `crearContrato` |
 | RNF-LEG-03 | Ley 19.496 + Art. 211 CP | ✅ | `/terminos-uso`, denuncia con declaraciones |
 | RNF-USA-01..03 | Responsivo, accesible, DS | ✅ | Design System v2 + auditoría A1–A4 |
-| RNF-REND-01 | Dinero exacto (Decimal) | ✅ | `@housing/core`, schema `Decimal` |
-| RNF-MANT-01..03 | Núcleo aislado, portable, auditable | ✅ | `@housing/core`, Docker, `acceso_log` |
+| RNF-REND-01 | Dinero exacto (Decimal) | ✅ | `@propigo/core`, schema `Decimal` |
+| RNF-MANT-01..03 | Núcleo aislado, portable, auditable | ✅ | `@propigo/core`, Docker, `acceso_log` |
 
 ---
 

@@ -166,7 +166,7 @@ vigencia de la ley.
 > JSON estructurado (portabilidad) o PDF legible (acceso). Manager-only, acotado
 > al tenant, y el propio export queda en `auditoria_equipo`. La contraparte de
 > cada contrato aparece **solo por su nombre**: un test lo verifica contra el
-> RUT/correo del otro. El acceso se ejerce ante la corredora responsable (Housing
+> RUT/correo del otro. El acceso se ejerce ante la corredora responsable (Propigo
 > es encargado); el autoservicio desde el portal queda para más adelante si se
 > decide.
 
@@ -260,7 +260,7 @@ menos.
 | **L-04** | ¿Damos soporte al arriendo amoblado, que sí va afecto a IVA? | 🔴 | L-IV4 | Sí, pero en una segunda etapa: primero el caso habitacional simple, que es el 90 %. | ✅ Resuelta: IVA **incluido** en el valor del arriendo; se descompone en el comprobante. |
 | **L-05** | Supresión de datos vs. ledger inmutable: ¿cómo se resuelve? | 🔴 | L-DP5 | Anonimizar la `Persona` y conservar los asientos con el vínculo roto. El ledger conserva montos y fechas, no identidad. **Requiere revisión legal.** | Abierta |
 | **L-06** | ¿Cuál es el plazo de respuesta a una solicitud de derechos? | 🔴 | L-DP7 | Leer el plazo en el texto de la ley y publicarlo. No inventarlo. | Abierta |
-| **L-07** | ¿Housing es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | Abierta |
+| **L-07** | ¿Propigo es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | Abierta |
 | **L-08** | ¿Qué fuente para UF e IPC: API del Banco Central, del INE, o un agregador? | 🟡 | L-FU1, L-FU2 | Banco Central para UF, INE para IPC — las oficiales. Un agregador introduce un intermediario en un dato que define montos cobrados. | Abierta |
 | **L-09** | ¿Qué campos y qué formato exige exactamente la DJ 1835? | 🟡 | L-DJ1 | Leerlos del formulario oficial. El PDF de instrucciones no se pudo extraer con confianza. | Abierta |
 

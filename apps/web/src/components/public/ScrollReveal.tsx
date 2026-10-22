@@ -54,7 +54,7 @@ export function ScrollReveal({
   return (
     <div
       ref={ref}
-      className={`hw-scroll-reveal ${visible ? "hw-scroll-reveal-in" : ""} ${className}`.trim()}
+      className={`pgo-scroll-reveal ${visible ? "pgo-scroll-reveal-in" : ""} ${className}`.trim()}
       style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
     >
       {children}

@@ -12,7 +12,7 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
   const donutCartera = data.carteraPorDenominacion.map((c) => ({
     label: c.denominacion === "UF" ? "Contratos en UF" : "Contratos en CLP",
     value: c.contratos,
-    color: c.denominacion === "UF" ? "var(--hw-primary)" : "var(--hw-success)",
+    color: c.denominacion === "UF" ? "var(--pgo-primary)" : "var(--pgo-success)",
   }));
 
   const totalAtrasados = data.agingMorosidad.reduce((a, b) => a + b.count, 0);
@@ -48,7 +48,7 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-5">
           <SectionTitle title="Ingresos cobrados" description="Últimos 12 meses" />
-          <MiniLine data={data.ingresosCobradosPorMes} xKey="mes" yKey="monto" color="var(--hw-success)" format="clpCompact" />
+          <MiniLine data={data.ingresosCobradosPorMes} xKey="mes" yKey="monto" color="var(--pgo-success)" format="clpCompact" />
         </Card>
 
         <Card className="p-5">
@@ -57,7 +57,7 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
             data={data.comisionGanadaPorMes}
             xKey="mes"
             format="clpCompact"
-            series={[{ key: "monto", label: "Comisión", color: "var(--hw-primary)" }]}
+            series={[{ key: "monto", label: "Comisión", color: "var(--pgo-primary)" }]}
           />
         </Card>
       </div>
@@ -73,16 +73,16 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
                   <div className="flex items-center gap-2">
                     <span
                       className="h-2.5 w-2.5 rounded-sm"
-                      style={{ background: c.denominacion === "UF" ? "var(--hw-primary)" : "var(--hw-success)" }}
+                      style={{ background: c.denominacion === "UF" ? "var(--pgo-primary)" : "var(--pgo-success)" }}
                     />
-                    <span style={{ color: "var(--hw-text-2)" }}>{c.denominacion}</span>
-                    <span className="font-semibold" style={{ color: "var(--hw-text-1)" }}>{c.contratos}</span>
+                    <span style={{ color: "var(--pgo-text-2)" }}>{c.denominacion}</span>
+                    <span className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>{c.contratos}</span>
                   </div>
-                  <p className="ml-4.5 text-xs" style={{ color: "var(--hw-text-4)" }}>{clp(c.montoClp)} en renta mensual</p>
+                  <p className="ml-4.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>{clp(c.montoClp)} en renta mensual</p>
                 </div>
               ))}
               {donutCartera.length === 0 && (
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Sin contratos vigentes.</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Sin contratos vigentes.</p>
               )}
             </div>
           </div>
@@ -94,7 +94,7 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
             data={data.evolucionMorosidad}
             xKey="mes"
             yKey="tasaPct"
-            color="var(--hw-danger)"
+            color="var(--pgo-danger)"
             format="pct"
           />
         </Card>
@@ -112,17 +112,17 @@ export async function AnaliticaFinancieraTab({ tenantId }: { tenantId: string })
             data={data.agingMorosidad.map((b) => ({ bucket: bucketLabel[b.bucket], montoClp: b.montoClp }))}
             xKey="bucket"
             format="clpCompact"
-            series={[{ key: "montoClp", label: "Deuda abierta", color: "var(--hw-danger)" }]}
+            series={[{ key: "montoClp", label: "Deuda abierta", color: "var(--pgo-danger)" }]}
           />
           <div className="flex flex-col gap-2 text-sm sm:min-w-[180px]">
             {data.agingMorosidad.map((b) => (
               <div key={b.bucket} className="flex items-center justify-between gap-3">
-                <span style={{ color: "var(--hw-text-3)" }}>{bucketLabel[b.bucket]}</span>
-                <span className="tabular-nums font-medium" style={{ color: "var(--hw-text-1)" }}>{b.count}</span>
+                <span style={{ color: "var(--pgo-text-3)" }}>{bucketLabel[b.bucket]}</span>
+                <span className="tabular-nums font-medium" style={{ color: "var(--pgo-text-1)" }}>{b.count}</span>
               </div>
             ))}
             {data.agingMorosidad.some((b) => b.bucket === "60+" && b.count > 0) && (
-              <p className="mt-1 flex items-start gap-1.5 text-xs" style={{ color: "var(--hw-warning)" }}>
+              <p className="mt-1 flex items-start gap-1.5 text-xs" style={{ color: "var(--pgo-warning)" }}>
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 Hay deuda con más de 60 días de atraso.
               </p>

@@ -14,7 +14,7 @@ export default async function Dashboard() {
 
   return (
     <>
-      <div className="hw-aurora-bg">
+      <div className="pgo-aurora-bg">
         <PageTitle
           title="Resumen"
           subtitle="Estado de cobros y cartera de la corredora."
@@ -57,11 +57,11 @@ export default async function Dashboard() {
         {/* ── Vencimientos con búsqueda/filtros ─────────── */}
         <div className="lg:col-span-2 min-w-0 overflow-x-hidden">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold" style={{ color: "var(--hw-text-1)" }}>Próximos vencimientos</h2>
+            <h2 className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>Próximos vencimientos</h2>
             <Link
               href="/panel/cobros"
               className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-70"
-              style={{ color: "var(--hw-primary)" }}
+              style={{ color: "var(--pgo-primary)" }}
             >
               Ir a cobros <ArrowRight className="h-3 w-3" />
             </Link>
@@ -72,11 +72,11 @@ export default async function Dashboard() {
         {/* ── Propiedades por estado ─────────────────────── */}
         <Card className="p-5 self-start">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold" style={{ color: "var(--hw-text-1)" }}>Propiedades</h2>
+            <h2 className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>Propiedades</h2>
             <Link
               href="/panel/propiedades"
               className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-70"
-              style={{ color: "var(--hw-primary)" }}
+              style={{ color: "var(--pgo-primary)" }}
             >
               Ver todas <ArrowRight className="h-3 w-3" />
             </Link>
@@ -85,15 +85,15 @@ export default async function Dashboard() {
             {(["borrador", "disponible", "reservada", "arrendada"] as const).map((e) => (
               <div key={e} className="flex items-center justify-between py-1">
                 <Badge tone={estadoTone(e)} pulse={estadoPulse(e)}>{e}</Badge>
-                <span className="text-xl font-bold" style={{ color: "var(--hw-text-1)" }}>{r.propiedades[e] ?? 0}</span>
+                <span className="text-xl font-bold" style={{ color: "var(--pgo-text-1)" }}>{r.propiedades[e] ?? 0}</span>
               </div>
             ))}
             <div
               className="flex items-center justify-between pt-3"
-              style={{ borderTop: "1px solid var(--hw-border)" }}
+              style={{ borderTop: "1px solid var(--pgo-border)" }}
             >
-              <span className="text-sm font-medium" style={{ color: "var(--hw-text-3)" }}>Total</span>
-              <span className="text-xl font-bold" style={{ color: "var(--hw-text-1)" }}>{r.propiedades.total}</span>
+              <span className="text-sm font-medium" style={{ color: "var(--pgo-text-3)" }}>Total</span>
+              <span className="text-xl font-bold" style={{ color: "var(--pgo-text-1)" }}>{r.propiedades.total}</span>
             </div>
           </div>
         </Card>

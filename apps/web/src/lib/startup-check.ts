@@ -90,7 +90,7 @@ export function runStartupChecks(): void {
     throw new Error(
       "[STARTUP] FATAL: NEXT_PUBLIC_APP_URL no definida en producción. " +
       "Los enlaces en emails (recuperación de contraseña, etc.) apuntarían a localhost. " +
-      "Configura la URL pública real, ej.: https://app.housing.cl",
+      "Configura la URL pública real, ej.: https://propigo.cl",
     );
   }
 }

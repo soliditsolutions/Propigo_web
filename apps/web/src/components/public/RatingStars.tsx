@@ -31,8 +31,8 @@ export function RatingStars({
             key={n}
             className={starSize}
             style={{
-              color: n <= Math.round(promedio) ? "var(--hw-warning)" : "var(--pf-border-input)",
-              fill:  n <= Math.round(promedio) ? "var(--hw-warning)" : "transparent",
+              color: n <= Math.round(promedio) ? "var(--pgo-warning)" : "var(--pf-border-input)",
+              fill:  n <= Math.round(promedio) ? "var(--pgo-warning)" : "transparent",
             }}
             aria-hidden="true"
           />

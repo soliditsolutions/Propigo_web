@@ -12,6 +12,8 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import { getPortalSession } from "@/lib/portal-auth";
 import { withTenant } from "@/lib/tenant-db";
 import { MisDatosClient } from "./mis-datos-client";
+import { Logo } from "@/components/public/Logo";
+import { MARCA } from "@/lib/marca";
 
 export default async function MisDatosPage() {
   const session = await getPortalSession();
@@ -39,32 +41,31 @@ export default async function MisDatosPage() {
   ]));
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--hw-page)" }}>
+    <div className="min-h-screen" style={{ background: "var(--pgo-page)" }}>
       <header
         className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-6"
-        style={{ background: "var(--hw-surface)", borderBottom: "1px solid var(--hw-border)", boxShadow: "0 1px 4px rgba(15,31,53,0.06)" }}
+        style={{ background: "var(--pgo-surface)", borderBottom: "1px solid var(--pgo-border)", boxShadow: "0 1px 4px rgba(15,31,53,0.06)" }}
       >
         <div className="flex items-center gap-3">
           {contrato ? (
             <Link
               href={`/portal/contrato/${contrato.id}`}
-              className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--hw-surface-2)]"
-              style={{ color: "var(--hw-text-3)" }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--pgo-surface-2)]"
+              style={{ color: "var(--pgo-text-3)" }}
               aria-label="Volver a mi contrato"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
             </Link>
           ) : null}
           <div>
-            <span className="text-sm font-bold" style={{ color: "var(--hw-text-1)" }}>Housing</span>
-            <span className="ml-1 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "var(--hw-text-4)" }}>SOLIDIT</span>
-            <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Mis datos</p>
+            <Logo size="xs" wordColor="var(--pgo-text-1)" />
+            <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>Mis datos</p>
           </div>
         </div>
         <a
           href="/api/portal/logout"
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-danger-lt)]"
-          style={{ color: "var(--hw-danger)" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--pgo-danger-lt)]"
+          style={{ color: "var(--pgo-danger)" }}
         >
           <LogOut className="h-3.5 w-3.5" aria-hidden />
           Cerrar sesión
@@ -73,10 +74,10 @@ export default async function MisDatosPage() {
 
       <main className="mx-auto max-w-2xl px-4 py-6 space-y-4">
         <div>
-          <h1 className="text-lg font-bold" style={{ color: "var(--hw-text-1)" }}>Mis datos personales</h1>
-          <p className="text-sm mt-0.5" style={{ color: "var(--hw-text-3)" }}>
-            Ejerce tus derechos sobre los datos que Housing SOLIDIT guarda de ti, conforme a la Ley 21.719.{" "}
-            <a href="/privacidad#derechos" className="underline" style={{ color: "var(--hw-primary)" }}>Más sobre tus derechos</a>.
+          <h1 className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>Mis datos personales</h1>
+          <p className="text-sm mt-0.5" style={{ color: "var(--pgo-text-3)" }}>
+            Ejerce tus derechos sobre los datos que {MARCA} guarda de ti, conforme a la Ley 21.719.{" "}
+            <a href="/privacidad#derechos" className="underline" style={{ color: "var(--pgo-primary)" }}>Más sobre tus derechos</a>.
           </p>
         </div>
 

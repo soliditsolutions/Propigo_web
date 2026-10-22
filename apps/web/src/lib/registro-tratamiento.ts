@@ -21,7 +21,7 @@ export type ActividadTratamiento = {
   baseLegal: string;
   categoriasDatos: string[];
   categoriasTitulares: string[];
-  /** null = no sale de Housing SOLIDIT (tratamiento interno). */
+  /** null = no sale de Propigo (tratamiento interno). */
   destinatarios: string[] | null;
   /** Claves de `RETENCIONES` que aplican a esta actividad. */
   retencionClaves: Retencion["clave"][];

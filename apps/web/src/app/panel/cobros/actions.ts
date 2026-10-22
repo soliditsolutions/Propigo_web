@@ -19,7 +19,7 @@ import {
   aplicarReajusteIpc,
   variacionIpc,
   type TipoAjusteLiquidacion,
-} from "@housing/core";
+} from "@propigo/core";
 
 function primerDiaMes(fecha: Date): Date {
   return new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1));

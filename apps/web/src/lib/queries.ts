@@ -3,7 +3,7 @@ import { prisma } from "./db";
 import { getSession } from "./auth";
 import { withTenant, type TenantClient } from "./tenant-db";
 import type { Tenant } from "@/generated/prisma/client";
-import { convertirUfAClp, esPeriodoDeReajuste } from "@housing/core";
+import { convertirUfAClp, esPeriodoDeReajuste } from "@propigo/core";
 import { getCupoPropiedades, getPlanEfectivo } from "./plans";
 import { consultarConsumoIaHoy } from "./plan-limits";
 
@@ -30,7 +30,7 @@ export type Actor = {
  * El JWT es verificado criptográficamente en cada request → no puede falsificarse.
  * La consulta a `usuario` va dentro de withTenant() porque la tabla está sujeta
  * a RLS (tenant_isolation, setup.sql) — sin `app.current_tenant_id` seteado
- * housing_app vería 0 filas.
+ * propigo_app vería 0 filas.
  *
  * Uso: Server Actions y API Routes con sesión de usuario autenticado.
  */
@@ -674,7 +674,7 @@ export async function getCupoIaInfo(tenantId: string, plan: string | null) {
 //     evento. Nunca se reconvierte con la UF de hoy.
 //  2. Dato PROYECTADO (período futuro, sin asiento todavía) → se convierte
 //     "en vivo" con la UF más reciente de serie_uf, vía convertirUfAClp de
-//     @housing/core. Se marca esAproximado en el tipo de retorno.
+//     @propigo/core. Se marca esAproximado en el tipo de retorno.
 //
 // Igual que en getResumen: todo secuencial dentro del mismo `tx` (una sola
 // conexión física por transacción interactiva de Prisma) — evita el warning

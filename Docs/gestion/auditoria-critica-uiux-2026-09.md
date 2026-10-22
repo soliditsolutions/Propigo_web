@@ -32,7 +32,7 @@ era simplemente un punto de tránsito de un scroll discreto de prueba, no un
 estado de reposo real. Con scroll continuo (como haría cualquier persona) el
 encabezado pasa por ahí y sigue, igual que en cualquier sitio con navbar
 sticky. **No es un bug.** Reprobé a 1100px (modo pinneado real) y el
-`padding-top: calc(var(--hw-navbar-h) + 4px)` que ya existe en el CSS
+`padding-top: calc(var(--pgo-navbar-h) + 4px)` que ya existe en el CSS
 funciona exactamente como está documentado — el encabezado queda perfectamente
 legible bajo el navbar. Lo dejo registrado porque es exactamente el tipo de
 conclusión apresurada que un análisis menos cuidadoso habría reportado como
@@ -102,7 +102,7 @@ dedicado implementa, y sin la dependencia de ~40kb que GSAP habría agregado.
 Iconografía con fondo glass redondeado, copy específico y no genérico (ya
 evaluado en la auditoría anterior). No pude verificar el estado `:hover` de
 forma confiable con automatización de navegador — el código ya tiene
-`.hw-card-hover` tokenizado (lift + sombra), pendiente confirmar visualmente
+`.pgo-card-hover` tokenizado (lift + sombra), pendiente confirmar visualmente
 si estas 3 tarjetas puntuales lo usan.
 
 ---
@@ -133,7 +133,7 @@ sidebar sticky, enlace de "Reportar esta publicación o corredor" visible
 funcional.
 
 **Oportunidad:** el estado sin imagen es un ícono plano sobre fondo liso
-(gris/negro inerte). El proyecto ya tiene `.hw-aurora-bg` (blobs animados,
+(gris/negro inerte). El proyecto ya tiene `.pgo-aurora-bg` (blobs animados,
 "usar con moderación" según su propio comentario) — un fondo sutil tipo
 textura en vez de un rectángulo vacío se sentiría más cuidado en el estado
 vacío, sin inventar nada nuevo.
@@ -164,8 +164,8 @@ requieren ninguna dependencia nueva:
   y Stripe muestran sistemáticamente una mini-serie de 7-14 días junto al
   número principal. Con `recharts` ya instalado esto es agregar un
   componente, no una librería.
-- **Tokens de glow ya existentes, sin aplicar acá**: `--hw-glow-primary` /
-  `--hw-glow-teal` / etc. existen en `globals.css` y ya se usan en
+- **Tokens de glow ya existentes, sin aplicar acá**: `--pgo-glow-primary` /
+  `--pgo-glow-teal` / etc. existen en `globals.css` y ya se usan en
   `panel/cobros/cobros-client.tsx`, pero no en las tarjetas KPI del
   dashboard principal — que son justo las que tienen un acento de color
   semántico (rojo/azul/verde/morado) pidiendo ese refuerzo visual. Es aplicar
@@ -202,7 +202,7 @@ real no está dispersa — se concentra en tres bolsillos concretos:
 
 ## Plan propuesto, en orden de retorno sobre esfuerzo
 
-1. **Dashboard**: sparklines con `recharts` + aplicar los tokens `--hw-glow-*`
+1. **Dashboard**: sparklines con `recharts` + aplicar los tokens `--pgo-glow-*`
    ya existentes a las tarjetas KPI + count-up de los montos al cargar.
 2. **Stop "Nuestros Planes"**: fondo propio sin foto compartida (CSS puro,
    sin riesgo).
@@ -227,8 +227,8 @@ que las capturas de pantalla dejaban ver:
   respeta `prefers-reduced-motion`). Mi captura simplemente lo agarró
   después de que la animación de 700ms ya había terminado.
 - **Glow semántico en las tarjetas KPI**: ya existe y es más elaborado de lo
-  que pedí — `.hw-card-glow` (radial-gradient ambiental + doble box-shadow
-  con `color-mix`, más intenso al hover) y `.hw-sheen` (barrido de luz),
+  que pedí — `.pgo-card-glow` (radial-gradient ambiental + doble box-shadow
+  con `color-mix`, más intenso al hover) y `.pgo-sheen` (barrido de luz),
   ambos ya aplicados en `StatCard`.
 - **Sparklines**: sí es un hueco real (`recharts` no se usa en `panel/`,
   solo en `estadisticas/`), pero investigar el porqué reveló algo más
@@ -242,7 +242,7 @@ Los puntos 2, 3 y 4 sí se ejecutaron:
 
 - **Punto 2** — `ScrollWalkthrough`: `WalkStop.image` pasa a opcional; la
   parada "Nuestros Planes" ya no comparte foto con las 3 narrativas, cae al
-  mismo `.hw-aurora-layer` que login/registro. Ajustado el conteo de
+  mismo `.pgo-aurora-layer` que login/registro. Ajustado el conteo de
   `framesReady` para no esperar por una foto que no existe. Commit `f5e6e47`.
 - **Punto 3** — `.pf-img-empty`: textura de puntos reemplaza el rectángulo
   liso en los 3 lugares que duplicaban el estado "sin fotos" (tarjeta del

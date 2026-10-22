@@ -111,7 +111,7 @@ erDiagram
 
 ## Capa SQL (fuera de Prisma) — `setup.sql`
 
-- **RLS** activada por `tenant_id` en las ~15 tablas con tenant. En dev el rol dueño la bypassa; en producción se usa un rol `housing_app` no-dueño para que la BD **fuerce** el aislamiento.
+- **RLS** activada por `tenant_id` en las ~15 tablas con tenant. En dev el rol dueño la bypassa; en producción se usa un rol `propigo_app` no-dueño para que la BD **fuerce** el aislamiento.
 - **Trigger de inmutabilidad** sobre `asiento_ledger`: rechaza `UPDATE`/`DELETE` (auditoría contable).
 - **Índice único parcial** para evitar duplicados en estados activos.
 - **Vistas de saldos:** `v_deuda_arrendatario`, `v_billetera_propietario` (gasto común excluido — es passthrough), `v_garantia_retenida`.

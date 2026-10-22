@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTenant, getActor, getUfCLP } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
-import { generarCalendario, validarRut } from "@housing/core";
+import { generarCalendario, validarRut } from "@propigo/core";
 import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";

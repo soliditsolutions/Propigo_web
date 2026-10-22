@@ -1,5 +1,5 @@
 /**
- * /terminos-uso — Términos y Condiciones de Uso del Sitio Público Housing SOLIDIT
+ * /terminos-uso — Términos y Condiciones de Uso del Sitio Público Propigo
  *
  * Marco normativo aplicado:
  *  · Ley 19.496 – Protección al Consumidor (texto refundido, con mods. Ley 21.398)
@@ -15,19 +15,19 @@
 import Link from "next/link";
 import { ShieldCheck, AlertTriangle, Scale, Phone, Mail } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
+import { MARCA, RAZON_SOCIAL, CORREO } from "@/lib/marca";
 
 export const metadata = {
-  title: "Términos y Condiciones de Uso · Housing SOLIDIT",
+  title: `Términos y Condiciones de Uso · ${MARCA}`,
   description:
-    "Términos y condiciones de uso del sitio público de Housing SOLIDIT. Lea con atención antes de utilizar el marketplace o el portal de autoconsulta.",
+    `Términos y condiciones de uso del sitio público de ${MARCA}. Lea con atención antes de utilizar el marketplace o el portal de autoconsulta.`,
 };
 
 // Fecha de última actualización
-const ULTIMA_ACTUALIZACION = "1 de julio de 2026";
-const RAZON_SOCIAL        = "SOLIDIT SpA";
+const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
 const RUT_EMPRESA         = "77.000.000-0"; // Actualizar al RUT real
 const DOMICILIO           = "Santiago, Región Metropolitana, Chile";
-const EMAIL_CONTACTO      = "legal@solidit.cl";
+const EMAIL_CONTACTO      = CORREO.legal;
 const TELEFONO            = "+56 2 0000 0000"; // Actualizar al número real
 
 function Section({ id, title, children }: {
@@ -64,7 +64,7 @@ function LegalRef({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="rounded px-1 py-0.5 text-sm font-medium"
-      style={{ background: "var(--pf-purple-tint)", color: "var(--pf-purple)" }}
+      style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
     >
       {children}
     </span>
@@ -83,7 +83,7 @@ export default function TerminosUsoPage() {
         style={{ background: "linear-gradient(160deg, var(--pf-hero-1) 0%, var(--pf-hero-2) 45%, var(--pf-surface) 100%)", borderColor: "var(--pf-border)" }}
       >
         <div className="mx-auto max-w-4xl px-6">
-          <div className="mb-4 flex items-center gap-2 text-sm" style={{ color: "var(--pf-purple)" }}>
+          <div className="mb-4 flex items-center gap-2 text-sm" style={{ color: "var(--pf-brand)" }}>
             <Scale className="h-4 w-4" aria-hidden />
             <span className="font-semibold">Marco legal chileno 2026</span>
           </div>
@@ -94,7 +94,7 @@ export default function TerminosUsoPage() {
             Términos y Condiciones de Uso
           </h1>
           <p className="mt-3 text-lg" style={{ color: "var(--pf-text-body)" }}>
-            Del sitio público Housing SOLIDIT — marketplace de arriendos y portal de autoconsulta.
+            Del sitio público {MARCA} — marketplace de arriendos y portal de autoconsulta.
           </p>
           <p className="mt-2 text-sm" style={{ color: "var(--pf-text-muted)" }}>
             Última actualización: <strong>{ULTIMA_ACTUALIZACION}</strong>
@@ -144,27 +144,27 @@ export default function TerminosUsoPage() {
             <div
               className="mb-10 rounded-2xl p-6"
               style={{
-                background: "var(--hw-warning-lt)",
-                border: "2px solid var(--hw-warning-bd)",
+                background: "var(--pgo-warning-lt)",
+                border: "2px solid var(--pgo-warning-bd)",
               }}
             >
               <div className="flex items-start gap-4">
-                <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-[var(--hw-warning)]" aria-hidden />
+                <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-[var(--pgo-warning)]" aria-hidden />
                 <div>
-                  <h2 className="mb-2 text-lg font-bold text-[var(--hw-warning-dk)]">
+                  <h2 className="mb-2 text-lg font-bold text-[var(--pgo-warning-dk)]">
                     Advertencia importante sobre estafas en arriendos
                   </h2>
-                  <p className="mb-3 text-sm text-[var(--hw-warning-dk)] leading-relaxed">
-                    El fraude inmobiliario es frecuente en Chile. Housing SOLIDIT actúa únicamente
+                  <p className="mb-3 text-sm text-[var(--pgo-warning-dk)] leading-relaxed">
+                    El fraude inmobiliario es frecuente en Chile. {MARCA} actúa únicamente
                     como plataforma intermediaria. <strong>Usted es responsable de verificar la
                     legitimidad de cualquier oferta antes de comprometer dinero o datos personales.</strong>
                   </p>
-                  <ul className="space-y-1.5 text-sm text-[var(--hw-warning-dk)]">
+                  <ul className="space-y-1.5 text-sm text-[var(--pgo-warning-dk)]">
                     <li>• <strong>Nunca transfiera dinero</strong> antes de visitar la propiedad presencialmente.</li>
                     <li>• <strong>Desconfíe de precios muy por debajo</strong> del valor de mercado de la zona.</li>
-                    <li>• <strong>Exija identidad escrita</strong> del corredor y verifique su certificación Housing.</li>
+                    <li>• <strong>Exija identidad escrita</strong> del corredor y verifique su certificación {MARCA}.</li>
                     <li>• <strong>No entregue documentos</strong> (cédula, liquidaciones) sin firma de contrato previo.</li>
-                    <li>• <strong>Housing SOLIDIT nunca solicita</strong> pagos directos a la plataforma ni a cuentas personales.</li>
+                    <li>• <strong>{MARCA} nunca solicita</strong> pagos de arriendo, garantía ni reserva a través de la plataforma ni a cuentas personales.</li>
                     <li>• Ante cualquier sospecha, denuncie a <strong>PDI (134)</strong> o <strong>Carabineros (133)</strong>.</li>
                   </ul>
                 </div>
@@ -175,12 +175,12 @@ export default function TerminosUsoPage() {
               <p>
                 El presente sitio web y sus servicios asociados son operados por{" "}
                 <strong>{RAZON_SOCIAL}</strong>, RUT {RUT_EMPRESA}, con domicilio en{" "}
-                {DOMICILIO}, en adelante <strong>«Housing SOLIDIT»</strong> o
+                {DOMICILIO}, en adelante <strong>«{MARCA}»</strong> o
                 simplemente <strong>«la Plataforma»</strong>.
               </p>
               <p>
                 Para efectos de lo dispuesto en el <LegalRef>artículo 3° letra b) de la
-                Ley 19.496</LegalRef> de Protección al Consumidor, Housing SOLIDIT tiene
+                Ley 19.496</LegalRef> de Protección al Consumidor, {MARCA} tiene
                 la calidad de proveedor digital de servicios de intermediación inmobiliaria.
               </p>
               <p>
@@ -190,12 +190,12 @@ export default function TerminosUsoPage() {
 
             <Section id="intermediacion" title="2. Carácter de plataforma intermediaria">
               <p>
-                Housing SOLIDIT es una <strong>plataforma de intermediación</strong>. Su función
+                {MARCA} es una <strong>plataforma de intermediación</strong>. Su función
                 es conectar a corredores de propiedades certificados con potenciales arrendatarios.
                 La Plataforma <strong>no es parte</strong> de ningún contrato de arrendamiento
                 que se celebre entre un corredor/propietario y un arrendatario.
               </p>
-              <Subsection title="2.1 Lo que Housing SOLIDIT SÍ hace">
+              <Subsection title={`2.1 Lo que ${MARCA} SÍ hace`}>
                 <ul className="list-inside list-disc space-y-1">
                   <li>Publicar avisos de propiedades enviados por corredores registrados y verificados.</li>
                   <li>Proporcionar un portal seguro de autoconsulta para arrendatarios con contratos vigentes.</li>
@@ -203,7 +203,7 @@ export default function TerminosUsoPage() {
                   <li>Mantener un canal de reportes de avisos fraudulentos o irregulares.</li>
                 </ul>
               </Subsection>
-              <Subsection title="2.2 Lo que Housing SOLIDIT NO hace">
+              <Subsection title={`2.2 Lo que ${MARCA} NO hace`}>
                 <ul className="list-inside list-disc space-y-1">
                   <li>No administra ni custodia dinero de arrendatarios o propietarios.</li>
                   <li>No verifica el estado físico ni jurídico de las propiedades publicadas.</li>
@@ -262,7 +262,7 @@ export default function TerminosUsoPage() {
 
               <Subsection title="3.2 Verificación del corredor">
                 <p>
-                  Todos los corredores publicados en Housing SOLIDIT han sido verificados
+                  Todos los corredores publicados en {MARCA} han sido verificados
                   mediante RUT empresarial e identidad de su representante legal. Sin embargo,
                   <strong> le recomendamos verificar</strong>:
                 </p>
@@ -282,16 +282,16 @@ export default function TerminosUsoPage() {
                   <li><strong>PDI — Brigada Cibercrimen:</strong> 134 o www.pdichiledenuncias.cl</li>
                   <li><strong>Carabineros:</strong> 133</li>
                   <li><strong>SERNAC:</strong> www.sernac.cl / 800 700 100</li>
-                  <li><strong>Housing SOLIDIT:</strong> {EMAIL_CONTACTO} (aviso de corredor o publicación irregular)</li>
+                  <li><strong>{MARCA}:</strong> {EMAIL_CONTACTO} (aviso de corredor o publicación irregular)</li>
                 </ul>
               </Subsection>
 
               <div
                 className="mt-4 rounded-xl p-4 text-sm"
-                style={{ background: "var(--pf-purple-tint)", color: "var(--pf-navy)" }}
+                style={{ background: "var(--pf-brand-tint)", color: "var(--pf-navy)" }}
               >
                 <strong>Responsabilidad del usuario:</strong> Al utilizar este sitio, usted
-                declara conocer estos riesgos y acepta que Housing SOLIDIT no puede ser
+                declara conocer estos riesgos y acepta que {MARCA} no puede ser
                 responsabilizado por perjuicios derivados de actos fraudulentos de terceros
                 que usted pueda sufrir como consecuencia de no observar las precauciones
                 descritas en este apartado.
@@ -300,10 +300,10 @@ export default function TerminosUsoPage() {
 
             <Section id="responsabilidad" title="4. Limitación de responsabilidad">
               <p>
-                La responsabilidad de Housing SOLIDIT se rige por el{" "}
+                La responsabilidad de {MARCA} se rige por el{" "}
                 <LegalRef>artículo 16 de la Ley 19.496</LegalRef>, que establece como
                 nulas aquellas cláusulas que exoneren al proveedor de responsabilidad por
-                sus propios actos dolosos o culpa grave. En consecuencia, Housing SOLIDIT
+                sus propios actos dolosos o culpa grave. En consecuencia, {MARCA}
                 responde por:
               </p>
               <ul className="list-inside list-disc space-y-1">
@@ -312,7 +312,7 @@ export default function TerminosUsoPage() {
                 <li>Vulneraciones a sus derechos como consumidor conforme a la Ley 19.496.</li>
               </ul>
 
-              <Subsection title="4.1 Responsabilidades que Housing SOLIDIT NO asume">
+              <Subsection title={`4.1 Responsabilidades que ${MARCA} NO asume`}>
                 <p>Conforme al marco legal vigente, la Plataforma <strong>no asume responsabilidad</strong> por:</p>
                 <ul className="list-inside list-disc space-y-2 mt-2">
                   <li>
@@ -352,7 +352,7 @@ export default function TerminosUsoPage() {
                   <li>Ha leído y comprendido las advertencias anti-fraude de la Sección 3.</li>
                   <li>Actuará con la diligencia esperada de un contratante responsable (<LegalRef>Código Civil art. 1546</LegalRef> — buena fe contractual).</li>
                   <li>Verificará por sus propios medios la identidad de la contraparte antes de comprometer recursos económicos.</li>
-                  <li>No responsabilizará a Housing SOLIDIT por perjuicios derivados de su propia negligencia.</li>
+                  <li>No responsabilizará a {MARCA} por perjuicios derivados de su propia negligencia.</li>
                 </ul>
               </Subsection>
             </Section>
@@ -377,7 +377,7 @@ export default function TerminosUsoPage() {
 
             <Section id="datos" title="6. Tratamiento de datos personales">
               <p>
-                Housing SOLIDIT trata datos personales conforme a la{" "}
+                {MARCA} trata datos personales conforme a la{" "}
                 <LegalRef>Ley 21.719 de Protección de Datos Personales</LegalRef>{" "}
                 (en vigor desde el 1 de diciembre de 2026) y al{" "}
                 <LegalRef>artículo 19 N°4 de la Constitución Política</LegalRef>.
@@ -410,7 +410,7 @@ export default function TerminosUsoPage() {
 
             <Section id="propiedad" title="7. Propiedad intelectual">
               <p>
-                El nombre «Housing SOLIDIT», el logotipo, el diseño del sitio y todos los
+                El nombre «{MARCA}», el logotipo, el diseño del sitio y todos los
                 contenidos desarrollados por la Plataforma son propiedad de {RAZON_SOCIAL}
                 y están protegidos por la <LegalRef>Ley 17.336 de Propiedad Intelectual</LegalRef>.
                 Queda prohibida su reproducción, distribución o modificación sin autorización
@@ -418,14 +418,14 @@ export default function TerminosUsoPage() {
               </p>
               <p>
                 Las imágenes y descripción de propiedades son aportadas por los corredores y
-                son de su exclusiva responsabilidad. Housing SOLIDIT actúa como mero repositorio
+                son de su exclusiva responsabilidad. {MARCA} actúa como mero repositorio
                 y no garantiza la propiedad intelectual de dichos contenidos.
               </p>
             </Section>
 
             <Section id="modificaciones" title="8. Modificaciones de los Términos">
               <p>
-                Housing SOLIDIT puede modificar estos Términos en cualquier momento. Las
+                {MARCA} puede modificar estos Términos en cualquier momento. Las
                 modificaciones entrarán en vigor a los <strong>15 días hábiles</strong>{" "}
                 de su publicación en esta página, conforme al{" "}
                 <LegalRef>artículo 17 B de la Ley 19.496</LegalRef>.
@@ -466,7 +466,7 @@ export default function TerminosUsoPage() {
                     className="flex items-center gap-3 rounded-xl p-4"
                     style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
                   >
-                    <Icon className="h-5 w-5 shrink-0" style={{ color: "var(--pf-purple)" }} aria-hidden />
+                    <Icon className="h-5 w-5 shrink-0" style={{ color: "var(--pf-brand)" }} aria-hidden />
                     <div>
                       <p className="text-xs" style={{ color: "var(--pf-text-muted)" }}>{label}</p>
                       <p className="font-semibold" style={{ color: "var(--pf-navy)" }}>{value}</p>
@@ -498,7 +498,7 @@ export default function TerminosUsoPage() {
                 Para situaciones específicas, consulte a un abogado.
               </p>
               <p className="mt-2">
-                <Link href="/marketplace" className="underline hover:no-underline" style={{ color: "var(--pf-purple)" }}>
+                <Link href="/marketplace" className="underline hover:no-underline" style={{ color: "var(--pf-brand)" }}>
                   ← Volver al marketplace
                 </Link>
               </p>

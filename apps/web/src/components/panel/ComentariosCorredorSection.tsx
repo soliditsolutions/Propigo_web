@@ -64,19 +64,19 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
   return (
     <div
       className="mb-6 overflow-hidden rounded-2xl"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+        style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
       >
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           <MessageSquare className="h-4 w-4" aria-hidden />
           Mensajes al arrendatario
         </h2>
         {comentarios.length > 0 && (
-          <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: "var(--hw-primary-lt)", color: "var(--hw-primary)" }}>
+          <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: "var(--pgo-primary-lt)", color: "var(--pgo-primary)" }}>
             {comentarios.length}
           </span>
         )}
@@ -84,31 +84,31 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
 
       {/* Historial */}
       {comentarios.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: "var(--hw-border)" }}>
+        <div className="divide-y" style={{ borderColor: "var(--pgo-border)" }}>
           {comentarios.map(c => {
             const abierto = expanded.has(c.id);
             return (
               <div key={c.id}>
                 <button
                   onClick={() => toggle(c.id)}
-                  className="flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-[var(--hw-surface-2)] transition-colors"
+                  className="flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-[var(--pgo-surface-2)] transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>{c.usuarioNombre}</span>
-                      <span className="shrink-0 text-xs" style={{ color: "var(--hw-text-4)" }}>{fechaLabel(c.createdAt)}</span>
+                      <span className="text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>{c.usuarioNombre}</span>
+                      <span className="shrink-0 text-xs" style={{ color: "var(--pgo-text-4)" }}>{fechaLabel(c.createdAt)}</span>
                     </div>
                     {!abierto && (
-                      <p className="text-sm truncate mt-0.5" style={{ color: "var(--hw-text-2)" }}>{c.texto}</p>
+                      <p className="text-sm truncate mt-0.5" style={{ color: "var(--pgo-text-2)" }}>{c.texto}</p>
                     )}
                   </div>
-                  <ChevronDown className={`h-4 w-4 shrink-0 mt-0.5 transition-transform ${abierto ? "rotate-180" : ""}`} style={{ color: "var(--hw-text-4)" }} aria-hidden />
+                  <ChevronDown className={`h-4 w-4 shrink-0 mt-0.5 transition-transform ${abierto ? "rotate-180" : ""}`} style={{ color: "var(--pgo-text-4)" }} aria-hidden />
                 </button>
                 {abierto && (
                   <div className="px-5 pb-3">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--hw-text-2)" }}>{c.texto}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--pgo-text-2)" }}>{c.texto}</p>
                     {c.documentos.length > 0 && (
-                      <p className="mt-2 text-xs" style={{ color: "var(--hw-text-4)" }}>
+                      <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                         {cantidad(c.documentos.length, "documento", "documentos")}{" "}
                         {plural(c.documentos.length, "adjunto", "adjuntos")}
                       </p>
@@ -120,7 +120,7 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
           })}
         </div>
       ) : (
-        <div className="px-5 py-4 text-sm" style={{ color: "var(--hw-text-4)" }}>
+        <div className="px-5 py-4 text-sm" style={{ color: "var(--pgo-text-4)" }}>
           Sin mensajes enviados aún.
         </div>
       )}
@@ -129,9 +129,9 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
       <form
         onSubmit={handleSubmit}
         className="px-5 py-4 space-y-3"
-        style={{ borderTop: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+        style={{ borderTop: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
       >
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Nuevo mensaje para el arrendatario
         </p>
         <textarea
@@ -140,24 +140,24 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
           placeholder="Escribe un mensaje informativo, instrucción o recordatorio para el arrendatario…"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-xl border px-3 py-2.5 text-sm resize-none outline-none transition-colors focus:border-[var(--hw-primary)]"
-          style={{ borderColor: "var(--hw-border)", color: "var(--hw-text-1)", background: "var(--hw-surface)" }}
+          className="w-full rounded-xl border px-3 py-2.5 text-sm resize-none outline-none transition-colors focus:border-[var(--pgo-primary)]"
+          style={{ borderColor: "var(--pgo-border)", color: "var(--pgo-text-1)", background: "var(--pgo-surface)" }}
           disabled={isPending}
         />
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: "var(--hw-text-4)" }}>{texto.length}/2000</span>
+          <span className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{texto.length}/2000</span>
           <button
             type="submit"
             disabled={isPending || !texto.trim()}
             className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
-            style={{ background: "var(--hw-primary)" }}
+            style={{ background: "var(--pgo-primary)" }}
           >
             {isPending
               ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden />Enviando…</>
               : <><Send className="h-4 w-4" aria-hidden />Enviar mensaje</>}
           </button>
         </div>
-        <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
           El arrendatario recibirá un correo con el aviso y podrá ver el mensaje en su portal.
         </p>
       </form>

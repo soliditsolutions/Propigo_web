@@ -15,7 +15,7 @@ interface BorderGlowProps {
   className?: string;
   /** Radio de esquina en px — debe COINCIDIR con el de la card envuelta (20 auth-card, 16 pf-card). */
   radius?: number;
-  /** Color del glow (cualquier color CSS). Por defecto el acento de marca tema-aware (--pf-purple). */
+  /** Color del glow (cualquier color CSS). Por defecto el acento de marca tema-aware (--pf-brand). */
   glowColor?: string;
   /** Cercanía al borde (0-100) a la que empieza a encenderse el glow. Mayor = más pegado al borde. */
   edgeSensitivity?: number;
@@ -29,15 +29,15 @@ interface BorderGlowProps {
  *
  * Adaptación tema-aware del componente BorderGlow (React Bits): un solo color
  * de marca en vez del mesh multicolor original, y todo derivado de tokens
- * (--pf-purple), así respeta el tema dual Aurora dark/light. Pensado SOLO para
+ * (--pf-brand), así respeta el tema dual Aurora dark/light. Pensado SOLO para
  * cards de vitrina (propiedades, planes, corredores) — no para cards densas de
  * datos, donde el efecto sería ruido.
  *
  * Es un wrapper: envuelve la card sin tocar su recorte interno. El realce de
  * hover ES el glow (no hay lift de transform), a propósito, para que el anillo
  * de luz nunca se desalinee con la card — sobre todo dentro de grids con la
- * animación de entrada .hw-stagger, que hace fill de transform en sus hijos.
- * Los estilos viven en globals.css (.hw-border-glow), junto a las demás cards.
+ * animación de entrada .pgo-stagger, que hace fill de transform en sus hijos.
+ * Los estilos viven en globals.css (.pgo-border-glow), junto a las demás cards.
  */
 export function BorderGlow({
   children,
@@ -121,7 +121,7 @@ export function BorderGlow({
     <div
       ref={ref}
       onPointerMove={handlePointerMove}
-      className={`hw-border-glow ${className}`}
+      className={`pgo-border-glow ${className}`}
       style={
         {
           "--glow-corner": `${radius}px`,

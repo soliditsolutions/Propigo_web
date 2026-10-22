@@ -141,19 +141,19 @@ export function CierreSection({
   return (
     <div
       className="mb-6 overflow-hidden rounded-2xl border-2"
-      style={{ borderColor: "var(--hw-danger-bd)", background: "var(--hw-danger-lt)" }}
+      style={{ borderColor: "var(--pgo-danger-bd)", background: "var(--pgo-danger-lt)" }}
     >
       {/* Header */}
       <div
         className="flex items-center gap-3 px-5 py-4"
-        style={{ background: "var(--hw-danger-lt)", borderBottom: "1px solid var(--hw-danger-bd)" }}
+        style={{ background: "var(--pgo-danger-lt)", borderBottom: "1px solid var(--pgo-danger-bd)" }}
       >
-        <XCircle className="h-5 w-5 shrink-0" style={{ color: "var(--hw-danger-dk)" }} aria-hidden="true" />
+        <XCircle className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-danger-dk)" }} aria-hidden="true" />
         <div>
-          <p className="font-semibold" style={{ color: "var(--hw-danger-dk)" }}>
+          <p className="font-semibold" style={{ color: "var(--pgo-danger-dk)" }}>
             Dar término al contrato
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--hw-danger-dk)" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--pgo-danger-dk)" }}>
             La propiedad volverá al estado <strong>disponible</strong> y podrá ser rearrendada.
           </p>
         </div>
@@ -164,7 +164,7 @@ export function CierreSection({
 
         {/* Tipo de término */}
         <fieldset>
-          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-danger-dk)" }}>
+          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-danger-dk)" }}>
             Tipo de término
           </legend>
           <div className="grid grid-cols-2 gap-2">
@@ -187,11 +187,11 @@ export function CierreSection({
                   aria-pressed={active}
                   disabled={disabled}
                   title={disabled ? "Disponible solo durante el último mes del contrato" : undefined}
-                  className="hw-btn rounded-xl py-3 px-4 text-sm font-semibold text-left"
+                  className="pgo-btn rounded-xl py-3 px-4 text-sm font-semibold text-left"
                   style={{
-                    background: disabled ? "var(--hw-surface-2)" : active ? "var(--hw-danger-lt)" : "var(--hw-surface)",
-                    border:     `2px solid ${disabled ? "var(--hw-border)" : active ? "var(--hw-danger)" : "var(--hw-danger-bd)"}`,
-                    color:      disabled ? "var(--hw-text-4)" : active ? "var(--hw-danger-dk)" : "var(--hw-danger-dk)",
+                    background: disabled ? "var(--pgo-surface-2)" : active ? "var(--pgo-danger-lt)" : "var(--pgo-surface)",
+                    border:     `2px solid ${disabled ? "var(--pgo-border)" : active ? "var(--pgo-danger)" : "var(--pgo-danger-bd)"}`,
+                    color:      disabled ? "var(--pgo-text-4)" : active ? "var(--pgo-danger-dk)" : "var(--pgo-danger-dk)",
                     cursor:     disabled ? "not-allowed" : "pointer",
                   }}
                 >
@@ -214,7 +214,7 @@ export function CierreSection({
         {/* Causal de término — de ella dependen el plazo de restitución y el
             procedimiento que procede, así que no es opcional. */}
         <fieldset>
-          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-danger-dk)" }}>
+          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-danger-dk)" }}>
             Causal de término
           </legend>
           <select
@@ -224,7 +224,7 @@ export function CierreSection({
               if (!CAUSALES.find((c) => c.valor === e.target.value)?.desahucio) setFechaDesahucio("");
             }}
             className="w-full rounded-xl border py-2.5 px-3 text-sm outline-none"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           >
             <option value="">Selecciona una causal…</option>
             {causalesDisponibles.map((c) => (
@@ -233,7 +233,7 @@ export function CierreSection({
           </select>
           {requiereFechaDesahucio && (
             <div className="mt-3">
-              <label htmlFor="fechaDesahucio" className="mb-1 block text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+              <label htmlFor="fechaDesahucio" className="mb-1 block text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
                 Fecha en que se notificó el desahucio
               </label>
               <input
@@ -242,9 +242,9 @@ export function CierreSection({
                 value={fechaDesahucio}
                 onChange={(e) => setFechaDesahucio(e.target.value)}
                 className="w-full rounded-xl border py-2 px-3 text-sm outline-none"
-                style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+                style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
               />
-              <p className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="mt-1 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 La Ley 18.101 cuenta el plazo de restitución desde la notificación, no desde hoy.
               </p>
             </div>
@@ -255,10 +255,10 @@ export function CierreSection({
         {tipo === "anticipado" && rentaPeriodoFaltanteDisplay && (
           <div
             className="flex items-start gap-3 rounded-xl px-4 py-3"
-            style={{ background: "var(--hw-warning-lt)", border: "1px solid var(--hw-warning-bd)" }}
+            style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}
           >
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--hw-warning-dk)" }} aria-hidden="true" />
-            <div className="text-xs" style={{ color: "var(--hw-warning-dk)" }}>
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--pgo-warning-dk)" }} aria-hidden="true" />
+            <div className="text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
               <p className="font-semibold">Renta del período faltante (informativa)</p>
               <p className="mt-0.5">
                 {meses === 1 ? "Queda" : "Quedan"} {cantidad(meses, "mes", "meses")} hasta el término pactado: <strong>{rentaPeriodoFaltanteDisplay}</strong>.
@@ -271,10 +271,10 @@ export function CierreSection({
         {tipo === "anticipado" && !fechaFin && (
           <div
             className="flex items-start gap-3 rounded-xl px-4 py-3"
-            style={{ background: "var(--hw-warning-lt)", border: "1px solid var(--hw-warning-bd)" }}
+            style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}
           >
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--hw-warning-dk)" }} aria-hidden="true" />
-            <p className="text-xs" style={{ color: "var(--hw-warning-dk)" }}>
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--pgo-warning-dk)" }} aria-hidden="true" />
+            <p className="text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
               Este contrato es de plazo indefinido: no aplica el cálculo de renta del período faltante.
             </p>
           </div>
@@ -282,29 +282,29 @@ export function CierreSection({
 
         {/* Garantía — devolución con detalle de retenciones (boleta, L-CM5) */}
         {garantiaDisponibleCLP > 0 && (
-          <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-danger-bd)" }}>
+          <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-danger-bd)" }}>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 shrink-0" style={{ color: "var(--hw-danger-dk)" }} aria-hidden="true" />
-              <p className="text-sm font-semibold" style={{ color: "var(--hw-danger-dk)" }}>
+              <ShieldCheck className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-danger-dk)" }} aria-hidden="true" />
+              <p className="text-sm font-semibold" style={{ color: "var(--pgo-danger-dk)" }}>
                 Garantía a restituir: {clp(garantiaDisponibleCLP)}
               </p>
             </div>
             {garantiaDenominacion === "UF" && garantiaMontoBase != null && (
-              <p className="text-[11px]" style={{ color: "var(--hw-danger-dk)", opacity: 0.85 }}>
+              <p className="text-[11px]" style={{ color: "var(--pgo-danger-dk)", opacity: 0.85 }}>
                 Pactada en {garantiaMontoBase} UF — monto revalorizado a la UF de hoy.
               </p>
             )}
 
             <div>
-              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--hw-danger-dk)" }}>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--pgo-danger-dk)" }}>
                 Retenciones (deja la lista vacía para devolver todo)
               </p>
-              <p className="mb-2 text-[11px]" style={{ color: "var(--hw-danger-dk)", opacity: 0.8 }}>
+              <p className="mb-2 text-[11px]" style={{ color: "var(--pgo-danger-dk)", opacity: 0.8 }}>
                 Cada retención queda impresa en el comprobante que recibe el arrendatario. El motivo es obligatorio.
               </p>
               <div className="space-y-2">
                 {retenciones.map((r) => (
-                  <div key={r.tempId} className="grid gap-2 sm:grid-cols-[1fr_auto_auto] items-center rounded-lg p-2" style={{ background: "var(--hw-danger-lt)" }}>
+                  <div key={r.tempId} className="grid gap-2 sm:grid-cols-[1fr_auto_auto] items-center rounded-lg p-2" style={{ background: "var(--pgo-danger-lt)" }}>
                     <input
                       type="text"
                       placeholder="Motivo (ej. pintura de living, reposición de llaves)"
@@ -312,11 +312,11 @@ export function CierreSection({
                       maxLength={200}
                       onChange={(e) => setRetenciones((prev) => prev.map((x) => x.tempId === r.tempId ? { ...x, descripcion: e.target.value } : x))}
                       className="rounded-lg border px-2 py-1.5 text-sm"
-                      style={{ borderColor: "var(--hw-danger-bd)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+                      style={{ borderColor: "var(--pgo-danger-bd)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
                       aria-label="Motivo de la retención"
                     />
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium" style={{ color: "var(--hw-danger-dk)" }}>$</span>
+                      <span className="text-xs font-medium" style={{ color: "var(--pgo-danger-dk)" }}>$</span>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -324,7 +324,7 @@ export function CierreSection({
                         value={r.montoClp || ""}
                         onChange={(e) => setRetenciones((prev) => prev.map((x) => x.tempId === r.tempId ? { ...x, montoClp: Number(e.target.value.replace(/\D/g, "")) } : x))}
                         className="w-28 rounded-lg border px-2 py-1.5 text-sm tabular-nums"
-                        style={{ borderColor: "var(--hw-danger-bd)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+                        style={{ borderColor: "var(--pgo-danger-bd)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
                         aria-label="Monto de la retención en pesos"
                       />
                     </div>
@@ -332,8 +332,8 @@ export function CierreSection({
                       type="button"
                       onClick={() => setRetenciones((prev) => prev.filter((x) => x.tempId !== r.tempId))}
                       aria-label="Eliminar esta retención"
-                      className="hw-btn rounded-lg p-1"
-                      style={{ color: "var(--hw-danger-dk)" }}
+                      className="pgo-btn rounded-lg p-1"
+                      style={{ color: "var(--pgo-danger-dk)" }}
                     >
                       <X className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -343,37 +343,37 @@ export function CierreSection({
               <button
                 type="button"
                 onClick={() => setRetenciones((prev) => [...prev, nuevaRetencion()])}
-                className="hw-btn mt-2 flex items-center gap-1 text-xs font-semibold"
-                style={{ color: "var(--hw-danger-dk)" }}
+                className="pgo-btn mt-2 flex items-center gap-1 text-xs font-semibold"
+                style={{ color: "var(--pgo-danger-dk)" }}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 Agregar retención
               </button>
               {hayRetencionIncompleta && (
-                <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--hw-danger-dk)" }}>
+                <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--pgo-danger-dk)" }}>
                   Completa el motivo y el monto de cada retención, o elimínala.
                 </p>
               )}
             </div>
 
             {/* Resumen — la boleta en vivo */}
-            <div className="rounded-lg p-3 space-y-1 text-xs" style={{ background: "var(--hw-danger-lt)", color: "var(--hw-danger-dk)" }}>
+            <div className="rounded-lg p-3 space-y-1 text-xs" style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger-dk)" }}>
               <div className="flex justify-between"><span>Garantía a restituir</span><span className="tabular-nums">{clp(dev.garantiaDisponibleClp)}</span></div>
               {dev.retenciones.map((r, i) => (
                 <div key={i} className="flex justify-between"><span>− {r.descripcion}</span><span className="tabular-nums">{clp(r.montoClp)}</span></div>
               ))}
-              <div className="flex justify-between border-t pt-1 font-bold" style={{ borderColor: "var(--hw-danger-bd)", color: "var(--hw-success-dk)" }}>
+              <div className="flex justify-between border-t pt-1 font-bold" style={{ borderColor: "var(--pgo-danger-bd)", color: "var(--pgo-success-dk)" }}>
                 <span>Se devuelve al arrendatario</span><span className="tabular-nums">{clp(dev.devolucionClp)}</span>
               </div>
               {dev.saldoPendienteArrendatarioClp > 0 && (
-                <div className="flex justify-between font-semibold pt-1" style={{ color: "var(--hw-danger-dk)" }}>
+                <div className="flex justify-between font-semibold pt-1" style={{ color: "var(--pgo-danger-dk)" }}>
                   <span>Saldo que el arrendatario debe pagar (se cobra por fuera)</span>
                   <span className="tabular-nums">{clp(dev.saldoPendienteArrendatarioClp)}</span>
                 </div>
               )}
             </div>
 
-            <p className="text-[11px]" style={{ color: "var(--hw-danger-dk)", opacity: 0.8 }}>
+            <p className="text-[11px]" style={{ color: "var(--pgo-danger-dk)", opacity: 0.8 }}>
               Se emitirá un comprobante de devolución de garantía y se avisará al arrendatario con este desglose.
               Los montos quedan en el ledger inmutable del contrato.
             </p>
@@ -388,7 +388,7 @@ export function CierreSection({
             onChange={(e) => setConfirmado(e.target.checked)}
             className="mt-0.5 h-4 w-4 rounded accent-red-600"
           />
-          <span className="text-xs font-medium" style={{ color: "var(--hw-danger-dk)" }}>
+          <span className="text-xs font-medium" style={{ color: "var(--pgo-danger-dk)" }}>
             Confirmo que deseo dar{" "}
             {tipo === "anticipado" ? "término anticipado" : "término"} a este contrato.
             Esta acción <strong>no se puede revertir</strong>.
@@ -399,9 +399,9 @@ export function CierreSection({
           type="button"
           onClick={handleTerminar}
           disabled={!confirmado || !puedeTerminar || isPending}
-          className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+          className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
           style={{
-            background: (!confirmado || !puedeTerminar || isPending) ? "var(--hw-border-2)" : "var(--hw-danger)",
+            background: (!confirmado || !puedeTerminar || isPending) ? "var(--pgo-border-2)" : "var(--pgo-danger)",
             cursor: (!confirmado || !puedeTerminar) ? "not-allowed" : "pointer",
           }}
         >

@@ -23,7 +23,7 @@
 | **Rutas API** | `/api/panel/vouchers/[id]/pdf`, `/api/portal/voucher/[id]/pdf`, `/api/panel/contratos/[id]/aviso-termino/pdf`, `/api/panel/contratos/[id]/estado-cuenta/pdf` |
 | **Server actions** | `panel/corredora/actions` (3), `panel/propiedades/actualizarPropiedad` (cuentaPropietario), `panel/contratos/[id]/terminarContrato` (causal), `panel/contratos/nuevo/crearContrato` (amoblado/CBR), `registro/actions` (rut corredora) |
 | **Tablas nuevas / columnas** | `cuenta_bancaria`, `folio_counter`, `Tenant.rut UNIQUE`, `Voucher.folio`, `Contrato.*` (causal, CBR, notario), `Propiedad.avaluoFiscal` |
-| **Núcleo (`@housing/core`)** | `iva.ts` (5 fns), `desahucio.ts`, `liquidacion.ts` extendido |
+| **Núcleo (`@propigo/core`)** | `iva.ts` (5 fns), `desahucio.ts`, `liquidacion.ts` extendido |
 | **Documentos PDF** | comprobante, liquidación, aviso de término, estado de cuenta |
 | **Portal** | cuenta del propietario (L-DT7), comprobantes del arrendatario |
 
@@ -51,7 +51,7 @@
 | B2 | `folio_counter`: otra corredora lo lee o lo altera | 0 filas / count 0 |
 | B3 | Sin `app.current_tenant_id` seteado, `cuenta_bancaria.findMany` | 0 filas |
 | B4 | Un `tenant_id` inventado en `set_config` no abre nada | 0 filas |
-| B5 | `housing_app` tiene los GRANT (INSERT/SELECT/UPDATE/DELETE) sobre las tablas nuevas | sí |
+| B5 | `propigo_app` tiene los GRANT (INSERT/SELECT/UPDATE/DELETE) sobre las tablas nuevas | sí |
 
 ### C. Fuga de información
 
@@ -126,7 +126,7 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió en el acto · ⚠
 
 ### Método aplicado
 
-- **DB real bajo RLS** (`housing_app`): `apps/web/src/lib/__tests__/qa-seguridad-cambios-legales.test.ts`
+- **DB real bajo RLS** (`propigo_app`): `apps/web/src/lib/__tests__/qa-seguridad-cambios-legales.test.ts`
   — 17 casos (B, D, E, C, y **A3/A4 nuevos**). Corre contra Postgres levantado; se salta si no hay base.
 - **Unitario**: `packages/core` (74) + suites de `apps/web` (839) — cubren toda la sección F.
 - **Rutas / navegador**: `curl` + sesión real de panel/portal para A1/A2/A5–A7 y headers.
@@ -152,7 +152,7 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió en el acto · ⚠
 | B2 | ✅ `folio_counter`: otra corredora lo lee → 0 filas; lo altera → `count 0`; el de A queda intacto. |
 | B3 | ✅ Sin `app.current_tenant_id` → `folio_counter` / `cuenta_bancaria` devuelven vacío. |
 | B4 | ✅ `tenant_id` inventado no abre nada (política `nullif(current_setting…)::uuid`). |
-| B5 | ✅ `housing_app` tiene `SELECT/INSERT/UPDATE/DELETE` sobre ambas tablas nuevas; RLS habilitada. |
+| B5 | ✅ `propigo_app` tiene `SELECT/INSERT/UPDATE/DELETE` sobre ambas tablas nuevas; RLS habilitada. |
 
 ### C. Fuga de información
 
@@ -231,4 +231,4 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió en el acto · ⚠
 - `apps/web/src/lib/__tests__/qa-seguridad-cambios-legales.test.ts` — 17 casos (auto-seed + limpieza).
 - `pdf-route.test.ts` — caso de regresión del guard `idFiltro`.
 
-Suites completas tras los cambios: **`apps/web` 839 ✅ · `@housing/core` 74 ✅**.
+Suites completas tras los cambios: **`apps/web` 839 ✅ · `@propigo/core` 74 ✅**.

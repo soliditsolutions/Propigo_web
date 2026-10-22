@@ -24,32 +24,32 @@ const inputBase: React.CSSProperties = {
   height:       "44px",
   width:        "100%",
   borderRadius: "12px",
-  background:   "var(--hw-glass-input)",
-  color:        "var(--hw-text-1)",
+  background:   "var(--pgo-glass-input)",
+  color:        "var(--pgo-text-1)",
   fontSize:     "14px",
   padding:      "0 14px",
   outline:      "none",
-  boxShadow:    "var(--hw-input-shadow)",
+  boxShadow:    "var(--pgo-input-shadow)",
   transition:   "border-color 150ms ease, box-shadow 150ms ease",
 };
 
 function inputStyle(hasError: boolean, disabled?: boolean): React.CSSProperties {
   return {
     ...inputBase,
-    border:  `1px solid ${hasError ? "var(--hw-danger)" : "var(--hw-border-2)"}`,
+    border:  `1px solid ${hasError ? "var(--pgo-danger)" : "var(--pgo-border-2)"}`,
     opacity: disabled ? 0.6 : 1,
   };
 }
 
 function onFocus(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "var(--hw-primary)";
-  e.currentTarget.style.boxShadow   = "var(--hw-input-shadow-focus)";
+  e.currentTarget.style.borderColor = "var(--pgo-primary)";
+  e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
 }
 
 function makeOnBlur(hasError: boolean) {
   return (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = hasError ? "var(--hw-danger)" : "var(--hw-border-2)";
-    e.currentTarget.style.boxShadow   = "var(--hw-input-shadow)";
+    e.currentTarget.style.borderColor = hasError ? "var(--pgo-danger)" : "var(--pgo-border-2)";
+    e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
   };
 }
 
@@ -163,20 +163,20 @@ function CarnetModalBody({
         <div className="flex items-center gap-3">
           <div
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "var(--hw-primary-lt)" }}
+            style={{ background: "var(--pgo-primary-lt)" }}
           >
-            <Shield className="h-6 w-6" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />
+            <Shield className="h-6 w-6" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />
           </div>
           <div>
             <DialogTitle
               className="text-base font-semibold leading-none"
-              style={{ color: "var(--hw-text-1)" }}
+              style={{ color: "var(--pgo-text-1)" }}
             >
               Verificación de identidad
             </DialogTitle>
             <DialogDescription
               className="mt-1 text-xs"
-              style={{ color: "var(--hw-text-3)" }}
+              style={{ color: "var(--pgo-text-3)" }}
             >
               Requerida para crear tu cuenta
             </DialogDescription>
@@ -184,8 +184,8 @@ function CarnetModalBody({
         </div>
         <DialogClose
           aria-label="Cerrar modal de verificación"
-          className="hw-btn hw-tap-target relative rounded-lg p-1.5 transition-colors"
-          style={{ color: "var(--hw-text-4)" }}
+          className="pgo-btn pgo-tap-target relative rounded-lg p-1.5 transition-colors"
+          style={{ color: "var(--pgo-text-4)" }}
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </DialogClose>
@@ -193,7 +193,7 @@ function CarnetModalBody({
 
       <div className="space-y-4 p-6">
         {/* Explicación */}
-        <p className="text-sm leading-relaxed" style={{ color: "var(--hw-text-2)" }}>
+        <p className="text-sm leading-relaxed" style={{ color: "var(--pgo-text-2)" }}>
           Para prevenir usurpación de identidad, verificamos que el{" "}
           <strong>RUT y nombre ingresados</strong> correspondan a tu documento.
           Sube una foto clara del{" "}
@@ -232,7 +232,7 @@ function CarnetModalBody({
                 </div>
               )}
             </div>
-            <p className="text-center text-xs" style={{ color: "var(--hw-text-4)" }}>
+            <p className="text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
               Encuadra tu cédula dentro del marco y toma la foto
             </p>
             <div className="flex gap-3">
@@ -241,7 +241,7 @@ function CarnetModalBody({
                 onClick={capturarFoto}
                 disabled={!cameraReady}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
-                style={{ background: "var(--hw-primary)" }}
+                style={{ background: "var(--pgo-primary)" }}
               >
                 <Camera className="h-4 w-4" aria-hidden="true" />
                 Capturar foto
@@ -250,7 +250,7 @@ function CarnetModalBody({
                 type="button"
                 onClick={() => setModo("archivo")}
                 className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-medium"
-                style={{ color: "var(--hw-text-3)" }}
+                style={{ color: "var(--pgo-text-3)" }}
               >
                 <ImageUp className="h-3.5 w-3.5" aria-hidden="true" />
                 Subir archivo
@@ -264,9 +264,9 @@ function CarnetModalBody({
                 className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs"
                 role="alert"
                 style={{
-                  background: "var(--hw-warning-lt)",
-                  color:      "var(--hw-warning-dk)",
-                  border:     "1px solid var(--hw-warning-bd)",
+                  background: "var(--pgo-warning-lt)",
+                  color:      "var(--pgo-warning-dk)",
+                  border:     "1px solid var(--pgo-warning-bd)",
                 }}
               >
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -277,8 +277,8 @@ function CarnetModalBody({
               className="flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer"
               style={{
                 height:     "156px",
-                border:     `2px dashed ${dragOver ? "var(--hw-primary)" : "var(--hw-border-2)"}`,
-                background: dragOver ? "var(--hw-primary-lt)" : "var(--hw-page)",
+                border:     `2px dashed ${dragOver ? "var(--pgo-primary)" : "var(--pgo-border-2)"}`,
+                background: dragOver ? "var(--pgo-primary-lt)" : "var(--pgo-page)",
               }}
               onDragOver={(e)  => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={()  => setDragOver(false)}
@@ -291,16 +291,16 @@ function CarnetModalBody({
             >
               <Upload
                 className="mb-2 h-8 w-8"
-                style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-4)" }}
+                style={{ color: dragOver ? "var(--pgo-primary)" : "var(--pgo-text-4)" }}
                 aria-hidden="true"
               />
               <span
                 className="text-sm font-medium"
-                style={{ color: dragOver ? "var(--hw-primary)" : "var(--hw-text-1)" }}
+                style={{ color: dragOver ? "var(--pgo-primary)" : "var(--pgo-text-1)" }}
               >
                 Arrastra tu carnet o haz clic aquí
               </span>
-              <span className="mt-1 text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <span className="mt-1 text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 JPG, PNG o WEBP · Máx. 5 MB
               </span>
               <input
@@ -320,7 +320,7 @@ function CarnetModalBody({
                 type="button"
                 onClick={() => setModo("camara")}
                 className="flex items-center gap-1.5 text-xs font-medium"
-                style={{ color: "var(--hw-primary)" }}
+                style={{ color: "var(--pgo-primary)" }}
               >
                 <Camera className="h-3.5 w-3.5" aria-hidden="true" />
                 Usar la cámara en su lugar
@@ -331,7 +331,7 @@ function CarnetModalBody({
           <div className="space-y-2">
             <div
               className="relative overflow-hidden rounded-xl"
-              style={{ height: "156px", background: "var(--hw-page)" }}
+              style={{ height: "156px", background: "var(--pgo-page)" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -341,21 +341,21 @@ function CarnetModalBody({
               />
               <div
                 className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold"
-                style={{ background: "var(--hw-success-lt)", color: "var(--hw-success-dk)" }}
+                style={{ background: "var(--pgo-success-lt)", color: "var(--pgo-success-dk)" }}
               >
                 <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                 Imagen cargada
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="truncate text-xs" style={{ color: "var(--hw-text-3)" }}>
+              <span className="truncate text-xs" style={{ color: "var(--pgo-text-3)" }}>
                 {carnetFile?.name}
               </span>
               <button
                 type="button"
                 onClick={limpiar}
                 className="ml-2 shrink-0 text-xs font-medium"
-                style={{ color: "var(--hw-danger)" }}
+                style={{ color: "var(--pgo-danger)" }}
               >
                 Cambiar imagen
               </button>
@@ -369,9 +369,9 @@ function CarnetModalBody({
             className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs"
             role="alert"
             style={{
-              background: "var(--hw-danger-lt)",
-              color:      "var(--hw-danger)",
-              border:     "1px solid var(--hw-danger-bd)",
+              background: "var(--pgo-danger-lt)",
+              color:      "var(--pgo-danger)",
+              border:     "1px solid var(--pgo-danger-bd)",
             }}
           >
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -380,7 +380,7 @@ function CarnetModalBody({
         )}
 
         {/* Nota de privacidad */}
-        <p className="text-xs leading-relaxed" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-4)" }}>
           🔒 La imagen se analiza con IA exclusivamente para verificar que el RUT y
           nombre coincidan. No se almacena ni se comparte con terceros.
         </p>
@@ -394,9 +394,9 @@ function CarnetModalBody({
             checked={consentIa}
             onChange={(e) => setConsentIa(e.target.checked)}
             className="mt-0.5 h-4 w-4 shrink-0 rounded"
-            style={{ accentColor: "var(--hw-primary)" }}
+            style={{ accentColor: "var(--pgo-primary)" }}
           />
-          <span className="text-xs leading-relaxed" style={{ color: "var(--hw-text-3)" }}>
+          <span className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-3)" }}>
             Acepto que la imagen de mi cédula sea enviada a nuestro proveedor de
             verificación de identidad por IA (Groq) exclusivamente para este análisis.
           </span>
@@ -405,11 +405,11 @@ function CarnetModalBody({
         {/* Botones */}
         <div className="flex gap-3">
           <DialogClose
-            className="flex-1 rounded-xl px-4 py-3 text-sm font-medium hw-btn transition-colors"
+            className="flex-1 rounded-xl px-4 py-3 text-sm font-medium pgo-btn transition-colors"
             style={{
-              background: "var(--hw-page)",
-              color:      "var(--hw-text-2)",
-              border:     "1px solid var(--hw-border-2)",
+              background: "var(--pgo-page)",
+              color:      "var(--pgo-text-2)",
+              border:     "1px solid var(--pgo-border-2)",
             }}
           >
             Cancelar
@@ -419,7 +419,7 @@ function CarnetModalBody({
             onClick={() => carnetFile && consentIa && onConfirmar(carnetFile, consentIa)}
             disabled={!carnetFile || !consentIa}
             className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
-            style={{ background: "var(--hw-primary)" }}
+            style={{ background: "var(--pgo-primary)" }}
           >
             Verificar y crear cuenta
           </button>
@@ -532,7 +532,7 @@ export function RegistroForm() {
 
         {/* Nombre completo */}
         <div className="space-y-1.5">
-          <label htmlFor="nombre" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="nombre" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Nombre completo
           </label>
           <input
@@ -554,11 +554,11 @@ export function RegistroForm() {
               if (clientErrors.nombre) setClientErrors((p) => ({ ...p, nombre: "" }));
             }}
           />
-          <p id="nombre-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p id="nombre-hint" className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
             Ingresa tu nombre tal como aparece en tu Cédula de Identidad.
           </p>
           {nombreErr && (
-            <p id="nombre-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="nombre-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {nombreErr}
             </p>
           )}
@@ -566,7 +566,7 @@ export function RegistroForm() {
 
         {/* RUT */}
         <div className="space-y-1.5">
-          <label htmlFor="rut" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="rut" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             RUT
           </label>
           <input
@@ -588,7 +588,7 @@ export function RegistroForm() {
             onBlur={makeOnBlur(!!rutErr)}
           />
           {rutErr && (
-            <p id="rut-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="rut-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {rutErr}
             </p>
           )}
@@ -596,7 +596,7 @@ export function RegistroForm() {
 
         {/* Correo electrónico */}
         <div className="space-y-1.5">
-          <label htmlFor="reg-email" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="reg-email" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Correo electrónico
           </label>
           <input
@@ -619,7 +619,7 @@ export function RegistroForm() {
             }}
           />
           {emailErr && (
-            <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {emailErr}
             </p>
           )}
@@ -627,7 +627,7 @@ export function RegistroForm() {
 
         {/* Nombre de la corredora */}
         <div className="space-y-1.5">
-          <label htmlFor="empresa" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="empresa" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Nombre de la corredora
           </label>
           <input
@@ -646,7 +646,7 @@ export function RegistroForm() {
             onChange={() => { if (clientErrors.empresa) setClientErrors((p) => ({ ...p, empresa: "" })); }}
           />
           {empresaErr && (
-            <p id="empresa-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="empresa-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {empresaErr}
             </p>
           )}
@@ -655,7 +655,7 @@ export function RegistroForm() {
         {/* Cómo opera la corredora. No es un dato administrativo: decide si la
             comisión que la corredora emite lleva IVA. */}
         <fieldset className="space-y-2">
-          <legend className="mb-1 block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <legend className="mb-1 block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             ¿Cómo opera tu corredora?
           </legend>
           {[
@@ -668,8 +668,8 @@ export function RegistroForm() {
               key={String(op.juridica)}
               className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
               style={{
-                background: esPersonaJuridica === op.juridica ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
-                border: `1px solid ${esPersonaJuridica === op.juridica ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+                background: esPersonaJuridica === op.juridica ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+                border: `1px solid ${esPersonaJuridica === op.juridica ? "var(--pgo-primary-bd)" : "var(--pgo-border-2)"}`,
                 opacity: pending ? 0.6 : 1,
               }}
             >
@@ -684,11 +684,11 @@ export function RegistroForm() {
                   if (clientErrors.rutEmpresa) setClientErrors((p) => ({ ...p, rutEmpresa: "" }));
                 }}
                 className="mt-0.5 h-4 w-4 shrink-0"
-                style={{ accentColor: "var(--hw-primary)" }}
+                style={{ accentColor: "var(--pgo-primary)" }}
               />
               <span className="min-w-0">
-                <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>{op.etiqueta}</span>
-                <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>{op.detalle}</span>
+                <span className="block text-sm" style={{ color: "var(--pgo-text-1)" }}>{op.etiqueta}</span>
+                <span className="block text-xs" style={{ color: "var(--pgo-text-4)" }}>{op.detalle}</span>
               </span>
             </label>
           ))}
@@ -699,7 +699,7 @@ export function RegistroForm() {
             tipearlo distinto. */}
         {esPersonaJuridica && (
           <div className="space-y-1.5">
-            <label htmlFor="rutEmpresa" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+            <label htmlFor="rutEmpresa" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
               RUT de la corredora
             </label>
             <input
@@ -720,11 +720,11 @@ export function RegistroForm() {
               onFocus={onFocus}
               onBlur={makeOnBlur(!!rutEmpresaErr)}
             />
-            <p id="rutEmpresa-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+            <p id="rutEmpresa-hint" className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
               Va en cada comprobante y liquidación que emitas. No es el tuyo.
             </p>
             {rutEmpresaErr && (
-              <p id="rutEmpresa-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+              <p id="rutEmpresa-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
                 {rutEmpresaErr}
               </p>
             )}
@@ -733,7 +733,7 @@ export function RegistroForm() {
 
         {/* Contraseña con medidor de fuerza */}
         <div className="space-y-1.5">
-          <label htmlFor="reg-password" className="block text-sm font-semibold" style={{ color: "var(--hw-text-2)" }}>
+          <label htmlFor="reg-password" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
             Contraseña
           </label>
           <div className="relative">
@@ -760,8 +760,8 @@ export function RegistroForm() {
               type="button"
               onClick={() => setShowPwd((v) => !v)}
               aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-              className="hw-tap-target absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 opacity-60 hover:opacity-100 transition-opacity"
-              style={{ color: "var(--hw-text-4)" }}
+              className="pgo-tap-target absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 opacity-60 hover:opacity-100 transition-opacity"
+              style={{ color: "var(--pgo-text-4)" }}
             >
               {showPwd
                 ? <EyeOff className="h-4 w-4" aria-hidden="true" />
@@ -771,11 +771,11 @@ export function RegistroForm() {
           <div aria-live="polite" aria-atomic="true">
             <PasswordStrengthMeter password={password} nombre={nombre} email={email} />
           </div>
-          <p id="password-hint" className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p id="password-hint" className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
             Mínimo 8 caracteres, con letras, números y un carácter especial. Evita tu nombre o correo.
           </p>
           {passwordErr && (
-            <p id="password-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="password-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {passwordErr}
             </p>
           )}
@@ -794,23 +794,23 @@ export function RegistroForm() {
               aria-invalid={consentErr ? true : undefined}
               aria-describedby={consentErr ? "consent-error" : undefined}
               className="mt-0.5 h-4 w-4 rounded shrink-0"
-              style={{ accentColor: "var(--hw-primary)", cursor: "pointer" }}
+              style={{ accentColor: "var(--pgo-primary)", cursor: "pointer" }}
               onChange={() => { if (clientErrors.consent) setClientErrors((p) => ({ ...p, consent: "" })); }}
             />
-            <label htmlFor="consent" className="text-xs leading-relaxed cursor-pointer" style={{ color: "var(--hw-text-3)" }}>
+            <label htmlFor="consent" className="text-xs leading-relaxed cursor-pointer" style={{ color: "var(--pgo-text-3)" }}>
               He leído y acepto los{" "}
-              <Link href="/terminos-uso" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--hw-primary)" }}>
+              <Link href="/terminos-uso" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--pgo-primary)" }}>
                 Términos de uso
               </Link>
               {" "}y la{" "}
-              <Link href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--hw-primary)" }}>
+              <Link href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--pgo-primary)" }}>
                 Política de privacidad
               </Link>
               {" "}conforme a la Ley 21.719.
             </label>
           </div>
           {consentErr && (
-            <p id="consent-error" role="alert" className="text-xs" style={{ color: "var(--hw-danger)" }}>
+            <p id="consent-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
               {consentErr}
             </p>
           )}
@@ -822,9 +822,9 @@ export function RegistroForm() {
             className="flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm"
             role="alert"
             style={{
-              background: "var(--hw-danger-lt)",
-              color:      "var(--hw-danger)",
-              border:     "1px solid var(--hw-danger-bd)",
+              background: "var(--pgo-danger-lt)",
+              color:      "var(--pgo-danger)",
+              border:     "1px solid var(--pgo-danger-bd)",
             }}
           >
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -836,7 +836,7 @@ export function RegistroForm() {
         <button
           type="submit"
           disabled={pending}
-          className="hw-btn-primary w-full justify-center"
+          className="pgo-btn-primary w-full justify-center"
           style={{ height: "46px", fontSize: "15px", borderRadius: "12px" }}
           aria-busy={pending}
         >
@@ -854,9 +854,9 @@ export function RegistroForm() {
         </button>
 
         {/* Link a login */}
-        <p className="text-center text-sm" style={{ color: "var(--hw-text-3)" }}>
+        <p className="text-center text-sm" style={{ color: "var(--pgo-text-3)" }}>
           ¿Ya tienes cuenta?{" "}
-          <Link href="/login" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: "var(--hw-primary)" }}>
+          <Link href="/login" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: "var(--pgo-primary)" }}>
             Inicia sesión
           </Link>
         </p>
@@ -872,7 +872,7 @@ export function RegistroForm() {
         <DialogContent
           showCloseButton={false}
           className="max-w-md gap-0 overflow-hidden p-0"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)" }}
         >
           <CarnetModalBody onConfirmar={handleConfirmar} />
         </DialogContent>

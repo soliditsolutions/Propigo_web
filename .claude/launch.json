@@ -4,7 +4,7 @@
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--workspace", "@housing/web"],
+      "runtimeArgs": ["run", "dev", "--workspace", "@propigo/web"],
       "autoPort": true
     },
     {

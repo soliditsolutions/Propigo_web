@@ -4,7 +4,7 @@
  * Capas de seguridad:
  *  1. Sesión JWT válida para /panel/* y /verificar-dispositivo
  *  2. Dispositivo confiable verificado para /panel/*
- *     (cookie hw_device debe coincidir con deviceToken embebido en JWT)
+ *     (cookie pgo_device debe coincidir con deviceToken embebido en JWT)
  *  3. Sesión JWT portal para /portal/contrato/* (solo lectura)
  *  4. CSP con nonce por request (script-src nonce-based, sin 'unsafe-inline')
  *  5. Caducidad por inactividad y tope absoluto de ambas sesiones

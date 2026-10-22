@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendContactoCorredorEmail, sendAcuseContactoEmail } from "@/lib/email";
 import { z } from "zod";
+import { CORREO } from "@/lib/marca";
 
 const schema = z.object({
   publicacionId: z.string().uuid(),
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Publicación no encontrada." }, { status: 404 });
   }
 
-  // Determinar email del corredor: emailContacto → primer usuario admin → contacto@solidit.cl
+  // Determinar email del corredor: emailContacto → primer usuario admin → CORREO.soporte
   // ADR-0011 Fase 2: usuario está sujeto a RLS y el visitante no tiene sesión
   // de ningún tenant — se resuelve con una función SECURITY DEFINER de solo
   // lectura (setup.sql), no con acceso directo a la tabla completa.
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
     const rows = await prisma.$queryRaw<{ marketplace_lookup_corredor_email_fallback: string | null }[]>`
       SELECT marketplace_lookup_corredor_email_fallback(${pub.tenant.id}::uuid)
     `;
-    emailCorredor = rows[0]?.marketplace_lookup_corredor_email_fallback ?? "contacto@solidit.cl";
+    emailCorredor = rows[0]?.marketplace_lookup_corredor_email_fallback ?? CORREO.soporte;
   }
 
   // Generar token de valoración (UUID v4)

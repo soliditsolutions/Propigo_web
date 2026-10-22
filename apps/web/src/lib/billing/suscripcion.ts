@@ -1,5 +1,5 @@
 /**
- * Orquestación de la suscripción de un tenant a Housing.
+ * Orquestación de la suscripción de un tenant a Propigo.
  *
  * Junta tres cosas que hasta ahora vivían sueltas: los precios (plans.ts), el
  * puerto de pasarela (gateway.ts) y los modelos SuscripcionTenant/CargoBilling.
@@ -21,6 +21,7 @@
 import type { TenantClient } from "../tenant-db";
 import { PLANS, getPlanEfectivo, precioUf, desglosarPrecioClp } from "../plans";
 import type { BillingGateway, DesgloseMonto } from "./gateway";
+import { MARCA } from "@/lib/marca";
 
 export type Ciclo = "mensual" | "anual";
 
@@ -185,7 +186,7 @@ export async function activarSuscripcionConTarjeta(params: {
   try {
     cobro = await gateway.cobrar({
       idempotencyKey, tenantId, medioPago: medio.referencia, monto,
-      descripcion: `Housing ${planId} (${ciclo}) — ${periodo}`,
+      descripcion: `${MARCA} ${planId} (${ciclo}) — ${periodo}`,
     });
   } catch {
     await tx.cargoBilling.update({

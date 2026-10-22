@@ -44,7 +44,7 @@ describe("detectarPii() — RUT (bloquea solo válidos mod-11)", () => {
   });
 
   it("bloquea un RUT válido con DV = K", () => {
-    // 10.000.013-K es válido mod-11 (verificado con el algoritmo de @housing/core).
+    // 10.000.013-K es válido mod-11 (verificado con el algoritmo de @propigo/core).
     const r = detectarPii("cédula 10.000.013-K");
     expect(r.hallazgos.find((h) => h.tipo === "rut")?.cantidad).toBe(1);
     expect(r.decision).toBe("bloquear");

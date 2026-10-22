@@ -1,6 +1,6 @@
 # Guía de levantamiento local
 
-Cómo correr el prototipo de Housing en un computador para inspeccionarlo. Pensada para una demo con el directorio.
+Cómo correr el prototipo de Propigo en un computador para inspeccionarlo. Pensada para una demo con el directorio.
 
 > El prototipo es **local**: el núcleo financiero es real (cálculos de verdad sobre PostgreSQL), y las integraciones externas (pagos, banco, correo) están simuladas.
 
@@ -19,7 +19,7 @@ Cómo correr el prototipo de Housing en un computador para inspeccionarlo. Pensa
 
 ## 2. Levantar el prototipo (primera vez)
 
-Desde la carpeta raíz del proyecto (`Housing/`), en una terminal:
+Desde la carpeta raíz del proyecto (`Propigo/`), en una terminal:
 
 ```bash
 # 1. Instalar dependencias
@@ -29,13 +29,13 @@ npm install
 npm run db:up
 
 # 3. Crear el esquema de la base de datos
-npm run db:push   -w @housing/web
+npm run db:push   -w @propigo/web
 
 # 4. Aplicar seguridad (RLS), reglas e índices
-npm run db:setup  -w @housing/web
+npm run db:setup  -w @propigo/web
 
 # 5. Cargar datos de ejemplo (corredora, propiedades, 2 contratos)
-npm run db:seed   -w @housing/web
+npm run db:seed   -w @propigo/web
 
 # 6. Iniciar la aplicación
 npm run dev
@@ -75,7 +75,7 @@ npm run db:down   # apagar la base de datos
 Para volver a cargar los datos de ejemplo desde cero:
 
 ```bash
-npm run db:seed -w @housing/web
+npm run db:seed -w @propigo/web
 ```
 
 ---
@@ -83,8 +83,8 @@ npm run db:seed -w @housing/web
 ## 5. Comandos útiles
 
 ```bash
-npm test -w @housing/core            # tests del núcleo financiero (deben pasar 8/8)
-npm run build -w @housing/web        # compilación de producción (verifica que todo cierra)
+npm test -w @propigo/core            # tests del núcleo financiero (deben pasar 8/8)
+npm run build -w @propigo/web        # compilación de producción (verifica que todo cierra)
 docker ps                            # ver la base de datos corriendo
 ```
 
@@ -95,8 +95,8 @@ docker ps                            # ver la base de datos corriendo
 - **"docker: command not found" / no conecta la base**: abre Docker Desktop y espera a que el motor esté activo; luego `npm run db:up`.
 - **El puerto 5432 ya está ocupado**: ya está contemplado — usamos el **5433** para no chocar con un PostgreSQL preinstalado.
 - **`P1000` / falla de autenticación**: confirma que `apps/web/.env` tenga
-  `DATABASE_URL="postgresql://housing:housing_dev@localhost:5433/housing?schema=public"`.
-- **No aparecen datos en el panel**: corre el seed → `npm run db:seed -w @housing/web`.
+  `DATABASE_URL="postgresql://propigo:propigo_dev@localhost:5433/propigo?schema=public"`.
+- **No aparecen datos en el panel**: corre el seed → `npm run db:seed -w @propigo/web`.
 - **El puerto 3000 está ocupado**: cierra la otra app o ejecuta `npm run dev -- -p 3001`.
 
 ---

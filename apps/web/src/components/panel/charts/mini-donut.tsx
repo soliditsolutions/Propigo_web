@@ -10,7 +10,7 @@ export function MiniDonut({ data, height = 140 }: { data: DonutSlice[]; height?:
     return (
       <div
         className="flex items-center justify-center text-xs"
-        style={{ height, width: height, color: "var(--hw-text-4)" }}
+        style={{ height, width: height, color: "var(--pgo-text-4)" }}
       >
         Sin datos aún
       </div>
@@ -42,11 +42,11 @@ export function MiniDonut({ data, height = 140 }: { data: DonutSlice[]; height?:
               return [`${n} (${Math.round((n / total) * 100)}%)`, String(name)];
             }}
             contentStyle={{
-              background: "var(--hw-surface)",
-              border: "1px solid var(--hw-border)",
+              background: "var(--pgo-surface)",
+              border: "1px solid var(--pgo-border)",
               borderRadius: 8,
               fontSize: 12,
-              color: "var(--hw-text-1)",
+              color: "var(--pgo-text-1)",
             }}
           />
         </PieChart>

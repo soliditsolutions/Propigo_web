@@ -18,7 +18,7 @@ export function PageSizePicker({
     <div className="flex items-center gap-2">
       <span
         className="text-xs select-none"
-        style={{ color: "var(--hw-text-4)" }}
+        style={{ color: "var(--pgo-text-4)" }}
       >
         Mostrar
       </span>
@@ -37,14 +37,14 @@ export function PageSizePicker({
             fontSize: "12px",
             fontWeight: 600,
             borderRadius: "10px",
-            border: `1px solid ${focused ? "var(--hw-primary)" : "var(--hw-border)"}`,
-            background: focused ? "var(--hw-primary-lt)" : "var(--hw-surface)",
-            color: focused ? "var(--hw-primary-dk)" : "var(--hw-text-2)",
+            border: `1px solid ${focused ? "var(--pgo-primary)" : "var(--pgo-border)"}`,
+            background: focused ? "var(--pgo-primary-lt)" : "var(--pgo-surface)",
+            color: focused ? "var(--pgo-primary-dk)" : "var(--pgo-text-2)",
             appearance: "none",
             WebkitAppearance: "none",
             cursor: "pointer",
             outline: "none",
-            boxShadow: focused ? `0 0 0 3px var(--hw-primary-bd)` : "none",
+            boxShadow: focused ? `0 0 0 3px var(--pgo-primary-bd)` : "none",
             transition: "border-color 150ms ease, box-shadow 150ms ease, background 150ms ease, color 150ms ease",
           }}
         >
@@ -58,7 +58,7 @@ export function PageSizePicker({
         <ChevronDown
           className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2"
           style={{
-            color: focused ? "var(--hw-primary)" : "var(--hw-text-4)",
+            color: focused ? "var(--pgo-primary)" : "var(--pgo-text-4)",
             transition: "color 150ms ease",
           }}
           aria-hidden="true"

@@ -7,7 +7,7 @@ export type TenantClient = Prisma.TransactionClient;
  * Ejecuta `fn` dentro de una transacción con `app.current_tenant_id` seteado
  * para esa conexión — requisito para que la política RLS `tenant_isolation`
  * (setup.sql, ADR-0011) filtre de verdad las consultas por tenant. Sin esto,
- * bajo el rol de runtime `housing_app` (sin bypass de RLS), toda consulta a
+ * bajo el rol de runtime `propigo_app` (sin bypass de RLS), toda consulta a
  * una tabla protegida devuelve 0 filas.
  *
  * `SET LOCAL` es transaccional por diseño de Postgres — por eso todas las

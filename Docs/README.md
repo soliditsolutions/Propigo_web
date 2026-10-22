@@ -1,4 +1,4 @@
-# Documentación de Housing — Hub central
+# Documentación de Propigo — Hub central
 
 Fuente de verdad del proyecto. Todo lo que decidimos, por qué, qué hace el sistema y qué falta, vive aquí — no en la cabeza ni solo en el chat.
 
@@ -82,7 +82,7 @@ Registro cronológico de decisiones. Una decisión = un archivo en [`decisiones/
 | [0008](decisiones/ADR-0008-liquidacion-y-ajustes.md) | Liquidación en 2 pasos y ajustes |
 | [0009](decisiones/ADR-0009-garantia-y-reconocimiento-deuda.md) | Mes de garantía y reconocimiento de deuda |
 | [0010](decisiones/ADR-0010-arriendos-por-dias.md) | Arriendos por días (STR) — Fase 2 |
-| [0011](decisiones/ADR-0011-roles-bd-y-rls.md) | Roles de BD (`housing`/`housing_app`) y RLS |
+| [0011](decisiones/ADR-0011-roles-bd-y-rls.md) | Roles de BD (`propigo`/`propigo_app`) y RLS |
 | [0012](decisiones/ADR-0012-identidad-libreria-y-ia-contrato-externa.md) | Verificación de identidad por librería + IA externa sobre contrato de-identificado |
 | [0013](decisiones/ADR-0013-cuentas-multiusuario.md) | Cuentas multi-usuario (Manager/Collaborator) — Fase A |
 

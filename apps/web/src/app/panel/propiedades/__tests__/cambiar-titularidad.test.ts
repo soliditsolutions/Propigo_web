@@ -12,7 +12,7 @@
  */
 import "dotenv/config";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../../../generated/prisma/client";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }));
@@ -35,7 +35,7 @@ const personaIds: string[] = [];
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try { await prisma.$queryRaw`SELECT 1`; } catch {
     await prisma.$disconnect().catch(() => {}); prisma = null; return false;
   }

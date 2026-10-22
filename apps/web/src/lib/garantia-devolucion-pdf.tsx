@@ -5,7 +5,8 @@
  * su motivo, y lo que se devuelve. Se dibuja al vuelo desde el snapshot del
  * voucher de garantía (L-CP7) — el archivo es representación, el snapshot es el dato.
  */
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer";
+import { Text } from "./pdf-base";
 import { formatRut } from "./rut";
 import { PIE_COMPROBANTE, type SnapshotGarantia } from "./comprobante";
 

@@ -231,7 +231,7 @@ export function AlertasSection({
               : "Avisos definidos por el administrador de tu cuenta, listos para usar."
           }
         />
-        <span className="flex shrink-0 items-center gap-2 text-xs" style={{ color: "var(--hw-text-3)" }}>
+        <span className="flex shrink-0 items-center gap-2 text-xs" style={{ color: "var(--pgo-text-3)" }}>
           {alertas.length}
           {abierta ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </span>
@@ -240,18 +240,18 @@ export function AlertasSection({
       {abierta && (
         <div className="mt-4 space-y-3">
           {esManager && editando === null && (
-            <button type="button" onClick={abrirNueva} className="hw-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold">
+            <button type="button" onClick={abrirNueva} className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold">
               <BellPlus className="h-4 w-4" aria-hidden="true" />
               Nueva alerta
             </button>
           )}
 
           {editando !== null && eligiendoPlantilla && (
-            <div className="space-y-3 rounded-xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}>
-              <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
+            <div className="space-y-3 rounded-xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                 ¿Cómo quieres empezar?
               </p>
-              <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 Elige la que más se parezca a lo que necesitas — queda editable, es solo para no partir de cero.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -260,31 +260,31 @@ export function AlertasSection({
                     key={p.id}
                     type="button"
                     onClick={() => elegirPlantilla(p.valores)}
-                    className="hw-btn flex items-start gap-3 rounded-xl p-3 text-left"
-                    style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)" }}
+                    className="pgo-btn flex items-start gap-3 rounded-xl p-3 text-left"
+                    style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)" }}
                   >
                     <span
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                      style={{ background: "var(--hw-primary-lt)", color: "var(--hw-primary)" }}
+                      style={{ background: "var(--pgo-primary-lt)", color: "var(--pgo-primary)" }}
                       aria-hidden="true"
                     >
                       <p.icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>{p.titulo}</span>
-                      <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>{p.descripcion}</span>
+                      <span className="block text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>{p.titulo}</span>
+                      <span className="block text-xs" style={{ color: "var(--pgo-text-4)" }}>{p.descripcion}</span>
                     </span>
                   </button>
                 ))}
               </div>
-              <div className="flex items-center justify-between gap-2 border-t pt-3" style={{ borderColor: "var(--hw-border)" }}>
+              <div className="flex items-center justify-between gap-2 border-t pt-3" style={{ borderColor: "var(--pgo-border)" }}>
                 <button type="button" onClick={() => elegirPlantilla(VACIA)}
-                  className="text-xs font-medium underline-offset-2 hover:underline" style={{ color: "var(--hw-text-3)" }}>
+                  className="text-xs font-medium underline-offset-2 hover:underline" style={{ color: "var(--pgo-text-3)" }}>
                   Prefiero empezar en blanco
                 </button>
                 <button type="button" onClick={cerrarFormulario} disabled={isPending}
-                  className="hw-btn rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: "var(--hw-surface)", color: "var(--hw-text-3)" }}>
+                  className="pgo-btn rounded-xl px-4 py-2 text-sm font-semibold"
+                  style={{ background: "var(--pgo-surface)", color: "var(--pgo-text-3)" }}>
                   Cancelar
                 </button>
               </div>
@@ -292,10 +292,10 @@ export function AlertasSection({
           )}
 
           {editando !== null && !eligiendoPlantilla && (
-            <div className="space-y-4 rounded-xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}>
+            <div className="space-y-4 rounded-xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
               {editando === "nueva" && (
                 <button type="button" onClick={() => setEligiendoPlantilla(true)}
-                  className="flex items-center gap-1 text-xs font-medium" style={{ color: "var(--hw-primary)" }}>
+                  className="flex items-center gap-1 text-xs font-medium" style={{ color: "var(--pgo-primary)" }}>
                   <ArrowLeft className="h-3 w-3" aria-hidden="true" /> Elegir otro punto de partida
                 </button>
               )}
@@ -307,7 +307,7 @@ export function AlertasSection({
                   <select
                     value={form.destinatario}
                     onChange={(e) => setForm({ ...form, destinatario: e.target.value as EntradaAlerta["destinatario"] })}
-                    className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                   >
                     <option value="arrendatario">Al arrendatario</option>
                     <option value="propietario">Al propietario</option>
@@ -325,7 +325,7 @@ export function AlertasSection({
                         diasOffset: v === "" ? null : (form.diasOffset ?? 5),
                       });
                     }}
-                    className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                   >
                     <option value="">Solo cuando yo la envíe</option>
                     <option value="antes_de_vencimiento">Antes del vencimiento</option>
@@ -340,13 +340,13 @@ export function AlertasSection({
                     type="number" min={0} max={LIMITES.diasOffsetMax}
                     value={form.diasOffset ?? ""}
                     onChange={(e) => setForm({ ...form, diasOffset: e.target.value === "" ? null : Number(e.target.value) })}
-                    className="hw-input w-32 rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-32 rounded-lg px-3 py-2 text-sm"
                   />
                 </Campo>
               )}
 
               {/* Paso 2 — el contenido, con los marcadores insertables a mano. */}
-              <div className="space-y-3 border-t pt-4" style={{ borderColor: "var(--hw-border)" }}>
+              <div className="space-y-3 border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
                 <Campo etiqueta="Asunto" ayuda="Lo primero que ve quien recibe el correo.">
                   <input
                     ref={asuntoRef}
@@ -354,7 +354,7 @@ export function AlertasSection({
                     onChange={(e) => setForm({ ...form, asunto: e.target.value })}
                     onFocus={() => setUltimoFoco("asunto")}
                     placeholder="Mantención programada en {{direccion}}"
-                    className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                   />
                 </Campo>
 
@@ -365,12 +365,12 @@ export function AlertasSection({
                     onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
                     onFocus={() => setUltimoFoco("cuerpo")}
                     placeholder="Hola {{arrendatario}}, te avisamos que…"
-                    className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                   />
                 </Campo>
 
                 <div>
-                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                     Toca uno para insertarlo en {ultimoFoco === "asunto" ? "el asunto" : "el mensaje"}
                   </p>
@@ -381,8 +381,8 @@ export function AlertasSection({
                         type="button"
                         onClick={() => insertarMarcador(m.clave)}
                         title={m.ayuda}
-                        className="hw-btn rounded-full px-2.5 py-1 text-xs font-medium"
-                        style={{ background: "var(--hw-primary-lt)", color: "var(--hw-primary-dk)" }}
+                        className="pgo-btn rounded-full px-2.5 py-1 text-xs font-medium"
+                        style={{ background: "var(--pgo-primary-lt)", color: "var(--pgo-primary-dk)" }}
                       >
                         <code>{`{{${m.clave}}}`}</code>
                         <span className="ml-1 font-normal opacity-80">{m.ayuda}</span>
@@ -395,43 +395,43 @@ export function AlertasSection({
                     loop de "¿esto de verdad se ve bien?" sin tener que enviarse
                     un aviso de prueba a sí mismo. */}
                 {(form.asunto || form.cuerpo) && (
-                  <div className="rounded-xl p-3" style={{ background: "var(--hw-surface)", border: "1px dashed var(--hw-border-2)" }}>
-                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--hw-text-4)" }}>
+                  <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface)", border: "1px dashed var(--pgo-border-2)" }}>
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--pgo-text-4)" }}>
                       <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                       Vista previa con datos de ejemplo
                     </p>
-                    <p className="text-sm font-semibold" style={{ color: "var(--hw-text-1)" }}>
-                      {renderizarAlerta(form.asunto, DATOS_EJEMPLO) || <span style={{ color: "var(--hw-text-4)" }}>(sin asunto)</span>}
+                    <p className="text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
+                      {renderizarAlerta(form.asunto, DATOS_EJEMPLO) || <span style={{ color: "var(--pgo-text-4)" }}>(sin asunto)</span>}
                     </p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm" style={{ color: "var(--hw-text-2)" }}>
-                      {renderizarAlerta(form.cuerpo, DATOS_EJEMPLO) || <span style={{ color: "var(--hw-text-4)" }}>(sin mensaje)</span>}
+                    <p className="mt-1 whitespace-pre-wrap text-sm" style={{ color: "var(--pgo-text-2)" }}>
+                      {renderizarAlerta(form.cuerpo, DATOS_EJEMPLO) || <span style={{ color: "var(--pgo-text-4)" }}>(sin mensaje)</span>}
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Paso 3 — nombrarla, ahora que ya se sabe qué dice. */}
-              <div className="border-t pt-4" style={{ borderColor: "var(--hw-border)" }}>
+              <div className="border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
                 <Campo etiqueta="Nombre de la alerta" ayuda="Solo lo ves tú y tu equipo, para reconocerla en la lista.">
                   <input
                     value={form.nombre} maxLength={LIMITES.nombre}
                     onChange={(e) => setForm({ ...form, nombre: e.target.value })}
                     placeholder="Aviso de mantención"
-                    className="hw-input w-full rounded-lg px-3 py-2 text-sm"
+                    className="pgo-input w-full rounded-lg px-3 py-2 text-sm"
                   />
                 </Campo>
               </div>
 
-              {error && <p className="text-sm" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+              {error && <p className="text-sm" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
 
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={cerrarFormulario} disabled={isPending}
-                  className="hw-btn rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: "var(--hw-surface)", color: "var(--hw-text-3)" }}>
+                  className="pgo-btn rounded-xl px-4 py-2 text-sm font-semibold"
+                  style={{ background: "var(--pgo-surface)", color: "var(--pgo-text-3)" }}>
                   Cancelar
                 </button>
                 <button type="button" onClick={guardar} disabled={isPending}
-                  className="hw-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold">
+                  className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold">
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                   Guardar
                 </button>
@@ -440,7 +440,7 @@ export function AlertasSection({
           )}
 
           {alertas.length === 0 && editando === null && (
-            <p className="text-sm" style={{ color: "var(--hw-text-4)" }}>
+            <p className="text-sm" style={{ color: "var(--pgo-text-4)" }}>
               {esManager
                 ? "Todavía no hay alertas. Crea la primera y quedará disponible para todo tu equipo."
                 : "El administrador de tu cuenta todavía no ha creado alertas."}
@@ -448,34 +448,34 @@ export function AlertasSection({
           )}
 
           {alertas.map((a) => (
-            <div key={a.id} className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}>
+            <div key={a.id} className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-semibold" style={{ color: "var(--hw-text-1)" }}>
+                  <p className="flex items-center gap-2 font-semibold" style={{ color: "var(--pgo-text-1)" }}>
                     {a.nombre}
                     {!a.activa && <Badge tone="slate">Desactivada</Badge>}
                   </p>
-                  <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                  <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                     {describirDisparador(a)} · {a.destinatario === "arrendatario" ? "al arrendatario" : "al propietario"}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {a.activa && (
                     <button type="button" onClick={() => { setEnviando(enviando === a.id ? null : a.id); setContratoSel(""); }}
-                      className="hw-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-                      style={{ background: "var(--hw-surface)", color: "var(--hw-text-2)" }}>
+                      className="pgo-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                      style={{ background: "var(--pgo-surface)", color: "var(--pgo-text-2)" }}>
                       <Send className="h-3.5 w-3.5" aria-hidden="true" /> Enviar
                     </button>
                   )}
                   {esManager && (
                     <>
                       <button type="button" onClick={() => abrirEdicion(a)} aria-label={`Editar ${a.nombre}`}
-                        className="hw-btn rounded-lg p-1.5" style={{ color: "var(--hw-text-4)" }}>
+                        className="pgo-btn rounded-lg p-1.5" style={{ color: "var(--pgo-text-4)" }}>
                         <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                       <button type="button" onClick={() => alternar(a)} disabled={isPending}
                         aria-label={a.activa ? `Desactivar ${a.nombre}` : `Activar ${a.nombre}`}
-                        className="hw-btn rounded-lg p-1.5" style={{ color: a.activa ? "var(--hw-warning)" : "var(--hw-success)" }}>
+                        className="pgo-btn rounded-lg p-1.5" style={{ color: a.activa ? "var(--pgo-warning)" : "var(--pgo-success)" }}>
                         <Power className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     </>
@@ -484,19 +484,19 @@ export function AlertasSection({
               </div>
 
               {enviando === a.id && (
-                <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3" style={{ borderColor: "var(--hw-border)" }}>
+                <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3" style={{ borderColor: "var(--pgo-border)" }}>
                   <div className="min-w-0 flex-1">
-                    <label className="mb-1 block text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+                    <label className="mb-1 block text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
                       ¿Sobre qué contrato?
                     </label>
                     <select value={contratoSel} onChange={(e) => setContratoSel(e.target.value)}
-                      className="hw-input w-full rounded-lg px-3 py-2 text-sm">
+                      className="pgo-input w-full rounded-lg px-3 py-2 text-sm">
                       <option value="">Elige un contrato…</option>
                       {contratos.map((c) => <option key={c.id} value={c.id}>{c.etiqueta}</option>)}
                     </select>
                   </div>
                   <button type="button" onClick={() => mandar(a.id)} disabled={!contratoSel || isPending}
-                    className="hw-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50">
+                    className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50">
                     {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                     Encolar aviso
                   </button>
@@ -513,9 +513,9 @@ export function AlertasSection({
 function Campo({ etiqueta, ayuda, children }: { etiqueta: string; ayuda?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+      <label className="mb-1 block text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
         {etiqueta}
-        {ayuda && <span className="ml-1 font-normal" style={{ color: "var(--hw-text-4)" }}>— {ayuda}</span>}
+        {ayuda && <span className="ml-1 font-normal" style={{ color: "var(--pgo-text-4)" }}>— {ayuda}</span>}
       </label>
       {children}
     </div>

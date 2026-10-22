@@ -1,6 +1,6 @@
 # Manual de usuario
 
-> Guía sencilla de operación de Housing. Dos audiencias: el **corredor** (panel de gestión) y el **arrendatario/propietario** (portal de consulta). Escrita para usuarios no técnicos.
+> Guía sencilla de operación de Propigo. Dos audiencias: el **corredor** (panel de gestión) y el **arrendatario/propietario** (portal de consulta). Escrita para usuarios no técnicos.
 
 ---
 
@@ -71,7 +71,7 @@ No necesitas crear una cuenta. Consultas tu arriendo con tu RUT.
 3. **Contactar al corredor:** completa el formulario; el corredor recibirá tu consulta.
 4. **Denunciar:** si algo parece fraudulento, usa "Reportar"; puedes hacerlo de forma anónima (debes declarar que la información es veraz).
 
-> ⚠️ **Anti-fraude:** Housing solo intermedia. Nunca transfieras dinero antes de visitar la propiedad y firmar contrato. Ver la advertencia completa en [Términos de uso](/terminos-uso).
+> ⚠️ **Anti-fraude:** Propigo solo intermedia. Nunca transfieras dinero antes de visitar la propiedad y firmar contrato. Ver la advertencia completa en [Términos de uso](/terminos-uso).
 
 ---
 

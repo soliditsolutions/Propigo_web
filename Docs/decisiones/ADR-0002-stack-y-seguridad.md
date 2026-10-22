@@ -4,7 +4,7 @@
 - **Estado**: Aceptada
 
 ## Contexto
-Housing maneja datos financieros y personales **altamente sensibles**. Se evaluó si un stack Next.js full-stack es adecuado frente a ataques de terceros, o si conviene separar frontend y backend.
+Propigo maneja datos financieros y personales **altamente sensibles**. Se evaluó si un stack Next.js full-stack es adecuado frente a ataques de terceros, o si conviene separar frontend y backend.
 
 ## Decisión
 **Next.js (App Router) + TypeScript como monolito modular**, con:

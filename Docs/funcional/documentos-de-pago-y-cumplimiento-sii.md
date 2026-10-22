@@ -4,7 +4,7 @@
 > competidora (Leasity, corredora Fuhrer Group) dejados en `Docs/testFiles/`, más
 > la normativa del SII y la Ley 18.101.
 >
-> **Conclusión corta:** Housing **no puede emitir una boleta ni una factura**, y
+> **Conclusión corta:** Propigo **no puede emitir una boleta ni una factura**, y
 > no debería intentarlo. Lo que sí puede —y hoy no hace— es emitir el
 > comprobante que respalda cada pago, dejar la comisión con su IVA desglosado
 > para que la corredora la declare, y armar la Declaración Jurada 1835, que es
@@ -95,18 +95,18 @@ el rowMap tiene ahora evidencia de un producto real.
 
 ## 3. Lo legal: qué se puede y qué no
 
-### 3.1 Housing no puede emitir una boleta ni una factura
+### 3.1 Propigo no puede emitir una boleta ni una factura
 
 Una boleta o factura electrónica es un **Documento Tributario Electrónico**, y
 solo lo emite un contribuyente autorizado por el SII, con folios asignados (CAF)
-y firma electrónica. Housing no es el contribuyente: **la corredora lo es**.
+y firma electrónica. Propigo no es el contribuyente: **la corredora lo es**.
 
 Por lo tanto:
 
-- Lo que Housing genera es un **comprobante de gestión**, no un documento
+- Lo que Propigo genera es un **comprobante de gestión**, no un documento
   tributario. Debe decirlo en el propio documento, o induce a error.
 - La factura o boleta por la comisión la sigue emitiendo la corredora, desde el
-  portal del SII o su facturador. Housing puede **preparar los datos** y, más
+  portal del SII o su facturador. Propigo puede **preparar los datos** y, más
   adelante, integrarse con un facturador autorizado.
 - **Nunca** imitar el formato de un DTE (timbre, folio con apariencia de CAF,
   la leyenda «documento tributario»). Un comprobante que se parece a una boleta
@@ -170,7 +170,7 @@ La **DJ 1835, sobre bienes raíces arrendados**, debe presentarla, entre otros:
 > sociedad, esta es la que debe informar.»
 
 **Ese es exactamente nuestro usuario.** Es una obligación anual, hoy se arma a
-mano, y Housing ya tiene casi todos los datos: rol de la propiedad, RUT del
+mano, y Propigo ya tiene casi todos los datos: rol de la propiedad, RUT del
 propietario, RUT del arrendatario, montos y períodos.
 
 Es la funcionalidad con mejor relación entre valor entregado y trabajo, porque
@@ -340,9 +340,9 @@ para un empleado, un familiar que paga).
 
 Es el punto de mayor riesgo. Según la Ley 18.101, el desahucio del arrendador
 **solo puede hacerse judicialmente o por notificación personal de un notario**.
-Un correo de Housing no termina ningún contrato.
+Un correo de Propigo no termina ningún contrato.
 
-Housing puede **preparar** el aviso —con las fechas y los plazos ya
+Propigo puede **preparar** el aviso —con las fechas y los plazos ya
 calculados— y dejarlo listo para llevar al notario. Lo que no puede es dar a
 entender que enviarlo surte efecto legal.
 

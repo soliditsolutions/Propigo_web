@@ -54,19 +54,19 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
   return (
     <div
       className="mb-6 overflow-hidden rounded-2xl border-2"
-      style={{ borderColor: "var(--hw-warning-bd)", background: "var(--hw-warning-lt)" }}
+      style={{ borderColor: "var(--pgo-warning-bd)", background: "var(--pgo-warning-lt)" }}
     >
       {/* Header */}
       <div
         className="flex items-center gap-3 px-5 py-4"
-        style={{ background: "var(--hw-warning-lt)", borderBottom: "1px solid var(--hw-warning-bd)" }}
+        style={{ background: "var(--pgo-warning-lt)", borderBottom: "1px solid var(--pgo-warning-bd)" }}
       >
-        <PenLine className="h-5 w-5 shrink-0" style={{ color: "var(--hw-warning-dk)" }} aria-hidden="true" />
+        <PenLine className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-warning-dk)" }} aria-hidden="true" />
         <div>
-          <p className="font-semibold" style={{ color: "var(--hw-warning-dk)" }}>
+          <p className="font-semibold" style={{ color: "var(--pgo-warning-dk)" }}>
             Contrato pendiente de firma
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--hw-warning-dk)" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--pgo-warning-dk)" }}>
             El contrato está en borrador. Ambas partes deben acordar y firmar antes de activarlo.
           </p>
         </div>
@@ -92,9 +92,9 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
           cupoIa={cupoIa}
         />
 
-        <div className="space-y-2 text-sm" style={{ color: "var(--hw-warning-dk)" }}>
+        <div className="space-y-2 text-sm" style={{ color: "var(--pgo-warning-dk)" }}>
           <p className="font-medium">Pasos para activar el contrato:</p>
-          <ol className="list-decimal list-inside space-y-1 text-xs" style={{ color: "var(--hw-warning-dk)" }}>
+          <ol className="list-decimal list-inside space-y-1 text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
             <li>Prepara el contrato físico o digital y entrega copia a ambas partes.</li>
             <li>Coordina la reunión de firma entre el propietario y el arrendatario.</li>
             <li>Una vez firmado por ambas partes, confirma y activa el contrato.</li>
@@ -109,7 +109,7 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
             onChange={(e) => setConfirmado(e.target.checked)}
             className="mt-0.5 h-4 w-4 rounded accent-yellow-600"
           />
-          <span className="text-xs font-medium" style={{ color: "var(--hw-warning-dk)" }}>
+          <span className="text-xs font-medium" style={{ color: "var(--pgo-warning-dk)" }}>
             Confirmo que ambas partes han firmado el contrato de arriendo y acepto activarlo.
           </span>
         </label>
@@ -118,9 +118,9 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
           type="button"
           onClick={handleActivar}
           disabled={!confirmado || isPending}
-          className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+          className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
           style={{
-            background: (!confirmado || isPending) ? "var(--hw-border-2)" : "var(--hw-success)",
+            background: (!confirmado || isPending) ? "var(--pgo-border-2)" : "var(--pgo-success)",
             cursor: !confirmado ? "not-allowed" : "pointer",
           }}
         >
@@ -138,8 +138,8 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
         </button>
 
         {/* ── Separador y opción de cancelar ── */}
-        <div className="border-t pt-4" style={{ borderColor: "var(--hw-warning-bd)" }}>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-warning-dk)" }}>
+        <div className="border-t pt-4" style={{ borderColor: "var(--pgo-warning-bd)" }}>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-warning-dk)" }}>
             ¿El proceso de firma no prosperó?
           </p>
           <label className="flex cursor-pointer items-start gap-3 mb-3">
@@ -149,7 +149,7 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
               onChange={(e) => setConfirmCancel(e.target.checked)}
               className="mt-0.5 h-4 w-4 rounded accent-red-600"
             />
-            <span className="text-xs font-medium" style={{ color: "var(--hw-warning-dk)" }}>
+            <span className="text-xs font-medium" style={{ color: "var(--pgo-warning-dk)" }}>
               Confirmo que deseo cancelar este contrato. La propiedad volverá a{" "}
               <strong>disponible</strong> y esta acción no se puede revertir.
             </span>
@@ -158,11 +158,11 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
             type="button"
             onClick={handleCancelar}
             disabled={!confirmCancel || isCancelling}
-            className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold"
+            className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold"
             style={{
-              background: "var(--hw-surface)",
-              border: `1.5px solid ${(!confirmCancel || isCancelling) ? "var(--hw-border-2)" : "var(--hw-danger)"}`,
-              color: (!confirmCancel || isCancelling) ? "var(--hw-text-4)" : "var(--hw-danger)",
+              background: "var(--pgo-surface)",
+              border: `1.5px solid ${(!confirmCancel || isCancelling) ? "var(--pgo-border-2)" : "var(--pgo-danger)"}`,
+              color: (!confirmCancel || isCancelling) ? "var(--pgo-text-4)" : "var(--pgo-danger)",
               cursor: !confirmCancel ? "not-allowed" : "pointer",
             }}
           >

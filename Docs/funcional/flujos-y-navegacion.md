@@ -18,12 +18,12 @@ PÚBLICO (sin auth)
 ├── /recuperar-contrasena  →  /nueva-contrasena?token=…
 └── /verificar-dispositivo     2FA (post-login, dispositivo nuevo)
 
-PORTAL (sesión hw_portal, solo lectura, 30 min)
+PORTAL (sesión pgo_portal, solo lectura, 30 min)
 ├── /portal                    Ingreso por RUT
 ├── /portal/verificar          Código OTP
 └── /portal/contrato/[id]      Mi arriendo: pagos (filtro por año) · documentos · mensajes · valorar
 
-PANEL (sesión hw_session + dispositivo verificado)
+PANEL (sesión pgo_session + dispositivo verificado)
 ├── /panel                     Dashboard (KPIs, próximos vencimientos)
 ├── /panel/propiedades         CRUD + ciclo de vida + imágenes
 ├── /panel/contratos           Listado
@@ -51,7 +51,7 @@ flowchart TD
     D --> E[Envía código 6 dígitos al email]
     E --> F{Código correcto y vigente?}
     F -- No --> E2[Reintento máx. 3]
-    F -- Sí --> G[Crea DispositivoConfiable + cookie hw_device]
+    F -- Sí --> G[Crea DispositivoConfiable + cookie pgo_device]
     G --> P
 ```
 
@@ -102,7 +102,7 @@ flowchart TD
     D --> E[/portal/verificar/ ingresa código]
     E --> F{OTP válido?}
     F -- No --> E2[Reintento / expira 10 min]
-    F -- Sí --> G[Sesión hw_portal solo lectura 30 min]
+    F -- Sí --> G[Sesión pgo_portal solo lectura 30 min]
     G --> H[/portal/contrato/id/]
     H --> I[Pagos con filtro por año]
     H --> J[Descarga documentos autenticada + audit log]

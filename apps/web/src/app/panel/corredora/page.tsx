@@ -2,9 +2,10 @@ import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { PageTitle } from "@/components/panel/ui";
 import { CorredoraClient } from "./corredora-client";
+import { titulo } from "@/lib/marca";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Datos de la corredora — Housing" };
+export const metadata = { title: titulo("Datos de la corredora") };
 
 export default async function CorredoraPage() {
   // El proxy ya bloquea /panel/corredora para no-managers vía session.rol; este

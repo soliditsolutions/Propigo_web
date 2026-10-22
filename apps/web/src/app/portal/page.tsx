@@ -5,11 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { validarRut, formatearRut } from "@housing/core";
+import { validarRut, formatearRut } from "@propigo/core";
 import { TerminosAviso } from "@/components/public/TerminosAviso";
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import portalHero from "@/images/backgrounds/001_Consulta.png";
+import { Logo } from "@/components/public/Logo";
 
 export default function PortalPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function PortalPage() {
     });
   }
 
-  const inputBorder = rutError ? "var(--hw-danger)" : "var(--pf-border-input)";
+  const inputBorder = rutError ? "var(--pgo-danger)" : "var(--pf-border-input)";
 
   return (
     <>
@@ -62,7 +63,7 @@ export default function PortalPage() {
           objectPosition sesgado a la izquierda: excluye de la ventana de
           recorte el watermark del generador (esquina inferior derecha). */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <Image src={portalHero} alt="" fill priority className="object-cover" style={{ objectPosition: "30% center" }} />
+        <Image src={portalHero} alt="" fill preload className="object-cover" style={{ objectPosition: "30% center" }} />
       </div>
       {/* Tinte muy por debajo de lo que se ve en pantalla completa: con 88-95%
           la foto quedaba casi invisible en ambos temas. Baja a 28-56% para
@@ -93,9 +94,8 @@ export default function PortalPage() {
 
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Link href="/marketplace" className="inline-block">
-            <span className="text-2xl font-bold tracking-tight" style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}>Housing</span>
-            <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--pf-text-light)" }}>SOLIDIT</span>
+          <Link href="/marketplace" className="inline-flex">
+            <Logo size="lg" />
           </Link>
           <p className="mt-1 text-sm" style={{ color: "var(--pf-text-muted)" }}>Portal de autoconsulta</p>
         </div>
@@ -149,8 +149,8 @@ export default function PortalPage() {
                   }}
                   onFocus={(e) => {
                     if (!rutError) {
-                      e.currentTarget.style.borderColor = "var(--pf-purple)";
-                      e.currentTarget.style.boxShadow   = "0 0 0 3px rgba(99,91,255,0.15)";
+                      e.currentTarget.style.borderColor = "var(--pf-brand)";
+                      e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb, var(--pf-brand) 15%, transparent)";
                     }
                   }}
                   onBlurCapture={(e) => {
@@ -162,7 +162,7 @@ export default function PortalPage() {
                 />
               </div>
               {rutError && (
-                <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{rutError}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{rutError}</p>
               )}
             </div>
 

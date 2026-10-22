@@ -105,7 +105,7 @@
 ### UX-08 — Animación de scroll-reveal por encima del máximo recomendado 🟡
 
 - **Regla:** `duration-timing` (Animación) — transiciones complejas ≤400ms, evitar pasar de 500ms.
-- **Archivo:** `globals.css`, clase `.hw-scroll-reveal` (agregada esta sesión) — `transition: opacity 550ms, transform 550ms`.
+- **Archivo:** `globals.css`, clase `.pgo-scroll-reveal` (agregada esta sesión) — `transition: opacity 550ms, transform 550ms`.
 - **Solución propuesta:** bajar a 400–450ms.
 
 ### UX-09 — Feature cards sin stagger al aparecer 🟡
@@ -130,9 +130,9 @@
 
 ### UX-12 — Contadores del Home sin `tabular-nums` 🟢
 
-- **Regla:** `number-tabular` (Typography & Color) — el propio proyecto ya define `.hw-num` para esto.
-- **Archivo:** `app/page.tsx` — `stats.propiedadesDisponibles` / `stats.corredoresActivos` no llevan la clase `.hw-num` que sí se usa correctamente en el Portal (`portal/contrato/[contratoId]/page.tsx`).
-- **Solución propuesta:** agregar `.hw-num` a esos dos `<p>`.
+- **Regla:** `number-tabular` (Typography & Color) — el propio proyecto ya define `.pgo-num` para esto.
+- **Archivo:** `app/page.tsx` — `stats.propiedadesDisponibles` / `stats.corredoresActivos` no llevan la clase `.pgo-num` que sí se usa correctamente en el Portal (`portal/contrato/[contratoId]/page.tsx`).
+- **Solución propuesta:** agregar `.pgo-num` a esos dos `<p>`.
 
 ---
 
@@ -142,4 +142,4 @@
 - **Panel shell** (`components/panel/shell.tsx`): skip link (WCAG 2.4.1), `aria-expanded` en el botón de menú, `aria-hidden` + cierre con Escape + scroll-lock en el drawer mobile, navegación adaptativa sidebar↔drawer según ancho de pantalla.
 - **Panel nav** (`components/panel/nav.tsx`): `aria-current="page"` ya implementado — es el patrón que falta replicar en el navbar público (UX-04).
 - **Portal OTP** (`portal/verificar/page.tsx`): input de 56px (cumple touch target), `aria-live="polite"` en el contador de intentos restantes, `autoComplete="one-time-code"`.
-- **Tema claro/oscuro**: ya auditado y verificado en una fase anterior de esta misma sesión (tokens `--hw-*`/`--pf-*` revisados en ambos temas) — no se encontraron regresiones nuevas.
+- **Tema claro/oscuro**: ya auditado y verificado en una fase anterior de esta misma sesión (tokens `--pgo-*`/`--pf-*` revisados en ambos temas) — no se encontraron regresiones nuevas.

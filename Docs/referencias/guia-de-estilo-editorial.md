@@ -1,4 +1,4 @@
-# Guía de estilo editorial — Housing
+# Guía de estilo editorial — Propigo
 
 Documento normativo. Toda la copy visible del producto debe cumplirlo: interfaz, mensajes de error,
 notificaciones, correos y textos de marketing.

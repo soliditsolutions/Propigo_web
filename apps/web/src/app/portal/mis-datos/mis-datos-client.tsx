@@ -10,7 +10,7 @@ import type { CampoRectificable as Campo } from "@/lib/rectificacion-persona";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}>
+    <div className="rounded-2xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
       {children}
     </div>
   );
@@ -19,10 +19,10 @@ function Card({ children }: { children: React.ReactNode }) {
 function CardTitle({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="mb-3 flex items-start gap-3">
-      <div className="mt-0.5 shrink-0" style={{ color: "var(--hw-text-3)" }}>{icon}</div>
+      <div className="mt-0.5 shrink-0" style={{ color: "var(--pgo-text-3)" }}>{icon}</div>
       <div className="min-w-0">
-        <p className="font-semibold" style={{ color: "var(--hw-text-1)" }}>{title}</p>
-        <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>{subtitle}</p>
+        <p className="font-semibold" style={{ color: "var(--pgo-text-1)" }}>{title}</p>
+        <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>{subtitle}</p>
       </div>
     </div>
   );
@@ -51,17 +51,17 @@ function IdentidadCard({ nombre, rut }: { nombre: string; rut: string }) {
       <CardTitle icon={<User className="h-5 w-5" aria-hidden />} title="Identidad" subtitle="Nombre y RUT no se editan desde aquí — son tu identidad legal." />
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>Nombre</p>
-          <p style={{ color: "var(--hw-text-1)" }}>{nombre}</p>
+          <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>Nombre</p>
+          <p style={{ color: "var(--pgo-text-1)" }}>{nombre}</p>
         </div>
         <div>
-          <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>RUT</p>
-          <p style={{ color: "var(--hw-text-1)" }}>{rut}</p>
+          <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>RUT</p>
+          <p style={{ color: "var(--pgo-text-1)" }}>{rut}</p>
         </div>
       </div>
 
       {enviado ? (
-        <p className="mt-3 flex items-center gap-1.5 text-xs" style={{ color: "var(--hw-success)" }}>
+        <p className="mt-3 flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-success)" }}>
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Avisamos a tu corredora. Te contactará para corregirlo.
         </p>
       ) : abierto ? (
@@ -73,22 +73,22 @@ function IdentidadCard({ nombre, rut }: { nombre: string; rut: string }) {
             rows={2}
             maxLength={500}
             className="w-full rounded-lg border px-3 py-2 text-sm"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
-          {error && <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+          {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
           <div className="flex gap-2">
             <button type="button" onClick={enviar} disabled={isPending || !detalle.trim()}
-              className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-              style={{ background: "var(--hw-primary)" }}>
+              className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+              style={{ background: "var(--pgo-primary)" }}>
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : "Enviar aviso"}
             </button>
-            <button type="button" onClick={() => setAbierto(false)} className="hw-btn text-xs" style={{ color: "var(--hw-text-4)" }}>
+            <button type="button" onClick={() => setAbierto(false)} className="pgo-btn text-xs" style={{ color: "var(--pgo-text-4)" }}>
               Cancelar
             </button>
           </div>
         </div>
       ) : (
-        <button type="button" onClick={() => setAbierto(true)} className="hw-btn mt-3 text-xs font-semibold underline" style={{ color: "var(--hw-primary)" }}>
+        <button type="button" onClick={() => setAbierto(true)} className="pgo-btn mt-3 text-xs font-semibold underline" style={{ color: "var(--pgo-primary)" }}>
           Mi nombre o RUT están mal
         </button>
       )}
@@ -139,17 +139,17 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
             : "El código de confirmación llega al correo nuevo, para comprobar que es tuyo."
         }
       />
-      <p className="text-sm" style={{ color: "var(--hw-text-1)" }}>{confirmado ?? valorActual ?? "No registrado"}</p>
+      <p className="text-sm" style={{ color: "var(--pgo-text-1)" }}>{confirmado ?? valorActual ?? "No registrado"}</p>
 
       {confirmado && (
-        <p className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: "var(--hw-success)" }}>
+        <p className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-success)" }}>
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Actualizado.
         </p>
       )}
 
       {paso === "idle" && (
         <button type="button" onClick={() => { setPaso("editando"); setValorNuevo(""); setError(""); }}
-          className="hw-btn mt-2 text-xs font-semibold underline" style={{ color: "var(--hw-primary)" }}>
+          className="pgo-btn mt-2 text-xs font-semibold underline" style={{ color: "var(--pgo-primary)" }}>
           Corregir
         </button>
       )}
@@ -162,39 +162,39 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
             onChange={(e) => setValorNuevo(e.target.value)}
             placeholder={campo === "email" ? "nuevo@correo.cl" : "+56 9 1234 5678"}
             className="w-full rounded-lg border px-3 py-2 text-sm"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
-          {error && <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+          {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
           <div className="flex gap-2">
             <button type="button" onClick={solicitar} disabled={isPending || !valorNuevo.trim()}
-              className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-              style={{ background: "var(--hw-primary)" }}>
+              className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+              style={{ background: "var(--pgo-primary)" }}>
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : "Enviar código"}
             </button>
-            <button type="button" onClick={() => setPaso("idle")} className="hw-btn text-xs" style={{ color: "var(--hw-text-4)" }}>Cancelar</button>
+            <button type="button" onClick={() => setPaso("idle")} className="pgo-btn text-xs" style={{ color: "var(--pgo-text-4)" }}>Cancelar</button>
           </div>
         </div>
       )}
 
       {paso === "codigo" && (
         <div className="mt-3 space-y-2">
-          <p className="text-xs" style={{ color: "var(--hw-text-3)" }}>Ingresa el código de 6 dígitos que enviamos.</p>
+          <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>Ingresa el código de 6 dígitos que enviamos.</p>
           <input
             type="text" inputMode="numeric" maxLength={6}
             value={codigo}
             onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))}
             placeholder="000000"
             className="w-32 rounded-lg border px-3 py-2 text-center text-sm tabular-nums tracking-widest"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
-          {error && <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+          {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
           <div className="flex gap-2">
             <button type="button" onClick={confirmar} disabled={isPending || codigo.length !== 6}
-              className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-              style={{ background: "var(--hw-success)" }}>
+              className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+              style={{ background: "var(--pgo-success)" }}>
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : "Confirmar"}
             </button>
-            <button type="button" onClick={() => setPaso("idle")} className="hw-btn text-xs" style={{ color: "var(--hw-text-4)" }}>Cancelar</button>
+            <button type="button" onClick={() => setPaso("idle")} className="pgo-btn text-xs" style={{ color: "var(--pgo-text-4)" }}>Cancelar</button>
           </div>
         </div>
       )}
@@ -230,12 +230,12 @@ function OposicionCard({ suscrito, alcance }: { suscrito: boolean; alcance: "sol
       />
 
       {opuesto ? (
-        <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--hw-success)" }}>
+        <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-success)" }}>
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Registrado. Puedes reactivar tus avisos cuando quieras desde tu contrato.
         </p>
       ) : (
         <div className="space-y-2">
-          <div className="flex flex-col gap-1.5 text-sm" style={{ color: "var(--hw-text-2)" }}>
+          <div className="flex flex-col gap-1.5 text-sm" style={{ color: "var(--pgo-text-2)" }}>
             <label className="flex items-center gap-2">
               <input type="radio" checked={alcanceElegido === "solo_opcionales"} onChange={() => setAlcanceElegido("solo_opcionales")} />
               Solo avisos informativos (recomendado) — sigo recibiendo lo del contrato
@@ -249,18 +249,18 @@ function OposicionCard({ suscrito, alcance }: { suscrito: boolean; alcance: "sol
             type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)}
             placeholder="Motivo (opcional)"
             className="w-full rounded-lg border px-3 py-1.5 text-sm"
-            style={{ borderColor: "var(--hw-border)", background: "var(--hw-surface)", color: "var(--hw-text-1)" }}
+            style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
           {alcanceElegido === "todos" && (
-            <p className="flex items-start gap-1.5 text-xs" style={{ color: "var(--hw-warning-dk)" }}>
+            <p className="flex items-start gap-1.5 text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
               No te llegarán ni los recordatorios de vencimiento ni los avisos de atraso.
             </p>
           )}
-          {error && <p className="text-xs" style={{ color: "var(--hw-danger)" }}>{error}</p>}
+          {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
           <button type="button" onClick={oponerse} disabled={isPending}
-            className="hw-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-            style={{ background: "var(--hw-danger)" }}>
+            className="pgo-btn rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            style={{ background: "var(--pgo-danger)" }}>
             {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : "Oponerme"}
           </button>
         </div>

@@ -55,11 +55,11 @@ const FILTROS_MON: { key: FiltroMon; label: string }[] = [
 ];
 
 const FILTROS_ESTADO: { key: FiltroEstad; label: string; color: string }[] = [
-  { key: "todos",               label: "Todos",               color: "var(--hw-primary-dk)" },
-  { key: "vigente",             label: "Vigentes",            color: "var(--hw-success)" },
-  { key: "borrador",            label: "Borradores",          color: "var(--hw-text-3)" },
-  { key: "terminado",           label: "Terminados",          color: "var(--hw-danger)" },
-  { key: "terminado_anticipado",label: "Term. anticipado",    color: "var(--hw-accent-violet)" },
+  { key: "todos",               label: "Todos",               color: "var(--pgo-primary-dk)" },
+  { key: "vigente",             label: "Vigentes",            color: "var(--pgo-success)" },
+  { key: "borrador",            label: "Borradores",          color: "var(--pgo-text-3)" },
+  { key: "terminado",           label: "Terminados",          color: "var(--pgo-danger)" },
+  { key: "terminado_anticipado",label: "Term. anticipado",    color: "var(--pgo-accent-indigo)" },
 ];
 
 export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
@@ -153,13 +153,13 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
             label={f.label}
             count={countsMon[f.key]}
             active={filtroMon === f.key}
-            activeColor="var(--hw-primary-dk)"
+            activeColor="var(--pgo-primary-dk)"
             onClick={() => setFiltroMon(f.key)}
           />
         ))}
 
         {/* Separador */}
-        <span className="h-6 w-px self-center" style={{ background: "var(--hw-border)" }} aria-hidden="true" />
+        <span className="h-6 w-px self-center" style={{ background: "var(--pgo-border)" }} aria-hidden="true" />
 
         {/* Estado */}
         {FILTROS_ESTADO.filter((f) => f.key === "todos" || countsEst[f.key] > 0).map((f) => (
@@ -178,9 +178,9 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
           scroll horizontal, corta "Propietario"/"Vigencia"/"Estado" fuera de
           la pantalla sin ninguna pista visual de que hay más contenido al
           costado; a este ancho una tarjeta por contrato se lee de corrido. */}
-      <div className="hw-card space-y-3 p-3 md:hidden">
+      <div className="pgo-card space-y-3 p-3 md:hidden">
         {pagina.length === 0 ? (
-          <p className="px-2 py-8 text-center text-sm text-[var(--hw-text-4)]">Sin resultados para los filtros seleccionados.</p>
+          <p className="px-2 py-8 text-center text-sm text-[var(--pgo-text-4)]">Sin resultados para los filtros seleccionados.</p>
         ) : pagina.map((c) => {
           const uf = c.denominacion === "UF";
           const diasRestantes = c.fechaFin
@@ -190,45 +190,45 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
             <Link
               key={c.id}
               href={`/panel/contratos/${c.id}`}
-              className="hw-row-hover block rounded-xl p-3.5"
-              style={{ border: "1px solid var(--hw-border)" }}
+              className="pgo-row-hover block rounded-xl p-3.5"
+              style={{ border: "1px solid var(--pgo-border)" }}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-[var(--hw-text-1)]">{c.propiedad.direccion}</p>
-                  {c.propiedad.comuna && <p className="text-xs text-[var(--hw-text-4)]">{c.propiedad.comuna}</p>}
+                  <p className="truncate font-semibold text-[var(--pgo-text-1)]">{c.propiedad.direccion}</p>
+                  {c.propiedad.comuna && <p className="text-xs text-[var(--pgo-text-4)]">{c.propiedad.comuna}</p>}
                 </div>
                 <Badge tone={estadoTone(c.estado)} pulse={estadoPulse(c.estado)}>{estadoLabel(c.estado)}</Badge>
               </div>
 
               <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
                 <div>
-                  <p className="text-[var(--hw-text-4)]">Arrendatario</p>
-                  <p className="text-[var(--hw-text-2)]">{c.arrendatario.nombre}</p>
+                  <p className="text-[var(--pgo-text-4)]">Arrendatario</p>
+                  <p className="text-[var(--pgo-text-2)]">{c.arrendatario.nombre}</p>
                 </div>
                 <div>
-                  <p className="text-[var(--hw-text-4)]">Propietario</p>
-                  <p className="text-[var(--hw-text-2)]">{c.propietario.nombre}</p>
+                  <p className="text-[var(--pgo-text-4)]">Propietario</p>
+                  <p className="text-[var(--pgo-text-2)]">{c.propietario.nombre}</p>
                 </div>
               </div>
 
-              <div className="mt-2.5 flex items-end justify-between gap-2 border-t pt-2.5" style={{ borderColor: "var(--hw-border)" }}>
+              <div className="mt-2.5 flex items-end justify-between gap-2 border-t pt-2.5" style={{ borderColor: "var(--pgo-border)" }}>
                 <div>
-                  <p className="font-semibold hw-num" style={{ color: "var(--hw-text-1)" }}>{uf ? `${num(c.valorArriendo)} UF` : clp(c.valorArriendo)}</p>
+                  <p className="font-semibold pgo-num" style={{ color: "var(--pgo-text-1)" }}>{uf ? `${num(c.valorArriendo)} UF` : clp(c.valorArriendo)}</p>
                   <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: uf ? "var(--hw-primary-lt)" : "var(--hw-success-lt)", color: uf ? "var(--hw-primary-dk)" : "var(--hw-success-dk)" }}>{c.denominacion}</span>
-                    {c.garantiaMeses > 0 && <span title="Tiene garantía"><ShieldCheck className="h-3.5 w-3.5 text-[var(--hw-primary)]" aria-hidden="true" /></span>}
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: uf ? "var(--pgo-primary-lt)" : "var(--pgo-success-lt)", color: uf ? "var(--pgo-primary-dk)" : "var(--pgo-success-dk)" }}>{c.denominacion}</span>
+                    {c.garantiaMeses > 0 && <span title="Tiene garantía"><ShieldCheck className="h-3.5 w-3.5 text-[var(--pgo-primary)]" aria-hidden="true" /></span>}
                   </div>
                 </div>
-                <div className="text-right text-xs" style={{ color: "var(--hw-text-3)" }}>
-                  <span className="hw-num">{fecha(c.fechaInicio)}</span>
-                  {c.fechaFin && <span className="block hw-num" style={{ color: "var(--hw-text-4)" }}>→ {fecha(c.fechaFin)}</span>}
+                <div className="text-right text-xs" style={{ color: "var(--pgo-text-3)" }}>
+                  <span className="pgo-num">{fecha(c.fechaInicio)}</span>
+                  {c.fechaFin && <span className="block pgo-num" style={{ color: "var(--pgo-text-4)" }}>→ {fecha(c.fechaFin)}</span>}
                   {diasRestantes !== null && diasRestantes > 0 && diasRestantes <= 90 && (
                     <span
                       className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
                       style={{
-                        background: diasRestantes <= 30 ? "var(--hw-danger-lt)" : "var(--hw-warning-lt)",
-                        color:      diasRestantes <= 30 ? "var(--hw-danger)"    : "var(--hw-warning)",
+                        background: diasRestantes <= 30 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)",
+                        color:      diasRestantes <= 30 ? "var(--pgo-danger)"    : "var(--pgo-warning)",
                       }}
                     >
                       {diasRestantes <= 30 ? "⚠ " : ""}Vence en {diasRestantes}d
@@ -240,7 +240,7 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
           );
         })}
         <div className="flex items-center justify-between gap-3 pt-1">
-          <span className="text-xs text-[var(--hw-text-4)]">
+          <span className="text-xs text-[var(--pgo-text-4)]">
             {pagina.length} de {contratosFinales.length} contrato{contratosFinales.length !== 1 ? "s" : ""}
           </span>
           <PageSizePicker value={pageSize} onChange={setPageSize} />
@@ -248,57 +248,57 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
       </div>
 
       {/* Desktop (≥md): tabla completa */}
-      <div className="hw-card hidden overflow-hidden md:block">
+      <div className="pgo-card hidden overflow-hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}>
-                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Propiedad</th>
-                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Arrendatario</th>
-                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Propietario</th>
-                <th scope="col" className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Renta</th>
-                <th scope="col" className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Vence</th>
-                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Vigencia</th>
-                <th scope="col" className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)]">Estado</th>
+              <tr style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}>
+                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Propiedad</th>
+                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Arrendatario</th>
+                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Propietario</th>
+                <th scope="col" className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Renta</th>
+                <th scope="col" className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Vence</th>
+                <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Vigencia</th>
+                <th scope="col" className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)]">Estado</th>
                 <th scope="col" className="px-5 py-3"></th>
               </tr>
             </thead>
-            <tbody className="hw-stagger">
+            <tbody className="pgo-stagger">
               {pagina.length === 0 ? (
-                <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-[var(--hw-text-4)]">Sin resultados para los filtros seleccionados.</td></tr>
+                <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-[var(--pgo-text-4)]">Sin resultados para los filtros seleccionados.</td></tr>
               ) : pagina.map((c, i) => {
                 const uf = c.denominacion === "UF";
                 const diasRestantes = c.fechaFin
                   ? Math.floor((new Date(c.fechaFin).getTime() - hoy.getTime()) / 86400000)
                   : null;
                 return (
-                  <tr key={c.id} className="hw-row-hover"
-                    style={{ borderBottom: i < pagina.length - 1 ? "1px solid var(--hw-border)" : "none" }}>
+                  <tr key={c.id} className="pgo-row-hover"
+                    style={{ borderBottom: i < pagina.length - 1 ? "1px solid var(--pgo-border)" : "none" }}>
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-[var(--hw-text-1)]">{c.propiedad.direccion}</p>
-                      {c.propiedad.comuna && <p className="text-xs text-[var(--hw-text-4)]">{c.propiedad.comuna}</p>}
+                      <p className="font-semibold text-[var(--pgo-text-1)]">{c.propiedad.direccion}</p>
+                      {c.propiedad.comuna && <p className="text-xs text-[var(--pgo-text-4)]">{c.propiedad.comuna}</p>}
                     </td>
-                    <td className="px-5 py-3.5 text-[var(--hw-text-2)]">{c.arrendatario.nombre}</td>
-                    <td className="px-5 py-3.5 text-sm text-[var(--hw-text-3)]">{c.propietario.nombre}</td>
+                    <td className="px-5 py-3.5 text-[var(--pgo-text-2)]">{c.arrendatario.nombre}</td>
+                    <td className="px-5 py-3.5 text-sm text-[var(--pgo-text-3)]">{c.propietario.nombre}</td>
                     <td className="px-5 py-3.5 text-right">
-                      <p className="font-semibold hw-num" style={{ color: "var(--hw-text-1)" }}>{uf ? `${num(c.valorArriendo)} UF` : clp(c.valorArriendo)}</p>
+                      <p className="font-semibold pgo-num" style={{ color: "var(--pgo-text-1)" }}>{uf ? `${num(c.valorArriendo)} UF` : clp(c.valorArriendo)}</p>
                       <div className="mt-0.5 flex items-center justify-end gap-1.5">
-                        <span className="rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: uf ? "var(--hw-primary-lt)" : "var(--hw-success-lt)", color: uf ? "var(--hw-primary-dk)" : "var(--hw-success-dk)" }}>{c.denominacion}</span>
-                        {c.garantiaMeses > 0 && <span title="Tiene garantía"><ShieldCheck className="h-3.5 w-3.5 text-[var(--hw-primary)]" aria-hidden="true" /></span>}
+                        <span className="rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: uf ? "var(--pgo-primary-lt)" : "var(--pgo-success-lt)", color: uf ? "var(--pgo-primary-dk)" : "var(--pgo-success-dk)" }}>{c.denominacion}</span>
+                        {c.garantiaMeses > 0 && <span title="Tiene garantía"><ShieldCheck className="h-3.5 w-3.5 text-[var(--pgo-primary)]" aria-hidden="true" /></span>}
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-center text-[var(--hw-text-3)] text-sm">día {c.diaVencimiento}</td>
-                    <td className="px-5 py-3.5 text-xs whitespace-nowrap" style={{ color: "var(--hw-text-3)" }}>
-                      <span className="hw-num">{fecha(c.fechaInicio)}</span>
+                    <td className="px-5 py-3.5 text-center text-[var(--pgo-text-3)] text-sm">día {c.diaVencimiento}</td>
+                    <td className="px-5 py-3.5 text-xs whitespace-nowrap" style={{ color: "var(--pgo-text-3)" }}>
+                      <span className="pgo-num">{fecha(c.fechaInicio)}</span>
                       {c.fechaFin && (
-                        <span className="block hw-num" style={{ color: "var(--hw-text-4)" }}>→ {fecha(c.fechaFin)}</span>
+                        <span className="block pgo-num" style={{ color: "var(--pgo-text-4)" }}>→ {fecha(c.fechaFin)}</span>
                       )}
                       {diasRestantes !== null && diasRestantes > 0 && diasRestantes <= 90 && (
                         <span
                           className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
                           style={{
-                            background: diasRestantes <= 30 ? "var(--hw-danger-lt)" : "var(--hw-warning-lt)",
-                            color:      diasRestantes <= 30 ? "var(--hw-danger)"    : "var(--hw-warning)",
+                            background: diasRestantes <= 30 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)",
+                            color:      diasRestantes <= 30 ? "var(--pgo-danger)"    : "var(--pgo-warning)",
                           }}
                         >
                           {diasRestantes <= 30 ? "⚠ " : ""}Vence en {diasRestantes}d
@@ -307,7 +307,7 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
                     </td>
                     <td className="px-5 py-3.5 text-center"><Badge tone={estadoTone(c.estado)} pulse={estadoPulse(c.estado)}>{estadoLabel(c.estado)}</Badge></td>
                     <td className="px-5 py-3.5">
-                      <Link href={`/panel/contratos/${c.id}`} className="whitespace-nowrap text-xs font-semibold text-[var(--hw-primary)] hover:text-[var(--hw-primary-dk)] transition-colors">Ver →</Link>
+                      <Link href={`/panel/contratos/${c.id}`} className="whitespace-nowrap text-xs font-semibold text-[var(--pgo-primary)] hover:text-[var(--pgo-primary-dk)] transition-colors">Ver →</Link>
                     </td>
                   </tr>
                 );
@@ -317,9 +317,9 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
         </div>
         <div
           className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5"
-          style={{ borderTop: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+          style={{ borderTop: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
         >
-          <span className="text-xs text-[var(--hw-text-4)]">
+          <span className="text-xs text-[var(--pgo-text-4)]">
             {pagina.length} de {contratosFinales.length} contrato{contratosFinales.length !== 1 ? "s" : ""}
           </span>
           <PageSizePicker value={pageSize} onChange={setPageSize} />

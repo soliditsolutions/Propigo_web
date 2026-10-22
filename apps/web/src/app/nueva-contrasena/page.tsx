@@ -4,9 +4,11 @@ import { prisma }        from "@/lib/db";
 import { hashToken }     from "@/lib/token";
 import { NuevaContrasenaForm } from "./nueva-form";
 import { InvalidDialog }       from "./invalid-dialog";
+import { Logo }                from "@/components/public/Logo";
+import { titulo }              from "@/lib/marca";
 
 export const metadata: Metadata = {
-  title: "Nueva contraseña — Housing",
+  title: titulo("Nueva contraseña"),
 };
 
 export default async function NuevaContrasenaPage({
@@ -40,34 +42,21 @@ export default async function NuevaContrasenaPage({
   return (
     <>
       {/* Layout de dos paneles — siempre visible como fondo contextual */}
-      <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--hw-page)" }}>
+      <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--pgo-page)" }}>
 
         {/* Fondo aurora boreal a pantalla completa (decorativo) */}
-        <div className="hw-aurora-layer" aria-hidden="true" />
+        <div className="pgo-aurora-layer" aria-hidden="true" />
 
         <div className="relative z-10 flex min-h-screen">
 
         {/* ── Panel izquierdo — branding (oculto en mobile) ── */}
         <aside
-          className="hw-auth-aside hidden lg:flex flex-col justify-between w-[420px] xl:w-[480px] shrink-0 p-10"
+          className="pgo-auth-aside hidden lg:flex flex-col justify-between w-[420px] xl:w-[480px] shrink-0 p-10"
           aria-hidden="true"
         >
           <div>
-            <div className="flex items-baseline gap-2">
-              <span
-                className="text-2xl font-bold tracking-tight"
-                style={{ color: "var(--hw-sidebar-text)" }}
-              >
-                Housing
-              </span>
-              <span
-                className="text-[10px] font-semibold uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.35)" }}
-              >
-                SOLIDIT
-              </span>
-            </div>
-            <p className="mt-1 text-sm" style={{ color: "var(--hw-sidebar-muted)" }}>
+            <Logo size="lg" wordColor="var(--pgo-sidebar-text)" />
+            <p className="mt-1 text-sm" style={{ color: "var(--pgo-sidebar-muted)" }}>
               Panel del corredor
             </p>
 
@@ -78,14 +67,14 @@ export default async function NuevaContrasenaPage({
 
             <h1
               className="text-3xl font-bold leading-snug tracking-tight"
-              style={{ color: "var(--hw-sidebar-text)" }}
+              style={{ color: "var(--pgo-sidebar-text)" }}
             >
               Define una nueva{" "}
-              <span style={{ color: "var(--hw-primary-bd)" }}>
+              <span style={{ color: "var(--pgo-primary-bd)" }}>
                 contraseña segura.
               </span>
             </h1>
-            <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--hw-sidebar-muted)" }}>
+            <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--pgo-sidebar-muted)" }}>
               Elige una frase larga y única. Las frases son más seguras que las
               contraseñas cortas con caracteres especiales.
             </p>
@@ -120,7 +109,7 @@ export default async function NuevaContrasenaPage({
             >
               <ShieldCheck
                 className="h-3.5 w-3.5 shrink-0"
-                style={{ color: "var(--hw-success)" }}
+                style={{ color: "var(--pgo-success)" }}
               />
               Ley 21.719 · Protección de datos personales · Chile
             </div>
@@ -133,34 +122,23 @@ export default async function NuevaContrasenaPage({
             <div className="w-full max-w-sm">
 
               {/* Logo mobile */}
-              <div className="mb-8 flex items-baseline gap-2 lg:hidden">
-                <span
-                  className="text-xl font-bold tracking-tight"
-                  style={{ color: "var(--hw-text-1)" }}
-                >
-                  Housing
-                </span>
-                <span
-                  className="text-[9px] font-semibold uppercase tracking-widest"
-                  style={{ color: "var(--hw-text-4)" }}
-                >
-                  SOLIDIT
-                </span>
+              <div className="mb-8 lg:hidden">
+                <Logo size="md" wordColor="var(--pgo-text-1)" />
               </div>
 
               <div className="mb-8">
                 <h2
                   className="text-2xl font-bold tracking-tight"
-                  style={{ color: "var(--hw-text-1)" }}
+                  style={{ color: "var(--pgo-text-1)" }}
                 >
                   Nueva contraseña
                 </h2>
-                <p className="mt-1 text-sm" style={{ color: "var(--hw-text-3)" }}>
+                <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
                   Define una contraseña nueva y segura para tu cuenta.
                 </p>
               </div>
 
-              <div className="hw-auth-card p-6">
+              <div className="pgo-auth-card p-6">
                 <NuevaContrasenaForm token={token} />
               </div>
             </div>

@@ -15,7 +15,7 @@
  * Estos builders son puros: no tocan base. La acción de cobros arma los datos y
  * los pasa; así el contenido del documento se puede probar sin la base.
  */
-import { ivaComision, ivaArriendoIncluido } from "@housing/core";
+import { ivaComision, ivaArriendoIncluido } from "@propigo/core";
 import {
   calcularDevolucionGarantia,
   type RetencionGarantia,

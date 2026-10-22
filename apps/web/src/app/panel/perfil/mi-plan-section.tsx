@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import { clp } from "@/lib/format";
 import { PLANS, desglosarPrecioClp, type Plan } from "@/lib/plans";
 import type { PeriodoDemo } from "@/lib/billing-demo";
+import { MARCA } from "@/lib/marca";
 
 function ufFmt(n: number): string {
   return `${n.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} UF`;
@@ -21,17 +22,17 @@ function BarraUso({ label, uso, max, icon: Icon }: { label: string; uso: number;
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="flex items-center gap-1.5 font-medium" style={{ color: "var(--hw-text-2)" }}>
+        <span className="flex items-center gap-1.5 font-medium" style={{ color: "var(--pgo-text-2)" }}>
           <Icon className="h-3.5 w-3.5" aria-hidden="true" /> {label}
         </span>
-        <span className="hw-num font-semibold" style={{ color: critico ? "var(--hw-danger)" : "var(--hw-text-2)" }}>
+        <span className="pgo-num font-semibold" style={{ color: critico ? "var(--pgo-danger)" : "var(--pgo-text-2)" }}>
           {uso} / {max}
         </span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--hw-border)" }}>
+      <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--pgo-border)" }}>
         <div
           className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, background: critico ? "var(--hw-danger)" : "var(--hw-primary)" }}
+          style={{ width: `${pct}%`, background: critico ? "var(--pgo-danger)" : "var(--pgo-primary)" }}
         />
       </div>
     </div>
@@ -82,13 +83,13 @@ export function MiPlanSection({
           Facturación/Historial/Boletas es un cobro real todavía. */}
       <div
         className="flex gap-3 rounded-xl p-4"
-        style={{ background: "var(--hw-warning-lt)", border: "1px solid var(--hw-warning-bd)" }}
+        style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}
       >
-        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--hw-warning)" }} aria-hidden="true" />
-        <div className="text-sm" style={{ color: "var(--hw-warning-dk)" }}>
+        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-warning)" }} aria-hidden="true" />
+        <div className="text-sm" style={{ color: "var(--pgo-warning-dk)" }}>
           <p className="font-semibold">Datos de ejemplo</p>
           <p className="mt-0.5">
-            Housing todavía no tiene una pasarela de pago conectada para cobrar tu
+            {MARCA} todavía no tiene una pasarela de pago conectada para cobrar tu
             suscripción. El plan y el uso de arriba son reales; el método de pago,
             el historial y las boletas de más abajo son una vista previa de cómo
             se verán cuando la facturación esté activa — ningún cobro descrito acá
@@ -105,11 +106,11 @@ export function MiPlanSection({
                 junto al título) — el tagline del plan es una oración larga,
                 así que va aparte, en su propio párrafo que sí puede wrappear. */}
             <SectionTitle title="Tu plan actual" />
-            <p className="-mt-2 max-w-sm text-xs" style={{ color: "var(--hw-text-4)" }}>{plan.tagline}</p>
+            <p className="-mt-2 max-w-sm text-xs" style={{ color: "var(--pgo-text-4)" }}>{plan.tagline}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold hw-num" style={{ color: "var(--hw-primary)" }}>{plan.name}</p>
-            <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+            <p className="text-2xl font-bold pgo-num" style={{ color: "var(--pgo-primary)" }}>{plan.name}</p>
+            <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
               {ufFmt(plan.mensualUf)} + IVA / mes · {clp(totalClp)} aprox.
             </p>
           </div>
@@ -122,19 +123,19 @@ export function MiPlanSection({
 
         <ul className="mt-4 grid gap-1.5 sm:grid-cols-2">
           {plan.features.map((f) => (
-            <li key={f.text} className="flex items-start gap-1.5 text-xs" style={{ color: "var(--hw-text-2)" }}>
-              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: "var(--hw-success)" }} aria-hidden="true" />
+            <li key={f.text} className="flex items-start gap-1.5 text-xs" style={{ color: "var(--pgo-text-2)" }}>
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: "var(--pgo-success)" }} aria-hidden="true" />
               {f.text}
             </li>
           ))}
         </ul>
 
         {puedeSubir && (
-          <div className="mt-4 border-t pt-4" style={{ borderColor: "var(--hw-border)" }}>
+          <div className="mt-4 border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
             <button
               type="button"
               onClick={() => setMostrarUpgrade(true)}
-              className="hw-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+              className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
             >
               <ArrowUpCircle className="h-4 w-4" aria-hidden="true" />
               Subir de plan
@@ -148,25 +149,25 @@ export function MiPlanSection({
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <SectionTitle title="Elige el plan al que quieres subir" as="h3" />
-            <button type="button" onClick={() => setMostrarUpgrade(false)} aria-label="Cerrar" className="hw-btn rounded-lg p-1.5" style={{ color: "var(--hw-text-4)" }}>
+            <button type="button" onClick={() => setMostrarUpgrade(false)} aria-label="Cerrar" className="pgo-btn rounded-lg p-1.5" style={{ color: "var(--pgo-text-4)" }}>
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {superiores.map((p) => (
-              <div key={p.id} className="rounded-xl p-4" style={{ background: "var(--hw-surface-2)", border: "1px solid var(--hw-border-2)" }}>
-                <p className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--hw-text-1)" }}>
-                  {p.featured && <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--hw-primary)" }} aria-hidden="true" />}
+              <div key={p.id} className="rounded-xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
+                <p className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--pgo-text-1)" }}>
+                  {p.featured && <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />}
                   {p.name}
                 </p>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--hw-text-4)" }}>{ufFmt(p.mensualUf)} + IVA / mes</p>
-                <p className="mt-2 text-xs" style={{ color: "var(--hw-text-3)" }}>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>{ufFmt(p.mensualUf)} + IVA / mes</p>
+                <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-3)" }}>
                   Hasta {p.maxPropiedades} propiedades · {p.maxUsuarios === 1 ? "1 usuario" : `${p.maxUsuarios} usuarios`}
                 </p>
                 <button
                   type="button"
                   onClick={() => solicitarUpgrade(p)}
-                  className="hw-btn-primary mt-3 w-full rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  className="pgo-btn-primary mt-3 w-full rounded-lg px-3 py-1.5 text-xs font-semibold"
                 >
                   Solicitar cambio a {p.name}
                 </button>
@@ -180,25 +181,25 @@ export function MiPlanSection({
       <Card className="p-5">
         <SectionTitle title="Facturación" description="Ejemplo — la pasarela real todavía no está conectada." />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
-            <p className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+          <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
+            <p className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
               <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" /> Próximo cobro
             </p>
-            <p className="mt-1 text-sm" style={{ color: "var(--hw-text-1)" }}>
+            <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-1)" }}>
               Día {diaFacturacion} de cada mes · {clp(totalClp)}
             </p>
           </div>
-          <div className="rounded-xl p-3" style={{ background: "var(--hw-surface-2)" }}>
-            <p className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--hw-text-3)" }}>
+          <div className="rounded-xl p-3" style={{ background: "var(--pgo-surface-2)" }}>
+            <p className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--pgo-text-3)" }}>
               <CreditCard className="h-3.5 w-3.5" aria-hidden="true" /> Método de pago
             </p>
             <div className="mt-1 flex items-center justify-between gap-2">
-              <p className="text-sm" style={{ color: "var(--hw-text-1)" }}>Visa •••• 4242 · vence 08/28</p>
+              <p className="text-sm" style={{ color: "var(--pgo-text-1)" }}>Visa •••• 4242 · vence 08/28</p>
               <button
                 type="button"
                 onClick={() => toast("Próximamente: podrás actualizar tu método de pago desde acá.", "success")}
-                className="hw-btn shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold"
-                style={{ background: "var(--hw-surface)", color: "var(--hw-primary)" }}
+                className="pgo-btn shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold"
+                style={{ background: "var(--pgo-surface)", color: "var(--pgo-primary)" }}
               >
                 Actualizar
               </button>
@@ -213,7 +214,7 @@ export function MiPlanSection({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs" style={{ color: "var(--hw-text-4)" }}>
+              <tr className="text-left text-xs" style={{ color: "var(--pgo-text-4)" }}>
                 <th className="pb-2 font-semibold">Período</th>
                 <th className="pb-2 font-semibold">Monto</th>
                 <th className="pb-2 font-semibold">Estado</th>
@@ -222,13 +223,13 @@ export function MiPlanSection({
             </thead>
             <tbody>
               {historial.map((p) => (
-                <tr key={p.clave} className="border-t" style={{ borderColor: "var(--hw-border)" }}>
-                  <td className="py-2" style={{ color: "var(--hw-text-1)" }}>{p.label}</td>
-                  <td className="py-2 hw-num" style={{ color: "var(--hw-text-1)" }}>{clp(p.totalClp)}</td>
+                <tr key={p.clave} className="border-t" style={{ borderColor: "var(--pgo-border)" }}>
+                  <td className="py-2" style={{ color: "var(--pgo-text-1)" }}>{p.label}</td>
+                  <td className="py-2 pgo-num" style={{ color: "var(--pgo-text-1)" }}>{clp(p.totalClp)}</td>
                   <td className="py-2">
                     <span
                       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-                      style={{ background: "var(--hw-success-lt)", color: "var(--hw-success)" }}
+                      style={{ background: "var(--pgo-success-lt)", color: "var(--pgo-success)" }}
                     >
                       <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Pagado
                     </span>
@@ -236,8 +237,8 @@ export function MiPlanSection({
                   <td className="py-2 text-right">
                     <a
                       href={`/api/panel/billing/boleta-demo/pdf?periodo=${p.clave}`}
-                      className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold"
-                      style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)" }}
+                      className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold"
+                      style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
                     >
                       <Download className="h-3.5 w-3.5" aria-hidden="true" /> PDF
                     </a>
@@ -247,13 +248,13 @@ export function MiPlanSection({
             </tbody>
           </table>
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-xs" style={{ color: "var(--hw-text-4)" }}>
+        <p className="mt-3 flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>
           <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
           Cada PDF dice &ldquo;documento de ejemplo&rdquo; en el encabezado — no es una boleta ni factura válida ante el SII.
         </p>
       </Card>
 
-      <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+      <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
         Cuenta: {tenantNombre}
       </p>
     </div>

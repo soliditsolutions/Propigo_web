@@ -14,7 +14,7 @@
  */
 import "dotenv/config";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "@/lib/pg-adaptador";
 import { PrismaClient } from "../../../../../generated/prisma/client";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }));
@@ -35,7 +35,7 @@ const IDS: string[] = [];
 async function admin(sql: string) {
   const { execSync } = await import("child_process");
   execSync(
-    `docker exec -i housing-db psql -U housing -d housing -v ON_ERROR_STOP=1`,
+    `docker exec -i propigo-db psql -U propigo -d propigo -v ON_ERROR_STOP=1`,
     { input: sql, stdio: ["pipe", "ignore", "inherit"] },
   );
 }
@@ -43,7 +43,7 @@ async function admin(sql: string) {
 async function preparar(): Promise<boolean> {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  prisma = new PrismaClient({ adapter: adaptadorPg(url) });
   try { await prisma.$queryRaw`SELECT 1`; } catch {
     await prisma.$disconnect().catch(() => {}); prisma = null; return false;
   }
@@ -122,7 +122,7 @@ cuando("terminarContrato — boleta de garantía", () => {
       delete from periodo_pago where contrato_id = any(array[${IDS.map((x) => `'${x}'`).join(",") || "null"}]::uuid[]);
       delete from contrato where id = any(array[${IDS.map((x) => `'${x}'`).join(",") || "null"}]::uuid[]);
       delete from propiedad where id = any(array[${IDS.map((x) => `'${x}'`).join(",") || "null"}]::uuid[]);
-      delete from persona where id in ('${idArr}','${idProp}');
+      delete from persona where id = any(array[${[idArr, idProp].filter(Boolean).map((x) => `'${x}'`).join(",") || "null"}]::uuid[]);
       set session_replication_role = default;
     `);
     await prisma.$disconnect();

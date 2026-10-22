@@ -19,9 +19,9 @@
 
 const IS_PROD = process.env.NODE_ENV === "production";
 
-export const COOKIE_PANEL  = IS_PROD ? "__Host-hw_session" : "hw_session";
-export const COOKIE_PORTAL = IS_PROD ? "__Host-hw_portal"  : "hw_portal";
-export const COOKIE_DEVICE = IS_PROD ? "__Host-hw_device"  : "hw_device";
+export const COOKIE_PANEL  = IS_PROD ? "__Host-pgo_session" : "pgo_session";
+export const COOKIE_PORTAL = IS_PROD ? "__Host-pgo_portal"  : "pgo_portal";
+export const COOKIE_DEVICE = IS_PROD ? "__Host-pgo_device"  : "pgo_device";
 
 /** Atributos comunes de toda cookie de sesión. */
 export const COOKIE_BASE = {

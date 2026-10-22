@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { ContactoModal } from "./ContactoModal";
 import { DenunciaModal } from "./DenunciaModal";
+import { MARCA } from "@/lib/marca";
 
 /* ──────────────────────────────────────── tipos ── */
 interface ValoracionItem {
@@ -42,7 +43,7 @@ function StarRow({ valor, total }: { valor: number; total: number }) {
         <Star
           key={n}
           className="h-4 w-4"
-          style={{ color: n <= Math.round(valor) ? "var(--hw-warning)" : "var(--pf-border-input)", fill: n <= Math.round(valor) ? "var(--hw-warning)" : "transparent" }}
+          style={{ color: n <= Math.round(valor) ? "var(--pgo-warning)" : "var(--pf-border-input)", fill: n <= Math.round(valor) ? "var(--pgo-warning)" : "transparent" }}
           aria-hidden
         />
       ))}
@@ -73,7 +74,7 @@ export function CorredorPanel({
 
         {/* Precio + contacto */}
         <div className="pf-card p-5">
-          <p className="text-2xl font-bold" style={{ color: "var(--pf-purple)", letterSpacing: "-0.01em" }}>
+          <p className="text-2xl font-bold" style={{ color: "var(--pf-brand)", letterSpacing: "-0.01em" }}>
             {precioLabel}
           </p>
           <p className="text-sm" style={{ color: "var(--pf-text-light)" }}>{precioPie}</p>
@@ -134,7 +135,7 @@ export function CorredorPanel({
                         <Star
                           key={n}
                           className="h-3.5 w-3.5"
-                          style={{ color: n <= v.estrellas ? "var(--hw-warning)" : "var(--pf-border-input)", fill: n <= v.estrellas ? "var(--hw-warning)" : "transparent" }}
+                          style={{ color: n <= v.estrellas ? "var(--pgo-warning)" : "var(--pf-border-input)", fill: n <= v.estrellas ? "var(--pgo-warning)" : "transparent" }}
                           aria-hidden
                         />
                       ))}
@@ -155,8 +156,8 @@ export function CorredorPanel({
               <button
                 type="button"
                 onClick={() => setVerTodas(v => !v)}
-                className="hw-tap-target relative flex w-full items-center justify-center gap-1 py-2 text-xs"
-                style={{ color: "var(--pf-purple)" }}
+                className="pgo-tap-target relative flex w-full items-center justify-center gap-1 py-2 text-xs"
+                style={{ color: "var(--pf-brand)" }}
               >
                 {verTodas ? "Ver menos" : `Ver las ${recientes.length} valoraciones`}
                 <ChevronDown className={`h-3 w-3 transition-transform ${verTodas ? "rotate-180" : ""}`} aria-hidden />
@@ -168,7 +169,7 @@ export function CorredorPanel({
         {/* Portal arrendatarios */}
         <div
           className="rounded-2xl border p-4"
-          style={{ background: "var(--pf-purple-tint)", borderColor: "color-mix(in srgb, var(--pf-purple) 20%, transparent)" }}
+          style={{ background: "var(--pf-brand-tint)", borderColor: "color-mix(in srgb, var(--pf-brand) 20%, transparent)" }}
         >
           <p className="text-xs font-semibold" style={{ color: "var(--pf-navy)" }}>¿Ya eres arrendatario?</p>
           <p className="mt-0.5 text-xs" style={{ color: "var(--pf-text-body)" }}>
@@ -190,13 +191,13 @@ export function CorredorPanel({
             style={{ background: "var(--pf-hero-1)", color: "var(--pf-text-muted)" }}
           >
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--pf-success-check)" }} aria-hidden />
-            <span>Propiedad gestionada por corredor Housing. Tus datos se tratan conforme a la Ley 21.719.</span>
+            <span>Propiedad gestionada por corredor {MARCA}. Tus datos se tratan conforme a la Ley 21.719.</span>
           </div>
           <button
             type="button"
             onClick={() => setAbierto("denuncia")}
-            className="hw-tap-target relative flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-xs transition-colors hover:bg-[var(--hw-danger-lt)]"
-            style={{ color: "var(--hw-danger)" }}
+            className="pgo-tap-target relative flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-xs transition-colors hover:bg-[var(--pgo-danger-lt)]"
+            style={{ color: "var(--pgo-danger)" }}
           >
             <ShieldAlert className="h-3.5 w-3.5" aria-hidden />
             Reportar esta publicación o corredor

@@ -95,14 +95,14 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
   return (
     <div
       className="mb-6 overflow-hidden rounded-2xl"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+        style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
       >
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           <Paperclip className="h-4 w-4" aria-hidden />
           Documentos adjuntos
         </h2>
@@ -112,8 +112,8 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
             {/* Estado de cuenta (L-CM1): el documento que respalda la monitoria. */}
             <a
               href={`/api/panel/contratos/${contratoId}/estado-cuenta/pdf`}
-              className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-              style={{ background: "var(--hw-surface-2)", color: "var(--hw-text-2)", border: "1px solid var(--hw-border-2)" }}
+              className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+              style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)", border: "1px solid var(--pgo-border-2)" }}
             >
               <Download className="h-3.5 w-3.5" aria-hidden />
               Estado de cuenta (PDF)
@@ -122,8 +122,8 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
               type="button"
               onClick={handleGenerarDeuda}
               disabled={isGenDeuda}
-              className="hw-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
-              style={{ background: isGenDeuda ? "var(--hw-text-4)" : "var(--hw-danger-dk)" }}
+              className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+              style={{ background: isGenDeuda ? "var(--pgo-text-4)" : "var(--pgo-danger-dk)" }}
             >
               {isGenDeuda ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -138,15 +138,15 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
 
       {/* Lista de documentos */}
       {documentos.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: "var(--hw-border)" }}>
+        <div className="divide-y" style={{ borderColor: "var(--pgo-border)" }}>
           {documentos.map((doc) => (
             <div key={doc.id} className="flex items-center gap-3 px-5 py-3">
-              <FileText className="h-4 w-4 shrink-0" style={{ color: "var(--hw-text-4)" }} aria-hidden />
+              <FileText className="h-4 w-4 shrink-0" style={{ color: "var(--pgo-text-4)" }} aria-hidden />
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium" style={{ color: "var(--hw-text-1)" }}>
+                <p className="truncate text-sm font-medium" style={{ color: "var(--pgo-text-1)" }}>
                   {doc.nombre}
                 </p>
-                <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
                   {TIPO_LABEL[doc.tipo] ?? doc.tipo} · {fecha(doc.createdAt)}
                 </p>
               </div>
@@ -154,8 +154,8 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
                 href={`/api/documentos/${doc.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hw-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--hw-surface-2)]"
-                style={{ color: "var(--hw-primary)" }}
+                className="pgo-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
+                style={{ color: "var(--pgo-primary)" }}
                 aria-label={`Descargar ${doc.nombre}`}
               >
                 <Download className="h-3.5 w-3.5" aria-hidden />
@@ -165,7 +165,7 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
           ))}
         </div>
       ) : (
-        <div className="px-5 py-4 text-sm" style={{ color: "var(--hw-text-4)" }}>
+        <div className="px-5 py-4 text-sm" style={{ color: "var(--pgo-text-4)" }}>
           Sin documentos adjuntos.
         </div>
       )}
@@ -173,9 +173,9 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
       {/* Formulario para subir anexo */}
       <div
         className="px-5 py-4 space-y-3"
-        style={{ borderTop: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+        style={{ borderTop: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
       >
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--hw-text-4)" }}>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Adjuntar nuevo anexo (PDF, máx. 10 MB)
         </p>
         <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
             onChange={(e) => { setNombre(e.target.value); setUploadError(null); }}
             placeholder="Nombre descriptivo del documento…"
             className="min-w-[220px] flex-1 rounded-lg border px-3 py-1.5 text-sm"
-            style={{ borderColor: "var(--hw-border)", color: "var(--hw-text-1)", background: "var(--hw-surface)" }}
+            style={{ borderColor: "var(--pgo-border)", color: "var(--pgo-text-1)", background: "var(--pgo-surface)" }}
             maxLength={120}
           />
           {/* El botón se deshabilita mientras falte el nombre. Antes siempre
@@ -196,10 +196,10 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
             htmlFor={puedeSubir ? "anexo-file-input" : undefined}
             aria-disabled={!puedeSubir || undefined}
             title={faltaNombre ? "Primero escribe un nombre para el documento" : undefined}
-            className={`hw-btn inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold text-white ${
+            className={`pgo-btn inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold text-white ${
               puedeSubir ? "cursor-pointer" : "cursor-not-allowed opacity-50"
             }`}
-            style={{ background: puedeSubir ? "var(--hw-primary)" : "var(--hw-text-4)" }}
+            style={{ background: puedeSubir ? "var(--pgo-primary)" : "var(--pgo-text-4)" }}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -223,13 +223,13 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
         {/* Pista, no error: el usuario todavía no hizo nada mal. Explica por
             qué el botón está apagado antes de que lo intente. */}
         {faltaNombre && !uploadError && (
-          <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>
+          <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
             Escribe un nombre para habilitar la carga.
           </p>
         )}
 
         {uploadError && (
-          <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--hw-danger-dk)" }}>
+          <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-danger-dk)" }}>
             <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {uploadError}
           </p>

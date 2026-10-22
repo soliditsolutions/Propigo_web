@@ -6,12 +6,12 @@
 
 | Nivel | Herramienta | Alcance |
 |---|---|---|
-| **Unitario (dominio)** | `node:test` / Vitest en `@housing/core` | Cálculos financieros puros: calendario, IPC, ledger, garantía, RUT. |
-| **Unitario/integración (app)** | Vitest + Testing Library (`@housing/web`) | Server Actions, seguridad de IA, sanitización, startup checks. |
+| **Unitario (dominio)** | `node:test` / Vitest en `@propigo/core` | Cálculos financieros puros: calendario, IPC, ledger, garantía, RUT. |
+| **Unitario/integración (app)** | Vitest + Testing Library (`@propigo/web`) | Server Actions, seguridad de IA, sanitización, startup checks. |
 | **End-to-end manual** | Claude Preview / navegador | Flujos completos por la UI real (crear contrato → conciliar → portal). |
 | **Seguridad** | Revisión + tests dirigidos | Multi-tenant, anti-enumeración, prompt-injection, uploads. |
 
-**Comandos:** `npm test -w @housing/core` · `npm test -w @housing/web` · cobertura: `npm run test:coverage -w @housing/web`.
+**Comandos:** `npm test -w @propigo/core` · `npm test -w @propigo/web` · cobertura: `npm run test:coverage -w @propigo/web`.
 
 **Criterio de aceptación de un PR:** lint + tests verdes + build + verificación manual del cambio si es observable (ver [CONTRIBUTING](../../CONTRIBUTING.md)).
 

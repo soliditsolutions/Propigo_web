@@ -1,19 +1,26 @@
-# PostgreSQL local para desarrollo del MVP.
+# PostgreSQL local para desarrollo.
 # Uso: npm run db:up  (requiere Docker Desktop instalado)
+#
+# `name` y el nombre explícito del volumen fijan los nombres de Docker: sin
+# ellos, Compose los deriva de la carpeta del repo y renombrar la carpeta
+# dejaría la base apuntando a un volumen nuevo y vacío.
+name: propigo
+
 services:
   db:
     image: postgres:16
-    container_name: housing-db
+    container_name: propigo-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: housing
-      POSTGRES_PASSWORD: housing_dev
-      POSTGRES_DB: housing
+      POSTGRES_USER: propigo
+      POSTGRES_PASSWORD: propigo_dev
+      POSTGRES_DB: propigo
     # Host 5433 para no chocar con un Postgres ya instalado en 5432.
     ports:
       - "5433:5432"
     volumes:
-      - housing_pgdata:/var/lib/postgresql/data
+      - propigo_pgdata:/var/lib/postgresql/data
 
 volumes:
-  housing_pgdata:
+  propigo_pgdata:
+    name: propigo_pgdata

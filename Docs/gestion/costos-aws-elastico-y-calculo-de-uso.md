@@ -1,4 +1,4 @@
-# Guía: cómo calcular el costo de Housing en AWS elástico
+# Guía: cómo calcular el costo de Propigo en AWS elástico
 
 > **Estimación inicial, no cotización.** El objetivo es tener un orden de
 > magnitud del costo mensual con afluencia **moderada-alta** y **todo lo
@@ -233,7 +233,7 @@ y caché/rollups, no comprando más servidor.
 
 La estimación es el punto de partida; en producción se mide, no se supone:
 
-1. **Cost Explorer + tags.** Etiquetar cada recurso con `app=housing` y
+1. **Cost Explorer + tags.** Etiquetar cada recurso con `app=propigo` y
    `componente=<compute|db|cdn|storage>`. Cost Explorer agrupa el gasto por tag y
    muestra la tendencia diaria — ahí se ve qué partida crece.
 2. **AWS Budgets con alertas.** Un presupuesto mensual (p. ej. $800) con alarma al

@@ -1,4 +1,4 @@
-# Sistema de Diseño UI (Housing)
+# Sistema de Diseño UI (Propigo)
 
 > Documento vivo. Última actualización: 2026-06-05  
 > Basado en: investigación de tendencias 2026, guías Vercel Web Interface, auditoría completa del código actual.
@@ -65,10 +65,10 @@ Filtros, tabs, paginación deben reflejarse en la URL para deep-linking. **Actua
 | # | Archivo | Problema | Regla violada |
 |---|---|---|---|
 | 1 | `cobros-client.tsx:368` | `<div className="cursor-pointer">` con `onClick` | Use `<button>` for actions, not `<div onClick>` |
-| 2 | `propiedades-client.tsx:164` | `<div className="hw-card-hover cursor-pointer" onClick>` | Same — div con handler de click |
+| 2 | `propiedades-client.tsx:164` | `<div className="pgo-card-hover cursor-pointer" onClick>` | Same — div con handler de click |
 | 3 | Todos los archivos | Cero `aria-label` en botones de ícono (X, ChevronDown, Plus) | Icon-only buttons require `aria-label` |
 | 4 | `cobros-client.tsx` feedback | Sin `aria-live="polite"` en mensajes de feedback | Async updates need `aria-live` |
-| 5 | Global | `transition: all` en clase `.hw-btn-transition` (globals.css) | Never use `transition: all` — list properties |
+| 5 | Global | `transition: all` en clase `.pgo-btn-transition` (globals.css) | Never use `transition: all` — list properties |
 | 6 | Toda la app | Cero instancias de `tabular-nums` para columnas de montos | `font-variant-numeric: tabular-nums` for numbers |
 | 7 | Toda la app | Sin `prefers-reduced-motion` en ninguna animación | Honor reduced motion |
 | 8 | `cobros-client.tsx` inputs | `<input>` sin `autocomplete` ni `name` | Inputs need `autocomplete` and `name` |
@@ -101,7 +101,7 @@ Filtros, tabs, paginación deben reflejarse en la URL para deep-linking. **Actua
 
 ---
 
-## 4. Sistema de diseño propuesto — Housing Design System v2
+## 4. Sistema de diseño propuesto — Propigo Design System v2
 
 ### 4.1 Filosofía
 **"Confianza antes que features."** Un corredor chileno gestiona dinero ajeno. Cada pixel debe comunicar **orden, control y profesionalismo**. La estética es subordinada a la función, pero la función debe ser bella.
@@ -112,56 +112,56 @@ Filtros, tabs, paginación deben reflejarse en la URL para deep-linking. **Actua
 
 ```css
 /* Fondo y superficies */
---hw-page:       #EFF3F8   /* Azul muy suave — rompe el blanco puro */
---hw-surface:    #FFFFFF   /* Cards, paneles */
---hw-surface-2:  #F8FAFD   /* Table headers, rows alternas */
+--pgo-page:       #EFF3F8   /* Azul muy suave — rompe el blanco puro */
+--pgo-surface:    #FFFFFF   /* Cards, paneles */
+--pgo-surface-2:  #F8FAFD   /* Table headers, rows alternas */
 
 /* Sidebar */
---hw-sidebar:        #0F1E35   /* Deep navy — más profundo que el actual */
---hw-sidebar-hover:  rgba(255,255,255,0.07)
---hw-sidebar-active: rgba(255,255,255,0.14)
---hw-sidebar-text:   rgba(255,255,255,0.90)
---hw-sidebar-muted:  rgba(255,255,255,0.45)
+--pgo-sidebar:        #0F1E35   /* Deep navy — más profundo que el actual */
+--pgo-sidebar-hover:  rgba(255,255,255,0.07)
+--pgo-sidebar-active: rgba(255,255,255,0.14)
+--pgo-sidebar-text:   rgba(255,255,255,0.90)
+--pgo-sidebar-muted:  rgba(255,255,255,0.45)
 
 /* Bordes */
---hw-border:     #E1EAF4   /* Azul muy suave */
---hw-border-2:   #C8D9EE   /* Border más visible (inputs focus, separadores) */
+--pgo-border:     #E1EAF4   /* Azul muy suave */
+--pgo-border-2:   #C8D9EE   /* Border más visible (inputs focus, separadores) */
 
 /* Textos */
---hw-text-1:     #0F172A   /* Slate-900 — headings, datos críticos */
---hw-text-2:     #334155   /* Slate-700 — body text */
---hw-text-3:     #64748B   /* Slate-500 — labels, metadata */
---hw-text-4:     #94A3B8   /* Slate-400 — placeholders, muted */
+--pgo-text-1:     #0F172A   /* Slate-900 — headings, datos críticos */
+--pgo-text-2:     #334155   /* Slate-700 — body text */
+--pgo-text-3:     #64748B   /* Slate-500 — labels, metadata */
+--pgo-text-4:     #94A3B8   /* Slate-400 — placeholders, muted */
 
 /* Primario — azul de confianza financiera */
---hw-primary:    #2563EB   /* Blue-600 */
---hw-primary-dk: #1D4ED8   /* Blue-700 hover */
---hw-primary-lt: #EEF2FF   /* Blue-50 backgrounds */
---hw-primary-bd: #BFDBFE   /* Blue-200 borders */
+--pgo-primary:    #2563EB   /* Blue-600 */
+--pgo-primary-dk: #1D4ED8   /* Blue-700 hover */
+--pgo-primary-lt: #EEF2FF   /* Blue-50 backgrounds */
+--pgo-primary-bd: #BFDBFE   /* Blue-200 borders */
 
 /* Semánticos */
---hw-danger:     #DC2626   /* Red-600 — mora, alertas críticas */
---hw-danger-lt:  #FEF2F2
---hw-success:    #059669   /* Emerald-600 — pagado, liquidado */
---hw-success-lt: #ECFDF5
---hw-warning:    #D97706   /* Amber-600 — pendiente, por cerrar */
---hw-warning-lt: #FFFBEB
+--pgo-danger:     #DC2626   /* Red-600 — mora, alertas críticas */
+--pgo-danger-lt:  #FEF2F2
+--pgo-success:    #059669   /* Emerald-600 — pagado, liquidado */
+--pgo-success-lt: #ECFDF5
+--pgo-warning:    #D97706   /* Amber-600 — pendiente, por cerrar */
+--pgo-warning-lt: #FFFBEB
 
 /* Elevación — sistema de 3 niveles */
---hw-shadow-1:   0 1px 3px rgba(15,31,53,0.04), 0 4px 14px rgba(15,31,53,0.06);
---hw-shadow-2:   0 4px 12px rgba(15,31,53,0.08), 0 12px 32px rgba(15,31,53,0.10);
---hw-shadow-3:   0 12px 40px rgba(15,31,53,0.18);  /* Modales */
+--pgo-shadow-1:   0 1px 3px rgba(15,31,53,0.04), 0 4px 14px rgba(15,31,53,0.06);
+--pgo-shadow-2:   0 4px 12px rgba(15,31,53,0.08), 0 12px 32px rgba(15,31,53,0.10);
+--pgo-shadow-3:   0 12px 40px rgba(15,31,53,0.18);  /* Modales */
 
 /* Radios */
---hw-radius:     14px   /* Cards */
---hw-radius-sm:  8px    /* Badges, inputs */
---hw-radius-xs:  6px    /* Tags inline */
+--pgo-radius:     14px   /* Cards */
+--pgo-radius-sm:  8px    /* Badges, inputs */
+--pgo-radius-xs:  6px    /* Tags inline */
 
 /* Transiciones — propiedades explícitas */
---hw-dur-fast:   100ms
---hw-dur-std:    180ms
---hw-dur-slow:   300ms
---hw-ease:       cubic-bezier(0.16, 1, 0.3, 1)  /* ease-out spring */
+--pgo-dur-fast:   100ms
+--pgo-dur-std:    180ms
+--pgo-dur-slow:   300ms
+--pgo-ease:       cubic-bezier(0.16, 1, 0.3, 1)  /* ease-out spring */
 ```
 
 ### 4.3 Tipografía
@@ -170,14 +170,14 @@ Filtros, tabs, paginación deben reflejarse en la URL para deep-linking. **Actua
 
 ```css
 /* Escala */
---hw-text-xs:   11px / 1.4
---hw-text-sm:   13px / 1.5
---hw-text-base: 14px / 1.6   /* Default UI */
---hw-text-md:   15px / 1.5
---hw-text-lg:   16px / 1.4
---hw-text-xl:   18px / 1.3
---hw-text-2xl:  22px / 1.25
---hw-text-3xl:  28px / 1.2   /* KPIs */
+--pgo-text-xs:   11px / 1.4
+--pgo-text-sm:   13px / 1.5
+--pgo-text-base: 14px / 1.6   /* Default UI */
+--pgo-text-md:   15px / 1.5
+--pgo-text-lg:   16px / 1.4
+--pgo-text-xl:   18px / 1.3
+--pgo-text-2xl:  22px / 1.25
+--pgo-text-3xl:  28px / 1.2   /* KPIs */
 
 /* Pesos */
 400: body, metadata
@@ -234,7 +234,7 @@ Tab transition:     150ms ease-out
 **Prioridad 2 — Sistema de tokens:**
 | Acción | Detalle |
 |---|---|
-| Migrar hex hardcoded | 40+ instancias → CSS variables `--hw-*` |
+| Migrar hex hardcoded | 40+ instancias → CSS variables `--pgo-*` |
 | `transition: all` | → `transition: box-shadow, transform, opacity, border-color` |
 | `tabular-nums` | Aplicar en: montos, fechas, contadores |
 | `text-wrap: balance` | Aplicar en todos los headings |
@@ -345,7 +345,7 @@ No es un fallo de implementación — es un fallo de proceso:
 
 3. **Accesibilidad tratada como opcional.** En Chile, la Ley 20.422 exige accesibilidad en servicios digitales. En un producto financiero que maneja PII sensible, la accesibilidad es también cumplimiento.
 
-4. **CSS tokens parciales.** Se crearon variables `--hw-*` pero se mezclaron con hex hardcoded. Un sistema de tokens debe ser exhaustivo o pierde su valor.
+4. **CSS tokens parciales.** Se crearon variables `--pgo-*` pero se mezclaron con hex hardcoded. Un sistema de tokens debe ser exhaustivo o pierde su valor.
 
 ### El estándar al que apuntamos
 
@@ -362,32 +362,32 @@ Los productos de referencia (Linear, Stripe, Vercel Dashboard) comparten:
 
 ## 8. Adiciones sobre Aurora (2026-07-27) — sidebar del panel
 
-El tema Aurora (ver nota de estado arriba) ya cubría sitio público/auth/portal. Esta sesión lo extendió al sidebar del **panel** corredor, que hasta entonces usaba `--hw-sidebar*` (navy fijo, pensado solo para el aside de marca de login) y por eso "cambiar a claro" solo aclaraba la misma paleta oscura por transparencia — nunca hubo un diseño claro real para esa superficie.
+El tema Aurora (ver nota de estado arriba) ya cubría sitio público/auth/portal. Esta sesión lo extendió al sidebar del **panel** corredor, que hasta entonces usaba `--pgo-sidebar*` (navy fijo, pensado solo para el aside de marca de login) y por eso "cambiar a claro" solo aclaraba la misma paleta oscura por transparencia — nunca hubo un diseño claro real para esa superficie.
 
-### 8.1 Tokens nuevos — `--hw-panel-nav-*` (themeados, en `globals.css`)
+### 8.1 Tokens nuevos — `--pgo-panel-nav-*` (themeados, en `globals.css`)
 
-Paralelos a `--hw-sidebar*` (que sigue existiendo intacto, solo para login/registro). Usados únicamente por `components/panel/shell.tsx` y `components/panel/nav.tsx`:
+Paralelos a `--pgo-sidebar*` (que sigue existiendo intacto, solo para login/registro). Usados únicamente por `components/panel/shell.tsx` y `components/panel/nav.tsx`:
 
 | Token | Rol |
 |---|---|
-| `--hw-panel-nav-bg` | Base de color del panel (navy en oscuro / `--hw-surface` blanco en claro) |
-| `--hw-panel-nav-border` | Borde del panel |
-| `--hw-panel-nav-text` / `--hw-panel-nav-muted` / `--hw-panel-nav-faint` | Jerarquía de texto (activo / label normal / subtítulo tenue) |
-| `--hw-panel-nav-surface` / `--hw-panel-nav-surface-2` | Superficies internas (chips, avatar, botones de colapsar) — dos intensidades |
-| `--hw-panel-nav-hover-bg` / `--hw-panel-nav-active-bg` | Estados de ítem de navegación |
-| `--hw-panel-nav-glow` | Color del glow del ítem activo (translúcido) |
-| `--hw-panel-nav-inset` | Highlight superior (efecto vidrio) del ítem activo |
+| `--pgo-panel-nav-bg` | Base de color del panel (navy en oscuro / `--pgo-surface` blanco en claro) |
+| `--pgo-panel-nav-border` | Borde del panel |
+| `--pgo-panel-nav-text` / `--pgo-panel-nav-muted` / `--pgo-panel-nav-faint` | Jerarquía de texto (activo / label normal / subtítulo tenue) |
+| `--pgo-panel-nav-surface` / `--pgo-panel-nav-surface-2` | Superficies internas (chips, avatar, botones de colapsar) — dos intensidades |
+| `--pgo-panel-nav-hover-bg` / `--pgo-panel-nav-active-bg` | Estados de ítem de navegación |
+| `--pgo-panel-nav-glow` | Color del glow del ítem activo (translúcido) |
+| `--pgo-panel-nav-inset` | Highlight superior (efecto vidrio) del ítem activo |
 
 ### 8.2 Clases nuevas
 
-- **`.hw-panel-aside`** — vidrio del sidebar del panel (`background: color-mix(--hw-panel-nav-bg, transparent)` + blur). Distinta de `.hw-auth-aside` (fija oscura, solo login/registro) a propósito: misma técnica de vidrio, distinta relación con el tema.
-- **`.hw-sidebar-link`** — hover del ítem de navegación. `--hw-sidebar-hover` estaba definido en los tokens desde el diseño original pero sin ningún consumidor.
-- **`.hw-beams-layer`** — fondo del sidebar en tema oscuro: franjas de luz irregulares (gradientes lineales con paradas hechas a mano, no `repeating-linear-gradient` — un patrón perfectamente periódico se lee como textura, no como luz) + `mask-image` para fundido vertical. Aproximación **CSS-only** de un componente "Beams" (React Bits, three.js/WebGL) evaluado y descartado: ~250 KB de bundle adicional solo para un fondo decorativo, y sin soporte nativo de `prefers-reduced-motion` (un loop de `requestAnimationFrame` no lo respeta automáticamente como sí lo hace una `animation` CSS). En tema claro cae al mismo blob suave de `.hw-aurora-layer`.
-- **`.hw-cta-secondary`** (rediseñada, ya existía) — CTAs secundarios del hero del Home. Pasó de `--hw-surface-glass` (~4% opacidad, casi invisible sobre el panel de vidrio del hero) a `color-mix(--pf-purple, --hw-glass-card)` — mismo token que ya usa `.hw-walk-panel` para "vidrio sobre foto", con tinte de marca.
+- **`.pgo-panel-aside`** — vidrio del sidebar del panel (`background: color-mix(--pgo-panel-nav-bg, transparent)` + blur). Distinta de `.pgo-auth-aside` (fija oscura, solo login/registro) a propósito: misma técnica de vidrio, distinta relación con el tema.
+- **`.pgo-sidebar-link`** — hover del ítem de navegación. `--pgo-sidebar-hover` estaba definido en los tokens desde el diseño original pero sin ningún consumidor.
+- **`.pgo-beams-layer`** — fondo del sidebar en tema oscuro: franjas de luz irregulares (gradientes lineales con paradas hechas a mano, no `repeating-linear-gradient` — un patrón perfectamente periódico se lee como textura, no como luz) + `mask-image` para fundido vertical. Aproximación **CSS-only** de un componente "Beams" (React Bits, three.js/WebGL) evaluado y descartado: ~250 KB de bundle adicional solo para un fondo decorativo, y sin soporte nativo de `prefers-reduced-motion` (un loop de `requestAnimationFrame` no lo respeta automáticamente como sí lo hace una `animation` CSS). En tema claro cae al mismo blob suave de `.pgo-aurora-layer`.
+- **`.pgo-cta-secondary`** (rediseñada, ya existía) — CTAs secundarios del hero del Home. Pasó de `--pgo-surface-glass` (~4% opacidad, casi invisible sobre el panel de vidrio del hero) a `color-mix(--pf-purple, --pgo-glass-card)` — mismo token que ya usa `.pgo-walk-panel` para "vidrio sobre foto", con tinte de marca.
 
 ### 8.3 Lección de arquitectura de tokens
 
-Antes de reusar un token o clase "porque ya existe y se ve parecido", confirmar que el contexto de origen tiene la **misma relación con el tema** que el contexto nuevo. `--hw-sidebar*` es fijo por diseño (el aside de login debe verse igual sin importar el tema del sitio visitante); el sidebar del panel es superficie de trabajo diaria y sí debe adaptarse. Mismo tipo de error, segunda instancia: `.hw-scroll-dark` (scrollbar fijo oscuro) también asumía "el sidebar nunca cambia" — se quitó del contenedor de nav del panel, dejando el scrollbar global (ya themeado) tomar el control.
+Antes de reusar un token o clase "porque ya existe y se ve parecido", confirmar que el contexto de origen tiene la **misma relación con el tema** que el contexto nuevo. `--pgo-sidebar*` es fijo por diseño (el aside de login debe verse igual sin importar el tema del sitio visitante); el sidebar del panel es superficie de trabajo diaria y sí debe adaptarse. Mismo tipo de error, segunda instancia: `.pgo-scroll-dark` (scrollbar fijo oscuro) también asumía "el sidebar nunca cambia" — se quitó del contenedor de nav del panel, dejando el scrollbar global (ya themeado) tomar el control.
 
 ---
 

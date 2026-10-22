@@ -1,9 +1,9 @@
 /**
- * Seed del MVP Housing (v2 — incluye garantía, ajustes, config de tenant).
- * Ejecutar: npm run db:seed -w @housing/web
+ * Seed del MVP Propigo (v2 — incluye garantía, ajustes, config de tenant).
+ * Ejecutar: npm run db:seed -w @propigo/web
  */
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { adaptadorPg } from "../src/lib/pg-adaptador";
 import { PrismaClient } from "../src/generated/prisma/client";
 import {
   generarCalendario,
@@ -11,7 +11,7 @@ import {
   aplicarReajusteIpc,
   esPeriodoDeReajuste,
   redondearPeso,
-} from "@housing/core";
+} from "@propigo/core";
 
 /** PBKDF2-SHA256 — misma lógica que src/lib/password.ts */
 async function hashPassword(password: string): Promise<string> {
@@ -24,14 +24,14 @@ async function hashPassword(password: string): Promise<string> {
 
 /**
  * El seed es una herramienta de desarrollo, no la aplicación: necesita
- * TRUNCATE, que el rol de runtime (housing_app) no puede hacer por diseño
+ * TRUNCATE, que el rol de runtime (propigo_app) no puede hacer por diseño
  * (ADR-0011). Por eso usa la conexión de administrador cuando está definida.
  *
  * Sin esta distinción `db:seed` fallaba con "permission denied for table
  * tenant" y no había forma de resembrar sin editar el .env a mano.
  */
 const seedUrl = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_URL;
-const adapter = new PrismaPg({ connectionString: seedUrl });
+const adapter = adaptadorPg(seedUrl);
 const prisma = new PrismaClient({ adapter });
 
 const HOY = new Date(Date.UTC(2026, 5, 4)); // referencia: 2026-06-04

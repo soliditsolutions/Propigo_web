@@ -5,11 +5,11 @@ import { X, CheckCircle2 } from "lucide-react";
 
 /* ── Estilos de input compartidos por los formularios de modales ── */
 export const modalInputCls =
-  "w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--pf-purple)] focus:shadow-[0_0_0_3px_var(--pf-purple-tint)]";
+  "w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--pf-brand)] focus:shadow-[0_0_0_3px_var(--pf-brand-tint)]";
 
 export function modalInputStyle(hasError: boolean): React.CSSProperties {
   return {
-    borderColor: hasError ? "var(--hw-danger)" : "var(--pf-border-input)",
+    borderColor: hasError ? "var(--pgo-danger)" : "var(--pf-border-input)",
     background:  "var(--pf-surface)",
     color:       "var(--pf-navy)",
   };
@@ -97,8 +97,8 @@ interface ModalSuccessProps {
 }
 
 export function ModalSuccess({ tone = "green", title, message, extra, onClose, closeLabel = "Cerrar" }: ModalSuccessProps) {
-  const bg    = tone === "amber" ? "var(--hw-warning-lt)" : "var(--hw-success-lt)";
-  const color = tone === "amber" ? "var(--hw-warning)" : "var(--hw-success)";
+  const bg    = tone === "amber" ? "var(--pgo-warning-lt)" : "var(--pgo-success-lt)";
+  const color = tone === "amber" ? "var(--pgo-warning)" : "var(--pgo-success)";
   return (
     <div className="flex flex-col items-center gap-4 py-4 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ background: bg }}>

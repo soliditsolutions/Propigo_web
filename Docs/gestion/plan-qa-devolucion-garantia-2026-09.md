@@ -118,7 +118,7 @@ _Ejecutado 2026-09-10. ✅ pasó · 🔧 falló y se corrigió. Verificación E2
   `GA-AAAA-NNNNN` y snapshot que cuadra), E1/E2 (aviso con desglose y con
   "Saldo pendiente"), C1/C5 (retención sin motivo → rechazada, contrato sigue
   vigente).
-- Suites completas: **`apps/web` 879 ✅ · `@housing/core` 74 ✅**. Typecheck y
+- Suites completas: **`apps/web` 879 ✅ · `@propigo/core` 74 ✅**. Typecheck y
   lint limpios.
 
 ### Por sección

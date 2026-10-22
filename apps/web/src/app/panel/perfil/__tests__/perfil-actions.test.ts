@@ -34,7 +34,7 @@ vi.mock("@/lib/email", () => ({
   sendCambioContactoCodeEmail: mockSendCambioContactoCodeEmail,
 }));
 
-vi.mock("@housing/core", () => ({
+vi.mock("@propigo/core", () => ({
   esRegionValida:         vi.fn(() => true),
   esComunaValidaEnRegion: vi.fn(() => true),
 }));

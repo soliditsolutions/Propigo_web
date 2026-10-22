@@ -20,10 +20,10 @@ vi.mock("@/lib/db", () => ({
   prisma: { $transaction: mockPrismaTransaction },
 }));
 
-// Mock de las funciones puras de @housing/core para controlar el flujo en cada test
+// Mock de las funciones puras de @propigo/core para controlar el flujo en cada test
 const mockConciliar    = vi.fn();
 const mockCalcLiq      = vi.fn();
-vi.mock("@housing/core", () => ({
+vi.mock("@propigo/core", () => ({
   calcularMora:       vi.fn().mockReturnValue({ diasAtraso: 0, interesCLP: 0 }),
   conciliar:          mockConciliar,
   calcularLiquidacion: mockCalcLiq,

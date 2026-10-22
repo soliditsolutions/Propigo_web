@@ -66,10 +66,10 @@ export function scrollToSection(id: string) {
   section.scrollIntoView({ behavior: "smooth", block: "start" });
   const card = document.getElementById(`${id}-card`);
   if (card) {
-    card.classList.remove("hw-anchor-flash");
+    card.classList.remove("pgo-anchor-flash");
     // Forzar reflow para poder re-disparar la animación si se hace click dos veces seguidas.
     void card.offsetWidth;
-    card.classList.add("hw-anchor-flash");
+    card.classList.add("pgo-anchor-flash");
   }
 }
 

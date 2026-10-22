@@ -14,29 +14,29 @@ type Cuenta = {
 
 const inputBase: React.CSSProperties = {
   height: "44px", width: "100%", borderRadius: "12px",
-  border: "1px solid var(--hw-border-2)", background: "var(--hw-surface)",
-  color: "var(--hw-text-1)", fontSize: "14px", padding: "0 14px",
-  outline: "none", boxShadow: "var(--hw-input-shadow)",
+  border: "1px solid var(--pgo-border-2)", background: "var(--pgo-surface)",
+  color: "var(--pgo-text-1)", fontSize: "14px", padding: "0 14px",
+  outline: "none", boxShadow: "var(--pgo-input-shadow)",
   transition: "border-color 150ms ease, box-shadow 150ms ease",
 };
 const focusHandlers = {
   onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = "var(--hw-primary)";
-    e.currentTarget.style.boxShadow = "var(--hw-input-shadow-focus)";
+    e.currentTarget.style.borderColor = "var(--pgo-primary)";
+    e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)";
   },
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = "var(--hw-border-2)";
-    e.currentTarget.style.boxShadow = "var(--hw-input-shadow)";
+    e.currentTarget.style.borderColor = "var(--pgo-border-2)";
+    e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)";
   },
 };
-const labelStyle: React.CSSProperties = { color: "var(--hw-text-2)" };
+const labelStyle: React.CSSProperties = { color: "var(--pgo-text-2)" };
 
 function Campo({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div className="space-y-1.5">
       <label className="block text-sm font-semibold" style={labelStyle}>{label}</label>
       {children}
-      {hint && <p className="text-xs" style={{ color: "var(--hw-text-4)" }}>{hint}</p>}
+      {hint && <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{hint}</p>}
     </div>
   );
 }
@@ -45,11 +45,11 @@ function Seccion({ icon, titulo, children }: { icon: React.ReactNode; titulo: st
   return (
     <section
       className="rounded-2xl p-6 space-y-5"
-      style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-border)", boxShadow: "var(--hw-shadow-1)" }}
+      style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow-1)" }}
     >
       <div className="flex items-center gap-2">
-        <span style={{ color: "var(--hw-primary)" }}>{icon}</span>
-        <h2 className="text-base font-semibold" style={{ color: "var(--hw-text-1)" }}>{titulo}</h2>
+        <span style={{ color: "var(--pgo-primary)" }}>{icon}</span>
+        <h2 className="text-base font-semibold" style={{ color: "var(--pgo-text-1)" }}>{titulo}</h2>
       </div>
       {children}
     </section>
@@ -129,15 +129,15 @@ export function CorredoraClient({
           ].map((op) => (
             <label key={String(op.pj)} className="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5"
               style={{
-                background: esPJ === op.pj ? "var(--hw-primary-lt)" : "var(--hw-surface-2)",
-                border: `1px solid ${esPJ === op.pj ? "var(--hw-primary-bd)" : "var(--hw-border-2)"}`,
+                background: esPJ === op.pj ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+                border: `1px solid ${esPJ === op.pj ? "var(--pgo-primary-bd)" : "var(--pgo-border-2)"}`,
               }}>
               <input type="radio" name="esPJ" checked={esPJ === op.pj}
                 onChange={() => setEsPJ(op.pj)}
-                className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--hw-primary)" }} />
+                className="mt-0.5 h-4 w-4 shrink-0" style={{ accentColor: "var(--pgo-primary)" }} />
               <span className="min-w-0">
-                <span className="block text-sm" style={{ color: "var(--hw-text-1)" }}>{op.etiqueta}</span>
-                <span className="block text-xs" style={{ color: "var(--hw-text-4)" }}>{op.detalle}</span>
+                <span className="block text-sm" style={{ color: "var(--pgo-text-1)" }}>{op.etiqueta}</span>
+                <span className="block text-xs" style={{ color: "var(--pgo-text-4)" }}>{op.detalle}</span>
               </span>
             </label>
           ))}
@@ -154,15 +154,15 @@ export function CorredoraClient({
         </Campo>
 
         <button type="button" onClick={guardarDatos} disabled={savingDatos}
-          className="hw-btn inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
-          style={{ background: savingDatos ? "var(--hw-text-4)" : "var(--hw-primary)" }}>
+          className="pgo-btn inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+          style={{ background: savingDatos ? "var(--pgo-text-4)" : "var(--pgo-primary)" }}>
           {savingDatos && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
           Guardar datos
         </button>
       </Seccion>
 
       <Seccion icon={<Landmark className="h-4 w-4" aria-hidden />} titulo="Cuenta bancaria de la corredora">
-        <p className="text-sm" style={{ color: "var(--hw-text-3)" }}>
+        <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
           Es la cuenta que se le indica al arrendatario en el recordatorio de pago. Dato
           sensible: no se muestra en el marketplace ni a terceros.
         </p>
@@ -205,15 +205,15 @@ export function CorredoraClient({
 
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={guardarCuenta} disabled={savingCuenta}
-            className="hw-btn inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
-            style={{ background: savingCuenta ? "var(--hw-text-4)" : "var(--hw-primary)" }}>
+            className="pgo-btn inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: savingCuenta ? "var(--pgo-text-4)" : "var(--pgo-primary)" }}>
             {savingCuenta && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Guardar cuenta
           </button>
           {cuenta && (
             <button type="button" onClick={borrarCuenta} disabled={borrando}
-              className="hw-btn inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium"
-              style={{ color: "var(--hw-danger-dk)" }}>
+              className="pgo-btn inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium"
+              style={{ color: "var(--pgo-danger-dk)" }}>
               {borrando ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
               Eliminar
             </button>

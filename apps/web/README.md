@@ -1,4 +1,4 @@
-# Housing · SOLIDIT — Guía de desarrollo local
+# Propigo — Guía de desarrollo local
 
 ## Requisitos previos
 
@@ -10,7 +10,7 @@
 
 ## Arrancar el proyecto
 
-Desde la raíz del monorepo (`Housing/`):
+Desde la raíz del monorepo (`Propigo/`):
 
 ```bash
 pnpm install          # instala todas las dependencias

@@ -41,9 +41,9 @@ const RANGE_OPTIONS = [
 
 const FILTROS: { key: Filtro; label: string; color?: string }[] = [
   { key: "todos",    label: "Todos" },
-  { key: "atrasado", label: "Atrasados",   color: "var(--hw-danger)" },
-  { key: "pendiente",label: "Pendientes",  color: "var(--hw-warning)" },
-  { key: "semana",   label: "Esta semana", color: "var(--hw-primary)" },
+  { key: "atrasado", label: "Atrasados",   color: "var(--pgo-danger)" },
+  { key: "pendiente",label: "Pendientes",  color: "var(--pgo-warning)" },
+  { key: "semana",   label: "Esta semana", color: "var(--pgo-primary)" },
 ];
 
 export function ProximosClient({ periodos }: { periodos: Periodo[] }) {
@@ -128,38 +128,38 @@ export function ProximosClient({ periodos }: { periodos: Periodo[] }) {
             label={f.label}
             count={counts[f.key]}
             active={filtro === f.key}
-            activeColor={f.color ?? "var(--hw-primary-dk)"}
+            activeColor={f.color ?? "var(--pgo-primary-dk)"}
             onClick={() => setFiltro(f.key)}
           />
         ))}
       </FilterToolbar>
 
-      <div className="hw-card overflow-hidden">
+      <div className="pgo-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}>
+              <tr style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}>
                 {["Vence","Arrendatario","Propiedad","Monto","Estado"].map((h, i) => (
-                  <th key={h} scope="col" className={`px-5 py-3 text-xs font-semibold uppercase tracking-wide text-[var(--hw-text-4)] ${i === 3 ? "text-right" : "text-left"}`}>{h}</th>
+                  <th key={h} scope="col" className={`px-5 py-3 text-xs font-semibold uppercase tracking-wide text-[var(--pgo-text-4)] ${i === 3 ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="hw-stagger">
+            <tbody className="pgo-stagger">
               {pagina.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-[var(--hw-text-4)]">Sin resultados para los filtros seleccionados.</td></tr>
+                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-[var(--pgo-text-4)]">Sin resultados para los filtros seleccionados.</td></tr>
               ) : pagina.map((p, i) => {
                 const uf = p.contrato.denominacion === "UF";
                 const arriendo = uf ? `${num(p.montoBase)} UF` : clp(p.montoBase);
                 const atrasado = p.estado === "atrasado";
                 return (
-                  <tr key={p.id} className="hw-row-hover"
-                    style={{ borderBottom: i < pagina.length - 1 ? "1px solid var(--hw-border)" : "none", background: atrasado ? "rgba(239,68,68,0.03)" : undefined }}>
-                    <td className="px-5 py-3.5 whitespace-nowrap hw-num" style={{ color: "var(--hw-text-3)" }}>{fecha(p.fechaVencimiento)}</td>
-                    <td className="px-5 py-3.5 font-medium text-[var(--hw-text-1)]">{p.contrato.arrendatario.nombre}</td>
-                    <td className="px-5 py-3.5 text-xs text-[var(--hw-text-3)]">{p.contrato.propiedad.direccion}{p.contrato.propiedad.comuna ? `, ${p.contrato.propiedad.comuna}` : ""}</td>
-                    <td className="px-5 py-3.5 text-right font-semibold hw-num" style={{ color: "var(--hw-text-1)" }}>
+                  <tr key={p.id} className="pgo-row-hover"
+                    style={{ borderBottom: i < pagina.length - 1 ? "1px solid var(--pgo-border)" : "none", background: atrasado ? "rgba(239,68,68,0.03)" : undefined }}>
+                    <td className="px-5 py-3.5 whitespace-nowrap pgo-num" style={{ color: "var(--pgo-text-3)" }}>{fecha(p.fechaVencimiento)}</td>
+                    <td className="px-5 py-3.5 font-medium text-[var(--pgo-text-1)]">{p.contrato.arrendatario.nombre}</td>
+                    <td className="px-5 py-3.5 text-xs text-[var(--pgo-text-3)]">{p.contrato.propiedad.direccion}{p.contrato.propiedad.comuna ? `, ${p.contrato.propiedad.comuna}` : ""}</td>
+                    <td className="px-5 py-3.5 text-right font-semibold pgo-num" style={{ color: "var(--pgo-text-1)" }}>
                       {arriendo}
-                      {p.montoGastoComun > 0 && <span className="block text-xs font-normal text-[var(--hw-text-4)]">+ GC {clp(p.montoGastoComun)}</span>}
+                      {p.montoGastoComun > 0 && <span className="block text-xs font-normal text-[var(--pgo-text-4)]">+ GC {clp(p.montoGastoComun)}</span>}
                     </td>
                     <td className="px-5 py-3.5"><Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{estadoLabel(p.estado)}</Badge></td>
                   </tr>
@@ -170,9 +170,9 @@ export function ProximosClient({ periodos }: { periodos: Periodo[] }) {
         </div>
         <div
           className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5"
-          style={{ borderTop: "1px solid var(--hw-border)", background: "var(--hw-surface-2)" }}
+          style={{ borderTop: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}
         >
-          <span className="text-xs text-[var(--hw-text-4)]">
+          <span className="text-xs text-[var(--pgo-text-4)]">
             {pagina.length} de {periodosFinales.length} resultado{periodosFinales.length !== 1 ? "s" : ""}
           </span>
           <PageSizePicker value={pageSize} onChange={setPageSize} />

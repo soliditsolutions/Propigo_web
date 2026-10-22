@@ -3,7 +3,7 @@
  * Descarga de documentos para usuarios del portal (arrendatarios y propietarios).
  *
  * Seguridad:
- *  1. Requiere sesión JWT portal válida (hw_portal cookie).
+ *  1. Requiere sesión JWT portal válida (pgo_portal cookie).
  *  2. Verifica que el documento pertenece al mismo tenant.
  *  3. Verifica que el documento está asociado a un contrato accesible por la persona.
  *  4. Registra acceso en acceso_log (Ley 21.719).

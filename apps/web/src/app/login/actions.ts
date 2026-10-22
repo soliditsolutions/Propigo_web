@@ -96,7 +96,7 @@ export async function loginAction(
   // ADR-0011 Fase 2: buscar por email es legítimamente cross-tenant (no
   // sabemos a qué tenant pertenece el usuario hasta encontrarlo) — se resuelve
   // con la función SECURITY DEFINER auth_lookup_usuario_by_email en vez de
-  // darle a housing_app acceso directo a leer toda la tabla usuario.
+  // darle a propigo_app acceso directo a leer toda la tabla usuario.
   try {
     const rows = await prisma.$queryRaw<{
       id: string; tenant_id: string; rol: "manager" | "colaborador"; nombre: string; email: string;
@@ -203,21 +203,21 @@ export async function loginAction(
     }));
 
     // ── Reconocimiento automático de dispositivo confiable ────────────────
-    // Si la cookie hw_device existe y su hash coincide con un dispositivo
+    // Si la cookie pgo_device existe y su hash coincide con un dispositivo
     // registrado para este usuario, se embebe el deviceToken en el JWT
     // directamente — evitando la pantalla de verificación en cada login.
     const jar        = await cookies();
-    const hwDevice   = jar.get(DEVICE_COOKIE_NAME)?.value;
+    const pgoDevice   = jar.get(DEVICE_COOKIE_NAME)?.value;
     let deviceToken: string | undefined;
 
-    if (hwDevice) {
-      const tokenHash   = createHash("sha256").update(hwDevice).digest("hex");
+    if (pgoDevice) {
+      const tokenHash   = createHash("sha256").update(pgoDevice).digest("hex");
       const dispositivo = await prisma.dispositivoConfiable.findFirst({
         where:  { usuarioId: user.id, tokenHash },
         select: { id: true },
       });
       if (dispositivo) {
-        deviceToken = hwDevice;
+        deviceToken = pgoDevice;
         // Actualizar "último acceso" del dispositivo reconocido
         await prisma.dispositivoConfiable.update({
           where: { id: dispositivo.id },

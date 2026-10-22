@@ -5,7 +5,7 @@
  * comprobante desde el portal, no solo el corredor desde el panel.
  *
  * Seguridad (mismo criterio que /api/portal/documento):
- *  1. Sesión de portal válida (hw_portal).
+ *  1. Sesión de portal válida (pgo_portal).
  *  2. El voucher pertenece a un contrato de esta persona, y del tipo que le
  *     corresponde: el arrendatario ve el comprobante de PAGO; el propietario, la
  *     LIQUIDACIÓN. Un arrendatario nunca ve la liquidación (lleva la comisión).

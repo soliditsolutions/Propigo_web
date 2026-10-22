@@ -28,10 +28,10 @@ function bloqueDelSchema(tipo: "enum" | "model", nombre: string): string {
   return match[1];
 }
 
-describe("Invariante 1 — el ledger del arriendo y la contabilidad de Housing no se mezclan", () => {
+describe("Invariante 1 — el ledger del arriendo y la contabilidad de Propigo no se mezclan", () => {
   // Es el invariante más importante del ADR. `AsientoLedger` modela plata entre
-  // arrendatario, propietario y corredor; la comisión de Housing es una deuda
-  // del corredor CON Housing. Si un asiento de comisión de plataforma entrara
+  // arrendatario, propietario y corredor; la comisión de Propigo es una deuda
+  // del corredor CON Propigo. Si un asiento de comisión de plataforma entrara
   // al ledger del contrato, contaminaría la liquidación del propietario y las
   // vistas financieras — y se descubriría cuando un propietario reclame que le
   // descontaron algo que no le corresponde.
@@ -56,7 +56,7 @@ describe("Invariante 1 — el ledger del arriendo y la contabilidad de Housing n
     expect(comision).not.toMatch(/AsientoLedger/);
   });
 
-  it("COMISION_CORREDOR sigue existiendo y es cosa distinta de la comisión de Housing", () => {
+  it("COMISION_CORREDOR sigue existiendo y es cosa distinta de la comisión de Propigo", () => {
     // Guarda contra que alguien "unifique" ambos conceptos por parecerse en el
     // nombre. COMISION_CORREDOR = lo que el corredor le cobra al propietario.
     const tipoAsiento = bloqueDelSchema("enum", "TipoAsiento");

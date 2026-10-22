@@ -118,7 +118,7 @@ export default async function ContratoDetallePage({
       <div className="mb-4">
         <Link
           href="/panel/contratos"
-          className="inline-flex items-center gap-1.5 text-sm text-[var(--hw-text-3)] hover:text-[var(--hw-text-2)]"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--pgo-text-3)] hover:text-[var(--pgo-text-2)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Contratos
@@ -137,10 +137,10 @@ export default async function ContratoDetallePage({
         action={detalle.estado === "borrador" ? (
           <a
             href={`/api/contratos/${detalle.id}/pdf`}
-            className="hw-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
+            className="pgo-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
             style={{
-              background: "var(--hw-surface-2)", color: "var(--hw-text-2)",
-              border: "1px solid var(--hw-border-2)",
+              background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)",
+              border: "1px solid var(--pgo-border-2)",
             }}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
@@ -151,10 +151,10 @@ export default async function ContratoDetallePage({
           // tiene causal y fecha de término.
           <a
             href={`/api/panel/contratos/${detalle.id}/aviso-termino/pdf`}
-            className="hw-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
+            className="pgo-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
             style={{
-              background: "var(--hw-surface-2)", color: "var(--hw-text-2)",
-              border: "1px solid var(--hw-border-2)",
+              background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)",
+              border: "1px solid var(--pgo-border-2)",
             }}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
@@ -166,11 +166,11 @@ export default async function ContratoDetallePage({
       {/* ── Header info (siempre visible) ───────────────────────────────── */}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--hw-text-4)] mb-1">Arrendatario</p>
-          <p className="font-semibold text-[var(--hw-text-1)]">{detalle.arrendatario.nombre}</p>
-          <p className="text-xs text-[var(--hw-text-4)]">{detalle.arrendatario.rut}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--pgo-text-4)] mb-1">Arrendatario</p>
+          <p className="font-semibold text-[var(--pgo-text-1)]">{detalle.arrendatario.nombre}</p>
+          <p className="text-xs text-[var(--pgo-text-4)]">{detalle.arrendatario.rut}</p>
           {detalle.arrendatario.email && (
-            <p className="text-xs text-[var(--hw-text-4)] truncate">{detalle.arrendatario.email}</p>
+            <p className="text-xs text-[var(--pgo-text-4)] truncate">{detalle.arrendatario.email}</p>
           )}
           {actor.rol === "manager" && (
             <ExportDatosPersona personaId={detalle.arrendatario.id} nombre={detalle.arrendatario.nombre} />
@@ -178,30 +178,30 @@ export default async function ContratoDetallePage({
         </Card>
 
         <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--hw-text-4)] mb-1">Propietario</p>
-          <p className="font-semibold text-[var(--hw-text-1)]">{detalle.propietario.nombre}</p>
-          <p className="text-xs text-[var(--hw-text-4)]">{detalle.propietario.rut}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--pgo-text-4)] mb-1">Propietario</p>
+          <p className="font-semibold text-[var(--pgo-text-1)]">{detalle.propietario.nombre}</p>
+          <p className="text-xs text-[var(--pgo-text-4)]">{detalle.propietario.rut}</p>
           {actor.rol === "manager" && (
             <ExportDatosPersona personaId={detalle.propietario.id} nombre={detalle.propietario.nombre} />
           )}
         </Card>
 
         <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--hw-text-4)] mb-1">Renta mensual</p>
-          <p className="text-xl font-bold text-[var(--hw-text-1)]">{renta}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--pgo-text-4)] mb-1">Renta mensual</p>
+          <p className="text-xl font-bold text-[var(--pgo-text-1)]">{renta}</p>
           {detalle.cobraGastoComun && (
-            <p className="text-xs text-[var(--hw-text-4)]">+ gasto común</p>
+            <p className="text-xs text-[var(--pgo-text-4)]">+ gasto común</p>
           )}
-          <p className="mt-1 text-xs text-[var(--hw-text-4)]">
+          <p className="mt-1 text-xs text-[var(--pgo-text-4)]">
             Comisión {detalle.comisionCorredorPct}% · Vence día {detalle.diaVencimiento}
           </p>
         </Card>
 
         <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--hw-text-4)] mb-1">Vigencia</p>
-          <p className="text-sm font-medium text-[var(--hw-text-1)]">{fecha(detalle.fechaInicio)}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--pgo-text-4)] mb-1">Vigencia</p>
+          <p className="text-sm font-medium text-[var(--pgo-text-1)]">{fecha(detalle.fechaInicio)}</p>
           {detalle.fechaFin && (
-            <p className="text-xs text-[var(--hw-text-4)]">hasta {fecha(detalle.fechaFin)}</p>
+            <p className="text-xs text-[var(--pgo-text-4)]">hasta {fecha(detalle.fechaFin)}</p>
           )}
           <div className="mt-2">
             <Badge tone={estadoTone(detalle.estado)} pulse={estadoPulse(detalle.estado)}>{estadoLabel(detalle.estado)}</Badge>
@@ -253,33 +253,33 @@ export default async function ContratoDetallePage({
             <a
               href="#renovar-section"
               className="mb-6 flex items-center gap-3 rounded-2xl px-5 py-4 no-underline transition-opacity hover:opacity-90"
-              style={{ background: "var(--hw-danger-lt)", border: "2px solid var(--hw-danger-bd)" }}
+              style={{ background: "var(--pgo-danger-lt)", border: "2px solid var(--pgo-danger-bd)" }}
               aria-label={`Contrato vence en ${alertVencimiento.dias} días. Ir a sección de renovación.`}
             >
-              <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--hw-danger)" }} aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-danger)" }} aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: "var(--hw-danger-dk)" }}>
+                <p className="font-semibold text-sm" style={{ color: "var(--pgo-danger-dk)" }}>
                   {`Vence en ${alertVencimiento.dias} día${alertVencimiento.dias !== 1 ? "s" : ""} — renovación urgente`}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--hw-danger-dk)" }}>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pgo-danger-dk)" }}>
                   Haz clic para ir a la sección de renovación y extender el plazo.
                 </p>
               </div>
-              <span className="text-xs font-semibold whitespace-nowrap" style={{ color: "var(--hw-danger-dk)" }}>
+              <span className="text-xs font-semibold whitespace-nowrap" style={{ color: "var(--pgo-danger-dk)" }}>
                 Renovar →
               </span>
             </a>
           ) : (
             <div
               className="mb-6 flex items-center gap-3 rounded-2xl px-5 py-4"
-              style={{ background: "var(--hw-warning-lt)", border: "2px solid var(--hw-warning-bd)" }}
+              style={{ background: "var(--pgo-warning-lt)", border: "2px solid var(--pgo-warning-bd)" }}
             >
-              <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--hw-warning)" }} aria-hidden="true" />
+              <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--pgo-warning)" }} aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: "var(--hw-warning-dk)" }}>
+                <p className="font-semibold text-sm" style={{ color: "var(--pgo-warning-dk)" }}>
                   {`Este contrato vence en ${alertVencimiento.dias} día${alertVencimiento.dias !== 1 ? "s" : ""}`}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--hw-warning-dk)" }}>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pgo-warning-dk)" }}>
                   La opción de renovación estará disponible a partir del último mes.
                 </p>
               </div>
@@ -315,20 +315,20 @@ export default async function ContratoDetallePage({
           {tieneGarantia && (
             <Card className="mb-6 p-4">
               <div className="flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-[var(--hw-primary)] shrink-0" />
+                <ShieldCheck className="h-5 w-5 text-[var(--pgo-primary)] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[var(--hw-text-1)]">
+                  <p className="text-sm font-semibold text-[var(--pgo-text-1)]">
                     Garantía de {cantidad(detalle.garantiaMeses, "mes", "meses")} ·{" "}
                     {detalle.garantiaDenominacion === "UF" && detalle.garantiaMontoBase != null
-                      ? <>{detalle.garantiaMontoBase} UF <span className="font-normal text-[var(--hw-text-4)]">(depositado {clp(detalle.garantiaMontoCLP)})</span></>
+                      ? <>{detalle.garantiaMontoBase} UF <span className="font-normal text-[var(--pgo-text-4)]">(depositado {clp(detalle.garantiaMontoCLP)})</span></>
                       : <>depositado {clp(detalle.garantiaMontoCLP)}</>}
                   </p>
-                  <p className="text-xs text-[var(--hw-text-4)]">
+                  <p className="text-xs text-[var(--pgo-text-4)]">
                     Saldo retenido actual:{" "}
-                    <span className="font-medium text-[var(--hw-text-2)]">{clp(detalle.garantiaRetenidaCLP)}</span>
+                    <span className="font-medium text-[var(--pgo-text-2)]">{clp(detalle.garantiaRetenidaCLP)}</span>
                   </p>
                 </div>
-                <p className="text-xs text-[var(--hw-text-4)]">Hasta 2 rentas — práctica de mercado recomendada</p>
+                <p className="text-xs text-[var(--pgo-text-4)]">Hasta 2 rentas — práctica de mercado recomendada</p>
               </div>
             </Card>
           )}
@@ -339,12 +339,12 @@ export default async function ContratoDetallePage({
       {tab === "periodos" && (
         <>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--hw-text-1)] flex items-center gap-2">
-              <FileText className="h-4 w-4 text-[var(--hw-text-4)]" />
+            <h2 className="font-semibold text-[var(--pgo-text-1)] flex items-center gap-2">
+              <FileText className="h-4 w-4 text-[var(--pgo-text-4)]" />
               Calendario de períodos
-              <span className="text-xs font-normal text-[var(--hw-text-4)]">({detalle.periodos.length} en total)</span>
+              <span className="text-xs font-normal text-[var(--pgo-text-4)]">({detalle.periodos.length} en total)</span>
             </h2>
-            <div className="flex gap-3 text-xs text-[var(--hw-text-3)]">
+            <div className="flex gap-3 text-xs text-[var(--pgo-text-3)]">
               {Object.entries(estadosCal).map(([e, n]) => (
                 <span key={e}><Badge tone={estadoTone(e)} pulse={estadoPulse(e)}>{estadoLabel(e)}</Badge> {n}</span>
               ))}
@@ -354,7 +354,7 @@ export default async function ContratoDetallePage({
           <Card className="mb-6 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-[var(--hw-text-4)] border-b border-[var(--hw-border)]">
+                <tr className="text-left text-xs uppercase tracking-wide text-[var(--pgo-text-4)] border-b border-[var(--pgo-border)]">
                   <th scope="col" className="px-4 py-3 font-medium">#</th>
                   <th scope="col" className="px-4 py-3 font-medium">Vencimiento</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Monto base</th>
@@ -365,26 +365,26 @@ export default async function ContratoDetallePage({
                   <th scope="col" className="px-4 py-3 font-medium">Pago real</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--hw-border)]">
+              <tbody className="divide-y divide-[var(--pgo-border)]">
                 {detalle.periodos.map((p) => (
                   <tr
                     key={p.id}
-                    className={`text-[var(--hw-text-2)] ${p.estado === "atrasado" ? "bg-[var(--hw-danger-lt)]" : ""}`}
+                    className={`text-[var(--pgo-text-2)] ${p.estado === "atrasado" ? "bg-[var(--pgo-danger-lt)]" : ""}`}
                   >
-                    <td className="px-4 py-2.5 text-[var(--hw-text-4)] tabular-nums">{p.numero}</td>
+                    <td className="px-4 py-2.5 text-[var(--pgo-text-4)] tabular-nums">{p.numero}</td>
                     <td className="px-4 py-2.5 tabular-nums">{fecha(p.fechaVencimiento)}</td>
                     <td className="px-4 py-2.5 text-right font-medium tabular-nums">
                       {uf ? `${num(p.montoBase)} UF` : clp(p.montoBase)}
                     </td>
                     {detalle.cobraGastoComun && (
-                      <td className="px-4 py-2.5 text-right text-[var(--hw-text-3)] tabular-nums">
+                      <td className="px-4 py-2.5 text-right text-[var(--pgo-text-3)] tabular-nums">
                         {p.montoGastoComun > 0 ? clp(p.montoGastoComun) : "—"}
                       </td>
                     )}
                     <td className="px-4 py-2.5">
                       <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{estadoLabel(p.estado)}</Badge>
                     </td>
-                    <td className="px-4 py-2.5 text-[var(--hw-text-4)] tabular-nums text-sm">
+                    <td className="px-4 py-2.5 text-[var(--pgo-text-4)] tabular-nums text-sm">
                       {p.fechaPagoReal ? fecha(p.fechaPagoReal) : "—"}
                     </td>
                   </tr>
@@ -416,40 +416,40 @@ export default async function ContratoDetallePage({
       {tab === "ledger" && (
         <>
           <div className="mb-2">
-            <h2 className="font-semibold text-[var(--hw-text-1)] flex items-center gap-2">
-              <FileText className="h-4 w-4 text-[var(--hw-text-4)]" />
+            <h2 className="font-semibold text-[var(--pgo-text-1)] flex items-center gap-2">
+              <FileText className="h-4 w-4 text-[var(--pgo-text-4)]" />
               Ledger inmutable
-              <span className="text-xs font-normal text-[var(--hw-text-4)]">({detalle.asientos.length} asientos)</span>
+              <span className="text-xs font-normal text-[var(--pgo-text-4)]">({detalle.asientos.length} asientos)</span>
             </h2>
           </div>
 
           <Card className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-[var(--hw-text-4)] border-b border-[var(--hw-border)]">
+                <tr className="text-left text-xs uppercase tracking-wide text-[var(--pgo-text-4)] border-b border-[var(--pgo-border)]">
                   <th scope="col" className="px-4 py-3 font-medium">Fecha</th>
                   <th scope="col" className="px-4 py-3 font-medium">Tipo</th>
                   <th scope="col" className="px-4 py-3 font-medium">Descripción</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Monto CLP</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--hw-border)]">
+              <tbody className="divide-y divide-[var(--pgo-border)]">
                 {detalle.asientos.map((a) => {
                   const esSalida  = TIPOS_SALIDA.has(a.tipo);
                   const esEntrada = TIPOS_ENTRADA.has(a.tipo);
                   return (
-                    <tr key={a.id} className="hw-row-hover text-[var(--hw-text-2)]">
-                      <td className="px-4 py-2 tabular-nums text-[var(--hw-text-3)]">{fecha(a.fechaEvento)}</td>
+                    <tr key={a.id} className="pgo-row-hover text-[var(--pgo-text-2)]">
+                      <td className="px-4 py-2 tabular-nums text-[var(--pgo-text-3)]">{fecha(a.fechaEvento)}</td>
                       <td className="px-4 py-2">
                         <span className="text-xs font-medium">{TIPO_LABEL[a.tipo] ?? a.tipo}</span>
                       </td>
-                      <td className="px-4 py-2 text-[var(--hw-text-4)] text-xs max-w-xs truncate">
+                      <td className="px-4 py-2 text-[var(--pgo-text-4)] text-xs max-w-xs truncate">
                         {a.descripcion ?? (a.concepto ?? "—")}
                       </td>
                       <td className={`px-4 py-2 text-right font-medium tabular-nums ${
-                        esEntrada ? "text-[var(--hw-success-dk)]" :
-                        esSalida  ? "text-[var(--hw-text-4)]"   :
-                        a.tipo.startsWith("CARGO") ? "text-[var(--hw-danger)]" : "text-[var(--hw-text-2)]"
+                        esEntrada ? "text-[var(--pgo-success-dk)]" :
+                        esSalida  ? "text-[var(--pgo-text-4)]"   :
+                        a.tipo.startsWith("CARGO") ? "text-[var(--pgo-danger)]" : "text-[var(--pgo-text-2)]"
                       }`}>
                         {esEntrada ? "+" : esSalida || a.tipo.startsWith("CARGO") ? "−" : ""}
                         {clp(a.montoClp)}

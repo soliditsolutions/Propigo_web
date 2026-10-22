@@ -85,17 +85,17 @@ export function RenovarSection({
   return (
     <div
       className="mb-6 overflow-hidden rounded-2xl border-2"
-      style={{ borderColor: "var(--hw-primary-bd)", background: "var(--hw-primary-lt)" }}
+      style={{ borderColor: "var(--pgo-primary-bd)", background: "var(--pgo-primary-lt)" }}
     >
       {/* Header */}
       <div
         className="flex items-center gap-3 px-5 py-4"
-        style={{ background: "var(--hw-primary-lt)", borderBottom: "1px solid var(--hw-primary-bd)" }}
+        style={{ background: "var(--pgo-primary-lt)", borderBottom: "1px solid var(--pgo-primary-bd)" }}
       >
-        <RefreshCw className="h-5 w-5 shrink-0 text-[var(--hw-primary-dk)]" aria-hidden="true" />
+        <RefreshCw className="h-5 w-5 shrink-0 text-[var(--pgo-primary-dk)]" aria-hidden="true" />
         <div>
-          <p className="font-semibold text-[var(--hw-primary-dk)]">Renovar contrato</p>
-          <p className="text-xs mt-0.5 text-[var(--hw-primary-dk)]">
+          <p className="font-semibold text-[var(--pgo-primary-dk)]">Renovar contrato</p>
+          <p className="text-xs mt-0.5 text-[var(--pgo-primary-dk)]">
             Extiende el plazo y genera los períodos de pago adicionales automáticamente.
             El arrendatario y la propiedad no cambian.
           </p>
@@ -108,21 +108,21 @@ export function RenovarSection({
         {/* Término actual — informativa */}
         <div
           className="rounded-xl px-4 py-3"
-          style={{ background: "var(--hw-surface)", border: "1px solid var(--hw-primary-bd)" }}
+          style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-primary-bd)" }}
         >
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--hw-primary)]">
+          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--pgo-primary)]">
             Término actual
           </span>
-          <p className="mt-0.5 font-semibold text-[var(--hw-primary-dk)]">{fecha(fechaFinActual)}</p>
+          <p className="mt-0.5 font-semibold text-[var(--pgo-primary-dk)]">{fecha(fechaFinActual)}</p>
         </div>
 
         {/* Nueva fecha de término */}
         <div>
           <label
             htmlFor="renovar-fecha-fin"
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--hw-primary-dk)]"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--pgo-primary-dk)]"
           >
-            Nueva fecha de término <span className="text-[var(--hw-danger)]">*</span>
+            Nueva fecha de término <span className="text-[var(--pgo-danger)]">*</span>
           </label>
           <input
             id="renovar-fecha-fin"
@@ -130,12 +130,12 @@ export function RenovarSection({
             min={minFecha}
             value={nuevaFechaFin}
             onChange={(e) => setNuevaFechaFin(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-            style={{ borderColor: "var(--hw-primary-bd)", background: "var(--hw-surface)", color: "var(--hw-primary-dk)" }}
+            className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+            style={{ borderColor: "var(--pgo-primary-bd)", background: "var(--pgo-surface)", color: "var(--pgo-primary-dk)" }}
           />
           {/* Estimación de períodos */}
           {nuevaFechaFin && periodosEstimados > 0 && (
-            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--hw-primary)]">
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--pgo-primary)]">
               <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               Se generarán{" "}
               <strong>{periodosEstimados}</strong>{" "}
@@ -144,7 +144,7 @@ export function RenovarSection({
             </p>
           )}
           {nuevaFechaFin && periodosEstimados === 0 && (
-            <p className="mt-1.5 text-xs text-[var(--hw-danger)]">
+            <p className="mt-1.5 text-xs text-[var(--pgo-danger)]">
               La fecha debe estar al menos un mes después del término actual.
             </p>
           )}
@@ -152,7 +152,7 @@ export function RenovarSection({
 
         {/* Cambio de valor de arriendo (opcional) */}
         <div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--hw-primary-dk)] select-none">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--pgo-primary-dk)] select-none">
             <input
               type="checkbox"
               checked={cambiaValor}
@@ -166,7 +166,7 @@ export function RenovarSection({
             <div className="mt-3">
               <label
                 htmlFor="renovar-nuevo-valor"
-                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--hw-primary-dk)]"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--pgo-primary-dk)]"
               >
                 Nuevo valor de arriendo ({denominacion})
               </label>
@@ -177,10 +177,10 @@ export function RenovarSection({
                 step={denominacion === "UF" ? "0.01" : "1"}
                 value={nuevoValor}
                 onChange={(e) => setNuevoValor(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--hw-primary-bd)]"
-                style={{ borderColor: "var(--hw-primary-bd)", background: "var(--hw-surface)" }}
+                className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--pgo-primary-bd)]"
+                style={{ borderColor: "var(--pgo-primary-bd)", background: "var(--pgo-surface)" }}
               />
-              <p className="mt-1 text-xs text-[var(--hw-primary)]">
+              <p className="mt-1 text-xs text-[var(--pgo-primary)]">
                 Los períodos anteriores conservan el valor original.
               </p>
             </div>
@@ -192,9 +192,9 @@ export function RenovarSection({
           type="button"
           onClick={handleRenovar}
           disabled={!puedeEnviar || isPending}
-          className="hw-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors"
+          className="pgo-btn flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors"
           style={{
-            background: (!puedeEnviar || isPending) ? "var(--hw-border-2)" : "var(--hw-primary)",
+            background: (!puedeEnviar || isPending) ? "var(--pgo-border-2)" : "var(--pgo-primary)",
             cursor: (!puedeEnviar || isPending) ? "not-allowed" : "pointer",
           }}
         >

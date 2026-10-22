@@ -20,11 +20,11 @@
 
 | Superficie | Rutas | Sistema de tokens actual | Hex hardcodeado | Clases Tailwind paleta fija | Toggle |
 |---|---|---|---|---|---|
-| Panel corredor | `/panel/**` | `--hw-*` (dual, verificado) | 0 | 0 | ✅ |
+| Panel corredor | `/panel/**` | `--pgo-*` (dual, verificado) | 0 | 0 | ✅ |
 | Marketplace | `/marketplace`, `/marketplace/[id]` | `--pf-*` (fijo, light-only) | 5 | 1 | ❌ |
 | Login/Registro/Recuperación | `/login`, `/registro`, `/recuperar-contrasena`, `/nueva-contrasena`, `/verificar-dispositivo` | `--pf-*` (fijo) | 52 | 1 | ❌ |
 | Legales | `/privacidad`, `/terminos-uso` | `--pf-*` (fijo) | 42 | 5 | ❌ |
-| Portal autoconsulta | `/portal`, `/portal/verificar`, `/portal/contrato/[id]` | `--pf-*` + `--hw-danger` suelto | 21 | 4 | ❌ |
+| Portal autoconsulta | `/portal`, `/portal/verificar`, `/portal/contrato/[id]` | `--pf-*` + `--pgo-danger` suelto | 21 | 4 | ❌ |
 | Componentes compartidos | `components/public/*`, `components/marketplace/*`, `components/portal/*`, `components/ui/modal.tsx` | `--pf-*` | 17 | 5 | — |
 
 > Detalle de conteos por archivo en el Anexo A.
@@ -33,7 +33,7 @@
 
 No se necesita un mecanismo nuevo — se **extiende el existente**:
 
-1. **Dualizar `--pf-*`** — hoy vive en un único bloque `:root {}` (globals.css, sección "PayFlow Design System"). Hay que partirlo en `:root[data-theme="aurora-dark"]` / `:root[data-theme="aurora-light"]`, igual que se hizo con `--hw-*` en Fase 1. Esto incluye recalibrar glows/sombras (el mismo criterio ya validado: blur puro en oscuro, halo direccional en claro).
+1. **Dualizar `--pf-*`** — hoy vive en un único bloque `:root {}` (globals.css, sección "PayFlow Design System"). Hay que partirlo en `:root[data-theme="aurora-dark"]` / `:root[data-theme="aurora-light"]`, igual que se hizo con `--pgo-*` en Fase 1. Esto incluye recalibrar glows/sombras (el mismo criterio ya validado: blur puro en oscuro, halo direccional en claro).
 2. **`ThemeToggle` en `PublicNavbar`** — mismo componente ya existente (`components/ui/theme-toggle.tsx`), solo agregar el botón al navbar público. Como el tema es global, un corredor que lo cambia en el panel lo vería igual en el sitio público (y viceversa) — comportamiento coherente, no requiere estado separado.
 3. **Confirmar cobertura del script anti-FOUC** — ya vive en `layout.tsx` raíz, cubre toda la app; no requiere cambios.
 4. **Revisar `components/ui/modal.tsx`** — usado por `ContactoModal`, `DenunciaModal`, `ValoracionModal`. Es un componente shadcn/genérico análogo a `Dialog`, que en el panel tenía tokens (`--popover`, etc.) sin themear y renderizaba fondo blanco fijo en oscuro (bug real encontrado y corregido hoy). Es altamente probable que `modal.tsx` tenga el mismo problema — revisar `modalInputStyle()` (`background: "#fff"` hardcodeado, línea 12) como primer sospechoso.
@@ -44,7 +44,7 @@ Durante Fase 1 se descubrieron, en este orden, cuatro formas distintas en que un
 
 1. **Hex literal** (`#RRGGBB`) — grep `#[0-9A-Fa-f]{6}`.
 2. **Clases Tailwind de paleta fija** (`bg-blue-50`, `text-slate-900`, etc.) — grep `\b(bg|text|border|ring|divide)-(red|blue|...)-[0-9]{2,3}\b`.
-3. **Tokens shadcn sin themear** (`--popover`, `--card`, `--background`, etc., usados por `Dialog`/`Button`/`Badge`/`Tabs` genéricos) — ya resuelto para el panel (globals.css los remapea a `--hw-*` dentro de los bloques de tema); falta decidir si el sitio público también los necesita o si sigue usando solo `--pf-*` explícito.
+3. **Tokens shadcn sin themear** (`--popover`, `--card`, `--background`, etc., usados por `Dialog`/`Button`/`Badge`/`Tabs` genéricos) — ya resuelto para el panel (globals.css los remapea a `--pgo-*` dentro de los bloques de tema); falta decidir si el sitio público también los necesita o si sigue usando solo `--pf-*` explícito.
 4. **Strings de color literales en `style={{}}`** (`background: "white"`, `color: "black"`) — no lo detecta ningún grep de los anteriores, hay que buscar explícitamente `"white"|"black"|"#fff"` dentro de objetos `style`.
 
 ### Anexo A — Conteo de hex por archivo (grep `#[0-9A-Fa-f]{6}`)
@@ -110,22 +110,22 @@ Con el tema dual ya verificado en todo el sitio (§1-§7), se agregó una capa v
 
 | Nombre | Qué es | Dónde vive |
 |---|---|---|
-| `--hw-glass-card` | Relleno translúcido de tarjetas de contenido (más opaco que `--hw-surface-glass`, calibrado para legibilidad de texto sobre blur) | Ambos temas |
-| `--hw-glass-input` | Relleno translúcido de inputs dentro de tarjetas glass | Ambos temas |
-| `.hw-aurora-layer` | Fondo aurora a pantalla completa — dos capas de radial-gradients (índigo/teal/violeta) con `blur()` y animación de deriva en sentidos opuestos (`hw-aurora-drift-a/b`), intensidad por tema vía opacidad (`0.85` oscuro con `mix-blend-mode: screen`, `0.55` claro sin blend) | `globals.css`, sección "Fondo Aurora" |
-| `.hw-auth-card` | Tarjeta de vidrio esmerilado — `backdrop-filter: blur(24px) saturate(1.6)` + `--hw-glass-card` + `--hw-shadow-3` | `globals.css` |
-| `.hw-auth-aside` | Panel de marca en vidrio oscuro (deja translucir la aurora, texto blanco AA en ambos temas) | `globals.css` |
+| `--pgo-glass-card` | Relleno translúcido de tarjetas de contenido (más opaco que `--pgo-surface-glass`, calibrado para legibilidad de texto sobre blur) | Ambos temas |
+| `--pgo-glass-input` | Relleno translúcido de inputs dentro de tarjetas glass | Ambos temas |
+| `.pgo-aurora-layer` | Fondo aurora a pantalla completa — dos capas de radial-gradients (índigo/teal/violeta) con `blur()` y animación de deriva en sentidos opuestos (`pgo-aurora-drift-a/b`), intensidad por tema vía opacidad (`0.85` oscuro con `mix-blend-mode: screen`, `0.55` claro sin blend) | `globals.css`, sección "Fondo Aurora" |
+| `.pgo-auth-card` | Tarjeta de vidrio esmerilado — `backdrop-filter: blur(24px) saturate(1.6)` + `--pgo-glass-card` + `--pgo-shadow-3` | `globals.css` |
+| `.pgo-auth-aside` | Panel de marca en vidrio oscuro (deja translucir la aurora, texto blanco AA en ambos temas) | `globals.css` |
 
 Todo respeta `prefers-reduced-motion` (regla global ya existente en `globals.css:353` neutraliza la animación de deriva).
 
 ### 8.2 Pantallas de autenticación
 
 Aplicado a `/login`, `/registro`, `/recuperar-contrasena`, `/nueva-contrasena`, `/verificar-dispositivo`:
-- Fondo `.hw-aurora-layer` a pantalla completa (`position: fixed` cuando la página es de una sola vista, para que no se pierda si hay scroll).
-- Tarjeta del formulario → `.hw-auth-card`.
-- Aside de marca (donde existe) → `.hw-auth-aside`.
-- Inputs → `--hw-glass-input`.
-- Casos especiales resueltos: estado de éxito de `recuperar-form.tsx` aplanado (evitar tarjeta-dentro-de-tarjeta); `verificar-dispositivo` migrado de un gradiente `--pf-*` fijo a la aurora `--hw-*` dual.
+- Fondo `.pgo-aurora-layer` a pantalla completa (`position: fixed` cuando la página es de una sola vista, para que no se pierda si hay scroll).
+- Tarjeta del formulario → `.pgo-auth-card`.
+- Aside de marca (donde existe) → `.pgo-auth-aside`.
+- Inputs → `--pgo-glass-input`.
+- Casos especiales resueltos: estado de éxito de `recuperar-form.tsx` aplanado (evitar tarjeta-dentro-de-tarjeta); `verificar-dispositivo` migrado de un gradiente `--pf-*` fijo a la aurora `--pgo-*` dual.
 
 Verificado en Aurora Dark, Aurora Light y viewport mobile (375px) para las 5 pantallas.
 
@@ -141,8 +141,8 @@ Con la capa de vidrio ya validada en auth, se extendió a `/` (home) y se agrega
 
 - El home dejó de tener un header/footer propio y ahora usa `PublicNavbar`/`PublicFooter` compartidos (misma fuente única que marketplace) — esto resolvió de paso el punto 4 pedido explícitamente: **el `ThemeToggle` no aparecía en el home** porque el home nunca usó `PublicNavbar` (que ya lo tenía desde la Fase 2 original).
 - `PublicNavbar` se convirtió en **server component consciente de la sesión** (antes era estático): si hay sesión activa muestra "Ir al panel" + "Cerrar sesión"; si no, "Panel corredor" → `/login`. Antes esto solo pasaba en el home (con código propio); ahora es consistente en todas las páginas públicas que usan `PublicNavbar` (marketplace, ficha de propiedad, home).
-- Fondo `.hw-aurora-layer` a pantalla completa (`position: fixed`, ya que el home es más largo que un viewport).
-- Tarjeta del núcleo financiero y las 3 tarjetas de features → `.hw-auth-card`.
+- Fondo `.pgo-aurora-layer` a pantalla completa (`position: fixed`, ya que el home es más largo que un viewport).
+- Tarjeta del núcleo financiero y las 3 tarjetas de features → `.pgo-auth-card`.
 
 ### 9.2 Carrusel "Corredores mejor valorados"
 
@@ -163,7 +163,7 @@ Con la capa de vidrio ya validada en auth, se extendió a `/` (home) y se agrega
 
 ### 9.5 Extensión al marketplace ("sitio público en general")
 
-Se agregó un acento `.hw-aurora-layer` (opacidad reducida) al hero de `/marketplace`, superpuesto al gradiente existente sin reemplazarlo — mismo lenguaje visual, riesgo mínimo sobre una página ya verificada extensamente. **No se aplicó** a la grilla de tarjetas del marketplace ni al cuerpo de la ficha de propiedad (`/marketplace/[id]`): son vistas densas en datos/texto, y la regla ya documentada en `globals.css` ("nunca detrás de texto largo o formularios densos") sigue aplicando. Páginas legales y portal de autoconsulta quedan fuera de esta segunda capa por el mismo criterio.
+Se agregó un acento `.pgo-aurora-layer` (opacidad reducida) al hero de `/marketplace`, superpuesto al gradiente existente sin reemplazarlo — mismo lenguaje visual, riesgo mínimo sobre una página ya verificada extensamente. **No se aplicó** a la grilla de tarjetas del marketplace ni al cuerpo de la ficha de propiedad (`/marketplace/[id]`): son vistas densas en datos/texto, y la regla ya documentada en `globals.css` ("nunca detrás de texto largo o formularios densos") sigue aplicando. Páginas legales y portal de autoconsulta quedan fuera de esta segunda capa por el mismo criterio.
 
 ### 9.6 Componentes nuevos
 

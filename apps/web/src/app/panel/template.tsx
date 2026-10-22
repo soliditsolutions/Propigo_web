@@ -7,5 +7,5 @@ export default function PanelTemplate({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="hw-enter">{children}</div>;
+  return <div className="pgo-enter">{children}</div>;
 }

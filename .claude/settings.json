@@ -3,6 +3,12 @@
     "allow": [
       "Bash(npx tsc --noEmit)",
       "Bash(npx tsc --noEmit -p tsconfig.json)",
+      "Bash(npx tsc --noEmit -p apps/web)",
+      "Bash(npm run lint)",
+      "Bash(graphify explain *)",
+      "Bash(graphify path *)",
+      "Bash(graphify query *)",
+      "Bash(docker compose ps)",
       "mcp__Claude_Browser__read_page",
       "mcp__Claude_Browser__preview_logs",
       "mcp__Claude_Browser__read_console_messages",

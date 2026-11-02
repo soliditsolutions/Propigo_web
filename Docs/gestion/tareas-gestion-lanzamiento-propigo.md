@@ -22,6 +22,20 @@ Dos fechas que mandan:
 - **Ley 21.719 (datos personales): vigente desde el 1 de diciembre de 2026**
   (ver `rowmap-documentos-legales.md`, Grupo E).
 
+### Plan de salida V0 → V1 (revisado 2026-11-01 contra transbankdevelopers.cl)
+
+Transbank valida **una integración ya hecha**: el orden oficial es afiliación →
+integración en el ambiente de integración → formulario de validación con
+evidencias de transacciones de prueba (soporte las cruza con sus registros) →
+llave secreta → compra real de $50. Un sitio publicado **sin flujo de pago no
+tiene nada que validar**. Por eso:
+
+| Versión | Qué sale | Cobro |
+|---|---|---|
+| **V0** | Sitio en producción (dominio, HTTPS, legales con datos reales) **con Webpay Plus ya integrado**, apuntando al **ambiente de integración** (llaves y tarjetas de prueba públicas). Desde ahí se corren los casos de prueba y se envía la validación (P-03) | Ninguno real. El flujo de pago no se ofrece a clientes |
+| **V1** | Mismo código con el código de comercio productivo y la llave secreta (solo cambian variables de entorno), compra de $50 (P-04) | Webpay Plus manual por período |
+| **V2** | Oneclick, cargo automático (P-05), cuando haya volumen | Automático |
+
 ---
 
 ## 1. Dominio
@@ -73,7 +87,7 @@ Decidido el 2026-10-21. Todas las direcciones en `@propigo.cl`.
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
-| H-01 | **Decidir proveedor y región.** Hay dos análisis distintos que conciliar: `costos-infraestructura-y-precios.md` recomienda AWS us-east-1 (la región Chile de AWS no estaba operativa); la evaluación del 2026-10-21 recomienda un servidor en Google Cloud Santiago para salir sin cambios de código y con los datos en Chile. | G | — | `[ ]` |
+| H-01 | **Decidir proveedor y región.** Hay dos análisis distintos que conciliar: `costos-infraestructura-y-precios.md` recomienda AWS us-east-1 (la región Chile de AWS no estaba operativa); la evaluación del 2026-10-21 recomienda un servidor en Google Cloud Santiago para salir sin cambios de código y con los datos en Chile. **2026-11-01:** se evalúa GCP (región Santiago) como opción principal: ver [evaluacion-gcp-santiago.md](evaluacion-gcp-santiago.md) (recomienda VM + Cloud SQL y una prueba de concepto antes de cerrar). | G | — | `[~]` |
 | H-02 | Crear la cuenta del proveedor a nombre de la empresa, con tecnologia@ como dueño, tarjeta de la empresa y **alerta de presupuesto** mensual. | G | H-01, C-02 | `[ ]` |
 | H-03 | Contratar la **API de IA (Groq)** a nombre de la empresa, con límite de gasto. Hoy se usa una clave de desarrollo. | G | C-02 | `[ ]` |
 | H-04 | Definir la política de **respaldos**: frecuencia, cuánto tiempo se guardan y quién prueba restaurarlos. | G/TI | H-01 | `[ ]` |
@@ -82,9 +96,10 @@ Decidido el 2026-10-21. Todas las direcciones en `@propigo.cl`.
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
-| P-01 | Afiliarse a Transbank para **Oneclick** (cobro automático de la suscripción), no solo Webpay Plus (pago manual). Nombre de fantasía: **Propigo**, igual al del sitio. Se puede iniciar ya. | G | E-01, E-02 | `[ ]` |
-| P-02 | Decidir las preguntas abiertas de cobro: **D-18** (cambio de plan al próximo ciclo, sin prorrateo) y política de cobranza (reintentos y días de gracia). Ver `rowmap-pagos.md`. | G | — | `[ ]` |
-| P-03 | Enviar a Transbank la **validación de la integración** con evidencia de transacciones de prueba. Requiere el sitio publicado. | TI | P-01, H-01, E-03, E-04 | `[ ]` |
+| P-01 | Afiliarse a Transbank para **Webpay Plus** (pago manual de cada período). Decidido el 2026-11-01: se sale sin cargo automático; **Oneclick** se pide después, cuando haya movimiento de clientes y pagos, porque Transbank lo exige. Nombre de fantasía: **Propigo**, igual al del sitio. Se puede iniciar ya. | G | E-01, E-02 | `[ ]` |
+| P-02 | ~~Decidir D-18~~ → decidida el 2026-11-01: el Manager elige entre upgrade al próximo ciclo o inmediato pagando la diferencia del mes. Queda abierta la **cobranza** de un pago manual: aviso antes del vencimiento, días de gracia (D-10) y suspensión. Ver `rowmap-pagos.md`. | G | — | `[~]` |
+| P-05 | Afiliarse a **Oneclick** (cargo automático con tarjeta guardada) cuando Transbank lo permita por volumen. | G | P-04 | `[ ]` |
+| P-03 | Enviar a Transbank la **validación de la integración** con evidencia de transacciones de prueba (formulario en línea, logo GIF/PNG de 130×59 px). Requiere el sitio publicado y el código de comercio productivo. El desarrollo previo no lo requiere: Webpay Plus no llama al servidor del comercio (sin webhook), el retorno pasa por el navegador, así que se integra y prueba en local con el ambiente de integración. La integración debe estar **terminada antes** de validar (ver "Plan de salida V0 → V1"). | TI | P-01, H-01, E-03, E-04 | `[ ]` |
 | P-04 | Recibir la llave secreta de producción y hacer una compra real de prueba. | G/TI | P-03 | `[ ]` |
 
 ## 7. Accesos y seguridad

@@ -49,7 +49,7 @@ Top 10 para LLM. Cada hallazgo corregido tiene su prueba automatizada.
    de inyección conocido, pero es una capa de defensa menos.
    *Opción*: ampliar el `matcher` del proxy a todas las páginas. *Costo*: el proxy
    corre en cada request y obliga a render dinámico (las páginas públicas ya lo son).
-   **Decisión pendiente.**
+   **Decidido 2026-11-01: se amplía** (pendiente de implementar; verificar el mapa Leaflet en el navegador).
 2. **Dependencias de desarrollo**: 9 alertas altas en la cadena
    `braces`/`micromatch`/`fast-glob` (vía eslint y el CLI de `shadcn`). Son DoS por
    patrones de *glob* que solo procesan entradas del propio repo, en el equipo del

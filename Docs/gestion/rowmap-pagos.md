@@ -4,7 +4,7 @@
 >
 > Base conceptual: [ADR-0014](../decisiones/ADR-0014-pagos-suscripciones-y-canal-de-arriendo.md) · Antecedente: [ADR-0006](../decisiones/ADR-0006-canales-de-pago.md)
 >
-> _Última actualización: 2026-08-19 — **Fase B0 completa**: los límites que venden los planes ya se aplican de verdad y el consumo es visible en el panel. Fase A pendiente solo de P-A6._
+> _Última actualización: 2026-11-01 — decididas D-02 (Transbank: Webpay Plus manual primero, Oneclick después) y D-18 (upgrade a elección del Manager); confirmada D-05._
 
 ## Cómo se usa
 
@@ -112,12 +112,12 @@ un "leer, comparar, escribir" en pasos separados.
 |---|---|---|---|---|
 | **P-B1** | ~~Migrar `lib/plans.ts` a UF + IVA con los valores decididos; actualizar cards y UI~~ | P-B0.1 | N-04 ✅ | `[x]` |
 | **P-B1b** | *(nueva)* Tramo **Enterprise** >200 propiedades con CTA de contacto en vez de autoservicio | P-B1 | **N-01** | `[!]` |
-| **P-B2** | Adaptador real del gateway elegido | P-A1, P-A5 | **D-02** | `[!]` |
+| **P-B2** | Adaptador real del gateway elegido: **Webpay Plus** (pago manual del período). Oneclick queda para una fase posterior (D-02) | P-A1, P-A5 | D-02 ✅ | `[ ]` |
 | **P-B3** | Alta de suscripción: checkout, tokenización, activación | P-B1, P-B2 | D-08 | `[ ]` |
 | **P-B4** | Cobro recurrente: ciclo, renovación, **conversión UF→CLP**, reloj inyectable | P-B3 | **N-03** | `[!]` |
 | **P-B5** | Dunning: notificación de mora → 10 días de gracia → suspensión | P-B4 | — | `[ ]` |
-| **P-B6** | Cambio de plan: upgrade inmediato con prorrateo / downgrade agendado a fin de período | P-B4 | **D-18** | `[!]` |
-| **P-B7** | Gate de downgrade: verificar que el tenant cumple los límites del plan destino (usuarios **y** propiedades) antes de permitir el cambio | P-B6, P-B0.2 | — | `[ ]` |
+| **P-B6** | Cambio de plan: upgrade a elección del Manager (próximo ciclo, o inmediato pagando la diferencia del mes en curso) / downgrade agendado a fin de período | P-B4 | D-18 ✅ | `[ ]` |
+| **P-B7** | Gate de downgrade: verificar que el tenant cumple los límites del plan destino (usuarios **y** propiedades) antes de permitir el cambio. El sistema nunca borra: el Manager libera cupo antes (eliminar propiedades, desactivar colaboradores) | P-B6, P-B0.2 | D-05 ✅ | `[ ]` |
 | **P-B8** | `Tenant.plan` derivado de la suscripción activa | P-B3 | D-09 | `[ ]` |
 | **P-B9** | Emisión de DTE por cada cobro + envío por correo | P-B4 | **D-07** | `[!]` |
 
@@ -206,7 +206,7 @@ D-01 (precios) · D-05 (downgrade) · D-07 (DTE, dirección) · D-10 (mora) · D
 | **N-06** | Gold promete "**Roles y permisos de usuarios**" y Diamond "avanzados", pero ADR-0013 implementó **exactamente 2 roles fijos** (manager/colaborador) sin permisos configurables. ¿Se construye la feature o se corrige la card? | 🔴 | P-B1 | Corregir la card a "Roles Manager y Colaborador" (lo que existe). Vender permisos configurables sin tenerlos es una promesa incumplible al primer cliente Gold. | **Abierta** |
 | **N-07** | "Soporte prioritario" (Gold/Diamond) vs "estándar": ¿qué SLA concreto? | 🟡 | P-B1 | Definir tiempos de respuesta reales y alcanzables antes de publicarlo. Sin capacidad detrás, genera reclamos. | **Abierta** |
 | **N-08** | Diamond incluye migración asistida, onboarding personalizado y capacitación. Son **servicios humanos**, no software. ¿Quién los entrega y con qué capacidad? | 🟡 | P-B1 | Definir alcance y límite (p. ej. "hasta X horas") antes de venderlo. | **Abierta** |
-| **D-02** | ¿Proveedor de suscripción: Flow, Transbank directo, u otro? | 🔴 | P-B2 | Flow al arranque, migrable por el puerto `BillingGateway` (P-A1). | **Abierta — planteada y pospuesta explícitamente el 2026-08-19.** Datos levantados para retomarla abajo |
+| **D-02** | ¿Proveedor de suscripción: Flow, Transbank directo, u otro? | 🔴 | P-B2 | Flow al arranque, migrable por el puerto `BillingGateway` (P-A1). | **Decidida 2026-11-01** → bitácora: Transbank, Webpay Plus primero y Oneclick después |
 | **D-03** | ¿Proveedor A2A: Fintoc o Khipu? ¿Tarifa negociada? | 🔴 | P-D1, P-D2 | Cotizar ambos; exigir tarifa plana por volumen. Verificar inscripción CMF. | Abierta |
 | **D-04** | ¿Monto de la comisión por pago procesado? ¿Quién absorbe el riel? | 🔴 | P-D5 | Tarifa plana $2.000–3.000 CLP; Propigo absorbe el riel. | Abierta |
 | **D-06** | ¿Revisión legal del texto de retracto antes del cobro real? | 🔴 | P-C1 | Sí. Reencuadrar como garantía comercial voluntaria. | Abierta |
@@ -218,7 +218,7 @@ D-01 (precios) · D-05 (downgrade) · D-07 (DTE, dirección) · D-10 (mora) · D
 | **D-15** | Condiciones objetivas exactas del retracto | 🟡 | P-C1, P-C2 | Cero contratos generados **y** cero pagos procesados **y** < 20 % de tokens del período. | Abierta |
 | **D-16** | Impago de comisiones: ¿se cortan solo cobros nuevos o también mandatos vigentes? | 🟡 | P-E3 | Solo cobros nuevos. | Abierta |
 | **D-17** | Criterio de salida del piloto | 🟡 | P-F2, P-F3 | Cero descalces en 30 días con ≥10 pagos reales. | Abierta |
-| **D-18** | ¿Upgrade **inmediato con prorrateo** (lo que dice hoy P-B6), o upgrade también **agendado al próximo ciclo**, con la misma regla que el downgrade? Propuesta del usuario (2026-09-16): completar el mes en curso con el plan actual y recién activar el cambio en la facturación del mes siguiente — el cobro ocurre siempre al inicio de mes, así que ese cobro ya sale con el plan nuevo. Sin prorrateo en ningún sentido, upgrade y downgrade quedan simétricos. | 🔴 | P-B6 | Pendiente — a definir en la sesión del 2026-09-17. Trade-off: más simple de implementar (una sola regla, sin lógica de prorrateo) a cambio de que el cliente que sube de plan espere al ciclo siguiente para ver el beneficio, en vez de acceso inmediato. | **Abierta — planteada 2026-09-16** |
+| **D-18** | ¿Upgrade **inmediato con prorrateo** (lo que dice hoy P-B6), o upgrade también **agendado al próximo ciclo**, con la misma regla que el downgrade? Propuesta del usuario (2026-09-16): completar el mes en curso con el plan actual y recién activar el cambio en la facturación del mes siguiente — el cobro ocurre siempre al inicio de mes, así que ese cobro ya sale con el plan nuevo. Sin prorrateo en ningún sentido, upgrade y downgrade quedan simétricos. | 🔴 | P-B6 | Pendiente — a definir en la sesión del 2026-09-17. Trade-off: más simple de implementar (una sola regla, sin lógica de prorrateo) a cambio de que el cliente que sube de plan espere al ciclo siguiente para ver el beneficio, en vez de acceso inmediato. | **Decidida 2026-11-01** → bitácora: el Manager elige en cada upgrade |
 
 > **Nota 2026-09-16** — el usuario también pidió, por separado, "ver un plan para
 > el downgrade" porque la cantidad de propiedades/usuarios varía mucho entre
@@ -279,6 +279,9 @@ todos.
 | 2026-08-06 | — | Las migraciones se generan con `prisma migrate diff` y se aplican con `psql -U propigo`, **no** con `migrate dev` ni `db execute` | `DATABASE_URL` usa el rol de runtime `propigo_app`, que no puede crear la shadow database ni hacer DDL. Es correcto que sea así (ADR-0011). Ver "Notas operativas" al final | Hallazgo al implementar P-A2 |
 | 2026-08-06 | **N-02** | Diamond = **100 tokens diarios** de IA | "IA de alto uso" no es implementable: el sistema necesita un número para aplicarlo. "Ilimitado" sería un costo abierto contra la API de IA. Aplicada como recomendación por defecto del rowMap | Default del rowMap |
 | 2026-08-06 | **N-05** | El cupo de propiedades cuenta **todos los estados** (borrador, disponible, reservada, arrendada) | Coherente con el tooltip ya publicado: "cuentan las disponibles, las arrendadas y las en pausa" | Default del rowMap |
+| 2026-11-01 | **D-02** | **Transbank**: primero **Webpay Plus** (el Manager paga cada período con un pago manual); la suscripción con tarjeta guardada (**Oneclick**, cargo automático) se implementa después, cuando haya volumen de clientes y pagos | Transbank aprueba Webpay Plus solo con el sitio publicado, y para Oneclick exige más movimiento. Por eso el sitio sale antes que el cobro real, y el cobro arranca manual. La integración con Webpay (ambiente de integración y validación) la gestiona directamente el usuario. Verificado en transbankdevelopers.cl (2026-11-01): Webpay Plus **no tiene webhook**; el `return_url` es una redirección del navegador del comprador y el servidor confirma con `commit`. Por eso el desarrollo y las pruebas en el ambiente de integración se pueden hacer en local; el sitio activo y el código de comercio productivo se exigen para la **validación** | Negocio |
+| 2026-11-01 | **D-05** | Confirmada: el Manager prepara su cuenta antes del downgrade (elimina propiedades, desactiva colaboradores, etc.); el sistema no borra nada por su cuenta | Misma razón de 2026-08-06 | Negocio |
+| 2026-11-01 | **D-18** | **Upgrade a elección del Manager**: (a) agendado al próximo ciclo, sin cobro adicional, o (b) inmediato, pagando la diferencia **completa** del mes en curso entre el plan nuevo y el actual (sin prorrateo por días, coherente con D-13). El downgrade sigue agendado (D-05) | El cliente que llega al límite no queda bloqueado hasta fin de mes, y el que no tiene apuro no paga extra | Negocio |
 | 2026-08-06 | **N-04** | IVA como constante única `IVA_PCT = 19` en `lib/plans.ts`; la UI muestra neto + "+ IVA" | Una sola fuente para la tasa; el DTE necesita neto e IVA por separado (D-07) | Default del rowMap |
 | 2026-08-06 | **N-06** | Se **quita** "Roles y permisos de usuarios" de las cards | El sistema tiene exactamente 2 roles fijos (Manager/Colaborador, ADR-0013), sin permisos configurables. Vender la capacidad se cae con el primer cliente Gold que la busque | Corrección de H-06 |
 | 2026-08-06 | — | El cupo de IA **no** aplica al escaneo de cédula del registro | Ese flujo ocurre antes de que exista el tenant, así que no hay plan contra el cual descontar. El tooltip publicado ya define el token como "una revisión de contrato con IA" | Hallazgo al implementar B0.3 |

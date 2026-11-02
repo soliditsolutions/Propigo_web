@@ -12,8 +12,8 @@ Las reglas de este proyecto prevalecen sobre ponytail y graphify. Choques resuel
 - **Idioma** — chat y documentación en español; identificadores y textos del producto en español, como el código existente.
 
 ## Grafo de código (graphify)
-- Reconstruir: `graphify update .` (CLI en `~/.local/bin`; respeta `.graphifyignore`, solo código).
+- Reconstruir: `graphify update .` (CLI en `~/.local/bin`; respeta `.graphifyignore`, solo código). **Obligatorio al cerrar cada tarea que cambie código** (antes del commit): el grafo es lo que ahorra tokens entre sesiones. Si responde "No code-graph topology changes detected", ya estaba al día.
 - Consultar un símbolo: `graphify explain "withTenant"`; camino entre dos: `graphify path "A" "B"`.
 - Salida en `graphify-out/` (ignorada por git). Los `.sql` no aportan nodos (falta `tree_sitter_sql`).
 
-Config global verificada: 2026-10
+Config global verificada: 2026-11

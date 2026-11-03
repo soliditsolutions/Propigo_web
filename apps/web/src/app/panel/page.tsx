@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTenant, getResumen } from "@/lib/queries";
-import { Card, StatCard, Badge, estadoTone, estadoPulse, PageTitle } from "@/components/panel/ui";
+import { Card, StatCard, Badge, estadoTone, estadoPulse, estadoLabel, PageTitle } from "@/components/panel/ui";
 import { AnimatedNumber } from "@/components/panel/animated-number";
 import { cantidad, plural } from "@/lib/format";
 import { AlertTriangle, Banknote, FileText, ArrowLeftRight, ArrowRight } from "lucide-react";
@@ -84,7 +84,7 @@ export default async function Dashboard() {
           <div className="space-y-3">
             {(["borrador", "disponible", "reservada", "arrendada"] as const).map((e) => (
               <div key={e} className="flex items-center justify-between py-1">
-                <Badge tone={estadoTone(e)} pulse={estadoPulse(e)}>{e}</Badge>
+                <Badge tone={estadoTone(e)} pulse={estadoPulse(e)}>{estadoLabel(e)}</Badge>
                 <span className="text-xl font-bold" style={{ color: "var(--pgo-text-1)" }}>{r.propiedades[e] ?? 0}</span>
               </div>
             ))}

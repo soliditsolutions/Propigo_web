@@ -261,11 +261,12 @@ export function PanelShell({ tenant, user, children }: Props) {
       <div className="flex flex-1 min-w-0 min-h-0 flex-col">
         {/* Header glassmorfismo sticky */}
         <header
-          className="pgo-glass flex h-14 shrink-0 items-center justify-between px-4 md:px-6 sticky top-0 z-20"
+          className="pgo-glass flex h-14 shrink-0 items-center justify-between gap-3 px-4 md:px-6 sticky top-0 z-20"
           style={{ borderBottom: "1px solid var(--pgo-border)" }}
           role="banner"
         >
-          <div className="flex items-center gap-3">
+          {/* min-w-0: sin él, truncate no recorta y un nombre de corredora largo se montaba sobre el avatar en mobile. */}
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}

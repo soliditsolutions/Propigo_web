@@ -3,6 +3,7 @@ import { prisma } from "./db";
 import { getSession } from "./auth";
 import { withTenant, type TenantClient } from "./tenant-db";
 import type { Tenant } from "@/generated/prisma/client";
+import type { EstadoNotificacion, TipoNotificacion } from "@/generated/prisma/enums";
 import { convertirUfAClp, esPeriodoDeReajuste } from "@propigo/core";
 import { getCupoPropiedades, getPlanEfectivo } from "./plans";
 import { consultarConsumoIaHoy } from "./plan-limits";
@@ -442,7 +443,9 @@ async function getContratoDetalleTx(tx: TenantClient, tenantId: string, contrato
   };
 }
 
-const NOTIFICACION_TIPO_LABEL: Record<string, string> = {
+// Record sobre el enum: un tipo nuevo sin etiqueta es error de compilación,
+// no el nombre interno ("Cambio_titularidad") mostrado al corredor.
+const NOTIFICACION_TIPO_LABEL: Record<TipoNotificacion, string> = {
   cobro: "Cobro",
   voucher_pago: "Voucher de pago",
   recordatorio_vencimiento: "Recordatorio de vencimiento",
@@ -453,13 +456,15 @@ const NOTIFICACION_TIPO_LABEL: Record<string, string> = {
   solicitud_firma: "Solicitud de firma",
   renovacion_contrato: "Renovación de contrato",
   comentario_corredor: "Comentario del corredor",
+  alerta_personalizada: "Alerta personalizada",
+  cambio_titularidad: "Cambio de titularidad",
 };
 
 export type NotificacionItem = {
   id: string;
   tipo: string;
   tipoLabel: string;
-  estado: string;
+  estado: EstadoNotificacion;
   asunto: string;
   createdAt: Date;
   persona: { nombre: string; rut: string | null };
@@ -486,7 +491,7 @@ export async function getNotificaciones(tenantId: string, propiedadIds?: string[
   return rows.map((n) => ({
     id: n.id,
     tipo: n.tipo,
-    tipoLabel: NOTIFICACION_TIPO_LABEL[n.tipo] ?? n.tipo,
+    tipoLabel: NOTIFICACION_TIPO_LABEL[n.tipo],
     estado: n.estado,
     asunto: n.asunto,
     createdAt: n.createdAt,

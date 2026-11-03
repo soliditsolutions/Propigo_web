@@ -6,27 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--workspace", "@propigo/web"],
       "autoPort": true
-    },
-    {
-      "name": "web-proxy",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["-e", "require('http').createServer((q,s)=>{const o={hostname:'localhost',port:3000,path:q.url,method:q.method,headers:{...q.headers,host:'localhost:3000'}};const p=require('http').request(o,r=>{s.writeHead(r.statusCode,r.headers);r.pipe(s)});p.on('error',e=>{s.writeHead(502);s.end(e.message)});q.pipe(p)}).listen(3001,()=>console.log('proxy ready on 3001'))"],
-      "port": 3001,
-      "waitForText": "proxy ready on 3001"
-    }
-  ,{
-      "name": "web-qa",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["-e", "require('http').createServer((q,s)=>{s.writeHead(200,{'Content-Type':'text/html'});s.end('<html><body><script>window.location.replace(\"http://localhost:3000/marketplace/b7bab2b4-7eae-4e09-b597-ca89faf858ca\")</script></body></html>');}).listen(3002,()=>console.log('qa-proxy ready on 3002'))"],
-      "port": 3002,
-      "waitForText": "qa-proxy ready on 3002"
-    },
-    {
-      "name": "web-qa3",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["-e", "require('http').createServer((q,s)=>{s.writeHead(200,{'Content-Type':'text/html'});s.end('<html><body><h1>Loading...</h1><script>window.location.href=\"http://localhost:3000/marketplace/b7bab2b4-7eae-4e09-b597-ca89faf858ca\"</script></body></html>');}).listen(3003,()=>console.log('qa3 ready on 3003'))"],
-      "port": 3003,
-      "waitForText": "qa3 ready on 3003"
     }
   ]
 }

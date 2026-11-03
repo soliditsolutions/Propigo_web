@@ -135,7 +135,7 @@ export function Badge({
   const s = badgeStyle[tone];
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
       style={{
         background: s.bg,
         color: s.color,
@@ -182,9 +182,9 @@ export function estadoPulse(estado: string): boolean {
   return estado === "disponible" || estado === "atrasado";
 }
 
-/* ── estadoLabel — texto legible para Badge (Badge solo aplica CSS
-   `capitalize`, que no reemplaza guiones bajos: "terminado_anticipado"
-   se vería "Terminado_anticipado" sin este mapeo). ────── */
+/* ── estadoLabel — texto legible para Badge a partir del estado crudo. Badge
+   no transforma el texto (CSS `capitalize` mayusculaba cada palabra, incorrecto
+   en español), así que todo estado pasa por aquí. ────── */
 const ESTADO_LABEL: Record<string, string> = {
   terminado_anticipado: "Término anticipado",
   en_revision:          "En revisión",
@@ -242,7 +242,7 @@ export function SectionTitle({
 }) {
   return (
     <Tag
-      className="mb-3 flex items-center gap-2 font-semibold"
+      className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-semibold"
       style={{ color: "var(--pgo-text-1)" }}
     >
       {count !== undefined && (
@@ -259,8 +259,9 @@ export function SectionTitle({
       )}
       {title}
       {description && (
+        // En mobile baja a su propia línea: en la misma fila, título y descripción quedaban en columnas angostas.
         <span
-          className="text-xs font-normal"
+          className="basis-full text-xs font-normal sm:basis-auto"
           style={{ color: "var(--pgo-text-4)" }}
         >
           {description}
@@ -275,16 +276,20 @@ export function Tabs({
   tabs,
   active,
   onChange,
+  ariaLabel = "Seleccionar paso",
 }: {
   tabs: { key: string; label: string; count?: number; tone?: BadgeTone }[];
   active: string;
   onChange: (key: string) => void;
+  ariaLabel?: string;
 }) {
   return (
+    // w-max + min-w-full: dentro de un contenedor con scroll horizontal el fondo
+    // acompaña a todas las pestañas en vez de cortarse al ancho de la pantalla.
     <div
-      className="flex gap-1 rounded-xl p-1"
+      className="flex w-max min-w-full gap-1 rounded-xl p-1"
       role="tablist"
-      aria-label="Seleccionar paso"
+      aria-label={ariaLabel}
       style={{ background: "var(--pgo-border)" }}
     >
       {tabs.map((t) => {
@@ -295,7 +300,7 @@ export function Tabs({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(t.key)}
-            className="pgo-btn relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
+            className="pgo-btn relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium"
             style={{
               background: isActive ? "var(--pgo-surface)" : "transparent",
               // --pgo-text-1 flipea con el tema y contrasta el surface (dark y light);

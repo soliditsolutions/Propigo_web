@@ -43,6 +43,18 @@ function fechaCorta(d: string): string {
   return new Date(d).toLocaleDateString("es-CL", { timeZone: "UTC", day: "2-digit", month: "short" });
 }
 
+function EstadoPill({ est }: { est: { label: string; color: string } }) {
+  return (
+    <span
+      className="inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
+      // Los colores son variables CSS: concatenar un alfa hex ("var(--x)18") era inválido y dejaba la etiqueta sin fondo.
+      style={{ background: `color-mix(in srgb, ${est.color} 10%, transparent)`, color: est.color }}
+    >
+      {est.label}
+    </span>
+  );
+}
+
 export function PagosSection({ periodos, denominacion }: Props) {
   // Agrupar por año (año del fechaVencimiento), ASCENDENTE: el arrendatario
   // lee su historial como una línea de tiempo — el primer período del
@@ -155,8 +167,38 @@ export function PagosSection({ periodos, denominacion }: Props) {
         </div>
       </div>
 
-      {/* Tabla de períodos */}
-      <div className="overflow-x-auto">
+      {/* Mobile: lista. En tabla el estado, que es lo que más importa, quedaba
+          fuera de la pantalla y había que desplazar para verlo. */}
+      <ul className="sm:hidden">
+        {periodosAño.map((per, i) => {
+          const est = ESTADO[per.estado] ?? { label: per.estado, color: "var(--pgo-text-4)" };
+          return (
+            <li
+              key={per.id}
+              className="flex items-center justify-between gap-3 px-5 py-3"
+              style={{ borderBottom: i < periodosAño.length - 1 ? "1px solid var(--pgo-border)" : "none" }}
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium tabular-nums" style={{ color: "var(--pgo-text-1)" }}>
+                  #{per.numero} · vence {fechaCorta(per.fechaVencimiento)}
+                </p>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>
+                  {per.fechaPagoReal ? `Pagado el ${fechaCorta(per.fechaPagoReal)}` : "Sin pago registrado"}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <span className="pgo-num whitespace-nowrap text-sm font-medium" style={{ color: "var(--pgo-text-1)" }}>
+                  {denominacion === "UF" ? uf(per.montoBase) : clp(per.montoBase)}
+                </span>
+                <EstadoPill est={est} />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Tabla de períodos (desde sm) */}
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: "var(--pgo-surface-2)", borderBottom: "1px solid var(--pgo-border)" }}>
@@ -187,12 +229,7 @@ export function PagosSection({ periodos, denominacion }: Props) {
                     {denominacion === "UF" ? uf(per.montoBase) : clp(per.montoBase)}
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span
-                      className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ background: `${est.color}18`, color: est.color }}
-                    >
-                      {est.label}
-                    </span>
+                    <EstadoPill est={est} />
                   </td>
                   <td className="hidden sm:table-cell px-5 py-3 text-sm" style={{ color: "var(--pgo-text-4)" }}>
                     {per.fechaPagoReal ? fechaCorta(per.fechaPagoReal) : "—"}
@@ -211,7 +248,7 @@ export function PagosSection({ periodos, denominacion }: Props) {
           style={{ borderTop: "1px solid var(--pgo-border)", color: "var(--pgo-text-4)" }}
         >
           Mostrando {periodosAño.length} período{periodosAño.length !== 1 ? "s" : ""} de {añoActivo}.
-          {" "}Usa el selector para ver años anteriores.
+          {" "}Usa el selector para ver otros años.
         </div>
       )}
     </div>

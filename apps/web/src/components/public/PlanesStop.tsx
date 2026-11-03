@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Info, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,24 +56,49 @@ function PolicyList() {
   );
 }
 
-/* ── Tooltip CSS-only (hover + focus) para la jerga de las features ────────
-   Sin librería: un botón de ícono accesible por teclado y un panel absoluto
-   que aparece con group-hover / group-focus-within. Vive hacia ARRIBA de la
-   línea para no chocar con el borde inferior de la card. */
+/* ── Tooltip para la jerga de las features ─────────────────────────────────
+   Sin librería: botón de ícono + panel absoluto. Con mouse/teclado abre por
+   group-hover / group-focus-within; en táctil, por toque (estado `abierto`):
+   Safari iOS no enfoca un botón al tocarlo, así que el CSS solo nunca lo abría.
+   Vive hacia ARRIBA de la línea para no chocar con el borde inferior de la
+   card, y se alinea al borde derecho del ícono (el ícono va al final de la
+   línea): centrado se salía de la pantalla en móviles. */
 function FeatureTip({ feature }: { feature: PlanFeature }) {
+  const [abierto, setAbierto] = useState(false);
+  const tipId = useId();
+  const raiz = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!abierto) return;
+    const cerrarFuera = (e: PointerEvent) => {
+      if (!raiz.current?.contains(e.target as Node)) setAbierto(false);
+    };
+    const cerrarEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setAbierto(false); };
+    document.addEventListener("pointerdown", cerrarFuera);
+    document.addEventListener("keydown", cerrarEsc);
+    return () => {
+      document.removeEventListener("pointerdown", cerrarFuera);
+      document.removeEventListener("keydown", cerrarEsc);
+    };
+  }, [abierto]);
+
   if (!feature.tooltip) return null;
   return (
-    <span className="group/tip relative inline-flex shrink-0">
+    <span ref={raiz} className="group/tip relative inline-flex shrink-0">
       <button
         type="button"
         aria-label={`Más información sobre: ${feature.text}`}
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full opacity-50 outline-none transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--pf-brand)]"
+        aria-describedby={tipId}
+        aria-expanded={abierto}
+        onClick={() => setAbierto((v) => !v)}
+        className="pgo-tap-target relative inline-flex h-4 w-4 items-center justify-center rounded-full opacity-50 outline-none transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--pf-brand)]"
       >
         <Info className="h-3 w-3" aria-hidden="true" />
       </button>
       <span
+        id={tipId}
         role="tooltip"
-        className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 w-48 -translate-x-1/2 rounded-lg px-2.5 py-2 text-left text-[10px] font-normal leading-snug opacity-0 shadow-lg transition-opacity duration-150 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100"
+        className={`pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 w-48 rounded-lg px-2.5 py-2 text-left text-xs font-normal leading-snug shadow-lg transition-opacity duration-150 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100 ${abierto ? "opacity-100" : "opacity-0"}`}
         style={{
           background: "var(--pf-surface)",
           border: "1px solid var(--pf-border)",

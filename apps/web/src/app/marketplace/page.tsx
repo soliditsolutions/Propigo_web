@@ -332,7 +332,7 @@ export default async function MarketplacePage({
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6">
 
           {/* Chips de tipo */}
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="pgo-scroll-x flex gap-1">
             {tipos.map((t) => {
               const active = tipo === t.key;
               const params = new URLSearchParams(spRecord);
@@ -356,7 +356,7 @@ export default async function MarketplacePage({
           </div>
 
           {/* Chips predefinidos */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="pgo-scroll-x flex gap-2 pb-1">
             {PREDEFINED_FILTERS.map((pf) => {
               const params = new URLSearchParams(spRecord);
               // Toggle: si ya está activo, quitar; si no, agregar

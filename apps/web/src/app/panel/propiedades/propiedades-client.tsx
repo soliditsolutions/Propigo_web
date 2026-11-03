@@ -8,7 +8,7 @@ import {
   Plus, Loader2, AlertCircle, Image as ImageIcon, CheckCircle2, Pencil,
   Lock, ArrowRight, RotateCcw, UploadCloud, Landmark, ArrowLeftRight,
 } from "lucide-react";
-import { Badge, CupoBadge, estadoTone, estadoPulse } from "@/components/panel/ui";
+import { Badge, CupoBadge, estadoTone, estadoPulse, estadoLabel } from "@/components/panel/ui";
 import type { EntradaCuenta, EntradaRolComplementario } from "@/lib/propiedad-datos";
 import { CuentasServicioFields, RolesComplementariosFields, VisibilidadRolPrincipal } from "./cuentas-servicio-fields";
 import { DatosPrivadosPropiedad } from "@/components/propiedad/datos-privados";
@@ -1468,7 +1468,7 @@ export function PropiedadesClient({
                     {style.initial}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{p.estado}</Badge>
+                    <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{estadoLabel(p.estado)}</Badge>
                     <ChevronRight className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />
                   </div>
                 </div>
@@ -1535,7 +1535,7 @@ export function PropiedadesClient({
                         >
                           {TIPO_LABEL[seleccionada.tipo] ?? seleccionada.tipo}
                         </span>
-                        <Badge tone={estadoTone(seleccionada.estado)} pulse={estadoPulse(seleccionada.estado)}>{seleccionada.estado}</Badge>
+                        <Badge tone={estadoTone(seleccionada.estado)} pulse={estadoPulse(seleccionada.estado)}>{estadoLabel(seleccionada.estado)}</Badge>
                       </div>
                       <DialogTitle className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>
                         {seleccionada.direccion}

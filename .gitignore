@@ -25,6 +25,9 @@ Thumbs.db
 .build-docx/
 .verify/
 
+# Capturas e informe del recorrido responsive (npm run qa:mobile)
+apps/web/.qa-mobile/
+
 # Estado local de herramientas de agente (no compartir entre máquinas)
 .claude/scheduled_tasks.lock
 graphify-out/

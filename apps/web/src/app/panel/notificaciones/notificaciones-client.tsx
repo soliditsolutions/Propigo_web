@@ -10,6 +10,7 @@ import { FilterToolbar, FilterChip } from "@/components/panel/filter-toolbar";
 import { PageSizePicker } from "@/components/panel/page-size-picker";
 import { fecha, cantidad } from "@/lib/format";
 import type { NotificacionItem } from "@/lib/queries";
+import type { EstadoNotificacion } from "@/generated/prisma/enums";
 import { generarRecordatorios, marcarSimulada, simularEnvioMasivo, enviarNotificacionesPendientes } from "./actions";
 import { useToast } from "@/components/ui/toast";
 import { MARCA } from "@/lib/marca";
@@ -81,6 +82,16 @@ const CATEGORIAS: { key: Categoria; label: string }[] = [
 ];
 
 const GUIDE_KEY = "pgo_notif_guide_dismissed";
+
+// Mapas exhaustivos sobre el enum: antes "pendiente" caía al nombre interno en minúscula.
+const ESTADO_UI: Record<EstadoNotificacion, { label: string; tone: "amber" | "slate" | "green" }> = {
+  pendiente:   { label: "Pendiente",   tone: "amber" },
+  simulada:    { label: "Enviada",     tone: "green" },
+  enviada:     { label: "Enviada",     tone: "green" },
+  reemplazada: { label: "Reemplazada", tone: "slate" },
+};
+const toneEstado     = (e: EstadoNotificacion) => ESTADO_UI[e].tone;
+const etiquetaEstado = (e: EstadoNotificacion) => ESTADO_UI[e].label;
 
 export function NotificacionesClient({
   notificaciones: inicial,
@@ -275,8 +286,9 @@ export function NotificacionesClient({
       {/* Categoría — eje distinto al estado, por eso va en pestañas aparte y no
           mezclado entre los chips: "pendiente/enviada" y "de qué se trata" son
           dos preguntas separadas y juntarlas en una fila las volvía ilegibles. */}
-      <div className="mt-4 overflow-x-auto">
+      <div className="pgo-scroll-x mt-4">
         <Tabs
+          ariaLabel="Categoría de notificación"
           tabs={CATEGORIAS.map((c) => ({ key: c.key, label: c.label, count: catCounts[c.key] ?? 0 }))}
           active={categoria}
           onChange={(k) => setCategoria(k as Categoria)}
@@ -298,14 +310,50 @@ export function NotificacionesClient({
         </div>
       ) : (
         <div className="pgo-card overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile: tarjetas. La tabla de 7 columnas dejaba fuera de la pantalla el asunto, el estado y la acción. */}
+          <ul className="pgo-stagger xl:hidden">
+            {pagina.map((n, i) => (
+              <li key={n.id}
+                className="space-y-2 px-4 py-3.5"
+                style={{
+                  borderBottom: i < pagina.length - 1 ? "1px solid var(--pgo-border)" : "none",
+                  background: n.estado === "pendiente" ? "rgba(37,99,235,0.02)" : undefined,
+                }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span style={{ color: n.estado === "pendiente" ? "var(--pgo-primary)" : "var(--pgo-text-4)" }}>
+                      {TIPO_ICON[n.tipo] ?? <Bell className="h-3.5 w-3.5" aria-hidden="true" />}
+                    </span>
+                    <Badge tone={TIPO_TONE[n.tipo] ?? "slate"}>{n.tipoLabel}</Badge>
+                  </div>
+                  <Badge tone={toneEstado(n.estado)}>{etiquetaEstado(n.estado)}</Badge>
+                </div>
+                <p className="text-sm" style={{ color: "var(--pgo-text-2)" }}>{n.asunto}</p>
+                <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
+                  <span className="font-medium" style={{ color: "var(--pgo-text-1)" }}>{n.persona.nombre}</span>
+                  {" · "}{n.persona.rut}
+                  {n.propiedad?.direccion && <>{" · "}{n.propiedad.direccion}</>}
+                  {" · "}<span className="pgo-num">{fecha(n.createdAt)}</span>
+                </p>
+                {n.estado === "pendiente" && (
+                  <button type="button" onClick={() => handleMarcar(n.id)} disabled={isPending}
+                    className="pgo-btn pgo-tap-target text-xs font-medium"
+                    style={{ color: "var(--pgo-primary)" }}
+                    aria-label={`Marcar como enviada: ${n.asunto}`}>
+                    Simular envío
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto xl:block">
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}>
                   <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Tipo</th>
                   <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Destinatario</th>
                   <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Asunto</th>
-                  <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Propiedad</th>
                   <th scope="col" className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Creado</th>
                   <th scope="col" className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>Estado</th>
                   <th scope="col" className="px-5 py-3" />
@@ -332,26 +380,18 @@ export function NotificacionesClient({
                       <p className="font-medium" style={{ color: "var(--pgo-text-1)" }}>{n.persona.nombre}</p>
                       <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{n.persona.rut}</p>
                     </td>
+                    {/* La propiedad va bajo el asunto (como en las tarjetas móviles): en
+                        columna propia repetía lo que el asunto ya suele decir y la tabla
+                        no cabía en un escritorio de 1280 px. */}
                     <td className="px-5 py-3.5 max-w-xs">
                       <p className="truncate text-sm" style={{ color: "var(--pgo-text-2)" }}>{n.asunto}</p>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs" style={{ color: "var(--pgo-text-3)" }}>
-                      {n.propiedad?.direccion ?? "—"}
+                      {n.propiedad && <p className="truncate text-xs" style={{ color: "var(--pgo-text-4)" }}>{n.propiedad.direccion}</p>}
                     </td>
                     <td className="px-5 py-3.5 text-xs pgo-num" style={{ color: "var(--pgo-text-4)" }}>
                       {fecha(n.createdAt)}
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <Badge tone={
-                        n.estado === "pendiente" ? "amber"
-                        : n.estado === "reemplazada" ? "slate"
-                        : n.estado === "simulada" || n.estado === "enviada" ? "green"
-                        : "blue"
-                      }>
-                        {n.estado === "simulada" || n.estado === "enviada" ? "Enviada"
-                          : n.estado === "reemplazada" ? "Reemplazada"
-                          : n.estado}
-                      </Badge>
+                      <Badge tone={toneEstado(n.estado)}>{etiquetaEstado(n.estado)}</Badge>
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       {n.estado === "pendiente" && (

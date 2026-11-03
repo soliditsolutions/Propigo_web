@@ -53,7 +53,8 @@ function Section({ id, icon, title, children }: {
           {title}
         </h2>
       </div>
-      <div className="space-y-4 text-base leading-relaxed pl-12" style={{ color: "var(--pf-text-body)" }}>
+      {/* Sangría bajo el ícono solo desde sm; overflow-wrap:anywhere corta URLs y nombres de cookie que desbordaban a 320px. */}
+      <div className="space-y-4 text-base leading-relaxed sm:pl-12 [overflow-wrap:anywhere]" style={{ color: "var(--pf-text-body)" }}>
         {children}
       </div>
     </section>
@@ -236,10 +237,11 @@ export default function PrivacidadPage() {
                     className="rounded-xl p-4 text-sm"
                     style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
                   >
-                    <div className="flex items-start justify-between gap-4 mb-1.5">
+                    {/* En mobile la base legal va bajo el título: es larga y en una sola línea desbordaba la página. */}
+                    <div className="flex flex-col items-start gap-1.5 mb-1.5 sm:flex-row sm:justify-between sm:gap-4">
                       <p className="font-semibold" style={{ color: "var(--pf-navy)" }}>{fin}</p>
                       <span
-                        className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold sm:shrink-0"
                         style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                       >
                         {base}

@@ -65,7 +65,7 @@ export default async function VouchersPage({
           {/* Mobile (<md): tarjetas — la tabla de abajo corta "Propiedad" y
               "Detalle" fuera de la pantalla con scroll horizontal sin
               ninguna pista visual de que hay más columnas al costado. */}
-          <div className="mt-4 space-y-3 rounded-2xl p-3 md:hidden" style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}>
+          <div className="mt-4 space-y-3 rounded-2xl p-3 lg:hidden" style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}>
             {vouchers.map((v) => {
               const tipoInfo = TIPO_LABEL[v.tipo] ?? { label: v.tipo, color: "var(--pgo-text-3)" };
               return (
@@ -80,7 +80,7 @@ export default async function VouchersPage({
                     </div>
                     <span
                       className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ background: `${tipoInfo.color}18`, color: tipoInfo.color }}
+                      style={{ background: `color-mix(in srgb, ${tipoInfo.color} 10%, transparent)`, color: tipoInfo.color }}
                     >
                       {tipoInfo.label}
                     </span>
@@ -130,7 +130,7 @@ export default async function VouchersPage({
 
           {/* Desktop (≥md): tabla completa */}
           <div
-            className="mt-4 hidden overflow-hidden rounded-2xl md:block"
+            className="mt-4 hidden overflow-hidden rounded-2xl lg:block"
             style={{ background: "var(--pgo-surface)", border: "1px solid var(--pgo-border)", boxShadow: "var(--pgo-shadow)" }}
           >
           <div className="overflow-x-auto">
@@ -172,7 +172,7 @@ export default async function VouchersPage({
                       <td className="px-4 py-3">
                         <span
                           className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          style={{ background: `${tipoInfo.color}18`, color: tipoInfo.color }}
+                          style={{ background: `color-mix(in srgb, ${tipoInfo.color} 10%, transparent)`, color: tipoInfo.color }}
                         >
                           {tipoInfo.label}
                         </span>

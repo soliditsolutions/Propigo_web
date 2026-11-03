@@ -135,7 +135,33 @@ export function ProximosClient({ periodos }: { periodos: Periodo[] }) {
       </FilterToolbar>
 
       <div className="pgo-card overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Hasta xl: tarjetas (con el sidebar visible la tabla no cabe bajo 1280 px). En tabla el monto y el estado quedaban fuera de la pantalla. */}
+        <ul className="pgo-stagger xl:hidden">
+          {pagina.length === 0 ? (
+            <li className="px-5 py-10 text-center text-sm text-[var(--pgo-text-4)]">Sin resultados para los filtros seleccionados.</li>
+          ) : pagina.map((p, i) => {
+            const uf = p.contrato.denominacion === "UF";
+            const atrasado = p.estado === "atrasado";
+            return (
+              <li key={p.id} className="flex items-start justify-between gap-3 px-4 py-3.5"
+                style={{ borderBottom: i < pagina.length - 1 ? "1px solid var(--pgo-border)" : "none", background: atrasado ? "rgba(239,68,68,0.03)" : undefined }}>
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--pgo-text-1)]">{p.contrato.arrendatario.nombre}</p>
+                  <p className="mt-0.5 text-xs text-[var(--pgo-text-3)]">{p.contrato.propiedad.direccion}{p.contrato.propiedad.comuna ? `, ${p.contrato.propiedad.comuna}` : ""}</p>
+                  <p className="mt-1 text-xs pgo-num" style={{ color: "var(--pgo-text-4)" }}>Vence {fecha(p.fechaVencimiento)}</p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <span className="whitespace-nowrap font-semibold pgo-num" style={{ color: "var(--pgo-text-1)" }}>
+                    {uf ? `${num(p.montoBase)} UF` : clp(p.montoBase)}
+                  </span>
+                  {p.montoGastoComun > 0 && <span className="whitespace-nowrap text-xs text-[var(--pgo-text-4)]">+ GC {clp(p.montoGastoComun)}</span>}
+                  <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>{estadoLabel(p.estado)}</Badge>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="hidden overflow-x-auto xl:block">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--pgo-border)", background: "var(--pgo-surface-2)" }}>

@@ -413,7 +413,7 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-[var(--pgo-text-1)]">{p.contrato.arrendatario.nombre}</span>
               <Badge tone={estadoTone(p.estado)} pulse={estadoPulse(p.estado)}>
-                {esPaso1 ? `atrasado${diasAtrasado > 0 ? ` · ${diasAtrasado}d` : ""}` : "por cerrar"}
+                {esPaso1 ? `Atrasado${diasAtrasado > 0 ? ` · ${diasAtrasado}d` : ""}` : "Por cerrar"}
               </Badge>
             </div>
             <p className="mt-0.5 text-sm text-[var(--pgo-text-3)]">

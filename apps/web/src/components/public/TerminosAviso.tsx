@@ -8,7 +8,8 @@ import { MARCA } from "@/lib/marca";
 // v3: términos actualizados con la marca Propigo y la aclaración de pagos.
 const STORAGE_KEY = "pgo_tos_v3";
 
-export function TerminosAviso() {
+/** `destino`: dónde entra la persona al aceptar (el aviso se monta en el marketplace y en el portal). */
+export function TerminosAviso({ destino = "al marketplace" }: { destino?: "al marketplace" | "al portal" }) {
   const [visible,  setVisible]  = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [closing,  setClosing]  = useState(false);
@@ -98,7 +99,7 @@ export function TerminosAviso() {
             Términos de uso y aviso anti-fraude
           </h2>
           <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
-            Lea el siguiente aviso y acéptelo para acceder al marketplace.
+            Lea el siguiente aviso y acéptelo para acceder {destino}.
           </p>
         </div>
 

@@ -178,7 +178,7 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
           scroll horizontal, corta "Propietario"/"Vigencia"/"Estado" fuera de
           la pantalla sin ninguna pista visual de que hay más contenido al
           costado; a este ancho una tarjeta por contrato se lee de corrido. */}
-      <div className="pgo-card space-y-3 p-3 md:hidden">
+      <div className="pgo-card space-y-3 p-3 xl:hidden">
         {pagina.length === 0 ? (
           <p className="px-2 py-8 text-center text-sm text-[var(--pgo-text-4)]">Sin resultados para los filtros seleccionados.</p>
         ) : pagina.map((c) => {
@@ -248,7 +248,7 @@ export function ContratosClient({ contratos }: { contratos: Contrato[] }) {
       </div>
 
       {/* Desktop (≥md): tabla completa */}
-      <div className="pgo-card hidden overflow-hidden md:block">
+      <div className="pgo-card hidden overflow-hidden xl:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

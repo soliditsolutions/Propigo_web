@@ -251,21 +251,9 @@ export function EquipoClient({
                   {inv.email}
                 </p>
               </div>
-              {/* Texto de varias palabras — no usar <Badge>, que aplica
-                  text-transform:capitalize (pensado para estados de una sola
-                  palabra como "activo"/"pendiente") y mayuscularía cada
-                  palabra de la frase. */}
-              <span
-                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                style={{
-                  background: "var(--pgo-warning-lt)",
-                  color:      "var(--pgo-warning)",
-                  outline:    "1px solid var(--pgo-warning-bd)",
-                  outlineOffset: "-1px",
-                }}
-              >
+              <Badge tone="amber">
                 Expira en {diasRestantes(inv.expiresAt)} día{diasRestantes(inv.expiresAt) !== 1 ? "s" : ""}
-              </span>
+              </Badge>
             </div>
           ))}
         </section>

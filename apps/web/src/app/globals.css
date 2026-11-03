@@ -1023,6 +1023,8 @@ html {
   background: var(--pgo-surface);
   color: var(--pgo-text-2);
   font-size: 13px;
+  /* El placeholder largo ("Buscar por arrendatario, propietario…") se cortaba en seco en mobile. */
+  text-overflow: ellipsis;
   padding: 0 32px 0 34px;
   outline: none;
   box-shadow: var(--pgo-input-shadow);
@@ -1898,4 +1900,34 @@ html {
   outline: 2px solid var(--pf-brand);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* Safari en iPhone/iPad amplía la página al enfocar un campo con letra menor a
+   16px y no la devuelve al salir. En pantallas táctiles todo campo de texto va
+   a 16px. !important porque muchos formularios fijan la letra con estilo en
+   línea (14-15px), que le gana a cualquier regla sin él. Se excluyen los
+   campos de código de un solo uso, que son los únicos más grandes (24-28px). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([autocomplete="one-time-code"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Fila con scroll horizontal (chips, pestañas): el borde derecho se difumina para
+   indicar que hay más contenido. El relleno final mide lo mismo que el difuminado:
+   al llegar al final el último ítem queda nítido, y si no hay desborde el
+   difuminado cae sobre espacio vacío y no se nota. */
+.pgo-scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-inline-end: 24px;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+}
+/* En táctil se desliza con el dedo y la barra solo estorba; con mouse se mantiene. */
+@media (pointer: coarse) {
+  .pgo-scroll-x { scrollbar-width: none; }
+  .pgo-scroll-x::-webkit-scrollbar { display: none; }
 }

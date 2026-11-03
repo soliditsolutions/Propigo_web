@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint",
+    "qa:mobile": "node scripts/qa-mobile.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:setup": "prisma db execute --file prisma/sql/setup.sql",
@@ -49,6 +50,7 @@
     "zxing-wasm": "^3.1.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

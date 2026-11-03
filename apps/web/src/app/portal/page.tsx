@@ -56,7 +56,7 @@ export default function PortalPage() {
 
   return (
     <>
-    <TerminosAviso />
+    <TerminosAviso destino="al portal" />
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
       {/* Fondo — arrendatario instalado revisando su cuenta, composición
           pensada para dejar el centro (donde cae la card) despejado.

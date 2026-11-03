@@ -236,12 +236,12 @@ function OposicionCard({ suscrito, alcance }: { suscrito: boolean; alcance: "sol
       ) : (
         <div className="space-y-2">
           <div className="flex flex-col gap-1.5 text-sm" style={{ color: "var(--pgo-text-2)" }}>
-            <label className="flex items-center gap-2">
-              <input type="radio" checked={alcanceElegido === "solo_opcionales"} onChange={() => setAlcanceElegido("solo_opcionales")} />
+            <label className="flex cursor-pointer items-center gap-2">
+              <input type="radio" name="alcance-baja" checked={alcanceElegido === "solo_opcionales"} onChange={() => setAlcanceElegido("solo_opcionales")} />
               Solo avisos informativos (recomendado) — sigo recibiendo lo del contrato
             </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" checked={alcanceElegido === "todos"} onChange={() => setAlcanceElegido("todos")} />
+            <label className="flex cursor-pointer items-center gap-2">
+              <input type="radio" name="alcance-baja" checked={alcanceElegido === "todos"} onChange={() => setAlcanceElegido("todos")} />
               Todos, incluidos los del contrato
             </label>
           </div>

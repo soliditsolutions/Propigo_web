@@ -11,6 +11,9 @@ Las reglas de este proyecto prevalecen sobre ponytail y graphify. Choques resuel
 - **Tests** — toda lógica no trivial lleva su prueba con Vitest (`npm test --workspace @propigo/web`); no es opcional aunque ponytail sugiera omitirla.
 - **Idioma** — chat y documentación en español; identificadores y textos del producto en español, como el código existente.
 
+## QA responsive
+Cambios de UI se verifican en móvil/tablet/escritorio con `npm run qa:mobile --workspace @propigo/web` (Playwright WebKit + Chromium, 8 perfiles, sale con código 1 si hay desborde, zoom iOS, objetivos táctiles < 24 px o errores de consola). Requiere dev server en :3000 y seed local. Detalle en `Docs/gestion/revision-mobile-2026-11.md`.
+
 ## Grafo de código (graphify)
 - Reconstruir: `graphify update .` (CLI en `~/.local/bin`; respeta `.graphifyignore`, solo código). **Obligatorio al cerrar cada tarea que cambie código** (antes del commit): el grafo es lo que ahorra tokens entre sesiones. Si responde "No code-graph topology changes detected", ya estaba al día.
 - Consultar un símbolo: `graphify explain "withTenant"`; camino entre dos: `graphify path "A" "B"`.

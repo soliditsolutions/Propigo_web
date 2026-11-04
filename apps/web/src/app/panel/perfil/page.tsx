@@ -1,7 +1,7 @@
 import { redirect }            from "next/navigation";
 import { getSession }          from "@/lib/auth";
 import { withTenant }          from "@/lib/tenant-db";
-import { getActor, getUfCLP }  from "@/lib/queries";
+import { getActor, getUfCLP, getUsoCupos } from "@/lib/queries";
 import { getPlanEfectivo, getCupoPropiedades, getCupoUsuarios } from "@/lib/plans";
 import { periodosDemo, diaFacturacionDemo } from "@/lib/billing-demo";
 import { SetupDialog }         from "./setup-dialog";
@@ -80,12 +80,10 @@ export default async function PerfilPage({
     // cliente `prisma` global, y llamarlo dentro del callback de withTenant
     // mientras corren las otras queries dispara el warning de pg "client
     // already executing a query" (ver la nota en getUfCLP/getUfCLPTx).
-    const [usoPropiedades, usoUsuarios] = await withTenant(actor.tenantId, (tx) =>
-      Promise.all([
-        tx.propiedad.count({ where: { tenantId: actor.tenantId } }),
-        tx.usuario.count({ where: { tenantId: actor.tenantId, desactivadoEn: null } }),
-      ]),
-    );
+    // Usuarios = cupo ocupado (Manager + colaboradores activos + invitaciones
+    // vigentes), el mismo conteo con que Equipo bloquea invitar y el gate de
+    // downgrade decide si la cuenta cabe en otro plan.
+    const { propiedades: usoPropiedades, usuarios: usoUsuarios } = await getUsoCupos(actor.tenantId, actor.usuarioId);
     const [valorUfClp, historial] = await Promise.all([
       getUfCLP(new Date()),
       periodosDemo(plan, 6, getUfCLP),

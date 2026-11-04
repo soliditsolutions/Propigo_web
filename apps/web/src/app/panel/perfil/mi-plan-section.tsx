@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import Link from "next/link";
 import {
-  AlertTriangle, CheckCircle2, ArrowUpCircle, CreditCard, Receipt,
-  Download, CalendarClock, Building2, Users, Sparkles, X,
+  AlertTriangle, CheckCircle2, ArrowLeftRight, CreditCard, Receipt,
+  Download, CalendarClock, Building2, Users, Sparkles, X, Loader2,
 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/panel/ui";
 import { useToast } from "@/components/ui/toast";
 import { clp } from "@/lib/format";
 import { PLANS, desglosarPrecioClp, type Plan } from "@/lib/plans";
+import {
+  tipoDeCambio, diferenciaUpgradeUf, excedentesParaPlan,
+  type ModalidadUpgrade, type Excedente,
+} from "@/lib/billing/cambio-plan";
 import type { PeriodoDemo } from "@/lib/billing-demo";
 import { MARCA } from "@/lib/marca";
+import { solicitarCambioPlanAction } from "./plan-actions";
+
+const RECURSO: Record<Excedente["recurso"], { singular: string; plural: string; accion: string; href: string }> = {
+  propiedades: { singular: "propiedad", plural: "propiedades", accion: "Ir a Propiedades", href: "/panel/propiedades" },
+  usuarios:    { singular: "usuario",   plural: "usuarios",    accion: "Ir a Equipo",      href: "/panel/equipo" },
+};
 
 function ufFmt(n: number): string {
   return `${n.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} UF`;
@@ -61,20 +72,54 @@ export function MiPlanSection({
   historial: PeriodoDemo[];
 }) {
   const { show: toast } = useToast();
-  const [mostrarUpgrade, setMostrarUpgrade] = useState(false);
+  const [mostrarCambio, setMostrarCambio] = useState(false);
+  const [destinoId, setDestinoId] = useState<string | null>(null);
+  const [modalidad, setModalidad] = useState<ModalidadUpgrade>("proximo_ciclo");
+  const [error, setError] = useState<{ mensaje: string; excedentes?: Excedente[] } | null>(null);
+  const [enviada, setEnviada] = useState<string | null>(null);
+  const [enviando, startTransition] = useTransition();
 
-  const indice = PLANS.findIndex((p) => p.id === plan.id);
-  const superiores = indice >= 0 ? PLANS.slice(indice + 1) : [];
-  const puedeSubir = superiores.length > 0;
+  const otros = PLANS.filter((p) => p.id !== plan.id);
+  const destino = otros.find((p) => p.id === destinoId) ?? null;
+  const tipo = destino ? tipoDeCambio(plan, destino) : null;
+  // Anticipo del gate (el servidor lo vuelve a validar con el uso del momento).
+  const excedentes = destino && tipo === "downgrade"
+    ? (error?.excedentes ?? excedentesParaPlan(destino, { propiedades: usoPropiedades, usuarios: usoUsuarios }))
+    : [];
+  const diferencia = destino && tipo === "upgrade" ? diferenciaUpgradeUf(plan, destino) : 0;
 
   const { totalClp } = desglosarPrecioClp(plan.mensualUf, valorUfClp);
 
-  function solicitarUpgrade(destino: Plan) {
-    setMostrarUpgrade(false);
-    toast(
-      `Solicitud enviada: cambio a ${destino.name}. Te contactaremos para coordinar el cobro — el cambio de plan todavía no es automático.`,
-      "success",
-    );
+  function elegir(id: string) {
+    setDestinoId(id);
+    setModalidad("proximo_ciclo");
+    setError(null);
+    setEnviada(null);
+  }
+
+  function cerrar() {
+    setMostrarCambio(false);
+    setDestinoId(null);
+    setError(null);
+  }
+
+  function enviar() {
+    if (!destino) return;
+    setError(null);
+    startTransition(async () => {
+      const r = await solicitarCambioPlanAction({
+        destinoId: destino.id,
+        modalidad: tipo === "upgrade" ? modalidad : null,
+      });
+      if (r.ok) {
+        // Confirmación en línea (role=status), no toast: un toast la anunciaría
+        // dos veces y desaparecería antes de que se lea.
+        setEnviada(r.planDestino);
+        setDestinoId(null);
+      } else {
+        setError({ mensaje: r.error, excedentes: r.excedentes });
+      }
+    });
   }
 
   return (
@@ -130,51 +175,171 @@ export function MiPlanSection({
           ))}
         </ul>
 
-        {puedeSubir && (
-          <div className="mt-4 border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
-            <button
-              type="button"
-              onClick={() => setMostrarUpgrade(true)}
-              className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
-            >
-              <ArrowUpCircle className="h-4 w-4" aria-hidden="true" />
-              Subir de plan
-            </button>
-          </div>
-        )}
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4" style={{ borderColor: "var(--pgo-border)" }}>
+          <button
+            type="button"
+            onClick={() => { setMostrarCambio(true); setEnviada(null); }}
+            aria-expanded={mostrarCambio}
+            aria-controls="cambio-plan"
+            className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+          >
+            <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+            Cambiar de plan
+          </button>
+          {enviada && (
+            <p role="status" className="flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-success)" }}>
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              Solicitud de cambio a {enviada} enviada. Soporte te escribirá para confirmarla.
+            </p>
+          )}
+        </div>
       </Card>
 
-      {/* ── Selector de upgrade ─────────────────────────────────────── */}
-      {mostrarUpgrade && puedeSubir && (
-        <Card className="p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <SectionTitle title="Elige el plan al que quieres subir" as="h3" />
-            <button type="button" onClick={() => setMostrarUpgrade(false)} aria-label="Cerrar" className="pgo-btn rounded-lg p-1.5" style={{ color: "var(--pgo-text-4)" }}>
+      {/* ── Cambio de plan (P-B6 / gate P-B7) ────────────────────────── */}
+      {mostrarCambio && (
+        <div id="cambio-plan"><Card className="p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <SectionTitle title="Elige tu nuevo plan" as="h3" />
+            <button type="button" onClick={cerrar} aria-label="Cerrar" className="pgo-btn pgo-tap-target relative rounded-lg p-1.5" style={{ color: "var(--pgo-text-4)" }}>
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {superiores.map((p) => (
-              <div key={p.id} className="rounded-xl p-4" style={{ background: "var(--pgo-surface-2)", border: "1px solid var(--pgo-border-2)" }}>
-                <p className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--pgo-text-1)" }}>
-                  {p.featured && <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />}
-                  {p.name}
-                </p>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-text-4)" }}>{ufFmt(p.mensualUf)} + IVA / mes</p>
-                <p className="mt-2 text-xs" style={{ color: "var(--pgo-text-3)" }}>
-                  Hasta {p.maxPropiedades} propiedades · {p.maxUsuarios === 1 ? "1 usuario" : `${p.maxUsuarios} usuarios`}
-                </p>
+
+          <div role="radiogroup" aria-label="Plan destino" className="grid gap-3 sm:grid-cols-3">
+            {otros.map((p) => {
+              const sel = p.id === destinoId;
+              const sube = tipoDeCambio(plan, p) === "upgrade";
+              return (
                 <button
+                  key={p.id}
                   type="button"
-                  onClick={() => solicitarUpgrade(p)}
-                  className="pgo-btn-primary mt-3 w-full rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  role="radio"
+                  aria-checked={sel}
+                  onClick={() => elegir(p.id)}
+                  className="pgo-btn rounded-xl p-4 text-left"
+                  style={{
+                    background: sel ? "var(--pgo-primary-lt)" : "var(--pgo-surface-2)",
+                    border: `1px solid ${sel ? "var(--pgo-primary)" : "var(--pgo-border-2)"}`,
+                  }}
                 >
-                  Solicitar cambio a {p.name}
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--pgo-text-1)" }}>
+                      {p.featured && <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--pgo-primary)" }} aria-hidden="true" />}
+                      {p.name}
+                    </span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: sube ? "var(--pgo-success)" : "var(--pgo-text-4)" }}>
+                      {sube ? "Subir" : "Bajar"}
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block text-xs" style={{ color: "var(--pgo-text-4)" }}>{ufFmt(p.mensualUf)} + IVA / mes</span>
+                  <span className="mt-2 block text-xs" style={{ color: "var(--pgo-text-3)" }}>
+                    Hasta {p.maxPropiedades} propiedades · {p.maxUsuarios === 1 ? "1 usuario" : `${p.maxUsuarios} usuarios`}
+                  </span>
                 </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </Card>
+
+          {destino && tipo === "upgrade" && (
+            <fieldset className="mt-4 space-y-2">
+              <legend className="mb-2 text-sm font-semibold" style={{ color: "var(--pgo-text-1)" }}>
+                ¿Cuándo empieza {destino.name}?
+              </legend>
+              {([
+                {
+                  valor: "proximo_ciclo" as const,
+                  titulo: "Desde el próximo ciclo",
+                  detalle: `Sigues con ${plan.name} hasta tu día de facturación (día ${diaFacturacion}); después pagas ${ufFmt(destino.mensualUf)} + IVA al mes. Sin cobro adicional ahora.`,
+                },
+                {
+                  valor: "inmediato" as const,
+                  titulo: "Ahora mismo",
+                  detalle: `Pagas hoy la diferencia del mes completo: ${ufFmt(diferencia)} + IVA (${clp(desglosarPrecioClp(diferencia, valorUfClp).totalClp)} aprox.). Tu día de facturación no cambia.`,
+                },
+              ]).map((op) => (
+                <label
+                  key={op.valor}
+                  className="flex cursor-pointer gap-3 rounded-xl p-3"
+                  style={{ background: "var(--pgo-surface-2)", border: `1px solid ${modalidad === op.valor ? "var(--pgo-primary)" : "var(--pgo-border)"}` }}
+                >
+                  <input
+                    type="radio"
+                    name="modalidad-upgrade"
+                    value={op.valor}
+                    checked={modalidad === op.valor}
+                    onChange={() => setModalidad(op.valor)}
+                    className="mt-0.5 h-4 w-4 shrink-0"
+                    style={{ accentColor: "var(--pgo-primary)" }}
+                  />
+                  <span className="text-sm">
+                    <span className="block font-semibold" style={{ color: "var(--pgo-text-1)" }}>{op.titulo}</span>
+                    <span className="mt-0.5 block text-xs" style={{ color: "var(--pgo-text-3)" }}>{op.detalle}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+
+          {destino && tipo === "downgrade" && (
+            excedentes.length > 0 ? (
+              <div className="mt-4 rounded-xl p-4" style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--pgo-warning-dk)" }}>
+                  Para bajar a {destino.name} primero tienes que liberar cupo
+                </p>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
+                  {MARCA} nunca borra nada por ti: tú decides qué eliminar o desactivar.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {excedentes.map((e) => {
+                    const r = RECURSO[e.recurso];
+                    return (
+                      <li key={e.recurso} className="flex flex-wrap items-center justify-between gap-2 text-sm" style={{ color: "var(--pgo-text-1)" }}>
+                        <span>
+                          Tienes <strong className="pgo-num">{e.uso}</strong> {r.plural} y {destino.name} permite {e.max}: sobran{" "}
+                          <strong className="pgo-num">{e.sobran}</strong> {e.sobran === 1 ? r.singular : r.plural}.
+                        </span>
+                        <Link href={r.href} className="pgo-btn rounded-lg px-2.5 py-1 text-xs font-semibold" style={{ background: "var(--pgo-surface)", color: "var(--pgo-primary)" }}>
+                          {r.accion}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {excedentes.some((e) => e.recurso === "usuarios") && (
+                  <p className="mt-3 text-xs" style={{ color: "var(--pgo-warning-dk)" }}>
+                    Las invitaciones pendientes también ocupan cupo de usuario: revócalas en Equipo si no las vas a usar.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl p-3 text-sm" style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}>
+                Tu cuenta cabe en {destino.name}. El cambio se aplica al terminar el período que ya pagaste; hasta entonces
+                conservas todo lo de {plan.name}.
+              </p>
+            )
+          )}
+
+          {error && !error.excedentes && (
+            <p role="alert" className="mt-3 text-sm" style={{ color: "var(--pgo-danger)" }}>{error.mensaje}</p>
+          )}
+
+          {destino && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={enviar}
+                disabled={enviando || excedentes.length > 0}
+                className="pgo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {enviando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                Solicitar cambio a {destino.name}
+              </button>
+              <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
+                Mientras no esté activa la facturación, soporte aplica el cambio y te confirma por correo.
+              </p>
+            </div>
+          )}
+        </Card></div>
       )}
 
       {/* ── Facturación (ejemplo) ───────────────────────────────────── */}

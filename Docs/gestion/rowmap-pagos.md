@@ -4,7 +4,7 @@
 >
 > Base conceptual: [ADR-0014](../decisiones/ADR-0014-pagos-suscripciones-y-canal-de-arriendo.md) · Antecedente: [ADR-0006](../decisiones/ADR-0006-canales-de-pago.md)
 >
-> _Última actualización: 2026-11-01 — decididas D-02 (Transbank: Webpay Plus manual primero, Oneclick después) y D-18 (upgrade a elección del Manager); confirmada D-05._
+> _Última actualización: 2026-11-02 — P-B7 hecho y P-B6 en curso (solicitud a soporte sin cobro, a la espera de P-B2/P-B4); abierta D-19. Antes (2026-11-01): decididas D-02 y D-18, confirmada D-05._
 
 ## Cómo se usa
 
@@ -116,8 +116,8 @@ un "leer, comparar, escribir" en pasos separados.
 | **P-B3** | Alta de suscripción: checkout, tokenización, activación | P-B1, P-B2 | D-08 | `[ ]` |
 | **P-B4** | Cobro recurrente: ciclo, renovación, **conversión UF→CLP**, reloj inyectable | P-B3 | **N-03** | `[!]` |
 | **P-B5** | Dunning: notificación de mora → 10 días de gracia → suspensión | P-B4 | — | `[ ]` |
-| **P-B6** | Cambio de plan: upgrade a elección del Manager (próximo ciclo, o inmediato pagando la diferencia del mes en curso) / downgrade agendado a fin de período | P-B4 | D-18 ✅ | `[ ]` |
-| **P-B7** | Gate de downgrade: verificar que el tenant cumple los límites del plan destino (usuarios **y** propiedades) antes de permitir el cambio. El sistema nunca borra: el Manager libera cupo antes (eliminar propiedades, desactivar colaboradores) | P-B6, P-B0.2 | D-05 ✅ | `[ ]` |
+| **P-B6** | Cambio de plan: upgrade a elección del Manager (próximo ciclo, o inmediato pagando la diferencia del mes en curso) / downgrade agendado a fin de período | P-B4 | D-18 ✅ | `[~]` — **2026-11-02:** reglas en `lib/billing/cambio-plan.ts` (tipo de cambio, diferencia del mes completo, sin prorrateo) y solicitud real desde *Mi Plan* (`panel/perfil/plan-actions.ts`): el Manager elige plan y, si sube, la modalidad; se valida en el servidor y se envía a soporte por correo (tope 3/h por cuenta). Falta aplicar el cambio y cobrar la diferencia de forma automática, que depende de P-B2/P-B4 |
+| **P-B7** | Gate de downgrade: verificar que el tenant cumple los límites del plan destino (usuarios **y** propiedades) antes de permitir el cambio. El sistema nunca borra: el Manager libera cupo antes (eliminar propiedades, desactivar colaboradores) | P-B6, P-B0.2 | D-05 ✅ | `[x]` — **2026-11-02:** `excedentesParaPlan` evaluado en el servidor con `getUsoCupos` (propiedades en todos los estados + Manager, colaboradores activos e invitaciones vigentes, el mismo conteo que Equipo). La UI muestra qué sobra y enlaza a Propiedades/Equipo; el botón queda deshabilitado |
 | **P-B8** | `Tenant.plan` derivado de la suscripción activa | P-B3 | D-09 | `[ ]` |
 | **P-B9** | Emisión de DTE por cada cobro + envío por correo | P-B4 | **D-07** | `[!]` |
 
@@ -218,6 +218,7 @@ D-01 (precios) · D-05 (downgrade) · D-07 (DTE, dirección) · D-10 (mora) · D
 | **D-15** | Condiciones objetivas exactas del retracto | 🟡 | P-C1, P-C2 | Cero contratos generados **y** cero pagos procesados **y** < 20 % de tokens del período. | Abierta |
 | **D-16** | Impago de comisiones: ¿se cortan solo cobros nuevos o también mandatos vigentes? | 🟡 | P-E3 | Solo cobros nuevos. | Abierta |
 | **D-17** | Criterio de salida del piloto | 🟡 | P-F2, P-F3 | Cero descalces en 30 días con ≥10 pagos reales. | Abierta |
+| **D-19** | Upgrade **inmediato** de un plan **anual**: ¿se cobra la diferencia mensual del mes en curso (como el mensual) o la diferencia anual por los meses que quedan del ciclo? | 🟡 | P-B6 | Diferencia anual proporcional a los meses completos que quedan (con el descuento anual de ambos planes), coherente con D-13 y sin prorrateo por días. Hoy no existen suscripciones anuales: no bloquea. | Abierta |
 | **D-18** | ¿Upgrade **inmediato con prorrateo** (lo que dice hoy P-B6), o upgrade también **agendado al próximo ciclo**, con la misma regla que el downgrade? Propuesta del usuario (2026-09-16): completar el mes en curso con el plan actual y recién activar el cambio en la facturación del mes siguiente — el cobro ocurre siempre al inicio de mes, así que ese cobro ya sale con el plan nuevo. Sin prorrateo en ningún sentido, upgrade y downgrade quedan simétricos. | 🔴 | P-B6 | Pendiente — a definir en la sesión del 2026-09-17. Trade-off: más simple de implementar (una sola regla, sin lógica de prorrateo) a cambio de que el cliente que sube de plan espere al ciclo siguiente para ver el beneficio, en vez de acceso inmediato. | **Decidida 2026-11-01** → bitácora: el Manager elige en cada upgrade |
 
 > **Nota 2026-09-16** — el usuario también pidió, por separado, "ver un plan para

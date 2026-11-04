@@ -272,6 +272,73 @@ export async function sendDenunciaAdminEmail(opts: DatosDenuncia): Promise<void>
   });
 }
 
+// ── Solicitud de cambio de plan (P-B6) ──────────────────────────────────────
+// Mientras no esté conectada la pasarela (P-B2/P-B4), el cambio lo aplica el
+// equipo de soporte: este correo es la solicitud formal del Manager.
+
+export type DatosCambioPlan = {
+  corredora: string;
+  nombreManager: string;
+  emailManager: string;
+  planOrigen: string;
+  planDestino: string;
+  tipo: "upgrade" | "downgrade";
+  modalidad: "proximo_ciclo" | "inmediato" | null;
+  /** Solo upgrade inmediato: diferencia del mes en UF (sin IVA) y su total aprox. en CLP con IVA. */
+  diferenciaUf: number | null;
+  diferenciaTotalClp: number | null;
+};
+
+const CUANDO_CAMBIO_PLAN = (o: DatosCambioPlan) =>
+  o.tipo === "downgrade"
+    ? "Al terminar el período pagado (D-05). La cuenta ya cumple los límites del plan destino."
+    : o.modalidad === "inmediato"
+      ? "Inmediato, una vez pagada la diferencia del mes en curso."
+      : "Desde el próximo ciclo de facturación, sin cobro adicional.";
+
+export function htmlSolicitudCambioPlan(o: DatosCambioPlan, recibida: Date, appUrl = APP_URL): string {
+  const fecha = recibida.toLocaleString("es-CL", { timeZone: "America/Santiago" });
+  const uf = (n: number) => `${n.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} UF`;
+  return plantilla({
+    appUrl,
+    preencabezado: `Cambio de plan: ${o.corredora} pasa de ${o.planOrigen} a ${o.planDestino}`,
+    contenido:
+      caja(
+        p(`<strong>Solicitud de ${o.tipo === "upgrade" ? "upgrade" : "downgrade"}</strong>`, "margin:0;font-size:16px") +
+        p(esc(fecha), "margin:4px 0 0;font-size:13px"),
+        "marca",
+      ) +
+      tabla(
+        fila("Corredora", esc(o.corredora), true) +
+        fila("Solicitado por", `${esc(o.nombreManager)} &lt;${esc(o.emailManager)}&gt;`) +
+        fila("Cambio", `${esc(o.planOrigen)} → ${esc(o.planDestino)}`, true) +
+        fila("Cuándo", esc(CUANDO_CAMBIO_PLAN(o))) +
+        (o.diferenciaUf !== null
+          ? fila("Diferencia a cobrar", `${uf(o.diferenciaUf)} + IVA${o.diferenciaTotalClp !== null ? ` (≈ ${esc(o.diferenciaTotalClp.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }))} con IVA)` : ""}`, true)
+          : ""),
+      ) +
+      pChico("Responde a este correo para coordinar con el Manager. El plan de la cuenta no cambia hasta que soporte lo aplique."),
+  });
+}
+
+/** Envía la solicitud de cambio de plan a soporte, con respuesta directa al Manager. */
+export async function sendSolicitudCambioPlanEmail(opts: DatosCambioPlan): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    simular("Solicitud de cambio de plan", {
+      Corredora: opts.corredora, Manager: opts.emailManager,
+      Cambio: `${opts.planOrigen} → ${opts.planDestino} (${opts.tipo}${opts.modalidad ? `, ${opts.modalidad}` : ""})`,
+      Diferencia: opts.diferenciaUf !== null ? `${opts.diferenciaUf} UF + IVA` : "—",
+    });
+    return;
+  }
+  const resend = await getResend();
+  await resend.emails.send({
+    from: remitente(CORREO.notificaciones), to: CORREO.soporte, replyTo: opts.emailManager,
+    subject: `[Cambio de plan] ${opts.corredora}: ${opts.planOrigen} → ${opts.planDestino}`,
+    html: htmlSolicitudCambioPlan(opts, new Date()),
+  });
+}
+
 // ── Mensaje del corredor al arrendatario ────────────────────────────────────
 
 type DatosComentario = {

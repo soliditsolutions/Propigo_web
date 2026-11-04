@@ -3,7 +3,7 @@
 import { headers }                       from "next/headers";
 import { prisma }                        from "@/lib/db";
 import { withTenant }                    from "@/lib/tenant-db";
-import { getActor }                      from "@/lib/queries";
+import { getActor, contarUsuariosOcupados } from "@/lib/queries";
 import { generateResetToken, hashToken } from "@/lib/token";
 import { sendCollaboratorInviteEmail }   from "@/lib/email";
 import { getClientIpFromHeaders }        from "@/lib/ip";
@@ -25,18 +25,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITACION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
 
 // ── Cupo de usuarios por plan (ADR-0013, Fase E) ─────────────────────────────
-// Una invitación pendiente ocupa cupo igual que un Colaborador activo
-// (ROL-FLU-5) — si no contara, el Manager podría invitar más gente de la que
-// el plan permite mientras las invitaciones siguen sin aceptarse.
-async function contarCupoUsado(tenantId: string, managerId: string): Promise<number> {
-  const activos = await withTenant(tenantId, (tx) => tx.usuario.count({
-    where: { tenantId, rol: "colaborador", desactivadoEn: null },
-  }));
-  const pendientes = await prisma.invitacionColaborador.count({
-    where: { invitadoPorId: managerId, usadoEn: null, expiresAt: { gt: new Date() } },
-  });
-  return 1 + activos + pendientes; // +1 = el propio Manager, siempre ocupa un cupo
-}
+// El conteo (Manager + activos + invitaciones pendientes) vive en lib/queries
+// para que Equipo, Mi plan y el gate de downgrade cuenten lo mismo.
 
 // ── Invitar colaborador ──────────────────────────────────────────────────────
 // Manager-only (verificado dentro de la función, no solo oculto en la UI).
@@ -55,7 +45,7 @@ export async function invitarColaboradorAction(
   }
 
   const cupoMax   = getCupoUsuarios(actor.tenant.plan);
-  const cupoUsado = await contarCupoUsado(actor.tenantId, actor.usuarioId);
+  const cupoUsado = await contarUsuariosOcupados(actor.tenantId, actor.usuarioId);
   if (cupoUsado >= cupoMax) {
     return {
       ok: false,
@@ -222,7 +212,7 @@ export async function getCupoInfo(): Promise<CupoInfo> {
   }
 
   const max   = getCupoUsuarios(actor.tenant.plan);
-  const usado = await contarCupoUsado(actor.tenantId, actor.usuarioId);
+  const usado = await contarUsuariosOcupados(actor.tenantId, actor.usuarioId);
   const plan  = PLANS.find((p) => p.id === actor.tenant.plan);
 
   return { usado, max, planLabel: plan?.name ?? "Gratuito" };

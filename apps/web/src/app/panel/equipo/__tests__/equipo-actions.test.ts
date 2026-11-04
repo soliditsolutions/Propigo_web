@@ -10,7 +10,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockGetActor = vi.fn();
-vi.mock("@/lib/queries", () => ({ getActor: mockGetActor }));
+// contarUsuariosOcupados queda real: el cupo se cuenta contra los mocks de
+// @/lib/db de abajo, que es justamente lo que estos tests verifican.
+vi.mock("@/lib/queries", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/queries")>()),
+  getActor: mockGetActor,
+}));
 
 vi.mock("next/headers", () => ({ headers: vi.fn().mockResolvedValue(new Map()) }));
 vi.mock("@/lib/ip", () => ({ getClientIpFromHeaders: vi.fn(() => "203.0.113.1") }));

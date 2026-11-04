@@ -673,6 +673,34 @@ export async function getCupoPropiedadesInfo(tenantId: string, plan: string | nu
   return { usado, max: getCupoPropiedades(plan), planLabel: getPlanEfectivo(plan).name };
 }
 
+/**
+ * Cupo de usuarios ocupado: el Manager + Colaboradores activos + invitaciones
+ * vigentes sin aceptar. Una invitación pendiente ocupa cupo igual que un
+ * Colaborador activo (ROL-FLU-5): si no contara, el Manager podría invitar más
+ * gente de la que el plan permite mientras las invitaciones siguen abiertas.
+ * Lo usan el enforcement de Equipo, el indicador de Mi plan y el gate de
+ * downgrade, para que los tres cuenten lo mismo.
+ */
+export async function contarUsuariosOcupados(tenantId: string, managerId: string): Promise<number> {
+  const activos = await withTenant(tenantId, (tx) => tx.usuario.count({
+    where: { tenantId, rol: "colaborador", desactivadoEn: null },
+  }));
+  // invitacion_colaborador no tiene tenant_id (no está bajo RLS): se filtra por quien invitó.
+  const pendientes = await prisma.invitacionColaborador.count({
+    where: { invitadoPorId: managerId, usadoEn: null, expiresAt: { gt: new Date() } },
+  });
+  return 1 + activos + pendientes; // +1 = el propio Manager, siempre ocupa un cupo
+}
+
+/** Uso de la cuenta para el gate de downgrade (P-B7), contado como en el enforcement. */
+export async function getUsoCupos(tenantId: string, managerId: string): Promise<{ propiedades: number; usuarios: number }> {
+  const [propiedades, usuarios] = await Promise.all([
+    withTenant(tenantId, (tx) => tx.propiedad.count({ where: { tenantId } })),
+    contarUsuariosOcupados(tenantId, managerId),
+  ]);
+  return { propiedades, usuarios };
+}
+
 /** Consumo de IA de hoy, para el indicador previo a mandar un contrato a la IA. */
 export async function getCupoIaInfo(tenantId: string, plan: string | null) {
   return withTenant(tenantId, (tx) => consultarConsumoIaHoy(tx, tenantId, plan));

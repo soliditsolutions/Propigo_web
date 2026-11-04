@@ -137,4 +137,16 @@ describe("HTML de correos — escapado de datos de personas", () => {
     expect(enviados[0].html).not.toContain("<img src=x");
     expect(enviados[0].html).toContain("&lt;img src=x");
   });
+  it("la solicitud de cambio de plan no inyecta con el nombre de la corredora ni del Manager", async () => {
+    const { sendSolicitudCambioPlanEmail } = await import("../email");
+    await sendSolicitudCambioPlanEmail({
+      corredora: PAYLOAD, nombreManager: PAYLOAD, emailManager: "m@b.cl",
+      planOrigen: "Silver", planDestino: "Gold", tipo: "upgrade", modalidad: "inmediato",
+      diferenciaUf: 0.4, diferenciaTotalClp: 19040,
+    });
+
+    expect(enviados[0].html).not.toContain("<img src=x");
+    expect(enviados[0].html).toContain("&lt;img src=x");
+    expect(enviados[0].html).toContain("0,40 UF");
+  });
 });

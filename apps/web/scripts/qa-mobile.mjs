@@ -135,11 +135,14 @@ async function visitar(page, disp, ruta, nombre, informe) {
     await page.screenshot({ path: join(OUT, `${disp.id}__${nombre}.png`), fullPage: true, caret: "initial" });
     informe.push({ disp: disp.id, nombre, ruta, estado: r?.status(), ...m, errores });
   } catch (e) {
-    informe.push({ disp: disp.id, nombre, ruta, estado: "FALLÓ", error: String(e).slice(0, 300), errores });
+    informe.push({ disp: disp.id, nombre, ruta, estado: "FALLÓ", error: errorLegible(e), errores });
   }
   page.off("console", onConsola);
   page.off("pageerror", onError);
 }
+
+// Sin códigos de color ANSI y con la causa completa (Playwright la pone al final del log).
+const errorLegible = (e) => String(e).replace(/\u001b\[\d+m/g, "").slice(0, 1500);
 
 async function loginPanel(ctx, page) {
   const token = randomUUID();
@@ -197,7 +200,7 @@ try {
         await loginPanel(ctx, page);
         for (const [ruta, nombre] of RUTAS_PANEL) await visitar(page, disp, ruta, nombre, informe);
       } catch (e) {
-        informe.push({ disp: disp.id, nombre: "login-panel", estado: "FALLÓ", error: String(e).slice(0, 300) });
+        informe.push({ disp: disp.id, nombre: "login-panel", estado: "FALLÓ", error: errorLegible(e) });
       }
       await ctx.close();
     }
@@ -211,7 +214,7 @@ try {
         await visitar(page, disp, ruta, `portal-${quien}-contrato`, informe);
         await visitar(page, disp, "/portal/mis-datos", `portal-${quien}-mis-datos`, informe);
       } catch (e) {
-        informe.push({ disp: disp.id, nombre: `portal-${quien}`, estado: "FALLÓ", error: String(e).slice(0, 300) });
+        informe.push({ disp: disp.id, nombre: `portal-${quien}`, estado: "FALLÓ", error: errorLegible(e) });
       }
       await ctx.close();
     }

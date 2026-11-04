@@ -13,6 +13,34 @@ desarrollo, no versiones publicadas.
 
 ---
 
+## [Unreleased]
+
+### Añadido
+
+- **Cambio de plan desde Mi Plan.** El Manager elige el plan nuevo. Si sube,
+  decide si empieza en el próximo ciclo (sin cobro extra) o ahora mismo,
+  pagando la diferencia del mes completo; el monto se muestra en UF + IVA y en
+  pesos antes de pedirlo. Mientras no esté conectada la pasarela, la solicitud
+  llega a soporte, que la aplica.
+- **Bajar de plan exige que la cuenta quepa en el plan destino.** Se indica
+  cuántas propiedades o usuarios sobran, con acceso directo a Propiedades o
+  Equipo. El sistema nunca borra nada por su cuenta.
+
+### Cambiado
+
+- **Revisión responsive en iOS, Android y tablet**, con un recorrido
+  automatizado de 8 perfiles (`npm run qa:mobile`).
+- **Mi Plan cuenta los usuarios igual que Equipo**: las invitaciones
+  pendientes también ocupan cupo.
+
+### Seguridad
+
+- **Política de seguridad de contenido (CSP) con nonce en todo el sitio
+  público**: portada, marketplace, legales y portal. Navegar el sitio público
+  ya no renueva la inactividad del panel.
+
+---
+
 ## Etapa 8 — Datos de la propiedad, visibilidad y blindaje público (2026-08-25 → 2026-08-26)
 
 ### Añadido

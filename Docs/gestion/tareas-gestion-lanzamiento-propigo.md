@@ -36,6 +36,8 @@ tiene nada que validar**. Por eso:
 | **V1** | Mismo código con el código de comercio productivo y la llave secreta (solo cambian variables de entorno), compra de $50 (P-04) | Webpay Plus manual por período |
 | **V2** | Oneclick, cargo automático (P-05), cuando haya volumen | Automático |
 
+**Decidido 2026-11-02 — alcance de la V0:** el sitio queda publicado **solo para la validación de Transbank**. No se abren registros de corredoras ni hay plan gratuito. El plan **Free Tier** (1 propiedad, para conocer la herramienta) se evalúa para la **V1**, cuando ya se pueda cobrar el paso a un plan pagado. Motivo: registros reales son datos personales bajo la Ley 21.719 (vigente desde 2026-12-01) y exigen antes respaldos, almacenamiento de archivos fuera del servidor y soporte operando; además, un Free Tier sin upgrade pagable no tiene salida.
+
 ---
 
 ## 1. Dominio

@@ -7,6 +7,7 @@
  *     (cookie pgo_device debe coincidir con deviceToken embebido en JWT)
  *  3. Sesión JWT portal para /portal/contrato/* (solo lectura)
  *  4. CSP con nonce por request (script-src nonce-based, sin 'unsafe-inline')
+ *     en TODAS las páginas, públicas incluidas
  *  5. Caducidad por inactividad y tope absoluto de ambas sesiones
  *
  * El punto 5 vive acá porque un Server Component no puede escribir cookies: la
@@ -112,6 +113,13 @@ export async function proxy(request: NextRequest) {
     return res;
   }
 
+  // ── Páginas públicas (portada, marketplace, legales, /portal) ────────────
+  // Solo reciben la CSP con nonce: sin lógica de sesión, para no renovar la
+  // inactividad del panel por navegar el sitio público.
+  if (!RUTAS_CON_SESION.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+    return nextWithNonce();
+  }
+
   // ── Páginas públicas de auth ─────────────────────────────────────────────
   const isAuthPage =
     pathname.startsWith("/login") ||
@@ -197,8 +205,16 @@ export async function proxy(request: NextRequest) {
   return await conSesionRenovada(nextWithNonce(), session, null);
 }
 
+/** Rutas con lógica de sesión (protección, redirecciones o renovación). */
+const RUTAS_CON_SESION = [
+  "/panel", "/verificar-dispositivo", "/login", "/registro",
+  "/recuperar-contrasena", "/invitacion", "/portal/contrato",
+];
+
 export const config = {
   matcher: [
+    // Rutas con sesión: SIEMPRE, incluidas las precargas de <Link> — saltarlas
+    // dejaría pasar el payload RSC de /panel sin validar la sesión aquí.
     "/panel/:path*",
     "/verificar-dispositivo",
     "/login/:path*", "/login",
@@ -206,5 +222,15 @@ export const config = {
     "/recuperar-contrasena",
     "/invitacion",
     "/portal/contrato/:path*",
+    // Resto de páginas: solo para la CSP con nonce. Fuera: API, estáticos,
+    // uploads (CSP propia en next.config), archivos con extensión y precargas
+    // (payload RSC, no HTML; recomendación de la guía de CSP de Next).
+    {
+      source: "/((?!api|_next/static|_next/image|uploads|.*\\..*).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
   ],
 };

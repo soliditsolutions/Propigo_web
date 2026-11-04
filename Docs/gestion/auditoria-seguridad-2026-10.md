@@ -49,7 +49,12 @@ Top 10 para LLM. Cada hallazgo corregido tiene su prueba automatizada.
    de inyección conocido, pero es una capa de defensa menos.
    *Opción*: ampliar el `matcher` del proxy a todas las páginas. *Costo*: el proxy
    corre en cada request y obliga a render dinámico (las páginas públicas ya lo son).
-   **Decidido 2026-11-01: se amplía** (pendiente de implementar; verificar el mapa Leaflet en el navegador).
+   **Implementado 2026-11-02.** El `matcher` del proxy cubre todas las páginas (salvo API,
+   estáticos, uploads, archivos con extensión y precargas RSC); las públicas solo reciben la
+   CSP, sin lógica de sesión. Las rutas con sesión siguen como entradas propias, sin excluir
+   precargas. Verificado en un build de producción: una sola CSP por respuesta (la del proxy
+   reemplaza a la de `next.config`), 0 violaciones e hidratación correcta en Chromium y
+   WebKit, mapa Leaflet con sus tiles. Pruebas: `src/__tests__/proxy-csp.test.ts`.
 2. **Dependencias de desarrollo**: 9 alertas altas en la cadena
    `braces`/`micromatch`/`fast-glob` (vía eslint y el CLI de `shadcn`). Son DoS por
    patrones de *glob* que solo procesan entradas del propio repo, en el equipo del

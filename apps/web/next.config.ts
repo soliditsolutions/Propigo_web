@@ -36,8 +36,10 @@ const nextConfig: NextConfig = {
             key:   "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           }] : []),
-          // CSP dinámica con nonce: gestionada por proxy.ts (se genera por request).
-          // Este fallback solo aplica a rutas no cubiertas por el proxy matcher.
+          // CSP dinámica con nonce: gestionada por proxy.ts en TODAS las páginas (en
+          // producción la del proxy reemplaza a esta). Este respaldo queda para lo que
+          // el matcher excluye (API, estáticos, precargas RSC) y para desarrollo, donde
+          // el proxy no envía CSP.
           // En dev se incluye 'unsafe-eval' — React lo necesita para reconstruir
           // call stacks en modo desarrollo (jamás se incluye en producción).
           {

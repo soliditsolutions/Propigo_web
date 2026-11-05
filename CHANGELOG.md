@@ -39,6 +39,14 @@ desarrollo, no versiones publicadas.
   público**: portada, marketplace, legales y portal. Navegar el sitio público
   ya no renueva la inactividad del panel.
 
+### Corregido
+
+- **Páginas de error y de "no encontrado" propias, en español.** Un enlace
+  roto, una ficha que ya no está publicada o un contrato que no existe muestran
+  qué pasó y cómo seguir; en el panel, sin salir del menú. Ante un error del
+  servidor, la página ofrece "Reintentar" y un código de referencia para
+  soporte, en el tema (claro u oscuro) que eligió el usuario.
+
 ---
 
 ## Etapa 8 — Datos de la propiedad, visibilidad y blindaje público (2026-08-25 → 2026-08-26)

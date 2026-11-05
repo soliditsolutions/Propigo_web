@@ -111,7 +111,20 @@ async function medir(page, tactil) {
 
 async function visitar(page, disp, ruta, nombre, informe) {
   const errores = [];
-  const onConsola = (m) => { if (m.type() === "error") errores.push(m.text().slice(0, 300)); };
+  // Las páginas 404 a propósito tienen dos avisos esperados:
+  // - Chromium registra la respuesta del documento como "Failed to load
+  //   resource … 404".
+  // - Un notFound() lanzado por la página durante el SSR no lo atrapa ningún
+  //   límite en el servidor: Next entrega un documento de error mínimo y el
+  //   cliente renderiza todo, layout raíz incluido. React (solo en desarrollo)
+  //   avisa del <script> anti-parpadeo del tema, que en ese render no corre;
+  //   AsegurarTema reaplica el tema (components/ui/asegurar-tema.tsx).
+  const esperado404 = ruta.startsWith(RUTA_404) || ruta.includes(ID_INEXISTENTE);
+  const onConsola = (m) => {
+    if (m.type() !== "error") return;
+    if (esperado404 && /Failed to load resource.*404|Encountered a script tag while rendering React component/.test(m.text())) return;
+    errores.push(m.text().slice(0, 300));
+  };
   const onError = (e) => errores.push("pageerror: " + e.message.slice(0, 200));
   page.on("console", onConsola);
   page.on("pageerror", onError);
@@ -172,8 +185,12 @@ async function loginPortal(page, rut) {
   return page.url().replace(BASE, "");
 }
 
-const RUTAS_PUBLICAS = [["/", "portada"], ["/marketplace", "marketplace"], ["/login", "login"], ["/registro", "registro"], ["/recuperar-contrasena", "recuperar"], ["/portal", "portal-login"], ["/terminos-uso", "terminos"], ["/privacidad", "privacidad"]];
-const RUTAS_PANEL = [["/panel", "panel-inicio"], ["/panel/propiedades", "panel-propiedades"], ["/panel/contratos", "panel-contratos"], [`/panel/contratos/${contratoId}`, "panel-contrato-detalle"], ["/panel/contratos/nuevo", "panel-contrato-nuevo"], ["/panel/cobros", "panel-cobros"], ["/panel/vouchers", "panel-vouchers"], ["/panel/equipo", "panel-equipo"], ["/panel/estadisticas", "panel-estadisticas"], ["/panel/notificaciones", "panel-notificaciones"], ["/panel/corredora", "panel-corredora"], ["/panel/perfil", "panel-perfil"]];
+// Páginas de error propias (auditoría de mensajes 2026-11, M-01): ruta
+// inexistente, ficha despublicada y recurso del panel que no existe.
+const RUTA_404 = "/esta-ruta-no-existe";
+const ID_INEXISTENTE = "7d1f6e2a-1b2c-4d3e-8f90-123456789abc";
+const RUTAS_PUBLICAS = [["/", "portada"], ["/marketplace", "marketplace"], ["/login", "login"], ["/registro", "registro"], ["/recuperar-contrasena", "recuperar"], ["/portal", "portal-login"], ["/terminos-uso", "terminos"], ["/privacidad", "privacidad"], [RUTA_404, "404-sitio"], [`/marketplace/${ID_INEXISTENTE}`, "404-ficha"]];
+const RUTAS_PANEL = [["/panel", "panel-inicio"], ["/panel/propiedades", "panel-propiedades"], ["/panel/contratos", "panel-contratos"], [`/panel/contratos/${contratoId}`, "panel-contrato-detalle"], ["/panel/contratos/nuevo", "panel-contrato-nuevo"], ["/panel/cobros", "panel-cobros"], ["/panel/vouchers", "panel-vouchers"], ["/panel/equipo", "panel-equipo"], ["/panel/estadisticas", "panel-estadisticas"], ["/panel/notificaciones", "panel-notificaciones"], ["/panel/corredora", "panel-corredora"], ["/panel/perfil", "panel-perfil"], [`/panel/contratos/${ID_INEXISTENTE}`, "panel-404"]];
 
 const informe = [];
 try {

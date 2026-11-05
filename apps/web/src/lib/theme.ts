@@ -12,6 +12,32 @@ export function isHwTheme(value: string | null): value is HwTheme {
 }
 
 /**
+ * Tema a aplicar: el guardado o, si no hay (o el almacenamiento está
+ * bloqueado), el del sistema. Misma regla que PGO_THEME_INIT_SCRIPT.
+ */
+export function temaPreferido(): HwTheme {
+  let guardado: string | null = null;
+  try {
+    guardado = localStorage.getItem(PGO_THEME_STORAGE_KEY);
+  } catch {
+    // Almacenamiento bloqueado: se usa la preferencia del sistema.
+  }
+  if (isHwTheme(guardado)) return guardado;
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "aurora-light" : "aurora-dark";
+}
+
+/**
+ * Reaplica el tema en <html> si falta. Lo usan las páginas de error: cuando el
+ * render del servidor falla, React vuelve a renderizar el documento en el
+ * cliente y descarta el data-theme que puso el script anti-parpadeo.
+ */
+export function asegurarTema(): void {
+  if (!isHwTheme(document.documentElement.getAttribute("data-theme"))) {
+    document.documentElement.setAttribute("data-theme", temaPreferido());
+  }
+}
+
+/**
  * Script que se inyecta inline (con nonce) ANTES de hidratar React, para que
  * <html data-theme="..."> quede correcto desde el primer paint — sin esto,
  * se vería un destello del tema contrario cada vez que se recarga la página.

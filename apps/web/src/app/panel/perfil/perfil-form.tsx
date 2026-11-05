@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useMemo, useEffect, useRef, useTransition } from "react";
+import { useActionState, useState, useMemo, useEffect, useRef, useTransition, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -18,6 +18,26 @@ import { validateRut, formatRut }  from "@/lib/rut";
 import { PasswordStrengthMeter }   from "@/components/ui/password-strength-meter";
 import { evaluatePassword }        from "@/lib/password-strength";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
+import { accionDeFormulario } from "@/lib/fallo-accion";
+
+// Un fallo de red o de sesión vuelve como { ok: false, error } en vez de
+// llevar a la página de error y perder lo escrito.
+const cambiarPasswordSegura = accionDeFormulario(cambiarPasswordAction);
+const guardarPerfilSeguro   = accionDeFormulario(guardarPerfilAction);
+
+/**
+ * Envía el formulario sin `<form action>`: tras cada acción React 19 hace un
+ * form.reset() nativo que borra los campos no controlados (y no restaura
+ * selects ni checkboxes controlados), así que un guardado fallido perdería lo
+ * que el usuario editó.
+ */
+function enviarSinReinicio(formAction: (datos: FormData) => void) {
+  return (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const datos = new FormData(e.currentTarget);
+    startTransition(() => formAction(datos));
+  };
+}
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -133,15 +153,26 @@ function AvatarSection({
 function CambiarPasswordSection({ nombre, email }: { nombre: string; email: string }) {
   const { show: toast } = useToast();
   const [state, formAction, pending] = useActionState<PasswordState, FormData>(
-    cambiarPasswordAction, null,
+    cambiarPasswordSegura, null,
   );
   const [showActual, setShowActual] = useState(false);
   const [showNuevo,  setShowNuevo]  = useState(false);
   const [pwd, setPwd] = useState("");
   const passes = evaluatePassword(pwd, { nombre, email }).passes;
 
+  // Solo tras un cambio exitoso se vacían las tres contraseñas: la nueva
+  // (controlada) al detectar el estado nuevo en el render, y las otras dos
+  // (no controladas) con reset() en el efecto.
+  const [estadoVisto, setEstadoVisto] = useState(state);
+  if (state !== estadoVisto) {
+    setEstadoVisto(state);
+    if (state?.ok) setPwd("");
+  }
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state?.ok) toast("Contraseña actualizada correctamente.", "success");
+    if (!state?.ok) return;
+    toast("Contraseña actualizada correctamente.", "success");
+    formRef.current?.reset();
   }, [state, toast]);
 
   const inputStyle = {
@@ -163,7 +194,7 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
         </h2>
       </div>
 
-      <form action={formAction} className="space-y-4">
+      <form ref={formRef} onSubmit={enviarSinReinicio(formAction)} className="space-y-4">
         {/* Contraseña actual */}
         <div className="space-y-1.5">
           <label htmlFor="passwordActual" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
@@ -187,7 +218,7 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
             </button>
           </div>
           {!state?.ok && state?.field === "passwordActual" && (
-            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
@@ -218,7 +249,7 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
 
           <PasswordStrengthMeter password={pwd} nombre={nombre} email={email} />
           {!state?.ok && state?.field === "passwordNuevo" && (
-            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
@@ -237,13 +268,13 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
             onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
           />
           {!state?.ok && state?.field === "passwordConfirm" && (
-            <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
           )}
         </div>
 
         {/* Error global */}
         {!state?.ok && state?.error && !state.field && (
-          <p className="text-sm rounded-xl px-4 py-2.5" style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)", border: "1px solid var(--pgo-danger-bd)" }}>
+          <p role="alert" className="text-sm rounded-xl px-4 py-2.5" style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)", border: "1px solid var(--pgo-danger-bd)" }}>
             {state.error}
           </p>
         )}
@@ -556,7 +587,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
   const { show: toast } = useToast();
 
   const [state, formAction, pending] = useActionState<PerfilState, FormData>(
-    guardarPerfilAction, null,
+    guardarPerfilSeguro, null,
   );
 
   const [fotoPerfil, setFotoPerfil] = useState(perfil.fotoPerfil ?? "");
@@ -635,7 +666,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
       </section>
 
       {/* Sección: datos del corredor */}
-      <form id="perfil-form" action={formAction}>
+      <form id="perfil-form" onSubmit={enviarSinReinicio(formAction)}>
         <input type="hidden" name="fotoPerfil" value={fotoPerfil} />
 
         <section
@@ -696,7 +727,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 )}
               </div>
               {(rutInlineError || fieldError("rut")) && (
-                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("rut") ?? rutInlineError}</p>
+                <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("rut") ?? rutInlineError}</p>
               )}
             </div>
           </div>
@@ -729,7 +760,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
               )}
             </div>
             {fieldError("fechaNacimiento") && (
-              <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("fechaNacimiento")}</p>
+              <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("fechaNacimiento")}</p>
             )}
           </div>
 
@@ -758,7 +789,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                   {...focusHandlers}
                 />
                 {fieldError("telefono") && (
-                  <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("telefono")}</p>
+                  <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("telefono")}</p>
                 )}
               </div>
             )}
@@ -799,7 +830,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
               {...focusHandlers}
             />
             {fieldError("direccion") && (
-              <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("direccion")}</p>
+              <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("direccion")}</p>
             )}
           </div>
 
@@ -829,7 +860,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 ))}
               </select>
               {fieldError("region") && (
-                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("region")}</p>
+                <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("region")}</p>
               )}
             </div>
 
@@ -858,7 +889,7 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
                 ))}
               </select>
               {fieldError("ciudad") && (
-                <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("ciudad")}</p>
+                <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{fieldError("ciudad")}</p>
               )}
             </div>
           </div>

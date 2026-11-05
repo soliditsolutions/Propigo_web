@@ -59,6 +59,13 @@ desarrollo, no versiones publicadas.
   corredor nunca se enteraba.
 - **Un correo rechazado por el proveedor ya no pasa por enviado.** Ahora se
   maneja como cualquier fallo de envío.
+- **Los formularios conservan lo escrito cuando algo falla.** Ingreso,
+  registro, invitación, recuperar contraseña y Mi perfil ya no se vacían ante
+  un error de red o del servidor; solo la contraseña se borra, y solo cuando
+  fue rechazada. Mi perfil, además, ya no lleva a la página de error al
+  guardar sin conexión, y sus errores se anuncian a lectores de pantalla.
+- El ingreso ya no culpa a la conexión del usuario cuando el problema es
+  nuestro.
 
 ---
 

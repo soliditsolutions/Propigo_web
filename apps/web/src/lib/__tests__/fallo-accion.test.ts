@@ -76,13 +76,22 @@ describe("accionDeFormulario", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const segura = accionDeFormulario(async (): Promise<{ error: string } | null> => { throw new TypeError("Failed to fetch"); });
     const r = await segura(null, new FormData());
-    expect(r).toEqual({ error: expect.stringMatching(/sin conexión/) });
+    expect(r).toEqual({ ok: false, error: expect.stringMatching(/sin conexión/) });
   });
 
   it("un rechazo inesperado también vuelve como { error }", async () => {
     stubNavegador(true);
     vi.spyOn(console, "error").mockImplementation(() => {});
     const segura = accionDeFormulario(async (): Promise<{ error: string; field?: string } | null> => { throw new Error("boom"); });
-    await expect(segura(null, new FormData())).resolves.toEqual({ error: expect.stringMatching(/de nuestro lado/) });
+    await expect(segura(null, new FormData())).resolves.toEqual({ ok: false, error: expect.stringMatching(/de nuestro lado/) });
+  });
+
+  it("sirve para estados discriminados por ok (perfil, contraseña)", async () => {
+    stubNavegador(true);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    type S = { ok: true } | { ok: false; error: string; field?: string } | null;
+    const segura = accionDeFormulario(async (): Promise<S> => { throw new Error("boom"); });
+    const r = await segura(null, new FormData());
+    expect(r).toMatchObject({ ok: false });
   });
 });

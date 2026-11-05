@@ -1,7 +1,6 @@
 "use client";
 
-import { useState }        from "react";
-import { useActionState }  from "react";
+import { useActionState, useState, startTransition } from "react";
 import Link                from "next/link";
 import { Eye, EyeOff, KeyRound, AlertCircle } from "lucide-react";
 import { aceptarInvitacionAction } from "./actions";
@@ -20,6 +19,16 @@ export function InvitacionForm({
   const [state, formAction, pending] = useActionState(accionSegura, null);
   const [showPwd, setShowPwd]        = useState(false);
   const [password, setPassword]      = useState("");
+  // Controlado y enviado sin `<form action>`: tras una acción, React 19 hace
+  // form.reset() nativo y no restaura un checkbox controlado, así que un error
+  // de red desmarcaría el consentimiento que el usuario ya dio.
+  const [consent, setConsent]        = useState(false);
+
+  function enviar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const datos = new FormData(e.currentTarget);
+    startTransition(() => formAction(datos));
+  }
 
   const inputStyle: React.CSSProperties = {
     height:       "44px",
@@ -37,7 +46,7 @@ export function InvitacionForm({
   };
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form onSubmit={enviar} className="space-y-5" noValidate>
       <input type="hidden" name="token" value={token} />
 
       <div className="space-y-1.5">
@@ -92,6 +101,8 @@ export function InvitacionForm({
           value="1"
           required
           disabled={pending}
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
           className="mt-0.5 h-4 w-4 rounded shrink-0"
           style={{ accentColor: "var(--pgo-primary)", cursor: "pointer" }}
         />

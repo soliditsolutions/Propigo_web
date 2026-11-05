@@ -445,6 +445,10 @@ export function RegistroForm() {
   // el independiente cambia la opción y deja de tener que tipear su RUT dos veces.
   const [esPersonaJuridica, setEsPersonaJuridica] = useState(true);
   const [rutEmpresa, setRutEmpresa]      = useState("");
+  // Controlados: React 19 reinicia los campos no controlados tras cada envío,
+  // y un error del servidor no debe obligar a escribir todo de nuevo.
+  const [empresa, setEmpresa]            = useState("");
+  const [consent, setConsent]            = useState(false);
   const [modalOpen, setModalOpen]        = useState(false);
   const [clientErrors, setClientErrors]  = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -480,11 +484,9 @@ export function RegistroForm() {
     e.preventDefault();
     if (!formRef.current) return;
 
-    const fd       = new FormData(formRef.current);
     const nombreV  = nombre.trim();
     const emailV   = email.trim();
-    const empresa  = (fd.get("empresa")?.toString() ?? "").trim();
-    const consent  = fd.get("consent")?.toString();
+    const empresaV = empresa.trim();
 
     const errs: Record<string, string> = {};
     if (!nombreV || nombreV.length < 2)
@@ -493,7 +495,7 @@ export function RegistroForm() {
       errs.rut = "El RUT no es válido. Verifica el dígito verificador.";
     if (!emailV || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailV))
       errs.email = "Ingresa un correo electrónico válido.";
-    if (!empresa || empresa.length < 2)
+    if (empresaV.length < 2)
       errs.empresa = "Ingresa el nombre de tu corredora (mínimo 2 caracteres).";
     // Solo se valida si opera como empresa: el independiente usa su propio RUT,
     // que ya se validó más arriba.
@@ -647,7 +649,11 @@ export function RegistroForm() {
             style={inputStyle(!!empresaErr, pending)}
             onFocus={onFocus}
             onBlur={makeOnBlur(!!empresaErr)}
-            onChange={() => { if (clientErrors.empresa) setClientErrors((p) => ({ ...p, empresa: "" })); }}
+            value={empresa}
+            onChange={(e) => {
+              setEmpresa(e.target.value);
+              if (clientErrors.empresa) setClientErrors((p) => ({ ...p, empresa: "" }));
+            }}
           />
           {empresaErr && (
             <p id="empresa-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
@@ -799,7 +805,11 @@ export function RegistroForm() {
               aria-describedby={consentErr ? "consent-error" : undefined}
               className="mt-0.5 h-4 w-4 rounded shrink-0"
               style={{ accentColor: "var(--pgo-primary)", cursor: "pointer" }}
-              onChange={() => { if (clientErrors.consent) setClientErrors((p) => ({ ...p, consent: "" })); }}
+              checked={consent}
+              onChange={(e) => {
+                setConsent(e.target.checked);
+                if (clientErrors.consent) setClientErrors((p) => ({ ...p, consent: "" }));
+              }}
             />
             <label htmlFor="consent" className="text-xs leading-relaxed cursor-pointer" style={{ color: "var(--pgo-text-3)" }}>
               He leído y acepto los{" "}

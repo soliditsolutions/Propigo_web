@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState }  from "react";
+import { useActionState, useState } from "react";
 import Link                from "next/link";
 import { Mail, Send, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
 import { recuperarAction } from "./actions";
@@ -12,6 +12,8 @@ import { Spinner } from "@/components/ui/spinner";
 
 export function RecuperarForm() {
   const [state, formAction, pending] = useActionState(accionSegura, null);
+  // Controlado: React 19 limpia los inputs no controlados al terminar la acción (M-03).
+  const [email, setEmail] = useState("");
 
   const inputStyle: React.CSSProperties = {
     height:       "44px",
@@ -90,6 +92,8 @@ export function RecuperarForm() {
             name="email"
             type="email"
             autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="correo@empresa.cl"
             disabled={pending}

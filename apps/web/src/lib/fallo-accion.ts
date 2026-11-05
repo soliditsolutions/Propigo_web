@@ -70,25 +70,27 @@ export function describirFalloAccion(err: unknown, enLinea: boolean, rutaActual:
 
 /**
  * Envuelve la server action de un formulario con `useActionState` para que
- * un rechazo se convierta en `{ error }`, el mismo estado que ya pinta el
- * formulario, en vez de romper la página.
+ * un rechazo se convierta en `{ ok: false, error }`, el mismo estado que ya
+ * pinta el formulario, en vez de romper la página. Sirve tanto para estados
+ * con discriminante `ok` como para los que solo traen `error`.
  */
 export function accionDeFormulario<S>(
   accion: (prev: S, datos: FormData) => Promise<S>,
-  // Garantía de tipos: solo acepta acciones cuyo estado admite `{ error }`;
+  // Garantía de tipos: solo acepta acciones cuyo estado admite `{ ok: false, error }`;
   // si no, exige un argumento `never` imposible y la llamada no compila.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- solo existe para el chequeo de tipos
-  ..._estadoConError: { error: string } extends S ? [] : [never]
+  ..._estadoConError: { ok: false; error: string } extends S ? [] : [never]
 ): (prev: S, datos: FormData) => Promise<S> {
   return async (prev, datos) => {
     try {
       return await accion(prev, datos);
     } catch (err) {
       console.error("[accion-formulario]", err);
-      const fallo: { error: string } = {
+      const fallo: { ok: false; error: string } = {
+        ok: false,
         error: describirFalloAccion(err, navigator.onLine, window.location.pathname).mensaje,
       };
-      return fallo as S; // seguro: la firma garantiza que { error } es un S válido
+      return fallo as S; // seguro: la firma garantiza que este objeto es un S válido
     }
   };
 }

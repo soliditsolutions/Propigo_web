@@ -19,6 +19,11 @@ export type LoginState = {
   lockedUntil?: number;
   /** true cuando la cuenta quedó bloqueada de forma permanente (5° fallo) */
   blocked?:     boolean;
+  /**
+   * true cuando el servidor rechazó la contraseña: el formulario la vacía. En
+   * cualquier otro error (red, servidor) conserva lo escrito.
+   */
+  credencialRechazada?: true;
 } | null;
 
 // ── Constantes ───────────────────────────────────────────────────────────────
@@ -126,7 +131,8 @@ export async function loginAction(
       desactivadoEn:  row.desactivado_en,
     } : null;
   } catch {
-    return { error: "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo." };
+    // Falla de nuestra base, no de la red del usuario (M-08).
+    return { error: "No pudimos verificar tus datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
   }
 
   // ── Rate limiting por IP (BD-backed, scoped al tenant) ─────────────────
@@ -186,11 +192,12 @@ export async function loginAction(
       return {
         error:    isPermanent ? "Bloqueamos tu cuenta por seguridad." : "Correo o contraseña incorrectos.",
         attempts: newAttempts,
+        credencialRechazada: true,
         ...(lockUntil && !isPermanent ? { lockedUntil: lockUntil.getTime() } : {}),
         ...(isPermanent               ? { blocked: true }                    : {}),
       };
     }
-    return { error: "Correo o contraseña incorrectos." };
+    return { error: "Correo o contraseña incorrectos.", credencialRechazada: true };
   }
 
   // ── Collaborator desactivado (ADR-0013) ─────────────────────────────────

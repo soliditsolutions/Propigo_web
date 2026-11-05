@@ -220,6 +220,18 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
   const [lockExpired, setLockExpired] = useState(false);
   const { show: toast } = useToast();
 
+  // Campos controlados: React 19 limpia los inputs no controlados al terminar
+  // la acción, y el usuario perdía el correo en cada intento (M-03). La
+  // contraseña se vacía solo si el servidor la rechazó; ante un fallo de red
+  // se conserva para reintentar.
+  const [email, setEmail]       = useState("");
+  const [password, setPassword] = useState("");
+  const [estadoVisto, setEstadoVisto] = useState(state);
+  if (state !== estadoVisto) {
+    setEstadoVisto(state);
+    if (state?.credencialRechazada) setPassword("");
+  }
+
   // Resetear cuando llega un nuevo estado del servidor
   useEffect(() => { queueMicrotask(() => setLockExpired(false)); }, [state?.lockedUntil]);
 
@@ -263,6 +275,8 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
           name="email"
           type="email"
           autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="correo@empresa.cl"
           disabled={formDisabled}
@@ -322,6 +336,8 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
             name="password"
             type={showPwd ? "text" : "password"}
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="••••••••"
             disabled={formDisabled}

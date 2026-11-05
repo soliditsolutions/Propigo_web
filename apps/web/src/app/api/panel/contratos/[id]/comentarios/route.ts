@@ -154,20 +154,25 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const actor = await actorOError();
-  if (!actor) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  try {
+    const actor = await actorOError();
+    if (!actor) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
 
-  const { id: contratoId } = await params;
-  if (!idFiltro(contratoId)) return NextResponse.json([]);
+    const { id: contratoId } = await params;
+    if (!idFiltro(contratoId)) return NextResponse.json([]);
 
-  const comentarios = await withTenant(actor.tenantId, (tx) => tx.comentarioCorredor.findMany({
-    where:   { contratoId, tenantId: actor.tenantId, contrato: alcanceContrato(actor) },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true, texto: true, usuarioNombre: true, createdAt: true,
-      documentos: { select: { id: true, nombre: true, tipo: true } },
-    },
-  }));
+    const comentarios = await withTenant(actor.tenantId, (tx) => tx.comentarioCorredor.findMany({
+      where:   { contratoId, tenantId: actor.tenantId, contrato: alcanceContrato(actor) },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, texto: true, usuarioNombre: true, createdAt: true,
+        documentos: { select: { id: true, nombre: true, tipo: true } },
+      },
+    }));
 
-  return NextResponse.json(comentarios);
+    return NextResponse.json(comentarios);
+  } catch (e) {
+    logError("comentarios/listar", e);
+    return NextResponse.json({ error: "No pudimos cargar los comentarios. Vuelve a intentarlo." }, { status: 500 });
+  }
 }

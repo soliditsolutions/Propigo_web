@@ -11,6 +11,7 @@ import {
   clearDeviceCookie,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { logError } from "@/lib/logger";
 import { idFiltro } from "@/lib/busqueda";
 import { cookies } from "next/headers";
 
@@ -18,14 +19,22 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
+    return await eliminarDispositivo(await params);
+  } catch (e) {
+    logError("dispositivos/eliminar", e);
+    return NextResponse.json({ error: "No pudimos eliminar el dispositivo. Vuelve a intentarlo." }, { status: 500 });
+  }
+}
+
+async function eliminarDispositivo({ id }: { id: string }) {
   const session = await getVerifiedSession();
   if (!session) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  const { id } = await params;
   if (!idFiltro(id)) {
-    return NextResponse.json({ error: "Dispositivo no encontrado" }, { status: 404 });
+    return NextResponse.json({ error: "Dispositivo no encontrado." }, { status: 404 });
   }
 
   const dispositivo = await prisma.dispositivoConfiable.findUnique({
@@ -34,7 +43,7 @@ export async function DELETE(
   });
 
   if (!dispositivo || dispositivo.usuarioId !== session.sub) {
-    return NextResponse.json({ error: "Dispositivo no encontrado" }, { status: 404 });
+    return NextResponse.json({ error: "Dispositivo no encontrado." }, { status: 404 });
   }
 
   await prisma.dispositivoConfiable.delete({ where: { id } });

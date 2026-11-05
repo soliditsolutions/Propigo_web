@@ -45,14 +45,33 @@ export function ComentariosCorredorSection({ contratoId, comentarios }: Props) {
     e.preventDefault();
     if (!texto.trim()) return;
     start(async () => {
-      const res = await fetch(`/api/panel/contratos/${contratoId}/comentarios`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ texto: texto.trim() }),
-      });
+      let res: Response;
+      try {
+        res = await fetch(`/api/panel/contratos/${contratoId}/comentarios`, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ texto: texto.trim() }),
+        });
+      } catch {
+        // Sin capturarlo, el rechazo dentro de la transición lleva a la página
+        // de error y se pierde el mensaje escrito.
+        toast(
+          navigator.onLine
+            ? "No pudimos comunicarnos con el servidor. Inténtalo de nuevo en unos segundos; tu mensaje sigue aquí."
+            : "Estás sin conexión a internet. Revisa tu red e inténtalo de nuevo; tu mensaje sigue aquí.",
+          "error",
+        );
+        return;
+      }
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        toast(d.error ?? "Error al enviar el comentario.", "error");
+        if (res.status === 401) {
+          toast("Tu sesión expiró. Inicia sesión de nuevo para enviar el mensaje.", "error", {
+            accion: { texto: "Iniciar sesión", href: "/login" },
+          });
+          return;
+        }
+        const d = await res.json().catch(() => ({})) as { error?: string };
+        toast(d.error ?? "No pudimos enviar el mensaje. Inténtalo de nuevo.", "error");
         return;
       }
       toast("Comentario enviado. El arrendatario recibirá un correo con el aviso.", "success");

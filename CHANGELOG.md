@@ -74,6 +74,9 @@ desarrollo, no versiones publicadas.
   expiró.
 - **La foto de perfil explica por qué no se subió** (formato, tamaño, red) y
   recuerda guardar el perfil para conservarla.
+- Enviar un mensaje al arrendatario sin conexión ya no lleva a la página de
+  error: se avisa y el texto sigue escrito. Las rutas de dispositivos y
+  comentarios responden con un mensaje claro y dejan rastro si fallan.
 
 ---
 

@@ -20,6 +20,7 @@ import {
   variacionIpc,
   type TipoAjusteLiquidacion,
 } from "@propigo/core";
+import { unstable_rethrow } from "next/navigation";
 
 function primerDiaMes(fecha: Date): Date {
   return new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1));
@@ -329,6 +330,7 @@ export async function simularPago(
     }
     return resultado;
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("simularPago", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     // SEC: nunca exponer mensajes internos (Prisma/stack) al cliente
@@ -560,6 +562,7 @@ export async function cerrarLiquidacion(
     revalidatePath("/panel");
     return resultado;
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("cerrarLiquidacion", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     // SEC: nunca exponer mensajes internos (Prisma/stack) al cliente

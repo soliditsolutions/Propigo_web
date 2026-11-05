@@ -18,6 +18,7 @@ import {
 import { getClientIpFromHeaders } from "@/lib/ip";
 import { validarCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
 import { construirAvisoCambioTitularidad } from "@/lib/cambio-titularidad";
+import { unstable_rethrow } from "next/navigation";
 
 export type ResultadoCrear =
   | { ok: true; id: string }
@@ -381,6 +382,7 @@ export async function crearPropiedad(data: {
     revalidatePath("/panel");
     return { ok: true, id: propiedad.id };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("crearPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al crear la propiedad. Por favor intenta nuevamente." };
@@ -667,6 +669,7 @@ export async function actualizarPropiedad(
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("actualizarPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al actualizar la propiedad. Por favor intenta nuevamente." };
@@ -782,6 +785,7 @@ export async function cambiarPropietarioPropiedad(
     revalidatePath("/panel");
     return { ok: true, notificados };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("cambiarPropietarioPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al cambiar el propietario. Intenta nuevamente." };
@@ -821,6 +825,7 @@ export async function desactivarPropiedad(propiedadId: string): Promise<Resultad
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("desactivarPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al desactivar la propiedad. Intenta nuevamente." };
@@ -875,6 +880,7 @@ export async function activarPropiedad(propiedadId: string): Promise<ResultadoOk
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("activarPropiedad", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al activar la propiedad. Intenta nuevamente." };

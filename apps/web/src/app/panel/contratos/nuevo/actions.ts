@@ -8,6 +8,7 @@ import { canonicalRut } from "@/lib/rut";
 import { logError } from "@/lib/logger";
 import { cantidad } from "@/lib/format";
 import { terminoBusqueda } from "@/lib/busqueda";
+import { unstable_rethrow } from "next/navigation";
 
 /** Error de dominio controlado: el mensaje se devuelve al cliente tal cual. */
 class DomainError extends Error {
@@ -375,6 +376,7 @@ export async function crearContrato(data: DatosContrato): Promise<ResultadoContr
 
     return { ok: true, contratoId: contrato.id };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("crearContrato", e);
     // SC-CRIT-3: solo devolver al cliente errores de dominio controlados;
     // los errores de Prisma/DB se loguean server-side y NO se filtran al cliente.

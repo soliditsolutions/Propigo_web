@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { prisma } from "./db";
-import { getSession } from "./auth";
+import { getSession, clearSessionCookie, clearDeviceCookie } from "./auth";
 import { withTenant, type TenantClient } from "./tenant-db";
 import type { Tenant } from "@/generated/prisma/client";
 import type { EstadoNotificacion, TipoNotificacion } from "@/generated/prisma/enums";
@@ -35,6 +35,18 @@ export type Actor = {
  *
  * Uso: Server Actions y API Routes con sesión de usuario autenticado.
  */
+/** true si se pudieron borrar las cookies de sesión (Server Action o Route Handler). */
+async function cerrarSesionSiSePuede(): Promise<boolean> {
+  try {
+    await clearSessionCookie();
+    await clearDeviceCookie();
+    return true;
+  } catch (err) {
+    unstable_rethrow(err);
+    return false; // Server Component: las cookies son de solo lectura.
+  }
+}
+
 export async function getActor(): Promise<Actor> {
   const session = await getSession();
   if (!session) {
@@ -50,6 +62,12 @@ export async function getActor(): Promise<Actor> {
     // y la page en paralelo, así que una page que llega a getActor() primero
     // puede ganarle la carrera al redirect() del layout. Este redirect (en
     // vez de throw) es la garantía real, no solo defensa en profundidad.
+    //
+    // En una Server Action la sesión se cierra aquí mismo y se va directo a
+    // /login: redirigir a /api/auth/logout hace que el router del cliente
+    // navegue a esa ruta y la barra de direcciones quede en ella. Un Server
+    // Component no puede borrar cookies; ahí se pasa por la ruta de logout.
+    if (await cerrarSesionSiSePuede()) redirect("/login");
     redirect("/api/auth/logout");
   }
   return {

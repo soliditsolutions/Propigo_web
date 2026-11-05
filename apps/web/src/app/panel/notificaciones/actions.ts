@@ -14,6 +14,7 @@ import {
   puedeRecibir, firmarTokenBaja, MAX_CORREOS_POR_DIA,
 } from "@/lib/notificacion-preferencias";
 import type { Tenant, Prisma } from "@/generated/prisma/client";
+import { unstable_rethrow } from "next/navigation";
 
 /** Hoy a medianoche UTC — dinámico, para cálculo de días (no hardcodear fechas). */
 function hoyUTC(): Date {
@@ -267,6 +268,7 @@ export async function generarRecordatorios(tenantOverride?: Tenant): Promise<{
         : "No hay recordatorios nuevos por generar.",
     };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("generarRecordatorios", e);
     // SEC: nunca exponer mensajes internos (Prisma/stack) al cliente
     return { ok: false, creados: 0, mensaje: "No pudimos generar los recordatorios. Vuelve a intentarlo." };
@@ -448,6 +450,7 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
     revalidatePath("/panel");
     return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas, reemplazadas };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("enviarNotificacionesPendientes", e);
     return {
       ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0,
@@ -483,6 +486,7 @@ export async function marcarSimulada(id: string): Promise<{ ok: boolean; error?:
     revalidatePath("/panel/notificaciones");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     if (e instanceof Error && e.message === SIN_ACCESO_NOTIFICACION) return { ok: false, error: SIN_ACCESO_NOTIFICACION };
     logError("marcarSimulada", e);
     return { ok: false, error: "No pudimos marcar el aviso como enviado. Vuelve a intentarlo." };
@@ -508,6 +512,7 @@ export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: num
     revalidatePath("/panel");
     return { ok: true, enviadas: count, reemplazadas };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("simularEnvioMasivo", e);
     return { ok: false, enviadas: 0, reemplazadas: 0, error: "No pudimos marcar los avisos como enviados. Siguen pendientes; vuelve a intentarlo." };
   }

@@ -6,6 +6,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { renderizarAlerta, validarAlerta, type EntradaAlerta } from "@/lib/alertas";
 import { clpOrUf } from "@/lib/format";
+import { unstable_rethrow } from "next/navigation";
 
 export type ResultadoAlerta =
   | { ok: true }
@@ -59,6 +60,7 @@ export async function crearAlerta(entrada: EntradaAlerta): Promise<ResultadoAler
     revalidatePath("/panel/notificaciones");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("crearAlerta", e);
     return { ok: false, error: "No se pudo crear la alerta." };
   }
@@ -91,6 +93,7 @@ export async function actualizarAlerta(id: string, entrada: EntradaAlerta): Prom
     revalidatePath("/panel/notificaciones");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("actualizarAlerta", e);
     return { ok: false, error: "No se pudo actualizar la alerta." };
   }
@@ -116,6 +119,7 @@ export async function cambiarEstadoAlerta(id: string, activa: boolean): Promise<
     revalidatePath("/panel/notificaciones");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("cambiarEstadoAlerta", e);
     return { ok: false, error: "No se pudo cambiar el estado de la alerta." };
   }
@@ -193,6 +197,7 @@ export async function enviarAlerta(alertaId: string, contratoId: string): Promis
       return { ok: true as const };
     });
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("enviarAlerta", e);
     return { ok: false, error: "No se pudo enviar la alerta." };
   }

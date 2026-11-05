@@ -18,6 +18,7 @@ import {
   validarRetenciones, calcularDevolucionGarantia, type RetencionGarantia,
 } from "@/lib/garantia-devolucion";
 import { MARCA, ESLOGAN, RAZON_SOCIAL } from "@/lib/marca";
+import { unstable_rethrow } from "next/navigation";
 
 export type ResultadoOk =
   | { ok: true }
@@ -90,6 +91,7 @@ export async function activarContrato(contratoId: string): Promise<ResultadoOk> 
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("activarContrato", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al activar el contrato. Por favor intenta nuevamente." };
@@ -375,6 +377,7 @@ export async function terminarContrato(
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("terminarContrato", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al terminar el contrato. Por favor intenta nuevamente." };
@@ -426,6 +429,7 @@ export async function adjuntarAnexo(
     revalidatePath(`/panel/contratos/${contratoId}`);
     return { ok: true, documentoId: doc.id };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("adjuntarAnexo", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al adjuntar el anexo." } as ResultadoAnexo;
@@ -582,6 +586,7 @@ export async function generarReconocimientoDeuda(
     revalidatePath(`/panel/contratos/${contratoId}`);
     return { ok: true, url: storageKey, documentoId: doc.id };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("generarReconocimientoDeuda", e);
     return { ok: false, error: "Error al generar el documento." };
   }
@@ -737,6 +742,7 @@ export async function renovarContrato(
     revalidatePath("/panel/contratos");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("renovarContrato", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al renovar el contrato. Por favor intenta nuevamente." };
@@ -799,6 +805,7 @@ export async function cancelarContratoBorrador(contratoId: string): Promise<Resu
     revalidatePath("/panel");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("cancelarContratoBorrador", e);
     if (e instanceof DomainError) return { ok: false, error: e.message };
     return { ok: false, error: "Error al cancelar el contrato. Por favor intenta nuevamente." };

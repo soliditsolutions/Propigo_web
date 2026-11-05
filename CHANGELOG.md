@@ -101,6 +101,13 @@ desarrollo, no versiones publicadas.
     el foco en el primero), en vez de uno por envío en un toast;
   - en Datos de la corredora y en Seguridad el error de un campo desaparece al
     corregirlo.
+- **Una sesión que ya no vale lleva al login, sin falsos errores**: 25
+  acciones del panel (cobros, contratos, propiedades, notificaciones, alertas,
+  datos de la corredora) atrapaban el aviso de "sin sesión" de `getActor` y
+  lo registraban como un error. Ahora lo relanzan, y una prueba que revisa el
+  código impide volver a escribirlo. A un usuario desactivado en plena sesión,
+  la acción le cierra la sesión y lo lleva a `/login`; antes la barra de
+  direcciones quedaba en `/api/auth/logout`.
 
 ---
 

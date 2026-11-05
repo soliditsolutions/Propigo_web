@@ -6,6 +6,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { canonicalRut } from "@/lib/rut";
 import { erroresCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
+import { unstable_rethrow } from "next/navigation";
 
 /**
  * `campos` trae todos los errores de validación, uno por campo, para que el
@@ -54,6 +55,7 @@ export async function guardarDatosCorredora(data: {
     revalidatePath("/panel/corredora");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("guardarDatosCorredora", e);
     return { ok: false, error: "No se pudieron guardar los datos. Intenta de nuevo." };
   }
@@ -110,6 +112,7 @@ export async function guardarCuentaCorredora(data: {
     revalidatePath("/panel/corredora");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("guardarCuentaCorredora", e);
     return { ok: false, error: "No se pudo guardar la cuenta bancaria. Intenta de nuevo." };
   }
@@ -128,6 +131,7 @@ export async function eliminarCuentaCorredora(): Promise<ResultadoCorredora> {
     revalidatePath("/panel/corredora");
     return { ok: true };
   } catch (e) {
+    unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("eliminarCuentaCorredora", e);
     return { ok: false, error: "No se pudo eliminar la cuenta bancaria." };
   }

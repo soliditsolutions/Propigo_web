@@ -21,6 +21,7 @@ import {
 import {
   COOKIE_BASE, PANEL_INACTIVIDAD, PORTAL_INACTIVIDAD, tocaRefrescar,
 } from "@/lib/sesion-cookies";
+import { SESION_EXPIRADA } from "@/lib/fallo-accion";
 
 /** Genera un nonce criptográfico aleatorio para CSP por request. */
 function generarNonce(): string {
@@ -113,6 +114,21 @@ export async function proxy(request: NextRequest) {
     return res;
   }
 
+  // Una server action viaja como POST a la URL de la página. Si se le responde
+  // con un redirect, fetch lo sigue y el cliente recibe HTML en vez de la
+  // respuesta de la acción: la página se rompe y el formulario se pierde. Por
+  // eso, a una acción sin sesión válida se le responde 401 text/plain con una
+  // marca que el cliente reconoce (lib/fallo-accion) y traduce a "tu sesión
+  // expiró". Content-Type exacto "text/plain": el cliente de Next lo compara
+  // con igualdad estricta para usar el cuerpo como mensaje.
+  const esAccion = request.headers.has("next-action");
+  function sinSesion(destino: string): NextResponse {
+    if (esAccion) {
+      return new NextResponse(SESION_EXPIRADA, { status: 401, headers: { "content-type": "text/plain" } });
+    }
+    return NextResponse.redirect(new URL(destino, request.url));
+  }
+
   // ── Páginas públicas (portada, marketplace, legales, /portal) ────────────
   // Solo reciben la CSP con nonce: sin lógica de sesión, para no renovar la
   // inactividad del panel por navegar el sitio público.
@@ -137,7 +153,7 @@ export async function proxy(request: NextRequest) {
   // ── Página de verificación de dispositivo ────────────────────────────────
   if (pathname === "/verificar-dispositivo") {
     if (!session) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return sinSesion("/login");
     }
     if (session.deviceToken) {
       const deviceCookie = request.cookies.get(DEVICE_COOKIE_NAME)?.value;
@@ -153,7 +169,7 @@ export async function proxy(request: NextRequest) {
     // Sin sesión, o con una que ya superó su tope absoluto. El JWT caducado por
     // inactividad ya llega como `session === null` desde verifyToken.
     if (!session || sesionAgotada(session)) {
-      const response = NextResponse.redirect(new URL("/login", request.url));
+      const response = sinSesion("/login");
       if (token) response.cookies.set(COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
       return response;
     }
@@ -186,7 +202,7 @@ export async function proxy(request: NextRequest) {
     const jwtDevice    = session.deviceToken;
 
     if (!jwtDevice || !deviceCookie || deviceCookie !== jwtDevice) {
-      return NextResponse.redirect(new URL("/verificar-dispositivo", request.url));
+      return sinSesion("/verificar-dispositivo");
     }
   }
 
@@ -195,7 +211,7 @@ export async function proxy(request: NextRequest) {
     const portalToken   = request.cookies.get(PORTAL_COOKIE_NAME)?.value;
     const portalSession = portalToken ? await verifyPortalToken(portalToken) : null;
     if (!portalSession || sesionPortalAgotada(portalSession)) {
-      const response = NextResponse.redirect(new URL("/portal", request.url));
+      const response = sinSesion("/portal");
       if (portalToken) response.cookies.set(PORTAL_COOKIE_NAME, "", { ...COOKIE_BASE, maxAge: 0 });
       return response;
     }

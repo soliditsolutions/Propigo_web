@@ -7,6 +7,7 @@ import {
   reportarIdentidadIncorrectaAction, oponerseAlTratamientoAction,
 } from "./actions";
 import type { CampoRectificable as Campo } from "@/lib/rectificacion-persona";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -35,11 +36,13 @@ function IdentidadCard({ nombre, rut }: { nombre: string; rut: string }) {
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function enviar() {
     setError("");
     startTransition(async () => {
-      const r = await reportarIdentidadIncorrectaAction(detalle);
+      const r = await ejecutar(() => reportarIdentidadIncorrectaAction(detalle));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       setEnviado(true);
       setAbierto(false);
@@ -104,6 +107,7 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
   const [error, setError] = useState("");
   const [confirmado, setConfirmado] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   const label = campo === "email" ? "Correo electrónico" : "Teléfono";
   const Icon = campo === "email" ? Mail : Phone;
@@ -111,7 +115,8 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
   function solicitar() {
     setError("");
     startTransition(async () => {
-      const r = await solicitarRectificacionAction(campo, valorNuevo);
+      const r = await ejecutar(() => solicitarRectificacionAction(campo, valorNuevo));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       setPaso("codigo");
     });
@@ -120,7 +125,8 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
   function confirmar() {
     setError("");
     startTransition(async () => {
-      const r = await confirmarRectificacionAction(campo, codigo);
+      const r = await ejecutar(() => confirmarRectificacionAction(campo, codigo));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       setConfirmado(r.valorNuevo);
       setPaso("idle");
@@ -209,11 +215,13 @@ function OposicionCard({ suscrito, alcance }: { suscrito: boolean; alcance: "sol
   const [error, setError] = useState("");
   const [hecho, setHecho] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function oponerse() {
     setError("");
     startTransition(async () => {
-      const r = await oponerseAlTratamientoAction(alcanceElegido, motivo);
+      const r = await ejecutar(() => oponerseAlTratamientoAction(alcanceElegido, motivo));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       setHecho(true);
     });

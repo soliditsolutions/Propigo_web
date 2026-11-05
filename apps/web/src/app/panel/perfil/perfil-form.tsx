@@ -17,6 +17,7 @@ import { useToast }                from "@/components/ui/toast";
 import { validateRut, formatRut }  from "@/lib/rut";
 import { PasswordStrengthMeter }   from "@/components/ui/password-strength-meter";
 import { evaluatePassword }        from "@/lib/password-strength";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -284,6 +285,7 @@ function CambiarContactoField({
   const router = useRouter();
   const { show: toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
   const [paso, setPaso]           = useState<"idle" | "nuevo" | "codigo">("idle");
   const [nuevoValor, setNuevoValor] = useState("");
   const [password, setPassword]     = useState("");
@@ -313,7 +315,8 @@ function CambiarContactoField({
   function handleEnviarCodigo() {
     setError("");
     startTransition(async () => {
-      const res = await solicitarCambioContactoAction(campo, nuevoValor, password);
+      const res = await ejecutar(() => solicitarCambioContactoAction(campo, nuevoValor, password));
+      if (!res) return;
       if (!res.ok) { setError(res.error); return; }
       setPaso("codigo");
       setCooldown(60);
@@ -324,7 +327,8 @@ function CambiarContactoField({
   function handleConfirmar() {
     setError("");
     startTransition(async () => {
-      const res = await confirmarCambioContactoAction(campo, codigo);
+      const res = await ejecutar(() => confirmarCambioContactoAction(campo, codigo));
+      if (!res) return;
       if (!res.ok) { setError(res.error); return; }
       setValorMostrado(res.valorNuevo);
       cancelar();

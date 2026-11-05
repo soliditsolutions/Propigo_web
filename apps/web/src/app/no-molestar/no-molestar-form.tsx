@@ -5,6 +5,7 @@ import { BellOff, CheckCircle2, Loader2 } from "lucide-react";
 import { DURACIONES, ALCANCES } from "@/lib/notificacion-preferencias";
 import { registrarBaja } from "./actions";
 import { MARCA } from "@/lib/marca";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 export function NoMolestarForm({
   token,
@@ -22,11 +23,13 @@ export function NoMolestarForm({
   const [error, setError]       = useState("");
   const [listo, setListo]       = useState<{ permanente: boolean; hasta: string | null; total: boolean } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function enviar() {
     setError("");
     startTransition(async () => {
-      const r = await registrarBaja(token, duracion, alcance, motivo);
+      const r = await ejecutar(() => registrarBaja(token, duracion, alcance, motivo));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       setListo({ permanente: r.permanente, hasta: r.hasta, total: r.total });
     });

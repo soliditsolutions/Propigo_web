@@ -4,10 +4,14 @@ import { useActionState }  from "react";
 import Link                from "next/link";
 import { Mail, Send, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
 import { recuperarAction } from "./actions";
+import { accionDeFormulario } from "@/lib/fallo-accion";
+
+// Un fallo de red o del servidor vuelve como { error } y no rompe la página.
+const accionSegura = accionDeFormulario(recuperarAction);
 import { Spinner } from "@/components/ui/spinner";
 
 export function RecuperarForm() {
-  const [state, formAction, pending] = useActionState(recuperarAction, null);
+  const [state, formAction, pending] = useActionState(accionSegura, null);
 
   const inputStyle: React.CSSProperties = {
     height:       "44px",

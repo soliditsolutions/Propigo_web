@@ -13,6 +13,7 @@ import { calcularMora, diasEntre } from "@propigo/core";
 import type { PeriodoPendiente } from "@/lib/queries";
 import { simularPago, cerrarLiquidacion, type AjusteForm } from "./actions";
 import { MARCA } from "@/lib/marca";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 type AjusteLocal = AjusteForm & { tempId: string };
 
@@ -45,6 +46,7 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
   const { show: toast }               = useToast();
   const [activoId, setActivoId]       = useState<string | null>(null);
   const [isPending, startTransition]  = useTransition();
+  const ejecutar = useAccionSegura();
   const [ajustesForm, setAjustesForm] = useState<AjusteLocal[]>([]);
   const [pageSize, setPageSize]       = useState(25);
   // mismatch vive en CobrosClient (no en Paso1Form) para sobrevivir re-renders de la closure
@@ -153,7 +155,8 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
     async function confirmarPago(forzar: boolean) {
       const monto = Number(montoStr.replace(/\D/g, ""));
       startTransition(async () => {
-        const r = await simularPago(p.id, fechaStr, monto, forzar);
+        const r = await ejecutar(() => simularPago(p.id, fechaStr, monto, forzar));
+        if (!r) return;
         if (!r.ok) {
           toast(r.error, "error");
           return;
@@ -298,7 +301,8 @@ export function CobrosClient({ periodos }: { periodos: PeriodoPendiente[] }) {
       e.preventDefault();
       const allForms: AjusteForm[] = ajustesForm.filter(a => a.montoCLP > 0 && a.descripcion);
       startTransition(async () => {
-        const r = await cerrarLiquidacion(p.id, allForms);
+        const r = await ejecutar(() => cerrarLiquidacion(p.id, allForms));
+        if (!r) return;
         if (!r.ok) {
           toast(r.error, "error");
           return;

@@ -7,6 +7,10 @@ import {
   Eye, EyeOff, AlertCircle, Shield, Upload, X, CheckCircle2, Camera, ImageUp,
 } from "lucide-react";
 import { registroAction }         from "./actions";
+import { accionDeFormulario } from "@/lib/fallo-accion";
+
+// Un fallo de red o del servidor vuelve como { error } y no rompe la página.
+const accionSegura = accionDeFormulario(registroAction);
 import { evaluatePassword }       from "@/lib/password-strength";
 import { validateRut, formatRut } from "@/lib/rut";
 import {
@@ -431,7 +435,7 @@ function CarnetModalBody({
 
 /* ── Componente principal ─────────────────────────────────────────────────── */
 export function RegistroForm() {
-  const [state, formAction, pending] = useActionState(registroAction, null);
+  const [state, formAction, pending] = useActionState(accionSegura, null);
   const [showPwd, setShowPwd]            = useState(false);
   const [password, setPassword]          = useState("");
   const [nombre, setNombre]              = useState("");

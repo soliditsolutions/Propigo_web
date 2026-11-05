@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, BellOff, Loader2 } from "lucide-react";
 import { reactivarAvisos, pausarAvisos } from "./preferencias-actions";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 /**
  * Control de avisos por correo en el portal.
@@ -22,11 +23,13 @@ export function PreferenciasAvisos({
   const router = useRouter();
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function alternar() {
     setError("");
     startTransition(async () => {
-      const r = suscrito ? await pausarAvisos() : await reactivarAvisos();
+      const r = suscrito ? await ejecutar(() => pausarAvisos()) : await ejecutar(() => reactivarAvisos());
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       router.refresh();
     });

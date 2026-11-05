@@ -4,6 +4,10 @@ import { useActionState, useEffect, useState } from "react";
 import { Eye, EyeOff, LogIn, AlertTriangle, Lock, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { loginAction } from "./actions";
+import { accionDeFormulario } from "@/lib/fallo-accion";
+
+// Un fallo de red o del servidor vuelve como { error } y no rompe la página.
+const accionSegura = accionDeFormulario(loginAction);
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -211,7 +215,7 @@ function BlockedPanel() {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) {
-  const [state, formAction, pending] = useActionState(loginAction, null);
+  const [state, formAction, pending] = useActionState(accionSegura, null);
   const [showPwd, setShowPwd]        = useState(false);
   const [lockExpired, setLockExpired] = useState(false);
   const { show: toast } = useToast();

@@ -6,6 +6,7 @@ import { Paperclip, Upload, FileText, Loader2, Download, AlertCircle } from "luc
 import { adjuntarAnexo, generarReconocimientoDeuda } from "./actions";
 import { useToast } from "@/components/ui/toast";
 import { fecha } from "@/lib/format";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 interface Documento {
   id:         string;
@@ -31,6 +32,7 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
   const { show: toast }    = useToast();
   const fileInputRef       = useRef<HTMLInputElement>(null);
   const [isPending, start] = useTransition();
+  const ejecutar = useAccionSegura();
   const [isGenDeuda, startGenDeuda] = useTransition();
   const [nombre, setNombre]         = useState("");
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -59,7 +61,8 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
       }
 
       start(async () => {
-        const result = await adjuntarAnexo(contratoId, { nombre: nombre.trim(), storageKey: json.url! });
+        const result = await ejecutar(() => adjuntarAnexo(contratoId, { nombre: nombre.trim(), storageKey: json.url! }));
+        if (!result) return;
         if (!result.ok) {
           toast(result.error ?? "Error al adjuntar el anexo.", "error");
           return;
@@ -78,7 +81,8 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
 
   function handleGenerarDeuda() {
     startGenDeuda(async () => {
-      const res = await generarReconocimientoDeuda(contratoId);
+      const res = await ejecutar(() => generarReconocimientoDeuda(contratoId));
+      if (!res) return;
       if (!res.ok) {
         toast(res.error ?? "Error al generar el documento.", "error");
         return;

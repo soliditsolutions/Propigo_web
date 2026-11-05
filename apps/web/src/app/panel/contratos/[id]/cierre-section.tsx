@@ -9,6 +9,7 @@ import { terminarContrato } from "./actions";
 import { clp, cantidad } from "@/lib/format";
 import { calcularDevolucionGarantia } from "@/lib/garantia-devolucion";
 import { useToast } from "@/components/ui/toast";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 type RetencionLocal = { tempId: string; descripcion: string; montoClp: number };
 let _rid = 0;
@@ -78,6 +79,7 @@ export function CierreSection({
   const router = useRouter();
   const { show: toast }              = useToast();
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
   const [confirmado, setConfirmado]       = useState(false);
   const [tipo, setTipo]                   = useState<"normal" | "anticipado">(() =>
     permitirTerminoNormal ? "normal" : "anticipado"
@@ -123,11 +125,12 @@ export function CierreSection({
   function handleTerminar() {
     if (!confirmado) return;
     startTransition(async () => {
-      const res = await terminarContrato(contratoId, {
+      const res = await ejecutar(() => terminarContrato(contratoId, {
         tipo, retenciones: retencionesValidas,
         causal: causal as never,
         fechaNotificacionDesahucio: requiereFechaDesahucio ? fechaDesahucio : undefined,
-      });
+      }));
+      if (!res) return;
       if (!res.ok) {
         toast(res.error ?? "Error al terminar el contrato.", "error");
         return;

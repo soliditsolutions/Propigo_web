@@ -10,6 +10,7 @@ import { Card, SectionTitle, Badge } from "@/components/panel/ui";
 import { useToast } from "@/components/ui/toast";
 import { MARCADORES, LIMITES, renderizarAlerta, type EntradaAlerta, type DatosAlerta } from "@/lib/alertas";
 import { crearAlerta, actualizarAlerta, cambiarEstadoAlerta, enviarAlerta } from "./alertas-actions";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 export type AlertaVista = {
   id: string;
@@ -135,6 +136,7 @@ export function AlertasSection({
   const [enviando, setEnviando]     = useState<string | null>(null);
   const [contratoSel, setContratoSel] = useState("");
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   // Último campo enfocado (asunto o mensaje) — ahí se insertan los chips de
   // {{marcador}}. Los refs (no solo el nombre) permiten leer la posición real
@@ -186,8 +188,9 @@ export function AlertasSection({
     setError("");
     startTransition(async () => {
       const r = editando === "nueva"
-        ? await crearAlerta(form)
-        : await actualizarAlerta(editando!, form);
+        ? await ejecutar(() => crearAlerta(form))
+        : await ejecutar(() => actualizarAlerta(editando!, form));
+      if (!r) return;
       if (!r.ok) { setError(r.error); return; }
       toast(editando === "nueva" ? "Alerta creada." : "Alerta actualizada.", "success");
       cerrarFormulario();
@@ -197,7 +200,8 @@ export function AlertasSection({
 
   function alternar(a: AlertaVista) {
     startTransition(async () => {
-      const r = await cambiarEstadoAlerta(a.id, !a.activa);
+      const r = await ejecutar(() => cambiarEstadoAlerta(a.id, !a.activa));
+      if (!r) return;
       if (!r.ok) { toast(r.error, "error"); return; }
       toast(a.activa ? "Alerta desactivada." : "Alerta activada.", "success");
       router.refresh();
@@ -207,7 +211,8 @@ export function AlertasSection({
   function mandar(alertaId: string) {
     if (!contratoSel) return;
     startTransition(async () => {
-      const r = await enviarAlerta(alertaId, contratoSel);
+      const r = await ejecutar(() => enviarAlerta(alertaId, contratoSel));
+      if (!r) return;
       if (!r.ok) { toast(r.error, "error"); return; }
       toast("Alerta encolada. Sale con el próximo envío.", "success");
       setEnviando(null); setContratoSel("");

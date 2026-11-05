@@ -11,6 +11,7 @@ import { generarCalendario, validarRut, formatearRut } from "@propigo/core";
 import { fecha, cantidad } from "@/lib/format";
 import { buscarPersonas, crearContrato } from "./actions";
 import type { PersonaBusqueda } from "./actions";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 /* ─────────────────────── Types ─────────────────────────────── */
 
@@ -1001,6 +1002,7 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
   }));
   const [error, setError]   = useState("");
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   // Estado de búsqueda de personas (paso 2)
   const [busqueda, setBusqueda]     = useState("");
@@ -1016,9 +1018,10 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
     if (q.length < 2) { setResultados([]); return; }
     setBuscando(true);
     startTransition(async () => {
-      const r = await buscarPersonas(q);
-      setResultados(r);
+      const r = await ejecutar(() => buscarPersonas(q));
       setBuscando(false);
+      if (!r) return;
+      setResultados(r);
     });
   }
 
@@ -1090,7 +1093,7 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
             }
           : undefined;
 
-      const res = await crearContrato({
+      const res = await ejecutar(() => crearContrato({
         propiedadId:   data.propiedadId,
         propietarioId: data.propietarioId,
         arrendatarioId: data.modoArr === "buscar" ? data.arrendatarioId : "",
@@ -1119,7 +1122,8 @@ export function NuevoContratoClient({ propiedades }: { propiedades: PropiedadIte
           : 0,
         fechaInicio:       data.fechaInicio,
         fechaFin:          data.tipoVigencia === "fijo" ? data.fechaFin : undefined,
-      });
+      }));
+      if (!res) return;
 
       if (!res.ok) { setError(res.error); return; }
       router.push(`/panel/contratos/${res.contratoId}`);

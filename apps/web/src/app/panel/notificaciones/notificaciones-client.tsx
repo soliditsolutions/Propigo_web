@@ -14,6 +14,7 @@ import type { EstadoNotificacion } from "@/generated/prisma/enums";
 import { generarRecordatorios, marcarSimulada, simularEnvioMasivo, enviarNotificacionesPendientes } from "./actions";
 import { useToast } from "@/components/ui/toast";
 import { MARCA } from "@/lib/marca";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 const TIPO_TONE: Record<string, "red" | "amber" | "blue" | "green" | "slate"> = {
   cobro:                    "red",
@@ -104,6 +105,7 @@ export function NotificacionesClient({
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("todas");
   const [categoria, setCategoria]   = useState<Categoria>("todas");
   const [isPending, start]          = useTransition();
+  const ejecutar = useAccionSegura();
   const { show: toast }             = useToast();
   const [pageSize, setPageSize]     = useState(25);
   const [guideVisible, setGuideVisible] = useState(() => {
@@ -146,7 +148,8 @@ export function NotificacionesClient({
 
   async function handleGenerar() {
     start(async () => {
-      const r = await generarRecordatorios();
+      const r = await ejecutar(() => generarRecordatorios());
+      if (!r) return;
       toast(r.mensaje, r.ok ? "success" : "error");
       if (r.ok && r.creados > 0) window.location.reload();
     });
@@ -155,7 +158,8 @@ export function NotificacionesClient({
   async function handleSimularMasivo() {
     start(async () => {
       if (emailRealActivo) {
-        const r = await enviarNotificacionesPendientes();
+        const r = await ejecutar(() => enviarNotificacionesPendientes());
+        if (!r) return;
         if (r.ok) {
           const notaColapso = r.reemplazadas > 0
             ? ` · ${r.reemplazadas} sin enviar por quedar obsolet${r.reemplazadas === 1 ? "a" : "as"}`
@@ -167,7 +171,8 @@ export function NotificacionesClient({
           if (r.enviadas > 0 || r.reemplazadas > 0) window.location.reload();
         }
       } else {
-        const r = await simularEnvioMasivo();
+        const r = await ejecutar(() => simularEnvioMasivo());
+        if (!r) return;
         if (r.ok) {
           const notaColapso = r.reemplazadas > 0
             ? ` · ${r.reemplazadas} descartad${r.reemplazadas === 1 ? "a" : "as"} por obsolet${r.reemplazadas === 1 ? "a" : "as"}`
@@ -184,7 +189,8 @@ export function NotificacionesClient({
 
   async function handleMarcar(id: string) {
     start(async () => {
-      const r = await marcarSimulada(id);
+      const r = await ejecutar(() => marcarSimulada(id));
+      if (!r) return;
       if (r.ok) {
         setNoticias((prev) => prev.map((n) => n.id === id ? { ...n, estado: "simulada" as const } : n));
       }

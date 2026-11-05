@@ -6,6 +6,7 @@ import { RefreshCw, Loader2, CalendarDays } from "lucide-react";
 import { renovarContrato } from "./actions";
 import { fecha } from "@/lib/format";
 import { useToast } from "@/components/ui/toast";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 interface Props {
   contratoId:          string;
@@ -43,6 +44,7 @@ export function RenovarSection({
   const router = useRouter();
   const { show: toast }      = useToast();
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   const [nuevaFechaFin, setNuevaFechaFin]   = useState("");
   const [cambiaValor, setCambiaValor]       = useState(false);
@@ -68,10 +70,11 @@ export function RenovarSection({
   function handleRenovar() {
     if (!puedeEnviar) return;
     startTransition(async () => {
-      const res = await renovarContrato(contratoId, {
+      const res = await ejecutar(() => renovarContrato(contratoId, {
         nuevaFechaFin,
         ...(cambiaValor ? { nuevoValorArriendo: valorParseado } : {}),
-      });
+      }));
+      if (!res) return;
       if (!res.ok) {
         toast(res.error ?? "Error al renovar el contrato.", "error");
         return;

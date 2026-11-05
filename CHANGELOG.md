@@ -46,6 +46,13 @@ desarrollo, no versiones publicadas.
   qué pasó y cómo seguir; en el panel, sin salir del menú. Ante un error del
   servidor, la página ofrece "Reintentar" y un código de referencia para
   soporte, en el tema (claro u oscuro) que eligió el usuario.
+- **Guardar sin conexión o con la sesión vencida ya no rompe la página.** Se
+  avisa qué pasó (sin internet, servidor que no responde, problema nuestro o
+  sesión expirada, con enlace para volver a entrar) y la pantalla queda como
+  estaba.
+- **Avisos emergentes más legibles**: los errores duran más, el tiempo se
+  detiene con el mouse o el teclado encima, el mismo aviso no se apila y el
+  botón de cerrar es más fácil de tocar.
 
 ---
 

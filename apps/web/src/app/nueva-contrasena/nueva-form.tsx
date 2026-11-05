@@ -5,11 +5,15 @@ import { useActionState }  from "react";
 import Link                from "next/link";
 import { Eye, EyeOff, KeyRound, AlertCircle } from "lucide-react";
 import { nuevaContrasenaAction } from "./actions";
+import { accionDeFormulario } from "@/lib/fallo-accion";
+
+// Un fallo de red o del servidor vuelve como { error } y no rompe la página.
+const accionSegura = accionDeFormulario(nuevaContrasenaAction);
 import { Spinner }               from "@/components/ui/spinner";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 export function NuevaContrasenaForm({ token }: { token: string }) {
-  const [state, formAction, pending] = useActionState(nuevaContrasenaAction, null);
+  const [state, formAction, pending] = useActionState(accionSegura, null);
   const [showPwd, setShowPwd]        = useState(false);
   const [password, setPassword]      = useState("");
 

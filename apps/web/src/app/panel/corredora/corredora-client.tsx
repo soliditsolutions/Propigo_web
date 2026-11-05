@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/toast";
 import { formatRut } from "@/lib/rut";
 import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
 import { guardarDatosCorredora, guardarCuentaCorredora, eliminarCuentaCorredora } from "./actions";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 type Cuenta = {
   banco: string; tipo: string; numero: string;
@@ -70,10 +71,12 @@ export function CorredoraClient({
   const [giro, setGiro] = useState(datos.giro);
   const [direccion, setDireccion] = useState(datos.direccion);
   const [savingDatos, startDatos] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function guardarDatos() {
     startDatos(async () => {
-      const r = await guardarDatosCorredora({ esPersonaJuridica: esPJ, giro, direccion });
+      const r = await ejecutar(() => guardarDatosCorredora({ esPersonaJuridica: esPJ, giro, direccion }));
+      if (!r) return;
       toast(r.ok ? "Datos guardados." : r.error, r.ok ? "success" : "error");
     });
   }
@@ -90,14 +93,16 @@ export function CorredoraClient({
 
   function guardarCuenta() {
     startCuenta(async () => {
-      const r = await guardarCuentaCorredora({ banco, tipo, numero, titular, rutTitular, email: emailCuenta });
+      const r = await ejecutar(() => guardarCuentaCorredora({ banco, tipo, numero, titular, rutTitular, email: emailCuenta }));
+      if (!r) return;
       toast(r.ok ? "Cuenta bancaria guardada." : r.error, r.ok ? "success" : "error");
     });
   }
 
   function borrarCuenta() {
     startBorrar(async () => {
-      const r = await eliminarCuentaCorredora();
+      const r = await ejecutar(() => eliminarCuentaCorredora());
+      if (!r) return;
       if (r.ok) {
         setBanco(""); setNumero(""); setTitular(""); setRutTitular(""); setEmailCuenta(""); setTipo("corriente");
         toast("Cuenta bancaria eliminada.", "success");

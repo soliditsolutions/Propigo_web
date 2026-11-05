@@ -25,6 +25,7 @@ import {
 } from "./actions";
 import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
 import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@propigo/core";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 // Leaflet usa `window` — debe cargarse únicamente en el navegador.
 const LeafletMapInner = dynamic(() => import("@/components/marketplace/LeafletMapInner"), { ssr: false });
@@ -1005,6 +1006,7 @@ function DiagramaEstado({
   onCambioEstado: () => void;
 }) {
   const [activando,    startActivar]    = useTransition();
+  const ejecutar = useAccionSegura();
   const [desactivando, startDesactivar] = useTransition();
   const [err, setErr] = useState("");
   const router = useRouter();
@@ -1019,7 +1021,8 @@ function DiagramaEstado({
   async function doActivar() {
     setErr("");
     startActivar(async () => {
-      const res = await activarPropiedad(propiedadId);
+      const res = await ejecutar(() => activarPropiedad(propiedadId));
+      if (!res) return;
       if (!res.ok) { setErr(res.error ?? "Error al activar."); return; }
       router.refresh();
       onCambioEstado();
@@ -1029,7 +1032,8 @@ function DiagramaEstado({
   async function doDesactivar() {
     setErr("");
     startDesactivar(async () => {
-      const res = await desactivarPropiedad(propiedadId);
+      const res = await ejecutar(() => desactivarPropiedad(propiedadId));
+      if (!res) return;
       if (!res.ok) { setErr(res.error ?? "Error al desactivar."); return; }
       router.refresh();
       onCambioEstado();
@@ -1150,6 +1154,7 @@ export function PropiedadesClient({
   const [errorCrear, setErrorCrear]   = useState("");
   const [rutErrorCrear, setRutErrorCrear] = useState("");
   const [isPendingCrear, startCrear]  = useTransition();
+  const ejecutar = useAccionSegura();
 
   // Bajar propiedad a borrador desde el modal de detalle
   const [desactivandoModal, startDesactivarModal] = useTransition();
@@ -1207,7 +1212,7 @@ export function PropiedadesClient({
       return;
     }
     startCrear(async () => {
-      const res = await crearPropiedad({
+      const res = await ejecutar(() => crearPropiedad({
         tipo:              formCrear.tipo,
         direccion:         formCrear.direccion.trim(),
         rol:               formCrear.rol,
@@ -1239,7 +1244,8 @@ export function PropiedadesClient({
         // Solo el Manager envía este campo — para un Colaborador queda
         // undefined y el servidor lo trata como "no tocar" (defensa en profundidad).
         ...(esManager ? { asignadoAId: formCrear.asignadoAId } : {}),
-      });
+      }));
+      if (!res) return;
       if (!res.ok) { setErrorCrear(res.error); return; }
       setOpenCrear(false);
       setFormCrear(FORM_CREAR_INICIAL);
@@ -1252,7 +1258,8 @@ export function PropiedadesClient({
     if (!seleccionada) return;
     setErrDesactivarModal("");
     startDesactivarModal(async () => {
-      const res = await desactivarPropiedad(seleccionada.id);
+      const res = await ejecutar(() => desactivarPropiedad(seleccionada.id));
+      if (!res) return;
       if (!res.ok) { setErrDesactivarModal(res.error ?? "Error al bajar la propiedad."); return; }
       setSeleccionada(null);
       router.refresh();
@@ -1286,11 +1293,12 @@ export function PropiedadesClient({
       return;
     }
     startTitularidad(async () => {
-      const res = await cambiarPropietarioPropiedad(seleccionada.id, {
+      const res = await ejecutar(() => cambiarPropietarioPropiedad(seleccionada.id, {
         nombre: formTitularidad.nombre.trim(),
         rut: formTitularidad.rut.trim(),
         email: formTitularidad.email.trim() || undefined,
-      });
+      }));
+      if (!res) return;
       if (!res.ok) { setErrorTitularidad(res.error); return; }
       setOpenTitularidad(false);
       setSeleccionada(null);
@@ -1308,7 +1316,7 @@ export function PropiedadesClient({
     if (!seleccionada) return;
     setErrorEditar("");
     startEditar(async () => {
-      const res = await actualizarPropiedad(seleccionada.id, {
+      const res = await ejecutar(() => actualizarPropiedad(seleccionada.id, {
         tipo:              formEditar.tipo,
         // El formulario de edición muestra estos tres campos; si no se mandan,
         // la corredora los cambia, ve "guardado" y nada cambia en la base.
@@ -1338,7 +1346,8 @@ export function PropiedadesClient({
         mostrarUbicacionExacta: formEditar.mostrarUbicacionExacta,
         imagenes:          formEditar.imagenes.map((u) => u.trim()).filter(Boolean),
         ...(esManager ? { asignadoAId: formEditar.asignadoAId } : {}),
-      });
+      }));
+      if (!res) return;
       if (!res.ok) { setErrorEditar(res.error); return; }
       setOpenEditar(false);
       setSeleccionada(null);

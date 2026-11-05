@@ -17,6 +17,7 @@ import {
 import type { PeriodoDemo } from "@/lib/billing-demo";
 import { MARCA } from "@/lib/marca";
 import { solicitarCambioPlanAction } from "./plan-actions";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 const RECURSO: Record<Excedente["recurso"], { singular: string; plural: string; accion: string; href: string }> = {
   propiedades: { singular: "propiedad", plural: "propiedades", accion: "Ir a Propiedades", href: "/panel/propiedades" },
@@ -78,6 +79,7 @@ export function MiPlanSection({
   const [error, setError] = useState<{ mensaje: string; excedentes?: Excedente[] } | null>(null);
   const [enviada, setEnviada] = useState<string | null>(null);
   const [enviando, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   const otros = PLANS.filter((p) => p.id !== plan.id);
   const destino = otros.find((p) => p.id === destinoId) ?? null;
@@ -107,10 +109,11 @@ export function MiPlanSection({
     if (!destino) return;
     setError(null);
     startTransition(async () => {
-      const r = await solicitarCambioPlanAction({
+      const r = await ejecutar(() => solicitarCambioPlanAction({
         destinoId: destino.id,
         modalidad: tipo === "upgrade" ? modalidad : null,
-      });
+      }));
+      if (!r) return;
       if (r.ok) {
         // Confirmación en línea (role=status), no toast: un toast la anunciaría
         // dos veces y desaparecería antes de que se lea.

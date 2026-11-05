@@ -12,6 +12,7 @@ import {
 } from "./actions";
 import { useToast } from "@/components/ui/toast";
 import { Badge, CupoBadge } from "@/components/panel/ui";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 type Colaborador = {
   id: string;
@@ -39,6 +40,7 @@ function InvitarForm({ cupo }: { cupo: Cupo }) {
   const router = useRouter();
   const { show: toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
   const [nombre, setNombre] = useState("");
   const [email, setEmail]   = useState("");
   const [error, setError]   = useState("");
@@ -65,7 +67,8 @@ function InvitarForm({ cupo }: { cupo: Cupo }) {
   function handleInvitar() {
     setError("");
     startTransition(async () => {
-      const res = await invitarColaboradorAction(nombre, email);
+      const res = await ejecutar(() => invitarColaboradorAction(nombre, email));
+      if (!res) return;
       if (!res.ok) { setError(res.error); return; }
       setNombre(""); setEmail("");
       toast("Invitación enviada correctamente.", "success");
@@ -142,12 +145,14 @@ function ColaboradorRow({ c }: { c: Colaborador }) {
   const router = useRouter();
   const { show: toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
 
   function toggle() {
     startTransition(async () => {
       const res = c.desactivado
-        ? await reactivarColaboradorAction(c.id)
-        : await desactivarColaboradorAction(c.id);
+        ? await ejecutar(() => reactivarColaboradorAction(c.id))
+        : await ejecutar(() => desactivarColaboradorAction(c.id));
+      if (!res) return;
       if (!res.ok) { toast(res.error, "error"); return; }
       toast(c.desactivado ? "Colaborador reactivado." : "Colaborador desactivado.", "success");
       router.refresh();

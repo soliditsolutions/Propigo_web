@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
 import { ValidacionPanel } from "../validacion-panel";
 import type { ValidacionResultado, ValidacionEstado } from "@/app/api/contratos/[id]/validar/route";
+import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 interface Props {
   contratoId:            string;
@@ -21,6 +22,7 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
   const router = useRouter();
   const { show: toast }                = useToast();
   const [isPending,    startTransition] = useTransition();
+  const ejecutar = useAccionSegura();
   const [isCancelling, startCancel]     = useTransition();
   const [confirmado, setConfirmado]     = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -28,7 +30,8 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
   function handleActivar() {
     if (!confirmado) return;
     startTransition(async () => {
-      const res = await activarContrato(contratoId);
+      const res = await ejecutar(() => activarContrato(contratoId));
+      if (!res) return;
       if (!res.ok) {
         toast(res.error ?? "Error al activar el contrato.", "error");
         return;
@@ -41,7 +44,8 @@ export function FirmaSection({ contratoId, validacionIa, validacionEstado, valid
   function handleCancelar() {
     if (!confirmCancel) return;
     startCancel(async () => {
-      const res = await cancelarContratoBorrador(contratoId);
+      const res = await ejecutar(() => cancelarContratoBorrador(contratoId));
+      if (!res) return;
       if (!res.ok) {
         toast(res.error ?? "Error al cancelar el contrato.", "error");
         return;

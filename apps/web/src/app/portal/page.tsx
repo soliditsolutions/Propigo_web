@@ -40,11 +40,15 @@ export default function PortalPage() {
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ rut: rut.replace(/\./g, "").trim().toUpperCase() }),
         });
-        const data = await res.json();
-        if (data.ok && data.otpId) {
+        const data = await res.json().catch(() => null);
+        if (data?.ok && data.otpId) {
           router.push(`/portal/verificar?id=${encodeURIComponent(data.otpId)}`);
+        } else if (res.status === 429 && data?.error) {
+          // El servidor dice cuánto esperar; reemplazarlo por un "intenta
+          // nuevamente" invitaba a reintentar y volver a chocar con el límite.
+          toast(data.error, "warning");
         } else {
-          toast("No fue posible enviar el código. Intenta nuevamente.", "error");
+          toast("No pudimos enviar el código por un problema de nuestro lado. Intenta de nuevo en unos minutos.", "error");
         }
       } catch {
         toast("Error de conexión. Intenta nuevamente.", "error");

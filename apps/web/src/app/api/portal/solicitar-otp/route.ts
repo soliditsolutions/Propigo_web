@@ -16,7 +16,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { sendPortalOtpEmail } from "@/lib/email";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { generarCodigo, hashCodigo as hashOtp } from "@/lib/codigo-verificacion";
 
 /** Normaliza RUT a formato canónico sin puntos: "12345678-9" */
@@ -45,10 +45,7 @@ export async function POST(req: NextRequest) {
   const rl = checkRateLimit(`portal_otp:${ip}`, 5, 60_000);
   if (!rl.allowed) {
     await tiempoMinimo;
-    return NextResponse.json(
-      { ok: false, error: "Demasiadas solicitudes. Intenta en unos minutos." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+    return respuestaLimite("Hiciste demasiadas solicitudes seguidas.", rl.retryAfter);
   }
 
   try {

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { sendDenunciaAdminEmail } from "@/lib/email";
 import { z } from "zod";
 import { getClientIp } from "@/lib/ip";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 
 const TIPO_DENUNCIA = ["fraude_inmobiliario", "estafa", "informacion_falsa", "acoso", "discriminacion", "incumplimiento", "otro"] as const;
 const OBJETIVO_DENUNCIA = ["propiedad", "corredor"] as const;
@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
   // Máx. 3 denuncias por IP por hora. La IP sale de getClientIp (el primer
   // valor de x-forwarded-for lo elige el cliente).
   const ip = getClientIp(req);
-  if (!checkRateLimit(`marketplace_denuncia:${ip}`, 3, 60 * 60_000).allowed) {
-    return NextResponse.json({ error: "Has enviado demasiadas denuncias. Intenta en una hora." }, { status: 429 });
+  const rl = checkRateLimit(`marketplace_denuncia:${ip}`, 3, 60 * 60_000);
+  if (!rl.allowed) {
+    return respuestaLimite("Enviaste demasiadas denuncias en la última hora.", rl.retryAfter);
   }
 
   let body: unknown;

@@ -293,6 +293,14 @@ function VerificarOtpForm() {
         )}
       </button>
 
+      {/* Texto neutro a propósito: no confirma si el RUT existe ni si se envió
+          un código (el tope por persona es silencioso para no permitir
+          averiguar qué RUT están registrados). */}
+      <p className="text-center text-xs leading-relaxed" style={{ color: "var(--pf-text-muted)" }}>
+        ¿No te llegó? Puede tardar un par de minutos; revisa también la carpeta de
+        spam o correo no deseado. Puedes pedir hasta 3 códigos cada 10 minutos.
+      </p>
+
       <div className="flex justify-center">
         <a
           href="/portal"

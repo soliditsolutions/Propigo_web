@@ -111,6 +111,16 @@ desarrollo, no versiones publicadas.
 - **Cerrar sesión deja al usuario en el mismo dominio**: el panel y el portal
   redirigían a una URL armada con la del servidor interno. Detrás de un proxy
   eso era `https://localhost:3100/login`. Ahora la redirección es relativa.
+- **Los límites de uso dicen cuánto esperar** (M-09, M-10, M-20):
+  - todas las respuestas 429 (portal, consultas, denuncias, valoraciones,
+    subidas, validaciones, exportaciones, código de dispositivo) dicen
+    "Vuelve a intentarlo en N segundos/minutos", con el mismo plazo en
+    `Retry-After`;
+  - el portal muestra ese plazo en vez de "No fue posible enviar el código";
+  - el código de dispositivo distingue "espera" (advertencia) de un fallo
+    (error);
+  - `/portal/verificar` explica qué hacer si el código no llega, con un
+    texto neutro que no revela si el RUT existe.
 
 ---
 

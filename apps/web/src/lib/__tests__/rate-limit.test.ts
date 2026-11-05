@@ -203,3 +203,17 @@ describe("limpiarVencidos() — la limpieza respeta la ventana de cada clave", (
     expect(checkRateLimit(key, 5, 10 * 60_000)).toEqual({ allowed: true });
   });
 });
+
+describe("respuestaLimite (M-09)", () => {
+  it("responde 429 con el plazo en el texto y en Retry-After", async () => {
+    const { respuestaLimite } = await import("../rate-limit");
+    const r = respuestaLimite("Enviaste demasiadas consultas seguidas.", 240, { cooldownSec: 240 });
+    expect(r.status).toBe(429);
+    expect(r.headers.get("Retry-After")).toBe("240");
+    expect(await r.json()).toEqual({
+      ok: false,
+      error: "Enviaste demasiadas consultas seguidas. Vuelve a intentarlo en 4 minutos.",
+      cooldownSec: 240,
+    });
+  });
+});

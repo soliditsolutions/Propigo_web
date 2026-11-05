@@ -15,7 +15,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { signPortalSession, setPortalCookie } from "@/lib/portal-auth";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { hashCodigo as hashOtp } from "@/lib/codigo-verificacion";
 
 export async function POST(req: NextRequest) {
@@ -24,10 +24,7 @@ export async function POST(req: NextRequest) {
   // IP-based rate limiting: 10 intentos/min. Previene ataques de fuerza bruta por OTP.
   const rl = checkRateLimit(`portal_verificar:${ip}`, 10, 60_000);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { ok: false, error: "Demasiados intentos. Espera un momento." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+    return respuestaLimite("Demasiados intentos seguidos.", rl.retryAfter);
   }
 
   try {

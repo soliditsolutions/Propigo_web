@@ -7,6 +7,9 @@
  * (see Docs/tecnica/despliegue-produccion.md).
  */
 
+import { NextResponse } from "next/server";
+import { textoEspera } from "./espera";
+
 type Entry = { ts: number[]; windowMs: number }; // timestamps (ms) + the key's window
 
 const store = new Map<string, Entry>();
@@ -59,4 +62,17 @@ export function checkRateLimit(
 
   ts.push(now);
   return { allowed: true };
+}
+
+/**
+ * Respuesta 429 que dice cuánto esperar, en el texto y en Retry-After: un
+ * "intenta más tarde" sin plazo deja al usuario reintentando a ciegas.
+ *   respuestaLimite("Enviaste demasiadas consultas seguidas.", rl.retryAfter)
+ *   → "Enviaste demasiadas consultas seguidas. Vuelve a intentarlo en 4 minutos."
+ */
+export function respuestaLimite(motivo: string, retryAfter: number, extra: Record<string, unknown> = {}): NextResponse {
+  return NextResponse.json(
+    { ok: false, error: `${motivo} Vuelve a intentarlo en ${textoEspera(String(retryAfter))}.`, ...extra },
+    { status: 429, headers: { "Retry-After": String(retryAfter) } },
+  );
 }

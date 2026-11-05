@@ -19,7 +19,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { getClientIp } from "@/lib/ip";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { idFiltro } from "@/lib/busqueda";
 import {
   construirExportDatosPersona,
@@ -52,10 +52,7 @@ export async function GET(
 
   const rl = checkRateLimit(`export_datos:${actor.usuarioId}`, 20, 60 * 60_000);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: "Demasiadas exportaciones en poco tiempo. Intenta más tarde." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+    return respuestaLimite("Demasiadas exportaciones en poco tiempo.", rl.retryAfter);
   }
 
   let datos;

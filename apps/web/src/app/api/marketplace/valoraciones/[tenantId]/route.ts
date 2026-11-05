@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClientIp } from "@/lib/ip";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,10 +14,7 @@ export async function GET(
   const ip = getClientIp(req);
   const rl = checkRateLimit(`marketplace_valoraciones:${ip}`, 30, 60_000);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: "Demasiadas solicitudes. Intenta más tarde." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+    return respuestaLimite("Demasiadas solicitudes seguidas.", rl.retryAfter);
   }
 
   const { tenantId } = await params;

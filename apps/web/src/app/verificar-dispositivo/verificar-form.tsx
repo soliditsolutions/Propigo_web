@@ -219,9 +219,14 @@ export default function VerificarForm({
       const res  = await fetch("/api/auth/dispositivo/enviar", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const sec = typeof data.cooldownSec === "number" ? data.cooldownSec : RESEND_COOLDOWN;
-        setCooldown(sec);
-        toast(data.error ?? "No pudimos enviar el código. Inténtalo de nuevo.", "warning");
+        // 429 = esperar (advertencia, con la cuenta regresiva del servidor);
+        // cualquier otro fallo es un error y se puede reintentar enseguida.
+        if (res.status === 429) {
+          setCooldown(typeof data.cooldownSec === "number" ? data.cooldownSec : RESEND_COOLDOWN);
+          toast(data.error ?? "Espera un momento antes de pedir otro código.", "warning");
+        } else {
+          toast(data.error ?? "No pudimos enviar el código. Inténtalo de nuevo.", "error");
+        }
         return;
       }
       setEnviado(true);

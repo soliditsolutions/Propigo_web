@@ -6,7 +6,7 @@ import { type ValidacionResultado, validarEsquema } from "../validar/route";
 import { detectarPii } from "@/lib/pii-detector";
 import { idFiltro } from "@/lib/busqueda";
 import { logError } from "@/lib/logger";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/ip";
 import { consumirTokenIa } from "@/lib/plan-limits";
 import { actorDeRuta } from "@/lib/actor-ruta";
@@ -156,10 +156,7 @@ export async function POST(
     // Rate limit por usuario — llamadas a IA externa son costosas, evita spam.
     const rl = checkRateLimit(`validar_doc:${session.sub}`, 10, 10 * 60_000);
     if (!rl.allowed) {
-      return NextResponse.json(
-        { error: "Demasiadas validaciones en poco tiempo. Intenta de nuevo en unos minutos." },
-        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-      );
+      return respuestaLimite("Demasiadas validaciones en poco tiempo.", rl.retryAfter);
     }
 
     // getActor (y no solo el tenant): un Colaborador solo opera sobre

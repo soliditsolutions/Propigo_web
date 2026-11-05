@@ -6,7 +6,7 @@ import { entregarConsulta } from "@/lib/consulta-contacto";
 import { logError } from "@/lib/logger";
 import { z } from "zod";
 import { getClientIp } from "@/lib/ip";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 
 const schema = z.object({
   publicacionId: z.string().uuid(),
@@ -26,8 +26,9 @@ export async function POST(req: NextRequest) {
   // primer valor de x-forwarded-for lo elige el cliente y permitía saltarse
   // el límite (y con él, inundar de correos a una corredora).
   const ip = getClientIp(req);
-  if (!checkRateLimit(`marketplace_contacto:${ip}`, 5, 10 * 60_000).allowed) {
-    return NextResponse.json({ error: "Demasiadas solicitudes. Intenta más tarde." }, { status: 429 });
+  const rl = checkRateLimit(`marketplace_contacto:${ip}`, 5, 10 * 60_000);
+  if (!rl.allowed) {
+    return respuestaLimite("Enviaste demasiadas consultas seguidas.", rl.retryAfter);
   }
 
   let body: unknown;

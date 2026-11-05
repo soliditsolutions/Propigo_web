@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { logError } from "@/lib/logger";
+import { respuestaLimite } from "@/lib/rate-limit";
 import { generarCodigo, hashCodigo as hashCode } from "@/lib/codigo-verificacion";
 
 function parseBrowser(ua: string): string {
@@ -76,10 +77,7 @@ export async function POST(req: NextRequest) {
 
     if (reciente) {
       const cooldownSec = Math.max(1, Math.ceil((reciente.createdAt.getTime() + 60_000 - Date.now()) / 1000));
-      return NextResponse.json(
-        { error: "Espera al menos 1 minuto antes de solicitar otro código.", cooldownSec },
-        { status: 429 },
-      );
+      return respuestaLimite("Acabamos de enviarte un código.", cooldownSec, { cooldownSec });
     }
     if (totalRecientes >= 5) {
       const earliest = await prisma.codigoDispositivo.findFirst({
@@ -90,10 +88,7 @@ export async function POST(req: NextRequest) {
       const cooldownSec = earliest
         ? Math.max(1, Math.ceil((earliest.createdAt.getTime() + 10 * 60_000 - Date.now()) / 1000))
         : 600;
-      return NextResponse.json(
-        { error: "Demasiados intentos. Espera antes de volver a intentarlo.", cooldownSec },
-        { status: 429 },
-      );
+      return respuestaLimite("Pediste demasiados códigos en los últimos 10 minutos.", cooldownSec, { cooldownSec });
     }
 
     // Generar código de 6 dígitos y UUID pre-confirmación

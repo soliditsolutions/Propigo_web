@@ -3,7 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, respuestaLimite } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 import { z } from "zod";
 
@@ -19,10 +19,7 @@ export async function POST(req: NextRequest) {
   // AUD-04: sin esto, un script podía enviar valoraciones sin límite.
   const rl = checkRateLimit(`marketplace_valoracion:${ip}`, 5, 60_000);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: "Demasiadas solicitudes. Intenta más tarde." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    );
+    return respuestaLimite("Demasiadas solicitudes seguidas.", rl.retryAfter);
   }
 
   let body: unknown;

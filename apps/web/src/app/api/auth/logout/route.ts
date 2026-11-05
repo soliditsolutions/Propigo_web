@@ -8,13 +8,15 @@
  * Ref doc: "Tabla 3 — Clear-Site-Data para Cierre de Sesión Seguro"
  * Ref doc: "Testing de Reuso de Identificadores (OWASP)"
  */
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { COOKIE_NAME, DEVICE_COOKIE_NAME } from "@/lib/auth";
 
-function buildLogoutResponse(req: NextRequest, status: 303 | 307): NextResponse {
-  // Redirige al login usando req.url como base (evita hardcodear host/puerto).
-  const loginUrl = new URL("/login", req.url);
-  const response = NextResponse.redirect(loginUrl, { status });
+function buildLogoutResponse(status: 303 | 307): NextResponse {
+  // Location relativa: el navegador la resuelve contra el dominio en que está
+  // el usuario. req.url no sirve de base: en el servidor standalone es
+  // localhost:PUERTO aunque la petición llegue por propigo.cl, y detrás de un
+  // proxy mandaba a https://localhost:3100/login.
+  const response = new NextResponse(null, { status, headers: { Location: "/login" } });
 
   // 1. Eliminar ambas cookies de sesión explícitamente
   const cookieOpts = {
@@ -36,10 +38,10 @@ function buildLogoutResponse(req: NextRequest, status: 303 | 307): NextResponse 
   return response;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   // El redirect 303 garantiza que el browser procesa Set-Cookie ANTES de navegar,
   // eliminando la race-condition con window.location.href en el cliente.
-  return buildLogoutResponse(req, 303);
+  return buildLogoutResponse(303);
 }
 
 // GET — usado por redirect() desde Server Components (p.ej. panel/layout.tsx
@@ -49,6 +51,6 @@ export async function POST(req: NextRequest) {
 // puede limpiar la cookie de sesión antes de mandar al usuario a /login —
 // sin esto, el JWT (firma válida, stateless) seguiría pasando el chequeo de
 // sesión del proxy y lo rebotaría de vuelta a /panel en loop infinito.
-export async function GET(req: NextRequest) {
-  return buildLogoutResponse(req, 307);
+export async function GET() {
+  return buildLogoutResponse(307);
 }

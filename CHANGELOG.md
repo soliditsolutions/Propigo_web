@@ -108,6 +108,9 @@ desarrollo, no versiones publicadas.
   código impide volver a escribirlo. A un usuario desactivado en plena sesión,
   la acción le cierra la sesión y lo lleva a `/login`; antes la barra de
   direcciones quedaba en `/api/auth/logout`.
+- **Cerrar sesión deja al usuario en el mismo dominio**: el panel y el portal
+  redirigían a una URL armada con la del servidor interno. Detrás de un proxy
+  eso era `https://localhost:3100/login`. Ahora la redirección es relativa.
 
 ---
 

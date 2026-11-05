@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Modal, ModalSuccess, modalInputCls, modalInputStyle } from "@/components/ui/modal";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 interface Props {
   publicacionId: string;
@@ -61,16 +62,16 @@ export function ContactoModal({ publicacionId, tituloPub, onClose }: Props) {
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ ...form, publicacionId }),
         });
-        const data = await res.json();
-
         if (!res.ok) {
-          toast(data.error ?? "Error al enviar. Intenta nuevamente.", "error");
+          const data = await leerJson(res);
+          // 429: hay que esperar, no es una falla.
+          toast(mensajeDeFallo(res.status, data, "No se pudo enviar la consulta. Intenta nuevamente."), res.status === 429 ? "warning" : "error");
           return;
         }
 
         setPaso("exito");
       } catch {
-        toast("Error de conexión. Intenta nuevamente.", "error");
+        toast(mensajeSinRespuesta(), "error");
       }
     });
   }

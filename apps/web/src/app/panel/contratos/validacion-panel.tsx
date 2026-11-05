@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { ValidacionResultado, ValidacionEstado } from "@/app/api/contratos/[id]/validar/route";
 import { CupoBadge } from "@/components/panel/ui";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 export type Fase = "pre_firma" | "post_firma";
 
@@ -174,16 +175,16 @@ export function ValidacionPanel({
     setFechaConfirm(null);
     try {
       const res  = await fetch(`/api/contratos/${contratoId}/validar`, { method: "POST" });
-      const data = await res.json() as { ok?: boolean; validacion?: ValidacionResultado; error?: string };
-      if (!res.ok || !data.ok || !data.validacion) {
-        setError(data.error ?? "Error al validar. Intenta nuevamente.");
+      const data = await leerJson<{ ok?: boolean; validacion?: ValidacionResultado; error?: string }>(res);
+      if (!res.ok || !data?.ok || !data.validacion) {
+        setError(mensajeDeFallo(res.status, data, "No se pudo validar el contrato. Intenta nuevamente."));
         return;
       }
       setResultado(data.validacion);
       setEstado(data.validacion.estado);
       setFechaVal(new Date());
     } catch {
-      setError("Error de conexión. Verifica tu internet e intenta nuevamente.");
+      setError(mensajeSinRespuesta());
     } finally {
       setCargando(false);
     }
@@ -199,15 +200,15 @@ export function ValidacionPanel({
       fd.append("archivo", archivoSeleccionado);
       fd.append("consentIa", "on");
       const res  = await fetch(`/api/contratos/${contratoId}/validar-doc`, { method: "POST", body: fd });
-      const data = await res.json() as {
+      const data = await leerJson<{
         ok?: boolean; validacion?: ValidacionResultado; error?: string;
         cupoIa?: { usado: number; max: number };
-      };
+      }>(res);
       // Vale tanto para el 200 como para el 429: en ambos casos la ruta manda
       // el consumo real, así el indicador no queda desfasado del servidor.
-      if (data.cupoIa) setCupo(data.cupoIa);
-      if (!res.ok || !data.ok || !data.validacion) {
-        setError(data.error ?? "Error al analizar el documento. Intenta nuevamente.");
+      if (data?.cupoIa) setCupo(data.cupoIa);
+      if (!res.ok || !data?.ok || !data.validacion) {
+        setError(mensajeDeFallo(res.status, data, "No se pudo analizar el documento. Intenta nuevamente."));
         return;
       }
       setResultado(data.validacion);
@@ -215,7 +216,7 @@ export function ValidacionPanel({
       setFechaVal(new Date());
       setArchivoSeleccionado(null);
     } catch {
-      setError("Error de conexión al enviar el documento.");
+      setError(mensajeSinRespuesta());
     } finally {
       setCargandoDoc(false);
     }
@@ -226,14 +227,14 @@ export function ValidacionPanel({
     setError(null);
     try {
       const res  = await fetch(`/api/contratos/${contratoId}/validar`, { method: "PUT" });
-      const data = await res.json() as { ok?: boolean; error?: string };
-      if (!res.ok || !data.ok) {
-        setError(data.error ?? "Error al confirmar.");
+      const data = await leerJson<{ ok?: boolean; error?: string }>(res);
+      if (!res.ok || !data?.ok) {
+        setError(mensajeDeFallo(res.status, data, "No se pudo confirmar la revisión. Intenta nuevamente."));
         return;
       }
       setFechaConfirm(new Date());
     } catch {
-      setError("Error de conexión al confirmar.");
+      setError(mensajeSinRespuesta());
     } finally {
       setConfirmando(false);
     }
@@ -286,6 +287,7 @@ export function ValidacionPanel({
         {/* Error */}
         {error && (
           <div
+            role="alert"
             className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs"
             style={{ background: "var(--pgo-danger-lt)", border: "1px solid var(--pgo-danger-bd)", color: "var(--pgo-danger-dk)" }}
           >

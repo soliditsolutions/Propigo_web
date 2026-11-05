@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import { fecha } from "@/lib/format";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
 import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 interface Documento {
   id:         string;
@@ -54,10 +55,10 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/upload?type=documentos", { method: "POST", body: fd });
-      const json = await res.json() as { url?: string; error?: string };
+      const json = await leerJson<{ url?: string; error?: string }>(res);
 
-      if (!res.ok || !json.url) {
-        setUploadError(json.error ?? "Error al subir el archivo.");
+      if (!res.ok || !json?.url) {
+        setUploadError(mensajeDeFallo(res.status, json, "No se pudo subir el archivo."));
         return;
       }
 
@@ -74,7 +75,7 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
         router.refresh();
       });
     } catch {
-      setUploadError("Error de conexión al subir el archivo.");
+      setUploadError(mensajeSinRespuesta());
     } finally {
       setUploading(false);
     }
@@ -232,7 +233,7 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
         )}
 
         {uploadError && (
-          <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-danger-dk)" }}>
+          <p className="flex items-center gap-1.5 text-xs" style={{ color: "var(--pgo-danger-dk)" }} role="alert">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {uploadError}
           </p>

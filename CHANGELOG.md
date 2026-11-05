@@ -127,6 +127,15 @@ desarrollo, no versiones publicadas.
   se alcanzaba un límite. Ahora el motivo del servidor aparece en un aviso, con
   "Iniciar sesión" si corresponde. Mientras se genera el archivo, el ícono pasa
   a indicador de carga; con Ctrl+clic el enlace sigue funcionando como enlace.
+- **Una caída o un timeout del servidor ya no se culpa a la red del usuario.**
+  En la revisión de contratos con IA, la subida de anexos e imágenes y los
+  formularios de contacto, denuncia y valoración, un 502/504 sin JSON mostraba
+  "Error de conexión". Ahora dice que el problema es nuestro; un corte real de
+  red se distingue de un servidor inalcanzable, un archivo cortado por el proxy
+  (413) dice que es demasiado grande y la sesión expirada se nombra como tal.
+  Los límites por exceso de envíos del marketplace se muestran como
+  advertencia, no como error, y los errores de la revisión IA y de los anexos
+  se anuncian a lectores de pantalla.
 
 ---
 

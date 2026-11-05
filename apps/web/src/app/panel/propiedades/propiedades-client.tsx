@@ -26,6 +26,7 @@ import {
 import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
 import { formatearRut, validarRut, REGIONES_CHILE, getComunasDeRegion, ORIENTACIONES } from "@propigo/core";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 // Leaflet usa `window` — debe cargarse únicamente en el navegador.
 const LeafletMapInner = dynamic(() => import("@/components/marketplace/LeafletMapInner"), { ssr: false });
@@ -260,9 +261,9 @@ function ImagenesField({
     form.append("file", file);
     try {
       const res  = await fetch("/api/upload", { method: "POST", body: form });
-      const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        patchSlot(idx, { subiendo: false, error: data.error ?? "Error al subir la imagen." });
+      const data = await leerJson<{ url?: string; error?: string }>(res);
+      if (!res.ok || !data?.url) {
+        patchSlot(idx, { subiendo: false, error: mensajeDeFallo(res.status, data, "No se pudo subir la imagen.") });
         return;
       }
       patchSlot(idx, { subiendo: false, error: "" });
@@ -270,7 +271,7 @@ function ImagenesField({
       imgs[idx]     = data.url;
       onChange(imgs);
     } catch {
-      patchSlot(idx, { subiendo: false, error: "Error de red. Intenta de nuevo." });
+      patchSlot(idx, { subiendo: false, error: mensajeSinRespuesta() });
     }
   }
 

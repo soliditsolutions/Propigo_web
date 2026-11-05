@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Modal, ModalSuccess, modalInputCls, modalInputStyle } from "@/components/ui/modal";
 import { MARCA, RAZON_SOCIAL } from "@/lib/marca";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 const TIPOS = [
   { value: "fraude_inmobiliario", label: "Fraude inmobiliario" },
@@ -81,15 +82,14 @@ export function DenunciaModal({ publicacionId, tituloPub: _tituloPub, nombreCorr
             nombreCorredor: form.objetivo === "corredor" ? nombreCorredor : undefined,
           }),
         });
-        const data = await res.json();
-
         if (!res.ok) {
-          toast(data.error ?? "Error al enviar. Intenta nuevamente.", "error");
+          const data = await leerJson(res);
+          toast(mensajeDeFallo(res.status, data, "No se pudo enviar la denuncia. Intenta nuevamente."), res.status === 429 ? "warning" : "error");
           return;
         }
         setEnviada(true);
       } catch {
-        toast("Error de conexión. Intenta nuevamente.", "error");
+        toast(mensajeSinRespuesta(), "error");
       }
     });
   }

@@ -28,6 +28,18 @@ Solo local: para entrar sin correo inserta un dispositivo confiable y fija el
 código OTP del portal en la base; se niega a correr contra un host que no sea
 localhost.
 
+**Trampa conocida (2026-11-05):** si las únicas fallas son `404-ficha` y
+`panel-404` en todos los perfiles, con `Failed to execute 'measure' on
+'Performance': '…Page' cannot have a negative time stamp` (Chromium) o `Type
+error` (WebKit), no es un error de la app: es el build de desarrollo de React
+19.2. Al dibujar un Server Component que lanzó (`notFound()`) en el panel de
+rendimiento, recorta `start` a 0 pero no `end`, y un servidor de desarrollo con
+horas encendido (con suspensiones del equipo de por medio) manda marcas de
+tiempo desfasadas que quedan negativas. Reiniciar el servidor de desarrollo lo
+resuelve; en producción ese código no existe. Si una falla de `portal-arrendatario`
+aparece en la primera corrida tras muchos cambios, suele ser compilación en
+frío: repetir una vez.
+
 ## Hallazgos corregidos
 
 | # | Dónde | Hallazgo | Corrección |

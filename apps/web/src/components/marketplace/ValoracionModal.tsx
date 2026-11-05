@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Modal, ModalSuccess } from "@/components/ui/modal";
+import { leerJson, mensajeDeFallo, mensajeSinRespuesta } from "@/lib/respuesta-api";
 
 interface Props {
   token:   string;
@@ -40,15 +41,14 @@ export function ValoracionModal({ token, onClose }: Props) {
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ token, estrellas, comentario: comentario.trim() || undefined }),
         });
-        const data = await res.json();
-
         if (!res.ok) {
-          toast(data.error ?? "Error al enviar la valoración.", "error");
+          const data = await leerJson(res);
+          toast(mensajeDeFallo(res.status, data, "No se pudo enviar la valoración. Intenta nuevamente."), res.status === 429 ? "warning" : "error");
           return;
         }
         setEnviada(true);
       } catch {
-        toast("Error de conexión. Intenta nuevamente.", "error");
+        toast(mensajeSinRespuesta(), "error");
       }
     });
   }

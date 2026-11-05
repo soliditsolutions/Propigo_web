@@ -173,14 +173,24 @@ describe("getCupoInfo — información de cupo para la UI", () => {
     expect(info).toEqual({ usado: 4, max: 5, planLabel: "Gold" });
   });
 
-  it("un plan desconocido devuelve planLabel 'Gratuito' y el cupo de Bronze", async () => {
+  it("un plan desconocido usa el nombre y el cupo de Bronze, como Mi Plan y Propiedades (M-22)", async () => {
     mockGetActor.mockResolvedValue(actorManager("Gratuito"));
     mockUsuarioCount.mockResolvedValue(0);
     mockInvitacionCount.mockResolvedValue(0);
 
     const info = await getCupoInfo();
 
-    expect(info).toEqual({ usado: 1, max: 1, planLabel: "Gratuito" });
+    expect(info).toEqual({ usado: 1, max: 1, planLabel: "Bronze" });
+  });
+
+  it("sin plan asignado también muestra Bronze, nunca vacío ni 'Gratuito'", async () => {
+    mockGetActor.mockResolvedValue(actorManager(null));
+    mockUsuarioCount.mockResolvedValue(0);
+    mockInvitacionCount.mockResolvedValue(0);
+
+    const info = await getCupoInfo();
+
+    expect(info.planLabel).toBe("Bronze");
   });
 
   it("rechaza (throw) si lo llama un Colaborador", async () => {

@@ -9,7 +9,7 @@ import { Logo } from "@/components/public/Logo";
 import { MARCA } from "@/lib/marca";
 
 interface Props {
-  tenant:   { nombre: string; plan: string | null };
+  tenant:   { nombre: string; plan: string };
   user:     { nombre: string; email: string; rol: string };
   children: React.ReactNode;
 }
@@ -172,7 +172,7 @@ export function PanelShell({ tenant, user, children }: Props) {
               {user.nombre}
             </p>
             <p className="mt-0.5 text-[10px] truncate" style={{ color: "var(--pgo-panel-nav-muted)" }}>
-              {tenant.nombre} · {tenant.plan ?? "demo"}
+              {tenant.nombre} · plan {tenant.plan}
             </p>
           </div>
         )}

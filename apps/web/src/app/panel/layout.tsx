@@ -3,6 +3,7 @@ import { getSession }  from "@/lib/auth";
 import { prisma }      from "@/lib/db";
 import { withTenant }  from "@/lib/tenant-db";
 import { PanelShell }  from "@/components/panel/shell";
+import { getPlanEfectivo } from "@/lib/plans";
 
 export default async function PanelLayout({
   children,
@@ -42,7 +43,8 @@ export default async function PanelLayout({
 
   return (
     <PanelShell
-      tenant={{ nombre: tenant.nombre, plan: tenant.plan ?? null }}
+      // Nombre del plan que rige, no el id interno ("demo", "Gratuito").
+      tenant={{ nombre: tenant.nombre, plan: getPlanEfectivo(tenant.plan).name }}
       user={{ nombre: session.nombre, email: session.email, rol: session.rol }}
     >
       {children}

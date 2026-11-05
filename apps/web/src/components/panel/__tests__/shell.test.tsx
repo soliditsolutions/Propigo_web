@@ -40,7 +40,7 @@ vi.mock("@/components/panel/nav", () => ({
 }));
 
 const PROPS = {
-  tenant:   { nombre: "Corredora Test", plan: "pro" },
+  tenant:   { nombre: "Corredora Test", plan: "Gold" },
   user:     { nombre: "Juan García", email: "juan@test.cl", rol: "admin" },
   children: <div>Contenido de prueba</div>,
 };
@@ -75,5 +75,12 @@ describe("PanelShell — skip link (UI-C4)", () => {
     const main = screen.getByRole("main");
     const targetId = link.getAttribute("href")?.replace("#", "");
     expect(main.id).toBe(targetId);
+  });
+
+  it("el pie del menú nombra el plan que recibe, con la palabra «plan» (M-22)", () => {
+    render(<PanelShell {...PROPS} />);
+    // Lo pintan el menú de escritorio y el cajón móvil.
+    expect(screen.getAllByText("Corredora Test · plan Gold").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/· demo/)).toBeNull();
   });
 });

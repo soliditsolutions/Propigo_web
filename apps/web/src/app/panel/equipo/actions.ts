@@ -7,7 +7,7 @@ import { getActor, contarUsuariosOcupados } from "@/lib/queries";
 import { generateResetToken, hashToken } from "@/lib/token";
 import { sendCollaboratorInviteEmail }   from "@/lib/email";
 import { getClientIpFromHeaders }        from "@/lib/ip";
-import { PLANS, getCupoUsuarios }        from "@/lib/plans";
+import { getCupoUsuarios, getPlanEfectivo } from "@/lib/plans";
 import { logError } from "@/lib/logger";
 
 class DomainError extends Error {
@@ -220,9 +220,9 @@ export async function getCupoInfo(): Promise<CupoInfo> {
 
   const max   = getCupoUsuarios(actor.tenant.plan);
   const usado = await contarUsuariosOcupados(actor.tenantId, actor.usuarioId);
-  const plan  = PLANS.find((p) => p.id === actor.tenant.plan);
-
-  return { usado, max, planLabel: plan?.name ?? "Gratuito" };
+  // Mismo nombre que Mi Plan y Propiedades: un id desconocido (p. ej. el
+  // "Gratuito" con que nace toda cuenta) se muestra como el plan que rige.
+  return { usado, max, planLabel: getPlanEfectivo(actor.tenant.plan).name };
 }
 
 // Sin parámetros: toda función exportada de un archivo "use server" es un

@@ -87,6 +87,9 @@ desarrollo, no versiones publicadas.
   la página de error con "Reintentar" en vez de "No encontramos lo que
   buscas". Las descargas y exportaciones distinguen la sesión expirada (401)
   de un problema del servidor (503).
+- **El plan tiene un solo nombre**: Equipo decía "plan Gratuito" y el pie del
+  menú "demo" para una cuenta que Mi Plan y Propiedades muestran como Bronze.
+  Ahora todas las pantallas usan el nombre del plan que rige.
 - **La prueba de retención es repetible**: una ejecución cortada dejaba su
   persona de prueba y la siguiente fallaba por RUT duplicado.
 

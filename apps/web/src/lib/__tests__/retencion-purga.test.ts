@@ -48,19 +48,27 @@ async function preparar(): Promise<boolean> {
     return false;
   }
 
-  const tenants = await prisma.$queryRaw<{ id: string }[]>`SELECT id::text FROM tenant LIMIT 2`;
+  // Orden explícito y tenant A elegido por tener datos: sin ORDER BY, Postgres
+  // devolvía primero la cuenta de prueba persistente (sin propiedades) y la
+  // suite fallaba según el orden físico de las filas.
+  const tenants = await prisma.$queryRaw<{ id: string }[]>`SELECT id::text FROM tenant ORDER BY created_at, id`;
   if (tenants.length < 2) throw new Error("Se necesitan dos corredoras. Corre `npm run db:seed`.");
-  tenantA = tenants[0].id;
-  tenantB = tenants[1].id;
 
-  const ctx = await comoTenant(tenantA, async (tx) => {
-    const p = await tx.persona.findFirst({ where: { tenantId: tenantA }, select: { id: true } });
-    const pr = await tx.propiedad.findFirst({ where: { tenantId: tenantA }, select: { id: true } });
-    const u = await tx.usuario.findFirst({ where: { tenantId: tenantA }, select: { id: true } });
-    if (!p || !pr || !u) throw new Error("Falta data base; corre `npm run db:seed`.");
-    return { p: p.id, pr: pr.id, u: u.id };
-  });
-  personaA = ctx.p; propiedadA = ctx.pr; usuarioA = ctx.u;
+  for (const { id } of tenants) {
+    const ctx = await comoTenant(id, async (tx) => {
+      const p = await tx.persona.findFirst({ where: { tenantId: id }, select: { id: true } });
+      const pr = await tx.propiedad.findFirst({ where: { tenantId: id }, select: { id: true } });
+      const u = await tx.usuario.findFirst({ where: { tenantId: id }, select: { id: true } });
+      return p && pr && u ? { p: p.id, pr: pr.id, u: u.id } : null;
+    });
+    if (ctx) {
+      tenantA = id;
+      personaA = ctx.p; propiedadA = ctx.pr; usuarioA = ctx.u;
+      break;
+    }
+  }
+  if (!tenantA) throw new Error("Falta data base; corre `npm run db:seed`.");
+  tenantB = tenants.find((t) => t.id !== tenantA)!.id;
   return true;
 }
 

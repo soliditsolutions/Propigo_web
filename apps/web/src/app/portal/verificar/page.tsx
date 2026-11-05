@@ -7,7 +7,6 @@ import {
   ShieldCheck, CheckCircle2, ArrowLeft,
   Clock, AlertTriangle, XCircle,
 } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/public/Logo";
 
@@ -108,7 +107,6 @@ function VerificarOtpForm() {
   const router  = useRouter();
   const params  = useSearchParams();
   const otpId   = params.get("id") ?? "";
-  const { show: toast } = useToast();
 
   const [codigo, setCodigo]                         = useState("");
   const [inputError, setInputError]                 = useState<string | null>(null);
@@ -140,13 +138,11 @@ function VerificarOtpForm() {
     setInputError(null);
   }
 
-  // El toast es complementario (llamada de atención inmediata), no la única
-  // fuente del mensaje: un mensaje persistente bajo el campo (role="alert")
-  // asegura que el error siga visible/anunciado aunque el toast ya se haya
-  // autodescartado, y que no dependa solo del cambio de color del borde.
+  // Un solo canal: el mensaje bajo el campo (role="alert"). Repetirlo en un
+  // toast dejaba a la vista, a la vez, avisos de intentos ya superados
+  // ("Te quedan 2…" junto a "Intentos agotados").
   function showError(msg: string) {
     setInputError(msg);
-    toast(msg, "error");
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -161,7 +157,12 @@ function VerificarOtpForm() {
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ otpId, codigo }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
+        if (!data) {
+          // Sin cuerpo JSON: falló el servidor, no la red ni el código.
+          showError("No pudimos verificar el código por un problema de nuestro lado. Intenta de nuevo en unos minutos.");
+          return;
+        }
 
         if (data.ok && data.redirectTo) {
           setExito(true);

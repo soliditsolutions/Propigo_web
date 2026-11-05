@@ -42,50 +42,58 @@ export function normalizarNumeroCuenta(valor: string): string {
   return (valor ?? "").replace(/[^\d]/g, "");
 }
 
+export type CampoCuentaBancaria = "banco" | "tipo" | "numero" | "titular" | "rutTitular" | "email";
+
 /**
- * `null` si los datos son válidos; si no, el motivo en el idioma del corredor.
+ * Todos los problemas de los datos, uno por campo (objeto vacío si están bien),
+ * para mostrarlos juntos y junto a su campo en vez de uno por envío.
  *
  * El riesgo a cuidar acá es el inverso al de `validarRol`: una cuenta mal
  * cargada desvía plata. Por eso el RUT del titular se valida con mod-11 y el
  * número no puede quedar vacío ni ser sospechosamente corto.
  */
-export function validarCuentaBancaria(datos: DatosCuentaBancaria): string | null {
+export function erroresCuentaBancaria(datos: DatosCuentaBancaria): Partial<Record<CampoCuentaBancaria, string>> {
+  const errores: Partial<Record<CampoCuentaBancaria, string>> = {};
+
   const banco = (datos.banco ?? "").trim();
   if (banco.length < 2 || banco.length > 60) {
-    return "Indica el nombre del banco.";
+    errores.banco = "Indica el nombre del banco.";
   }
 
   if (!TIPOS_CUENTA.includes(datos.tipo)) {
-    return "El tipo de cuenta no es válido.";
+    errores.tipo = "El tipo de cuenta no es válido.";
   }
 
   const numero = normalizarNumeroCuenta(datos.numero);
   if (!numero) {
-    return "El número de cuenta es obligatorio.";
-  }
-  if (numero.length < 4 || numero.length > 20) {
-    return "Revisa el número de cuenta: parece incompleto.";
+    errores.numero = "El número de cuenta es obligatorio.";
+  } else if (numero.length < 4 || numero.length > 20) {
+    errores.numero = "Revisa el número de cuenta: parece incompleto.";
   }
 
   const titular = (datos.titular ?? "").trim();
   if (titular.length < 2 || titular.length > 80) {
-    return "Indica el nombre del titular de la cuenta.";
+    errores.titular = "Indica el nombre del titular de la cuenta.";
   }
 
   const rut = (datos.rutTitular ?? "").trim();
   if (!rut) {
-    return "El RUT del titular es obligatorio.";
-  }
-  if (!validateRut(rut)) {
-    return "El RUT del titular no es válido. Verifica el dígito verificador.";
+    errores.rutTitular = "El RUT del titular es obligatorio.";
+  } else if (!validateRut(rut)) {
+    errores.rutTitular = "El RUT del titular no es válido. Verifica el dígito verificador.";
   }
 
   const email = (datos.email ?? "").trim();
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return "El correo del titular no es válido.";
+    errores.email = "El correo del titular no es válido.";
   }
 
-  return null;
+  return errores;
+}
+
+/** `null` si los datos son válidos; si no, el primer motivo (en orden del formulario). */
+export function validarCuentaBancaria(datos: DatosCuentaBancaria): string | null {
+  return Object.values(erroresCuentaBancaria(datos))[0] ?? null;
 }
 
 /** Cuenta bancaria como se muestra en un documento o correo. */

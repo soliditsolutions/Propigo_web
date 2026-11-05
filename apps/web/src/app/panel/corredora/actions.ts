@@ -5,11 +5,15 @@ import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { canonicalRut } from "@/lib/rut";
-import { validarCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
+import { erroresCuentaBancaria, normalizarNumeroCuenta } from "@/lib/cuenta-bancaria";
 
+/**
+ * `campos` trae todos los errores de validación, uno por campo, para que el
+ * formulario los muestre juntos y junto a su campo; `error` resume el primero.
+ */
 export type ResultadoCorredora =
   | { ok: true }
-  | { ok: false; error: string; field?: string };
+  | { ok: false; error: string; campos?: Record<string, string> };
 
 /**
  * Datos de facturación de la corredora: los que van en todo documento que emite
@@ -32,8 +36,11 @@ export async function guardarDatosCorredora(data: {
 
     const giro = data.giro.trim();
     const direccion = data.direccion.trim();
-    if (giro.length > 120) return { ok: false, error: "El giro es demasiado largo.", field: "giro" };
-    if (direccion.length > 200) return { ok: false, error: "La dirección es demasiado larga.", field: "direccion" };
+    const campos: Record<string, string> = {};
+    if (giro.length > 120) campos.giro = "El giro es demasiado largo (máximo 120 caracteres).";
+    if (direccion.length > 200) campos.direccion = "La dirección es demasiado larga (máximo 200 caracteres).";
+    const primero = Object.values(campos)[0];
+    if (primero) return { ok: false, error: primero, campos };
 
     await withTenant(actor.tenantId, (tx) => tx.tenant.update({
       where: { id: actor.tenantId },
@@ -72,8 +79,9 @@ export async function guardarCuentaCorredora(data: {
       return { ok: false, error: "Solo el administrador de la cuenta puede editar la cuenta bancaria." };
     }
 
-    const error = validarCuentaBancaria(data);
-    if (error) return { ok: false, error };
+    const campos = erroresCuentaBancaria(data);
+    const primero = Object.values(campos)[0];
+    if (primero) return { ok: false, error: primero, campos };
 
     const email = data.email.trim() || null;
 

@@ -4,7 +4,7 @@
  *
  * SEGURIDAD:
  * - El código se verifica contra el hash almacenado (SHA-256 + AUTH_SECRET).
- * - Máx 5 intentos por OTP; tras agotar, el OTP queda bloqueado.
+ * - Máx 3 intentos por OTP (los fija solicitar-otp); tras agotar, queda bloqueado.
  * - OTP de un solo uso: se marca `usadoEn` al verificar correctamente.
  * - Sesión JWT firmada con prefijo "portal:" para separar del dominio de panel.
  * - Audit log en acceso_log — Ley 19.628 / 21.719.
@@ -99,7 +99,9 @@ export async function POST(req: NextRequest) {
           errorCode:         restantes > 0 ? "INCORRECTO" : "AGOTADO",
           intentosRestantes: Math.max(0, restantes),
           error:             restantes > 0
-            ? `Código incorrecto. Te quedan ${restantes} intento${restantes !== 1 ? "s" : ""}.`
+            ? restantes === 1
+              ? "Código incorrecto. Te queda 1 intento."
+              : `Código incorrecto. Te quedan ${restantes} intentos.`
             : "Has agotado los intentos. Solicita un nuevo código.",
         },
         { status: 400 },

@@ -186,7 +186,7 @@ function AvatarSection({
 
 // ── Sección: cambiar contraseña ───────────────────────────────────────────────
 
-function CambiarPasswordSection({ nombre, email }: { nombre: string; email: string }) {
+export function CambiarPasswordSection({ nombre, email }: { nombre: string; email: string }) {
   const { show: toast } = useToast();
   const [state, formAction, pending] = useActionState<PasswordState, FormData>(
     cambiarPasswordSegura, null,
@@ -200,10 +200,20 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
   // (controlada) al detectar el estado nuevo en el render, y las otras dos
   // (no controladas) con reset() en el efecto.
   const [estadoVisto, setEstadoVisto] = useState(state);
+  // Campo cuyo error ya se empezó a corregir: el mensaje deja de mostrarse
+  // porque ya no describe lo que está escrito. Un envío nuevo lo restablece.
+  const [corregido, setCorregido] = useState<string | null>(null);
   if (state !== estadoVisto) {
     setEstadoVisto(state);
+    setCorregido(null);
     if (state?.ok) setPwd("");
   }
+  const errorDe = (campo: string) =>
+    !state?.ok && state?.field === campo && corregido !== campo ? state.error : null;
+  const alEditar = (campo: string) => () => { if (state && !state.ok && state.field === campo) setCorregido(campo); };
+  const a11yError = (campo: string) => errorDe(campo)
+    ? { "aria-invalid": true as const, "aria-describedby": `${campo}-error` }
+    : {};
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (!state?.ok) return;
@@ -242,6 +252,8 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
               type={showActual ? "text" : "password"}
               autoComplete="current-password"
               required disabled={pending}
+              onInput={alEditar("passwordActual")}
+              {...a11yError("passwordActual")}
               style={{ ...inputStyle, opacity: pending ? 0.6 : 1 }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
@@ -253,8 +265,8 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
               {showActual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {!state?.ok && state?.field === "passwordActual" && (
-            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+          {errorDe("passwordActual") && (
+            <p id="passwordActual-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{errorDe("passwordActual")}</p>
           )}
         </div>
 
@@ -270,7 +282,8 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
               autoComplete="new-password"
               required disabled={pending}
               value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
+              onChange={(e) => { setPwd(e.target.value); alEditar("passwordNuevo")(); }}
+              {...a11yError("passwordNuevo")}
               style={{ ...inputStyle, opacity: pending ? 0.6 : 1 }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
@@ -284,8 +297,8 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
           </div>
 
           <PasswordStrengthMeter password={pwd} nombre={nombre} email={email} />
-          {!state?.ok && state?.field === "passwordNuevo" && (
-            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+          {errorDe("passwordNuevo") && (
+            <p id="passwordNuevo-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{errorDe("passwordNuevo")}</p>
           )}
         </div>
 
@@ -299,12 +312,14 @@ function CambiarPasswordSection({ nombre, email }: { nombre: string; email: stri
             type="password"
             autoComplete="new-password"
             required disabled={pending}
+            onInput={alEditar("passwordConfirm")}
+            {...a11yError("passwordConfirm")}
             style={{ ...inputStyle, padding: "0 14px", opacity: pending ? 0.6 : 1 }}
             onFocus={(e) => { e.currentTarget.style.borderColor = "var(--pgo-primary)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)"; }}
             onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--pgo-border-2)"; e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)"; }}
           />
-          {!state?.ok && state?.field === "passwordConfirm" && (
-            <p role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{state.error}</p>
+          {errorDe("passwordConfirm") && (
+            <p id="passwordConfirm-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{errorDe("passwordConfirm")}</p>
           )}
         </div>
 

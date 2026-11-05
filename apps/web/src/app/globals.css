@@ -1046,6 +1046,29 @@ html {
 /* Quitar el botón nativo de limpieza del tipo search */
 .pgo-input-search::-webkit-search-cancel-button { display: none; }
 
+/* ── Campo de formulario con estado de error ─────────────────────────── */
+/* El error se lee de aria-invalid: el borde rojo aparece y se va junto con
+   el mensaje, también mientras el campo tiene el foco. */
+.pgo-campo {
+  height: 44px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--pgo-border-2);
+  background: var(--pgo-surface);
+  color: var(--pgo-text-1);
+  font-size: 14px;
+  padding: 0 14px;
+  outline: none;
+  box-shadow: var(--pgo-input-shadow);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.pgo-campo:focus {
+  border-color: var(--pgo-primary);
+  box-shadow: var(--pgo-input-shadow-focus);
+}
+.pgo-campo[aria-invalid="true"] { border-color: var(--pgo-danger); }
+.pgo-campo:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ── Glassmorphism — superficies translúcidas con blur (theme-aware) ─── */
 .pgo-glass {
   background: var(--pgo-surface-glass);

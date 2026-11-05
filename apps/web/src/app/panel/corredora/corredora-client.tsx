@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { Building2, Landmark, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { formatRut } from "@/lib/rut";
-import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA } from "@/lib/cuenta-bancaria";
+import { ETIQUETA_TIPO_CUENTA, TIPOS_CUENTA, erroresCuentaBancaria } from "@/lib/cuenta-bancaria";
 import { guardarDatosCorredora, guardarCuentaCorredora, eliminarCuentaCorredora } from "./actions";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
@@ -13,30 +13,30 @@ type Cuenta = {
   titular: string; rutTitular: string; email: string | null;
 } | null;
 
-const inputBase: React.CSSProperties = {
-  height: "44px", width: "100%", borderRadius: "12px",
-  border: "1px solid var(--pgo-border-2)", background: "var(--pgo-surface)",
-  color: "var(--pgo-text-1)", fontSize: "14px", padding: "0 14px",
-  outline: "none", boxShadow: "var(--pgo-input-shadow)",
-  transition: "border-color 150ms ease, box-shadow 150ms ease",
-};
-const focusHandlers = {
-  onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = "var(--pgo-primary)";
-    e.currentTarget.style.boxShadow = "var(--pgo-input-shadow-focus)";
-  },
-  onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = "var(--pgo-border-2)";
-    e.currentTarget.style.boxShadow = "var(--pgo-input-shadow)";
-  },
-};
+type Errores = Record<string, string>;
+
 const labelStyle: React.CSSProperties = { color: "var(--pgo-text-2)" };
 
-function Campo({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+/** Props de accesibilidad y estilo para un campo con (o sin) error. */
+function propsCampo(id: string, error: string | undefined) {
+  return {
+    id,
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": error ? `${id}-error` : undefined,
+    className: "pgo-campo",
+  } as const;
+}
+
+function Campo({ id, label, children, hint, error }: {
+  id: string; label: string; children: React.ReactNode; hint?: string; error?: string;
+}) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-semibold" style={labelStyle}>{label}</label>
+      <label htmlFor={id} className="block text-sm font-semibold" style={labelStyle}>{label}</label>
       {children}
+      {error && (
+        <p id={`${id}-error`} role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>
+      )}
       {hint && <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>{hint}</p>}
     </div>
   );
@@ -57,6 +57,11 @@ function Seccion({ icon, titulo, children }: { icon: React.ReactNode; titulo: st
   );
 }
 
+/** Lleva el foco al primer campo con error, en el orden del formulario. */
+function enfocarPrimero(contenedor: HTMLElement | null) {
+  contenedor?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+}
+
 export function CorredoraClient({
   datos,
   cuenta,
@@ -65,19 +70,31 @@ export function CorredoraClient({
   cuenta: Cuenta;
 }) {
   const { show: toast } = useToast();
+  const ejecutar = useAccionSegura();
+  const uid = useId();
+  const idDe = (campo: string) => `${uid}-${campo}`;
 
   // ── Datos de facturación ──
   const [esPJ, setEsPJ] = useState(datos.esPersonaJuridica);
   const [giro, setGiro] = useState(datos.giro);
   const [direccion, setDireccion] = useState(datos.direccion);
+  const [erroresDatos, setErroresDatos] = useState<Errores>({});
   const [savingDatos, startDatos] = useTransition();
-  const ejecutar = useAccionSegura();
+  const seccionDatos = useRef<HTMLDivElement>(null);
 
   function guardarDatos() {
     startDatos(async () => {
       const r = await ejecutar(() => guardarDatosCorredora({ esPersonaJuridica: esPJ, giro, direccion }));
       if (!r) return;
-      toast(r.ok ? "Datos guardados." : r.error, r.ok ? "success" : "error");
+      if (r.ok) {
+        setErroresDatos({});
+        toast("Datos guardados.", "success");
+      } else if (r.campos) {
+        setErroresDatos(r.campos);
+        requestAnimationFrame(() => enfocarPrimero(seccionDatos.current));
+      } else {
+        toast(r.error, "error");
+      }
     });
   }
 
@@ -88,14 +105,42 @@ export function CorredoraClient({
   const [titular, setTitular] = useState(cuenta?.titular ?? "");
   const [rutTitular, setRutTitular] = useState(cuenta?.rutTitular ?? "");
   const [emailCuenta, setEmailCuenta] = useState(cuenta?.email ?? "");
+  const [erroresCuenta, setErroresCuenta] = useState<Errores>({});
   const [savingCuenta, startCuenta] = useTransition();
   const [borrando, startBorrar] = useTransition();
+  const seccionCuenta = useRef<HTMLDivElement>(null);
+
+  /** Al corregir un campo, su error deja de mostrarse: ya no describe lo escrito. */
+  function limpiar(set: React.Dispatch<React.SetStateAction<Errores>>, campo: string) {
+    set((prev) => {
+      if (!(campo in prev)) return prev;
+      const resto = { ...prev };
+      delete resto[campo];
+      return resto;
+    });
+  }
 
   function guardarCuenta() {
+    const datosCuenta = { banco, tipo, numero, titular, rutTitular, email: emailCuenta };
+    // Mismas reglas que el servidor: todos los errores de una vez, sin ida y vuelta.
+    const locales = erroresCuentaBancaria(datosCuenta) as Errores;
+    if (Object.keys(locales).length > 0) {
+      setErroresCuenta(locales);
+      requestAnimationFrame(() => enfocarPrimero(seccionCuenta.current));
+      return;
+    }
     startCuenta(async () => {
-      const r = await ejecutar(() => guardarCuentaCorredora({ banco, tipo, numero, titular, rutTitular, email: emailCuenta }));
+      const r = await ejecutar(() => guardarCuentaCorredora(datosCuenta));
       if (!r) return;
-      toast(r.ok ? "Cuenta bancaria guardada." : r.error, r.ok ? "success" : "error");
+      if (r.ok) {
+        setErroresCuenta({});
+        toast("Cuenta bancaria guardada.", "success");
+      } else if (r.campos) {
+        setErroresCuenta(r.campos);
+        requestAnimationFrame(() => enfocarPrimero(seccionCuenta.current));
+      } else {
+        toast(r.error, "error");
+      }
     });
   }
 
@@ -105,6 +150,7 @@ export function CorredoraClient({
       if (!r) return;
       if (r.ok) {
         setBanco(""); setNumero(""); setTitular(""); setRutTitular(""); setEmailCuenta(""); setTipo("corriente");
+        setErroresCuenta({});
         toast("Cuenta bancaria eliminada.", "success");
       } else {
         toast(r.error, "error");
@@ -116,13 +162,11 @@ export function CorredoraClient({
     <div className="mx-auto max-w-2xl space-y-6">
       <Seccion icon={<Building2 className="h-4 w-4" aria-hidden />} titulo="Identificación y facturación">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Campo label="Razón social">
-            <input type="text" value={datos.nombre} disabled
-              style={{ ...inputBase, opacity: 0.6, cursor: "not-allowed" }} />
+          <Campo id={idDe("razon")} label="Razón social">
+            <input id={idDe("razon")} type="text" value={datos.nombre} disabled className="pgo-campo" />
           </Campo>
-          <Campo label="RUT" hint="Identifica la cuenta; no se puede cambiar aquí.">
-            <input type="text" value={datos.rut ? formatRut(datos.rut) : ""} disabled
-              style={{ ...inputBase, opacity: 0.6, cursor: "not-allowed" }} />
+          <Campo id={idDe("rut")} label="RUT" hint="Identifica la cuenta; no se puede cambiar aquí.">
+            <input id={idDe("rut")} type="text" value={datos.rut ? formatRut(datos.rut) : ""} disabled className="pgo-campo" />
           </Campo>
         </div>
 
@@ -148,15 +192,19 @@ export function CorredoraClient({
           ))}
         </fieldset>
 
-        <Campo label="Giro" hint="Aparece en el encabezado de cada comprobante y liquidación.">
-          <input type="text" value={giro} onChange={(e) => setGiro(e.target.value)}
-            placeholder="Corretaje de propiedades" style={inputBase} {...focusHandlers} />
-        </Campo>
+        <div ref={seccionDatos} className="space-y-5">
+          <Campo id={idDe("giro")} label="Giro" hint="Aparece en el encabezado de cada comprobante y liquidación." error={erroresDatos.giro}>
+            <input type="text" value={giro}
+              onChange={(e) => { setGiro(e.target.value); limpiar(setErroresDatos, "giro"); }}
+              placeholder="Corretaje de propiedades" {...propsCampo(idDe("giro"), erroresDatos.giro)} />
+          </Campo>
 
-        <Campo label="Domicilio comercial">
-          <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)}
-            placeholder="Av. Providencia 1234, oficina 501, Providencia" style={inputBase} {...focusHandlers} />
-        </Campo>
+          <Campo id={idDe("direccion")} label="Domicilio comercial" error={erroresDatos.direccion}>
+            <input type="text" value={direccion}
+              onChange={(e) => { setDireccion(e.target.value); limpiar(setErroresDatos, "direccion"); }}
+              placeholder="Av. Providencia 1234, oficina 501, Providencia" {...propsCampo(idDe("direccion"), erroresDatos.direccion)} />
+          </Campo>
+        </div>
 
         <button type="button" onClick={guardarDatos} disabled={savingDatos}
           className="pgo-btn inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
@@ -172,41 +220,49 @@ export function CorredoraClient({
           sensible: no se muestra en el marketplace ni a terceros.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Campo label="Banco">
-            <input type="text" value={banco} onChange={(e) => setBanco(e.target.value)}
-              placeholder="Banco de Chile" style={inputBase} {...focusHandlers} />
+        <div ref={seccionCuenta} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo id={idDe("banco")} label="Banco" error={erroresCuenta.banco}>
+              <input type="text" value={banco}
+                onChange={(e) => { setBanco(e.target.value); limpiar(setErroresCuenta, "banco"); }}
+                placeholder="Banco de Chile" {...propsCampo(idDe("banco"), erroresCuenta.banco)} />
+            </Campo>
+            <Campo id={idDe("tipo")} label="Tipo de cuenta" error={erroresCuenta.tipo}>
+              <select value={tipo}
+                onChange={(e) => { setTipo(e.target.value); limpiar(setErroresCuenta, "tipo"); }}
+                {...propsCampo(idDe("tipo"), erroresCuenta.tipo)}>
+                {TIPOS_CUENTA.map((t) => (
+                  <option key={t} value={t}>{ETIQUETA_TIPO_CUENTA[t] ?? t}</option>
+                ))}
+              </select>
+            </Campo>
+          </div>
+
+          <Campo id={idDe("numero")} label="Número de cuenta" error={erroresCuenta.numero}>
+            <input type="text" inputMode="numeric" value={numero}
+              onChange={(e) => { setNumero(e.target.value.replace(/[^\d\s-]/g, "")); limpiar(setErroresCuenta, "numero"); }}
+              placeholder="0012345678" {...propsCampo(idDe("numero"), erroresCuenta.numero)} />
           </Campo>
-          <Campo label="Tipo de cuenta">
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={inputBase} {...focusHandlers}>
-              {TIPOS_CUENTA.map((t) => (
-                <option key={t} value={t}>{ETIQUETA_TIPO_CUENTA[t] ?? t}</option>
-              ))}
-            </select>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo id={idDe("titular")} label="Titular" error={erroresCuenta.titular}>
+              <input type="text" value={titular}
+                onChange={(e) => { setTitular(e.target.value); limpiar(setErroresCuenta, "titular"); }}
+                placeholder="Corredora del Sur SpA" {...propsCampo(idDe("titular"), erroresCuenta.titular)} />
+            </Campo>
+            <Campo id={idDe("rutTitular")} label="RUT del titular" error={erroresCuenta.rutTitular}>
+              <input type="text" value={rutTitular}
+                onChange={(e) => { setRutTitular(e.target.value); limpiar(setErroresCuenta, "rutTitular"); }}
+                placeholder="76.123.456-0" {...propsCampo(idDe("rutTitular"), erroresCuenta.rutTitular)} />
+            </Campo>
+          </div>
+
+          <Campo id={idDe("email")} label="Correo para el comprobante (opcional)" hint="A dónde el arrendatario envía el comprobante de la transferencia." error={erroresCuenta.email}>
+            <input type="email" value={emailCuenta}
+              onChange={(e) => { setEmailCuenta(e.target.value); limpiar(setErroresCuenta, "email"); }}
+              placeholder="pagos@tucorredora.cl" {...propsCampo(idDe("email"), erroresCuenta.email)} />
           </Campo>
         </div>
-
-        <Campo label="Número de cuenta">
-          <input type="text" inputMode="numeric" value={numero}
-            onChange={(e) => setNumero(e.target.value.replace(/[^\d\s-]/g, ""))}
-            placeholder="0012345678" style={inputBase} {...focusHandlers} />
-        </Campo>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Campo label="Titular">
-            <input type="text" value={titular} onChange={(e) => setTitular(e.target.value)}
-              placeholder="Corredora del Sur SpA" style={inputBase} {...focusHandlers} />
-          </Campo>
-          <Campo label="RUT del titular">
-            <input type="text" value={rutTitular} onChange={(e) => setRutTitular(e.target.value)}
-              placeholder="76.123.456-0" style={inputBase} {...focusHandlers} />
-          </Campo>
-        </div>
-
-        <Campo label="Correo para el comprobante (opcional)" hint="A dónde el arrendatario envía el comprobante de la transferencia.">
-          <input type="email" value={emailCuenta} onChange={(e) => setEmailCuenta(e.target.value)}
-            placeholder="pagos@tucorredora.cl" style={inputBase} {...focusHandlers} />
-        </Campo>
 
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={guardarCuenta} disabled={savingCuenta}

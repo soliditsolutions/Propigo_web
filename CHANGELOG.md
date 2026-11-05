@@ -92,6 +92,15 @@ desarrollo, no versiones publicadas.
   Ahora todas las pantallas usan el nombre del plan que rige.
 - **La prueba de retención es repetible**: una ejecución cortada dejaba su
   persona de prueba y la siguiente fallaba por RUT duplicado.
+- **Cada error se muestra una vez y donde corresponde** (M-23, M-25, M-27):
+  - el portal ya no repite en un toast el error del código, que dejaba a la
+    vista avisos de intentos ya superados; dice "Te queda 1 intento" y
+    distingue un fallo del servidor de uno de conexión;
+  - en Datos de la corredora los errores de la cuenta bancaria y de
+    facturación salen todos a la vez, junto a su campo (con `aria-invalid` y
+    el foco en el primero), en vez de uno por envío en un toast;
+  - en Datos de la corredora y en Seguridad el error de un campo desaparece al
+    corregirlo.
 
 ---
 

@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from "vitest";
 import {
-  validarCuentaBancaria, normalizarNumeroCuenta, bloqueTransferencia,
+  validarCuentaBancaria, erroresCuentaBancaria, normalizarNumeroCuenta, bloqueTransferencia,
   cuentaParaMostrar, TIPOS_CUENTA,
 } from "../cuenta-bancaria";
 
@@ -19,6 +19,18 @@ const base = {
   rutTitular: "76123456-0",
   email: "pagos@corredorademo.cl",
 };
+
+describe("erroresCuentaBancaria", () => {
+  it("devuelve todos los problemas a la vez, uno por campo (M-25)", () => {
+    const e = erroresCuentaBancaria({ ...base, rutTitular: "76123456-9", email: "no-es-correo", banco: "" });
+    expect(Object.keys(e)).toEqual(["banco", "rutTitular", "email"]);
+    expect(e.rutTitular).toMatch(/dígito verificador/i);
+  });
+
+  it("objeto vacío si todo está bien", () => {
+    expect(erroresCuentaBancaria(base)).toEqual({});
+  });
+});
 
 describe("validarCuentaBancaria", () => {
   it("acepta una cuenta completa y bien formada", () => {

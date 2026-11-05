@@ -87,6 +87,8 @@ desarrollo, no versiones publicadas.
   la página de error con "Reintentar" en vez de "No encontramos lo que
   buscas". Las descargas y exportaciones distinguen la sesión expirada (401)
   de un problema del servidor (503).
+- **La prueba de retención es repetible**: una ejecución cortada dejaba su
+  persona de prueba y la siguiente fallaba por RUT duplicado.
 
 ---
 

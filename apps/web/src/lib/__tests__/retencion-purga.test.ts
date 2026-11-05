@@ -127,6 +127,9 @@ async function limpiar() {
       await tx.auditoriaEquipo.deleteMany({ where: { accion: { startsWith: MARCA } } });
       await tx.codigoRectificacionPersona.deleteMany({ where: { codigoHash: { startsWith: MARCA } } });
       await tx.solicitudDerechoPersona.deleteMany({ where: { detalle: { startsWith: MARCA } } });
+      // Al final, porque sus registros dependen de ella. Una ejecución cortada a
+      // medias dejaba la persona viva y la siguiente chocaba con el RUT único.
+      await tx.persona.deleteMany({ where: { rut: { startsWith: MARCA } } });
     });
   }
 }
@@ -233,7 +236,6 @@ cuando("la purga no cruza de corredora", () => {
       expect(enB).toBe(2);
     } finally {
       await limpiar();
-      await comoTenant(tenantB, (tx) => tx.persona.delete({ where: { id: personaB } }));
     }
   });
 });

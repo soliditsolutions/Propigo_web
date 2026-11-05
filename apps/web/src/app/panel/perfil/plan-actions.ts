@@ -16,6 +16,7 @@ import {
 } from "@/lib/billing/cambio-plan";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendSolicitudCambioPlanEmail } from "@/lib/email";
+import { logError } from "@/lib/logger";
 
 export type CambioPlanState =
   | { ok: true; tipo: TipoCambio; planDestino: string }
@@ -76,7 +77,8 @@ export async function solicitarCambioPlanAction(input: {
     diferenciaUf = diferenciaUpgradeUf(origen, destino);
     try {
       diferenciaTotalClp = desglosarPrecioClp(diferenciaUf, await getUfCLP(new Date())).totalClp;
-    } catch {
+    } catch (e) {
+      logError("plan/valor-uf", e);
       // Sin valor UF disponible el correo lleva solo el monto en UF, que es el que manda.
       diferenciaTotalClp = null;
     }

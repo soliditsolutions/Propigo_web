@@ -6,6 +6,7 @@ import { withTenant }     from "@/lib/tenant-db";
 import { hashToken }      from "@/lib/token";
 import { hashPassword }   from "@/lib/password";
 import { evaluatePassword } from "@/lib/password-strength";
+import { logError } from "@/lib/logger";
 
 export type NuevaContrasenaState = { error: string } | null;
 
@@ -80,7 +81,8 @@ export async function nuevaContrasenaAction(
         data:  { passwordHash },
       });
     });
-  } catch {
+  } catch (e) {
+    logError("nueva-contrasena/guardar", e);
     return { error: "No pudimos actualizar tu contraseña. Intenta de nuevo." };
   }
 

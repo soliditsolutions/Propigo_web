@@ -3,6 +3,7 @@
  * del arrendatario (aviso opcional) y sin correo duplicado.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { redirect } from "next/navigation";
 
 const mockGetActor = vi.fn();
 vi.mock("@/lib/queries", async () => ({
@@ -85,7 +86,8 @@ describe("POST comentarios", () => {
   });
 
   it("401 si getActor falla", async () => {
-    mockGetActor.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    // Igual que getActor real: sin sesión hace redirect("/login").
+    mockGetActor.mockImplementation(async () => redirect("/login"));
     expect((await enviar()).status).toBe(401);
   });
 });

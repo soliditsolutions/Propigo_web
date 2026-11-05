@@ -8,6 +8,7 @@ import { hashPassword }                  from "@/lib/password";
 import { evaluatePassword }              from "@/lib/password-strength";
 import { signSession, setSessionCookie } from "@/lib/auth";
 import { getCupoUsuarios }               from "@/lib/plans";
+import { logError } from "@/lib/logger";
 
 export type AceptarInvitacionState = { error: string; field?: string } | null;
 
@@ -126,7 +127,8 @@ export async function aceptarInvitacionAction(
       });
       return usuario;
     });
-  } catch {
+  } catch (e) {
+    logError("invitacion/crear-cuenta", e);
     return { error: "No pudimos crear tu cuenta. Intenta de nuevo." };
   }
 
@@ -140,7 +142,8 @@ export async function aceptarInvitacionAction(
       perfilCompleto: false,
     });
     await setSessionCookie(token);
-  } catch {
+  } catch (e) {
+    logError("invitacion/iniciar-sesion", e);
     return { error: "Cuenta creada, pero no pudimos iniciar sesión. Intenta ingresar desde /login." };
   }
 

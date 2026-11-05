@@ -4,6 +4,7 @@
  * quede registrado en la auditoría del equipo.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { redirect } from "next/navigation";
 
 const mockGetActor = vi.fn();
 vi.mock("@/lib/queries", () => ({ getActor: mockGetActor }));
@@ -51,7 +52,8 @@ beforeEach(() => {
 
 describe("GET /api/panel/personas/[id]/export-datos", () => {
   it("401 sin sesión", async () => {
-    mockGetActor.mockRejectedValue(new Error("no session"));
+    // Igual que getActor real: sin sesión hace redirect("/login").
+    mockGetActor.mockImplementation(async () => redirect("/login"));
     expect((await req()).status).toBe(401);
   });
 

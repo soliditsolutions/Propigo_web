@@ -4,6 +4,7 @@
  * propiedades no asignadas, y un usuario desactivado seguía descargando.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { redirect } from "next/navigation";
 
 const mockGetActor = vi.fn();
 vi.mock("@/lib/queries", () => ({ getActor: mockGetActor }));
@@ -28,7 +29,8 @@ describe("GET /api/documentos/[id]", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("401 si getActor falla (sin sesión o usuario desactivado)", async () => {
-    mockGetActor.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    // Igual que getActor real: sin sesión hace redirect("/login").
+    mockGetActor.mockImplementation(async () => redirect("/login"));
     expect((await pedir()).status).toBe(401);
     expect(mockFindFirst).not.toHaveBeenCalled();
   });

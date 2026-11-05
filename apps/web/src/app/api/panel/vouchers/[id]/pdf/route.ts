@@ -11,13 +11,13 @@
  */
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { ComprobantePdfDocument } from "@/lib/comprobante-pdf";
 import { DevolucionGarantiaDocument } from "@/lib/garantia-devolucion-pdf";
 import { idFiltro } from "@/lib/busqueda";
 import type { SnapshotPago, SnapshotLiquidacion, SnapshotGarantia } from "@/lib/comprobante";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 export async function GET(
   _req: Request,
@@ -28,12 +28,8 @@ export async function GET(
     return NextResponse.json({ error: "Comprobante no encontrado." }, { status: 404 });
   }
 
-  let actor;
-  try {
-    actor = await getActor();
-  } catch {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const actor = await actorDeRuta("vouchers/pdf");
+  if (actor instanceof NextResponse) return actor;
 
   const voucher = await withTenant(actor.tenantId, (tx) => tx.voucher.findFirst({
     where: { id, tenantId: actor.tenantId },

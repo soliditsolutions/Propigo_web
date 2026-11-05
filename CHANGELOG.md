@@ -35,6 +35,9 @@ desarrollo, no versiones publicadas.
 
 ### Seguridad
 
+- **Las verificaciones de RUT y correo únicos ya no se saltan si la base
+  falla.** Antes, un error en la consulta se leía como "no existe" y dejaba
+  seguir: ahora se rechaza la operación hasta poder verificar.
 - **Política de seguridad de contenido (CSP) con nonce en todo el sitio
   público**: portada, marketplace, legales y portal. Navegar el sitio público
   ya no renueva la inactividad del panel.
@@ -77,6 +80,13 @@ desarrollo, no versiones publicadas.
 - Enviar un mensaje al arrendatario sin conexión ya no lleva a la página de
   error: se avisa y el texto sigue escrito. Las rutas de dispositivos y
   comentarios responden con un mensaje claro y dejan rastro si fallan.
+- **Los fallos inesperados del servidor ahora quedan registrados.** Más de
+  40 errores se descartaban sin rastro y el usuario solo leía "Intenta de
+  nuevo".
+- **Un contrato no se da por inexistente cuando la base falla**: se muestra
+  la página de error con "Reintentar" en vez de "No encontramos lo que
+  buscas". Las descargas y exportaciones distinguen la sesión expirada (401)
+  de un problema del servidor (503).
 
 ---
 

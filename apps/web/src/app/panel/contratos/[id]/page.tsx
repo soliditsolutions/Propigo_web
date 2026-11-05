@@ -12,6 +12,22 @@ import { AnexosSection } from "./anexos-section";
 import { ExportDatosPersona } from "./export-datos-persona";
 import { ComentariosCorredorSection } from "@/components/panel/ComentariosCorredorSection";
 import { verificarYExtenderCalendario } from "@/lib/auto-extender";
+import { idFiltro } from "@/lib/busqueda";
+import { Prisma } from "@/generated/prisma/client";
+
+/**
+ * Detalle del contrato o 404 si no existe. Solo "no existe" es 404: una falla
+ * de la base se relanza para que la página de error ofrezca reintentar, en vez
+ * de decirle al corredor que su contrato no está.
+ */
+async function detalleOError(tenantId: string, id: string) {
+  try {
+    return await getContratoDetalle(tenantId, id);
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") notFound();
+    throw e;
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -51,15 +67,11 @@ export default async function ContratoDetallePage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  if (!idFiltro(id)) notFound();
   const actor  = await getActor();
   const tenant = actor.tenant;
 
-  let detalle;
-  try {
-    detalle = await getContratoDetalle(tenant.id, id);
-  } catch {
-    notFound();
-  }
+  let detalle = await detalleOError(tenant.id, id);
 
   // ADR-0013 (Fase D) — un Colaborador solo ve contratos de propiedades que
   // tiene asignadas; mismo trato que "no existe" (ROL-SEC-2), no un error.
@@ -71,7 +83,7 @@ export default async function ContratoDetallePage({
   if (detalle.estado === "vigente" && !detalle.fechaFin && detalle.periodos.length > 0) {
     const extendido = await verificarYExtenderCalendario(tenant.id, id, detalle);
     if (extendido) {
-      try { detalle = await getContratoDetalle(tenant.id, id); } catch { notFound(); }
+      detalle = await detalleOError(tenant.id, id);
     }
   }
 

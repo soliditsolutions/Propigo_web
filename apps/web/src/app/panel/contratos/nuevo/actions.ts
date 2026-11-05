@@ -46,7 +46,8 @@ export async function buscarPersonas(query: string): Promise<PersonaBusqueda[]> 
       orderBy: { nombre: "asc" },
     }));
     return personas;
-  } catch {
+  } catch (e) {
+    logError("contratos-nuevo/buscar-personas", e);
     return [];
   }
 }

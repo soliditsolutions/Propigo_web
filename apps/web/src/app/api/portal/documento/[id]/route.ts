@@ -17,6 +17,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { idFiltro } from "@/lib/busqueda";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
+import { logError } from "@/lib/logger";
 
 const MIME_BY_EXT: Record<string, string> = {
   pdf:  "application/pdf",
@@ -84,7 +85,8 @@ export async function GET(
   let fileBuffer: Buffer;
   try {
     fileBuffer = await readFile(filePath);
-  } catch {
+  } catch (e) {
+    logError("portal-documento/leer-archivo", e);
     return NextResponse.json({ error: "Archivo no disponible." }, { status: 404 });
   }
 
@@ -97,7 +99,7 @@ export async function GET(
       accion:      "portal_documento_descargado",
       ip,
     },
-  })).catch(() => {});
+  })).catch((e) => logError("portal-documento/auditoria", e));
 
   const ext      = safeName.split(".").pop()?.toLowerCase() ?? "";
   const mimeType = MIME_BY_EXT[ext] ?? "application/octet-stream";

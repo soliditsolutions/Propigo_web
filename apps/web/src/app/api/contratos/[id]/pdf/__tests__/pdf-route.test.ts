@@ -4,6 +4,7 @@
  * 404 en vez de 403 para no revelar la existencia del contrato a un Colaborador sin acceso).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { redirect } from "next/navigation";
 
 const mockGetActor = vi.fn();
 vi.mock("@/lib/queries", () => ({ getActor: mockGetActor }));
@@ -57,7 +58,8 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("GET /api/contratos/[id]/pdf", () => {
   it("401 si no hay sesión", async () => {
-    mockGetActor.mockRejectedValue(new Error("no session"));
+    // Igual que getActor real: sin sesión hace redirect("/login").
+    mockGetActor.mockImplementation(async () => redirect("/login"));
     const res = await req();
     expect(res.status).toBe(401);
   });

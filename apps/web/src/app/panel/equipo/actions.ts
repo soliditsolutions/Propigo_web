@@ -8,6 +8,7 @@ import { generateResetToken, hashToken } from "@/lib/token";
 import { sendCollaboratorInviteEmail }   from "@/lib/email";
 import { getClientIpFromHeaders }        from "@/lib/ip";
 import { PLANS, getCupoUsuarios }        from "@/lib/plans";
+import { logError } from "@/lib/logger";
 
 class DomainError extends Error {
   constructor(msg: string) { super(msg); this.name = "DomainError"; }
@@ -66,8 +67,11 @@ export async function invitarColaboradorAction(
   // Unicidad global — misma función SECURITY DEFINER que usa /registro.
   const rows = await prisma.$queryRaw<{ existe: boolean }[]>`
     SELECT auth_email_existe(${email}) AS existe
-  `.catch(() => null);
-  if (rows?.[0]?.existe) {
+  `.catch((e) => { logError("equipo/unicidad-correo", e); return null; });
+  // Si no se pudo verificar, no se invita: dejarlo pasar abriría la puerta a
+  // un correo duplicado entre cuentas.
+  if (!rows) return { ok: false, error: "No pudimos verificar los datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
+  if (rows[0]?.existe) {
     return { ok: false, error: "Ya existe una cuenta con ese correo.", field: "email" };
   }
 
@@ -94,7 +98,8 @@ export async function invitarColaboradorAction(
       }),
     ]);
     await sendCollaboratorInviteEmail(email, nombreLimpio, rawToken, actor.tenant.nombre);
-  } catch {
+  } catch (e) {
+    logError("equipo/invitar", e);
     return { ok: false, error: "Error al enviar la invitación. Intenta de nuevo." };
   }
 
@@ -107,7 +112,7 @@ export async function invitarColaboradorAction(
       detalle:  email,
       ip,
     },
-  })).catch(() => { /* la invitación ya se envió; no bloquear por un fallo de auditoría */ });
+  })).catch((e) => logError("equipo/auditoria-invitar", e));
 
   return { ok: true };
 }
@@ -146,6 +151,7 @@ export async function desactivarColaboradorAction(usuarioId: string): Promise<Ac
     });
   } catch (err) {
     if (err instanceof DomainError) return { ok: false, error: err.message };
+    logError("equipo/desactivar", err);
     return { ok: false, error: "Error al desactivar. Intenta de nuevo." };
   }
 
@@ -180,6 +186,7 @@ export async function reactivarColaboradorAction(usuarioId: string): Promise<Acc
     });
   } catch (err) {
     if (err instanceof DomainError) return { ok: false, error: err.message };
+    logError("equipo/reactivar", err);
     return { ok: false, error: "Error al reactivar. Intenta de nuevo." };
   }
 

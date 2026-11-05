@@ -22,6 +22,7 @@ import type { TenantClient } from "../tenant-db";
 import { PLANS, getPlanEfectivo, precioUf, desglosarPrecioClp } from "../plans";
 import type { BillingGateway, DesgloseMonto } from "./gateway";
 import { MARCA } from "@/lib/marca";
+import { logError } from "@/lib/logger";
 
 export type Ciclo = "mensual" | "anual";
 
@@ -188,7 +189,8 @@ export async function activarSuscripcionConTarjeta(params: {
       idempotencyKey, tenantId, medioPago: medio.referencia, monto,
       descripcion: `${MARCA} ${planId} (${ciclo}) — ${periodo}`,
     });
-  } catch {
+  } catch (e) {
+    logError("billing/cobrar", e);
     await tx.cargoBilling.update({
       where: { id: cargo.id },
       data:  {

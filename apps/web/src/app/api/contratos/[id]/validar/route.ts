@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getActor, alcanceContrato } from "@/lib/queries";
+import { alcanceContrato } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { evaluarReglasContrato } from "@/lib/contract-rules";
 import { idFiltro } from "@/lib/busqueda";
 import { logError } from "@/lib/logger";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 export type ValidacionEstado = "aprobado" | "con_alertas" | "requiere_revision";
 
@@ -105,9 +106,8 @@ export async function POST(
 
     // getActor (y no solo el tenant): un Colaborador solo opera sobre
     // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
-    let actor;
-    try { actor = await getActor(); }
-    catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const actor = await actorDeRuta("contratos/validar");
+    if (actor instanceof NextResponse) return actor;
     const tenant = actor.tenant;
 
     const { id: contratoId } = await params;
@@ -178,9 +178,8 @@ export async function PUT(
 
     // getActor (y no solo el tenant): un Colaborador solo opera sobre
     // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
-    let actor;
-    try { actor = await getActor(); }
-    catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const actor = await actorDeRuta("contratos/validar");
+    if (actor instanceof NextResponse) return actor;
     const tenant = actor.tenant;
 
     const { id: contratoId } = await params;

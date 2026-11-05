@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getTenant, getProyeccionesRiesgo } from "@/lib/queries";
+import { getProyeccionesRiesgo } from "@/lib/queries";
+import { actorDeRuta } from "@/lib/actor-ruta";
 import { puedeExportar } from "@/lib/plans";
 
 /**
@@ -21,12 +22,9 @@ export async function GET() {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  let tenant;
-  try {
-    tenant = await getTenant();
-  } catch {
-    return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 });
-  }
+  const actor = await actorDeRuta("estadisticas/exportar");
+  if (actor instanceof NextResponse) return actor;
+  const tenant = actor.tenant;
 
   // La capacidad vive en la definición del plan (lib/plans.ts), no en una
   // comparación de strings acá: los planes cambiaron y la exportación pasó a

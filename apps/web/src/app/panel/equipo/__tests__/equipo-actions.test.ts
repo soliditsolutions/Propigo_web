@@ -192,3 +192,18 @@ describe("getCupoInfo — información de cupo para la UI", () => {
     await expect(getCupoInfo()).rejects.toThrow(/solo el administrador/i);
   });
 });
+
+describe("invitarColaboradorAction — unicidad del correo (M-17)", () => {
+  it("si no se puede verificar el correo, no invita (falla cerrado)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockGetActor.mockResolvedValue(actorManager("gold"));
+    mockUsuarioCount.mockResolvedValue(0);
+    mockInvitacionCount.mockResolvedValue(0);
+    mockQueryRaw.mockRejectedValue(new Error("db caída"));
+
+    const res = await invitarColaboradorAction("Nuevo Colaborador", "nuevo@empresa.cl");
+
+    expect(res).toMatchObject({ ok: false, error: expect.stringMatching(/No pudimos verificar/) });
+    expect(mockInvitacionCreate).not.toHaveBeenCalled();
+  });
+});

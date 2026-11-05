@@ -7,7 +7,6 @@
  */
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { convertirUfAClp } from "@propigo/core";
@@ -15,6 +14,7 @@ import { getUfCLPTx } from "@/lib/queries";
 import { construirEstadoCuenta, type PeriodoDeuda } from "@/lib/estado-cuenta";
 import { idFiltro } from "@/lib/busqueda";
 import { EstadoCuentaDocument } from "@/lib/estado-cuenta-pdf";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 export async function GET(
   _req: Request,
@@ -25,12 +25,8 @@ export async function GET(
     return NextResponse.json({ error: "Contrato no encontrado." }, { status: 404 });
   }
 
-  let actor;
-  try {
-    actor = await getActor();
-  } catch {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const actor = await actorDeRuta("contratos/estado-cuenta-pdf");
+  if (actor instanceof NextResponse) return actor;
 
   const hoy = new Date();
 

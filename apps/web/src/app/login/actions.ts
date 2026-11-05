@@ -9,6 +9,7 @@ import { verifyPassword }            from "@/lib/password";
 import { signSession, setSessionCookie, DEVICE_COOKIE_NAME } from "@/lib/auth";
 import { getClientIpFromHeaders }    from "@/lib/ip";
 import { checkRateLimit }            from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 export type LoginState = {
   error:        string;
@@ -65,7 +66,7 @@ async function checkIpLimitInDb(tenantId: string, ip: string): Promise<boolean> 
 
 async function registrarIntentoLogin(tenantId: string, ip: string): Promise<void> {
   await withTenant(tenantId, (tx) => tx.accesoLog.create({ data: { tenantId, ip, accion: "login_intento" } }))
-    .catch(() => { /* no bloquear el flujo si falla el log */ });
+    .catch((e) => logError("login/registrar-intento", e));
 }
 
 // ── Server Action ────────────────────────────────────────────────────────────
@@ -130,7 +131,8 @@ export async function loginAction(
       lockedUntil:    row.locked_until,
       desactivadoEn:  row.desactivado_en,
     } : null;
-  } catch {
+  } catch (e) {
+    logError("login/buscar-usuario", e);
     // Falla de nuestra base, no de la red del usuario (M-08).
     return { error: "No pudimos verificar tus datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
   }
@@ -186,7 +188,7 @@ export async function loginAction(
           failedAttempts: newAttempts,
           ...(lockUntil ? { lockedUntil: lockUntil } : {}),
         },
-      })).catch(() => {});
+      })).catch((e) => logError("login/contar-fallo", e));
 
       const isPermanent = newAttempts >= MAX_ATTEMPTS;
       return {
@@ -238,7 +240,7 @@ export async function loginAction(
         await prisma.dispositivoConfiable.update({
           where: { id: dispositivo.id },
           data:  { lastSeenAt: new Date() },
-        }).catch(() => { /* no crítico */ });
+        }).catch((e) => logError("login/ultimo-acceso-dispositivo", e));
       }
     }
 
@@ -253,7 +255,8 @@ export async function loginAction(
     });
 
     await setSessionCookie(token);
-  } catch {
+  } catch (e) {
+    logError("login/iniciar-sesion", e);
     return { error: "No pudimos iniciar tu sesión. Intenta de nuevo." };
   }
 

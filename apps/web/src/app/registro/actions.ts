@@ -11,6 +11,7 @@ import { verificarMagicBytes, ALLOWED_MIME_IMAGES } from "@/lib/magic-bytes";
 import { getClientIpFromHeaders }          from "@/lib/ip";
 import { checkRateLimit }                  from "@/lib/rate-limit";
 import { z }                               from "zod";
+import { logError } from "@/lib/logger";
 
 // Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
 // verificación de identidad esperando indefinidamente en vez de fallar rápido.
@@ -278,7 +279,8 @@ export async function registroAction(
     let carnetDatos: CarnetIA;
     try {
       carnetDatos = await leerCarnetConIA(base64, carnetFile.type);
-    } catch {
+    } catch (e) {
+      logError("registro/leer-carnet", e);
       return {
         error: "No pudimos procesar la imagen en este momento. Intenta de nuevo en unos segundos.",
         field: "carnet",
@@ -346,8 +348,9 @@ export async function registroAction(
         field: esPersonaJuridica ? "rutEmpresa" : "rut",
       };
     }
-  } catch {
-    return { error: "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo." };
+  } catch (e) {
+    logError("registro/verificar-unicidad", e);
+    return { error: "No pudimos verificar los datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
   }
 
   // ── 4. Crear Tenant + Usuario en transacción atómica ─────────────────────
@@ -411,7 +414,8 @@ export async function registroAction(
 
       return usuario;
     });
-  } catch {
+  } catch (e) {
+    logError("registro/crear-cuenta", e);
     return { error: "No pudimos crear tu cuenta. Intenta de nuevo." };
   }
 
@@ -427,7 +431,8 @@ export async function registroAction(
       perfilCompleto: false,
     });
     await setSessionCookie(token);
-  } catch {
+  } catch (e) {
+    logError("registro/iniciar-sesion", e);
     return { error: "Cuenta creada, pero no pudimos iniciar sesión. Intenta ingresar." };
   }
 

@@ -85,7 +85,7 @@ vi.mock("@/lib/tenant-db", () => ({
   ),
 }));
 
-const { solicitarCambioContactoAction } = await import("../actions");
+const { solicitarCambioContactoAction, guardarPerfilAction } = await import("../actions");
 
 const SESSION = {
   sub: "user-1", tenantId: "tenant-1", rol: "manager" as const,
@@ -168,5 +168,34 @@ describe("solicitarCambioContactoAction — re-autenticación con contraseña", 
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toMatch(/ya existe una cuenta/i);
     expect(mockSendCambioContactoCodeEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("solicitarCambioContactoAction — unicidad del correo (M-17)", () => {
+  it("si no se puede verificar el correo nuevo, no envía el código (falla cerrado)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockUsuarioFindUnique.mockResolvedValueOnce({ passwordHash: "hash-guardado" });
+    mockVerifyPassword.mockResolvedValue(true);
+    mockQueryRaw.mockRejectedValue(new Error("db caída"));
+
+    const res = await solicitarCambioContactoAction("email", "nuevo@correo.cl", "ClaveBuena1!");
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toMatch(/No pudimos verificar/);
+    expect(mockSendCambioContactoCodeEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("guardarPerfilAction — unicidad del RUT (M-17)", () => {
+  it("si no se puede verificar el RUT al fijarlo, no lo guarda (falla cerrado)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockUsuarioFindUnique.mockResolvedValueOnce({ rut: null, fechaNacimiento: null, telefono: null });
+    mockQueryRaw.mockRejectedValue(new Error("db caída"));
+    const fd = new FormData();
+    fd.set("rut", "12.345.678-5");
+
+    const res = await guardarPerfilAction(null, fd);
+
+    expect(res).toMatchObject({ ok: false, error: expect.stringMatching(/No pudimos verificar/) });
   });
 });

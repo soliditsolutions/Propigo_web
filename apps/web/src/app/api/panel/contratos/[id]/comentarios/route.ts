@@ -14,21 +14,14 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getActor, alcanceContrato, type Actor } from "@/lib/queries";
+import { alcanceContrato } from "@/lib/queries";
+import { actorDeRuta } from "@/lib/actor-ruta";
 import { firmarTokenBaja, puedeRecibir } from "@/lib/notificacion-preferencias";
 import { logError } from "@/lib/logger";
 import { withTenant } from "@/lib/tenant-db";
 import { idFiltro } from "@/lib/busqueda";
 import { sendComentarioCorredorEmail } from "@/lib/email";
 import { MARCA } from "@/lib/marca";
-
-async function actorOError(): Promise<Actor | null> {
-  try {
-    return await getActor();
-  } catch {
-    return null;
-  }
-}
 
 const schema = z.object({
   texto:       z.string().min(1).max(2000).trim(),
@@ -39,8 +32,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const actor = await actorOError();
-  if (!actor) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  const actor = await actorDeRuta("comentarios/enviar");
+  if (actor instanceof NextResponse) return actor;
   const tenantId = actor.tenantId;
 
   let body: unknown;
@@ -108,7 +101,7 @@ export async function POST(
           cuerpo:  texto.substring(0, 200),
         },
         select: { id: true },
-      }).then((n) => n.id).catch(() => null);
+      }).then((n) => n.id).catch((e) => { logError("comentarios/crear-notificacion", e); return null; });
     }
 
     return { comentario, contrato, corredorNombre: corredor?.nombre ?? "Corredor", notificacionId };
@@ -155,8 +148,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const actor = await actorOError();
-    if (!actor) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+    const actor = await actorDeRuta("comentarios/listar");
+    if (actor instanceof NextResponse) return actor;
 
     const { id: contratoId } = await params;
     if (!idFiltro(contratoId)) return NextResponse.json([]);

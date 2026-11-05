@@ -22,11 +22,12 @@ import { PagosSection } from "@/components/portal/PagosSection";
 import { ComentariosSection } from "@/components/portal/ComentariosSection";
 import { Logo } from "@/components/public/Logo";
 import { MARCA } from "@/lib/marca";
+import { logError } from "@/lib/logger";
 
 async function registrarAccesoVista(tenantId: string, personaId: string, ip: string | null) {
   await withTenant(tenantId, (tx) => tx.accesoLog.create({
     data: { tenantId, personaId, accion: "portal_vista_contrato", ip },
-  })).catch(() => {});
+  })).catch((e) => logError("portal-contrato/auditoria", e));
 }
 
 function clp(n: number | string | null | undefined): string {

@@ -16,7 +16,6 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getActor } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { logError } from "@/lib/logger";
 import { getClientIp } from "@/lib/ip";
@@ -28,6 +27,7 @@ import {
   PersonaNoEncontrada,
 } from "@/lib/export-datos-persona";
 import { ExportDatosPersonaDocument } from "@/lib/export-datos-persona-pdf";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 export async function GET(
   req: NextRequest,
@@ -38,12 +38,8 @@ export async function GET(
     return NextResponse.json({ error: "Persona no encontrada." }, { status: 404 });
   }
 
-  let actor;
-  try {
-    actor = await getActor();
-  } catch {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const actor = await actorDeRuta("personas/export-datos");
+  if (actor instanceof NextResponse) return actor;
   if (actor.rol !== "manager") {
     return NextResponse.json(
       { error: "Solo el administrador de la cuenta puede exportar los datos de una persona." },

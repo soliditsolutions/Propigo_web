@@ -34,6 +34,7 @@ export type PasswordState = {
 import { esRegionValida, esComunaValidaEnRegion } from "@propigo/core";
 import { validateRut, canonicalRut } from "@/lib/rut";
 import { MARCA } from "@/lib/marca";
+import { logError } from "@/lib/logger";
 
 /**
  * Sesión del panel solo si el usuario sigue activo. El JWT de un colaborador
@@ -101,8 +102,11 @@ export async function guardarPerfilAction(
   if (!actual.rut) {
     const rutDupeRows = await prisma.$queryRaw<{ existe: boolean }[]>`
       SELECT auth_rut_pertenece_a_otro_usuario(${rutCanonical}, ${session.sub}::uuid) AS existe
-    `.catch(() => null);
-    if (rutDupeRows?.[0]?.existe) {
+    `.catch((e) => { logError("perfil/unicidad-rut", e); return null; });
+    // Sin poder verificar, no se fija el RUT: queda inmutable una vez guardado
+    // y un duplicado no tendría vuelta atrás.
+    if (!rutDupeRows) return { ok: false, error: "No pudimos verificar los datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
+    if (rutDupeRows[0]?.existe) {
       return { ok: false, error: "Este RUT ya está registrado en otra cuenta.", field: "rut" };
     }
   }
@@ -185,6 +189,7 @@ export async function guardarPerfilAction(
     }));
   } catch (err) {
     if (err instanceof DomainError) return { ok: false, error: err.message };
+    logError("perfil/guardar", err);
     return { ok: false, error: "Error al guardar el perfil. Intenta de nuevo." };
   }
 
@@ -197,7 +202,8 @@ export async function guardarPerfilAction(
     const { iat: _iat, exp: _exp, ...rest } = session;
     const newToken = await signSession({ ...rest, perfilCompleto: requiredComplete });
     await setSessionCookie(newToken);
-  } catch {
+  } catch (e) {
+    logError("perfil/refrescar-sesion", e);
     // Si falla el JWT, el perfil se guardó igual — el usuario re-loguea y ya
   }
 
@@ -237,7 +243,8 @@ export async function cambiarPasswordAction(
       where:  { id: session.sub },
       select: { passwordHash: true },
     }));
-  } catch {
+  } catch (e) {
+    logError("perfil/leer-contrasena", e);
     return { ok: false, error: "Error al verificar la contraseña." };
   }
 
@@ -257,7 +264,8 @@ export async function cambiarPasswordAction(
       where: { id: session.sub },
       data:  { passwordHash: newHash },
     }));
-  } catch {
+  } catch (e) {
+    logError("perfil/cambiar-contrasena", e);
     return { ok: false, error: "Error al actualizar la contraseña. Intenta de nuevo." };
   }
 
@@ -302,7 +310,8 @@ export async function solicitarCambioContactoAction(
     usuarioAuth = await withTenant(session.tenantId, (tx) => tx.usuario.findUnique({
       where: { id: session.sub }, select: { passwordHash: true },
     }));
-  } catch {
+  } catch (e) {
+    logError("perfil/leer-contrasena-contacto", e);
     return { ok: false, error: "Error al verificar la contraseña." };
   }
   if (!usuarioAuth?.passwordHash || !(await verifyPassword(password, usuarioAuth.passwordHash))) {
@@ -333,8 +342,11 @@ export async function solicitarCambioContactoAction(
     // Unicidad global — misma función SECURITY DEFINER que usa /registro.
     const rows = await prisma.$queryRaw<{ existe: boolean }[]>`
       SELECT auth_email_existe(${valorNuevo}) AS existe
-    `.catch(() => null);
-    if (rows?.[0]?.existe) {
+    `.catch((e) => { logError("perfil/unicidad-correo", e); return null; });
+    // Sin poder verificar, no se envía el código: un correo duplicado entre
+    // cuentas rompería el ingreso de ambas.
+    if (!rows) return { ok: false, error: "No pudimos verificar los datos por un problema de nuestro lado. Intenta de nuevo en unos minutos." };
+    if (rows[0]?.existe) {
       return { ok: false, error: "Ya existe una cuenta con ese correo." };
     }
   }
@@ -374,7 +386,8 @@ export async function solicitarCambioContactoAction(
       }),
     ]);
     await sendCambioContactoCodeEmail(session.email, session.nombre, codigo, campo, valorNuevo);
-  } catch {
+  } catch (e) {
+    logError("perfil/enviar-codigo-contacto", e);
     return { ok: false, error: "No se pudo enviar el código. Intenta de nuevo." };
   }
 
@@ -441,7 +454,8 @@ export async function confirmarCambioContactoAction(
       where: { id: registro.id },
       data:  { usadoAt: new Date() },
     });
-  } catch {
+  } catch (e) {
+    logError("perfil/aplicar-cambio-contacto", e);
     return { ok: false, error: "No se pudo aplicar el cambio. Intenta de nuevo." };
   }
 
@@ -451,7 +465,8 @@ export async function confirmarCambioContactoAction(
       const { iat: _iat, exp: _exp, ...rest } = session;
       const newToken = await signSession({ ...rest, email: registro.valorNuevo });
       await setSessionCookie(newToken);
-    } catch {
+    } catch (e) {
+      logError("perfil/refrescar-sesion-contacto", e);
       // Si falla el refresh del JWT, el correo ya cambió en BD — el usuario
       // simplemente re-loguea con el correo nuevo la próxima vez.
     }

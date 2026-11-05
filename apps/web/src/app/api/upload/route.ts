@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
-import { getTenant } from "@/lib/queries";
+import { actorDeRuta } from "@/lib/actor-ruta";
 import { getSession } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
@@ -45,14 +45,8 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Gate de tenant ─────────────────────────────────────────────────
-    try {
-      await getTenant();
-    } catch {
-      return NextResponse.json(
-        { error: "Servicio no disponible." },
-        { status: 503 },
-      );
-    }
+    const actor = await actorDeRuta("upload/tenant");
+    if (actor instanceof NextResponse) return actor;
 
     // ── Tipo de upload: propiedades (default), perfil o documentos ─────
     const tipo = req.nextUrl.searchParams.get("type") ?? "propiedades";

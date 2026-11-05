@@ -18,6 +18,7 @@ import { clpOrUf, plural } from "@/lib/format";
 import { tipoMeta } from "@/lib/propiedad-meta";
 import { idFiltro } from "@/lib/busqueda";
 import { geocodificarDireccion, ubicacionAproximada } from "@/lib/geocoding";
+import { logError } from "@/lib/logger";
 
 export default async function MarketplaceFichaPage({
   params,
@@ -117,7 +118,7 @@ export default async function MarketplaceFichaPage({
       prisma.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT set_config('app.current_tenant_id', ${pub.tenant.id}, true)`;
         await tx.propiedad.update({ where: { id: prop.id }, data: { latitud: geocoded.latitud, longitud: geocoded.longitud } });
-      }).catch(() => { /* best-effort — el mapa de esta visita ya tiene las coordenadas igual */ });
+      }).catch((e) => logError("marketplace/guardar-coordenadas", e));
     }
   }
 

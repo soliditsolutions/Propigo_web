@@ -8,19 +8,16 @@
  */
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getActor, getUfCLP } from "@/lib/queries";
+import { getUfCLP } from "@/lib/queries";
 import { getPlanEfectivo } from "@/lib/plans";
 import { periodoDemoPorClave } from "@/lib/billing-demo";
 import { logError } from "@/lib/logger";
 import { BoletaDemoDocument } from "@/lib/boleta-demo-pdf";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 export async function GET(req: Request) {
-  let actor;
-  try {
-    actor = await getActor();
-  } catch {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const actor = await actorDeRuta("billing/boleta-pdf");
+  if (actor instanceof NextResponse) return actor;
   if (actor.rol !== "manager") {
     return NextResponse.json({ error: "No encontrado." }, { status: 404 });
   }

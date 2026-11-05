@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getActor, alcanceContrato } from "@/lib/queries";
+import { alcanceContrato } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { type ValidacionResultado, validarEsquema } from "../validar/route";
 import { detectarPii } from "@/lib/pii-detector";
@@ -9,6 +9,7 @@ import { logError } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/ip";
 import { consumirTokenIa } from "@/lib/plan-limits";
+import { actorDeRuta } from "@/lib/actor-ruta";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_TEXT_CHARS = 20_000;            // ~5 000 tokens — más que suficiente
@@ -163,9 +164,8 @@ export async function POST(
 
     // getActor (y no solo el tenant): un Colaborador solo opera sobre
     // contratos de propiedades asignadas a él (ADR-0013); si no, 404.
-    let actor;
-    try { actor = await getActor(); }
-    catch { return NextResponse.json({ error: "Servicio no disponible." }, { status: 503 }); }
+    const actor = await actorDeRuta("contratos/validar-doc");
+    if (actor instanceof NextResponse) return actor;
     const tenant = actor.tenant;
 
     const { id: contratoId } = await params;

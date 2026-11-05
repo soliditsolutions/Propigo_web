@@ -20,12 +20,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { join, basename } from "path";
-import { getActor } from "@/lib/queries";
 import { actorPuedeVerDocumento, SELECT_ALCANCE_DOCUMENTO } from "@/lib/alcance-documento";
 import { withTenant } from "@/lib/tenant-db";
 import { getClientIp } from "@/lib/ip";
 import { idFiltro } from "@/lib/busqueda";
 import { DOCUMENTOS_DIR } from "@/lib/uploads";
+import { actorDeRuta } from "@/lib/actor-ruta";
+import { logError } from "@/lib/logger";
 
 const MIME_BY_EXT: Record<string, string> = {
   pdf:  "application/pdf",
@@ -43,12 +44,8 @@ export async function GET(
   // getActor y no getSession: además de la firma del token exige que el
   // usuario siga activo (un Colaborador desactivado conserva un JWT válido
   // hasta que expira) y entrega el rol para aplicar el alcance de ADR-0013.
-  let actor;
-  try {
-    actor = await getActor();
-  } catch {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const actor = await actorDeRuta("documentos/descargar");
+  if (actor instanceof NextResponse) return actor;
   const tenantId = actor.tenantId;
 
   const { id } = await params;
@@ -79,7 +76,8 @@ export async function GET(
   let fileBuffer: Buffer;
   try {
     fileBuffer = await readFile(filePath);
-  } catch {
+  } catch (e) {
+    logError("documentos/leer-archivo", e);
     return NextResponse.json({ error: "Archivo no disponible." }, { status: 404 });
   }
 
@@ -92,7 +90,7 @@ export async function GET(
       accion:      "documento_descargado",
       ip,
     },
-  })).catch(() => { /* no bloquear descarga si el log falla */ });
+  })).catch((e) => logError("documentos/auditoria", e));
 
   // 5. Servir con headers seguros
   const ext      = safeName.split(".").pop()?.toLowerCase() ?? "";

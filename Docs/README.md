@@ -51,7 +51,7 @@ Control de tiempos, alcance y calidad.
 | [Manual de usuario](gestion/manual-de-usuario.md) | Guía de operación para corredor, arrendatario e interesado. |
 | [Auditoría E2E (2026-07)](gestion/auditoria-e2e-2026-07.md) | Auditoría adversarial de los flujos corredor y cliente: hallazgos, causas raíz, soluciones y tests. |
 | [Auditoría de seguridad (2026-10)](gestion/auditoria-seguridad-2026-10.md) | OWASP Top 10 + LLM: 14 hallazgos corregidos con sus pruebas, controles revisados y riesgos aceptados (CSP pública, dependencias de desarrollo). |
-| [Auditoría de mensajes al usuario (2026-11)](gestion/auditoria-mensajes-2026-11.md) | Errores, advertencias, informativos y reintentos: 13 hallazgos (2 altos: sin páginas de error propias y acciones que rompen la página sin red) y plan de corrección. |
+| [Auditoría de mensajes al usuario (2026-11)](gestion/auditoria-mensajes-2026-11.md) | Errores, advertencias, informativos y reintentos: 20 hallazgos (3 altos: sin páginas de error propias, acciones que rompen la página sin red y con sesión vencida), matriz de 16 escenarios en ejecución y plan de corrección. |
 | [Revisión mobile iOS/Android/tablet (2026-11)](gestion/revision-mobile-2026-11.md) | 8 perfiles (WebKit + Chromium), 13 hallazgos corregidos y cómo repetirla con `npm run qa:mobile`. |
 | [Evaluación GCP Santiago (2026-11)](gestion/evaluacion-gcp-santiago.md) | Hosting en Google Cloud región Santiago: opciones VM vs Cloud Run, costos, respaldos y prueba de concepto previa a cerrar ADR-0001. |
 | [Auditoría UI/UX (2026-07)](gestion/auditoria-ui-ux-2026-07.md) | Auditoría de interfaz contra checklist de accesibilidad/UX (touch targets, contraste, navegación, forms) — roadmap por etapas. |

@@ -18,6 +18,7 @@ import type { PeriodoDemo } from "@/lib/billing-demo";
 import { MARCA } from "@/lib/marca";
 import { solicitarCambioPlanAction } from "./plan-actions";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 const RECURSO: Record<Excedente["recurso"], { singular: string; plural: string; accion: string; href: string }> = {
   propiedades: { singular: "propiedad", plural: "propiedades", accion: "Ir a Propiedades", href: "/panel/propiedades" },
@@ -403,13 +404,14 @@ export function MiPlanSection({
                     </span>
                   </td>
                   <td className="py-2 text-right">
-                    <a
+                    <EnlaceDescarga
                       href={`/api/panel/billing/boleta-demo/pdf?periodo=${p.clave}`}
                       className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold"
                       style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
+                      icono={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
                     >
-                      <Download className="h-3.5 w-3.5" aria-hidden="true" /> PDF
-                    </a>
+                      PDF
+                    </EnlaceDescarga>
                   </td>
                 </tr>
               ))}

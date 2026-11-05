@@ -2,6 +2,7 @@
 
 import { MessageSquare, FileText, Download, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 interface DocAdjunto {
   id:     string;
@@ -119,17 +120,17 @@ export function ComentariosSection({ comentarios }: Props) {
                           Documentos adjuntos
                         </p>
                         {c.documentos.map(doc => (
-                          <a
+                          <EnlaceDescarga
                             key={doc.id}
                             href={`/api/portal/documento/${doc.id}`}
                             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--pf-surface)]"
                             style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-primary)" }}
-                            download
+                            login="/portal"
+                            icono={<FileText className="h-3.5 w-3.5 shrink-0" aria-hidden />}
                           >
-                            <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden />
                             <span className="flex-1 truncate" style={{ color: "var(--pgo-text-2)" }}>{doc.nombre}</span>
                             <Download className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                          </a>
+                          </EnlaceDescarga>
                         ))}
                       </div>
                     )}

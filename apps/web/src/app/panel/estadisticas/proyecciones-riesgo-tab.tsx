@@ -4,6 +4,7 @@ import { ProyeccionChart } from "@/components/panel/charts/proyeccion-chart";
 import { clp, fecha } from "@/lib/format";
 import { puedeExportar } from "@/lib/plans";
 import { Download, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 const TENDENCIA_ICON = { subiendo: TrendingUp, bajando: TrendingDown, estable: Minus };
 const TENDENCIA_COLOR = { subiendo: "var(--pgo-danger)", bajando: "var(--pgo-success)", estable: "var(--pgo-text-4)" };
@@ -25,14 +26,14 @@ export async function ProyeccionesRiesgoTab({ tenantId, tenantPlan }: { tenantId
         <div className="mb-1 flex items-center justify-between">
           <SectionTitle title="Proyección de ingresos" description="Próximos 6 meses. Son cifras estimadas, no un compromiso de cobro." />
           {habilitaExportar && (
-            <a
+            <EnlaceDescarga
               href="/api/panel/estadisticas/exportar"
               className="pgo-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
               style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)" }}
+              icono={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
             >
-              <Download className="h-3.5 w-3.5" aria-hidden="true" />
               Exportar CSV
-            </a>
+            </EnlaceDescarga>
           )}
         </div>
         <ProyeccionChart data={data.proyeccionIngresos} />

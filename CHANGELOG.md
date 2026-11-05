@@ -121,6 +121,12 @@ desarrollo, no versiones publicadas.
     (error);
   - `/portal/verificar` explica qué hacer si el código no llega, con un
     texto neutro que no revela si el RUT existe.
+- **Las descargas avisan si fallan**: los 11 enlaces a PDF, CSV y JSON del
+  panel y del portal mostraban el error en crudo (`{"error":"No autorizado."}`)
+  en una página en blanco si la sesión había expirado, el archivo no existía o
+  se alcanzaba un límite. Ahora el motivo del servidor aparece en un aviso, con
+  "Iniciar sesión" si corresponde. Mientras se genera el archivo, el ícono pasa
+  a indicador de carga; con Ctrl+clic el enlace sigue funcionando como enlace.
 
 ---
 

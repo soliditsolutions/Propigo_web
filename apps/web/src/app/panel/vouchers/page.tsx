@@ -3,6 +3,7 @@ import { clp, fecha } from "@/lib/format";
 import { PageTitle } from "@/components/panel/ui";
 import { FiltrosClient } from "./filtros-client";
 import { ReceiptText, FileText, Download } from "lucide-react";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 export const dynamic = "force-dynamic";
 
@@ -93,15 +94,15 @@ export default async function VouchersPage({
                     </div>
                     <div className="flex items-center gap-1">
                       {v.folio && (
-                        <a
+                        <EnlaceDescarga
                           href={`/api/panel/vouchers/${v.id}/pdf`}
                           className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
                           style={{ color: "var(--pgo-primary)" }}
                           aria-label={`Descargar comprobante ${v.folio}`}
+                          icono={<Download className="h-3.5 w-3.5" aria-hidden />}
                         >
-                          <Download className="h-3.5 w-3.5" aria-hidden />
                           PDF
-                        </a>
+                        </EnlaceDescarga>
                       )}
                       <a
                         href={`/panel/contratos/${v.contratoId}`}
@@ -194,15 +195,15 @@ export default async function VouchersPage({
                       <td className="px-4 py-3 text-center">
                         <div className="inline-flex items-center gap-1">
                           {v.folio && (
-                            <a
+                            <EnlaceDescarga
                               href={`/api/panel/vouchers/${v.id}/pdf`}
                               className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
                               style={{ color: "var(--pgo-primary)" }}
                               aria-label={`Descargar comprobante ${v.folio}`}
+                              icono={<Download className="h-3.5 w-3.5" aria-hidden />}
                             >
-                              <Download className="h-3.5 w-3.5" aria-hidden />
                               PDF
-                            </a>
+                            </EnlaceDescarga>
                           )}
                           <a
                             href={`/panel/contratos/${v.contratoId}`}

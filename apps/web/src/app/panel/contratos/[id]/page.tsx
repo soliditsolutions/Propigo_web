@@ -14,6 +14,7 @@ import { ComentariosCorredorSection } from "@/components/panel/ComentariosCorred
 import { verificarYExtenderCalendario } from "@/lib/auto-extender";
 import { idFiltro } from "@/lib/busqueda";
 import { Prisma } from "@/generated/prisma/client";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 /**
  * Detalle del contrato o 404 si no existe. Solo "no existe" es 404: una falla
@@ -147,31 +148,31 @@ export default async function ContratoDetallePage({
         // en el peor puede no coincidir con lo que realmente se firmó si un
         // abogado ajustó algo entre el borrador y la firma real.
         action={detalle.estado === "borrador" ? (
-          <a
+          <EnlaceDescarga
             href={`/api/contratos/${detalle.id}/pdf`}
             className="pgo-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
             style={{
               background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)",
               border: "1px solid var(--pgo-border-2)",
             }}
+            icono={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
           >
-            <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Descargar borrador (PDF)
-          </a>
+          </EnlaceDescarga>
         ) : (detalle.estado === "terminado" || detalle.estado === "terminado_anticipado") ? (
           // Aviso de término (L-CM2/L-CM3): disponible una vez que el contrato
           // tiene causal y fecha de término.
-          <a
+          <EnlaceDescarga
             href={`/api/panel/contratos/${detalle.id}/aviso-termino/pdf`}
             className="pgo-btn inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
             style={{
               background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)",
               border: "1px solid var(--pgo-border-2)",
             }}
+            icono={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
           >
-            <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Aviso de término (PDF)
-          </a>
+          </EnlaceDescarga>
         ) : undefined}
       />
 

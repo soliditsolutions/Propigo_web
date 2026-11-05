@@ -23,6 +23,7 @@ import { ComentariosSection } from "@/components/portal/ComentariosSection";
 import { Logo } from "@/components/public/Logo";
 import { MARCA } from "@/lib/marca";
 import { logError } from "@/lib/logger";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 async function registrarAccesoVista(tenantId: string, personaId: string, ip: string | null) {
   await withTenant(tenantId, (tx) => tx.accesoLog.create({
@@ -406,16 +407,16 @@ export default async function PortalContratoPage({
                       {TIPO_DOC_LABEL[doc.tipo] ?? doc.tipo} · {fecha(doc.createdAt)}
                     </p>
                   </div>
-                  <a
+                  <EnlaceDescarga
                     href={`/api/portal/documento/${doc.id}`}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors hover:opacity-80"
                     style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-primary)", border: "1px solid var(--pgo-border)" }}
-                    download
                     aria-label={`Descargar ${doc.nombre}`}
+                    login="/portal"
+                    icono={<Download className="h-3.5 w-3.5" aria-hidden />}
                   >
-                    <Download className="h-3.5 w-3.5" aria-hidden />
                     Descargar
-                  </a>
+                  </EnlaceDescarga>
                 </div>
               ))}
             </div>
@@ -452,15 +453,16 @@ export default async function PortalContratoPage({
                       {clp(Number(v.montoClp))}
                     </span>
                     {v.folio && (
-                      <a
+                      <EnlaceDescarga
                         href={`/api/portal/voucher/${v.id}/pdf`}
                         className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
                         style={{ color: "var(--pgo-primary)" }}
                         aria-label={`Descargar comprobante ${v.folio}`}
+                        login="/portal"
+                        icono={<Download className="h-3.5 w-3.5" aria-hidden />}
                       >
-                        <Download className="h-3.5 w-3.5" aria-hidden />
                         PDF
-                      </a>
+                      </EnlaceDescarga>
                     )}
                   </div>
                 </div>

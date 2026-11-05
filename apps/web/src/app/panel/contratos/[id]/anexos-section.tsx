@@ -7,6 +7,7 @@ import { adjuntarAnexo, generarReconocimientoDeuda } from "./actions";
 import { useToast } from "@/components/ui/toast";
 import { fecha } from "@/lib/format";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
+import { EnlaceDescarga } from "@/components/ui/enlace-descarga";
 
 interface Documento {
   id:         string;
@@ -114,14 +115,14 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
         {tieneDeuda && (
           <div className="flex flex-wrap items-center gap-2">
             {/* Estado de cuenta (L-CM1): el documento que respalda la monitoria. */}
-            <a
+            <EnlaceDescarga
               href={`/api/panel/contratos/${contratoId}/estado-cuenta/pdf`}
               className="pgo-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
               style={{ background: "var(--pgo-surface-2)", color: "var(--pgo-text-2)", border: "1px solid var(--pgo-border-2)" }}
+              icono={<Download className="h-3.5 w-3.5" aria-hidden />}
             >
-              <Download className="h-3.5 w-3.5" aria-hidden />
               Estado de cuenta (PDF)
-            </a>
+            </EnlaceDescarga>
             <button
               type="button"
               onClick={handleGenerarDeuda}
@@ -154,17 +155,15 @@ export function AnexosSection({ contratoId, documentos, tieneDeuda }: Props) {
                   {TIPO_LABEL[doc.tipo] ?? doc.tipo} · {fecha(doc.createdAt)}
                 </p>
               </div>
-              <a
+              <EnlaceDescarga
                 href={`/api/documentos/${doc.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="pgo-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--pgo-surface-2)]"
                 style={{ color: "var(--pgo-primary)" }}
                 aria-label={`Descargar ${doc.nombre}`}
+                icono={<Download className="h-3.5 w-3.5" aria-hidden />}
               >
-                <Download className="h-3.5 w-3.5" aria-hidden />
                 Abrir
-              </a>
+              </EnlaceDescarga>
             </div>
           ))}
         </div>

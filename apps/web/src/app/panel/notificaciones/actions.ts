@@ -345,6 +345,8 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
   diferidas: number;
   /** Avisos de ciclo retirados por quedar obsoletos frente a uno más nuevo. */
   reemplazadas: number;
+  /** Solo cuando ok es false: qué decirle al usuario. */
+  error?: string;
 }> {
   try {
     const actor  = tenantOverride ? null : await getActor();
@@ -447,12 +449,17 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
     return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas, reemplazadas };
   } catch (e) {
     logError("enviarNotificacionesPendientes", e);
-    return { ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0 };
+    return {
+      ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0,
+      error: "No pudimos enviar los avisos. Siguen pendientes; vuelve a intentarlo en unos minutos.",
+    };
   }
 }
 
 /** Marcar una notificación como "simulada" (enviada en MVP). */
-export async function marcarSimulada(id: string): Promise<{ ok: boolean }> {
+const SIN_ACCESO_NOTIFICACION = "No tienes acceso a esta notificación.";
+
+export async function marcarSimulada(id: string): Promise<{ ok: boolean; error?: string }> {
   try {
     const actor = await getActor();
     await withTenant(actor.tenantId, async (tx) => {
@@ -465,7 +472,7 @@ export async function marcarSimulada(id: string): Promise<{ ok: boolean }> {
           select: { contrato: { select: { propiedad: { select: { asignadoAId: true } } } } },
         });
         if (!notif || notif.contrato?.propiedad.asignadoAId !== actor.usuarioId) {
-          throw new Error("No tienes acceso a esta notificación.");
+          throw new Error(SIN_ACCESO_NOTIFICACION);
         }
       }
       await tx.notificacion.update({
@@ -475,13 +482,15 @@ export async function marcarSimulada(id: string): Promise<{ ok: boolean }> {
     });
     revalidatePath("/panel/notificaciones");
     return { ok: true };
-  } catch {
-    return { ok: false };
+  } catch (e) {
+    if (e instanceof Error && e.message === SIN_ACCESO_NOTIFICACION) return { ok: false, error: SIN_ACCESO_NOTIFICACION };
+    logError("marcarSimulada", e);
+    return { ok: false, error: "No pudimos marcar el aviso como enviado. Vuelve a intentarlo." };
   }
 }
 
 /** Marcar todas las notificaciones pendientes como "simuladas". */
-export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: number; reemplazadas: number }> {
+export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: number; reemplazadas: number; error?: string }> {
   try {
     const actor = await getActor();
     const propiedadIds = await propiedadIdsVisibles(actor);
@@ -498,7 +507,8 @@ export async function simularEnvioMasivo(): Promise<{ ok: boolean; enviadas: num
     revalidatePath("/panel/notificaciones");
     revalidatePath("/panel");
     return { ok: true, enviadas: count, reemplazadas };
-  } catch {
-    return { ok: false, enviadas: 0, reemplazadas: 0 };
+  } catch (e) {
+    logError("simularEnvioMasivo", e);
+    return { ok: false, enviadas: 0, reemplazadas: 0, error: "No pudimos marcar los avisos como enviados. Siguen pendientes; vuelve a intentarlo." };
   }
 }

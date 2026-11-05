@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bell, CheckCircle2, Clock, Info, Loader2, Mail, Send,
   ShieldCheck, TrendingUp, X, BellPlus,
@@ -102,6 +103,14 @@ export function NotificacionesClient({
   emailRealActivo?: boolean;
 }) {
   const [noticias, setNoticias]     = useState(inicial);
+  // Tras router.refresh() llega una lista nueva del servidor: se adopta aquí.
+  // refresh (y no reload) mantiene vivo el aviso del resultado (M-06).
+  const [inicialVista, setInicialVista] = useState(inicial);
+  if (inicial !== inicialVista) {
+    setInicialVista(inicial);
+    setNoticias(inicial);
+  }
+  const router = useRouter();
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("todas");
   const [categoria, setCategoria]   = useState<Categoria>("todas");
   const [isPending, start]          = useTransition();
@@ -151,7 +160,7 @@ export function NotificacionesClient({
       const r = await ejecutar(() => generarRecordatorios());
       if (!r) return;
       toast(r.mensaje, r.ok ? "success" : "error");
-      if (r.ok && r.creados > 0) window.location.reload();
+      if (r.ok && r.creados > 0) router.refresh();
     });
   }
 
@@ -168,7 +177,9 @@ export function NotificacionesClient({
             `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}${notaColapso}.`,
             r.errores > 0 ? "error" : "success",
           );
-          if (r.enviadas > 0 || r.reemplazadas > 0) window.location.reload();
+          if (r.enviadas > 0 || r.reemplazadas > 0) router.refresh();
+        } else {
+          toast(r.error ?? "No pudimos enviar los avisos. Vuelve a intentarlo.", "error");
         }
       } else {
         const r = await ejecutar(() => simularEnvioMasivo());
@@ -178,10 +189,12 @@ export function NotificacionesClient({
             ? ` · ${r.reemplazadas} descartad${r.reemplazadas === 1 ? "a" : "as"} por obsolet${r.reemplazadas === 1 ? "a" : "as"}`
             : "";
           toast(`${cantidad(r.enviadas, "recordatorio", "recordatorios")} marcado${r.enviadas === 1 ? "" : "s"} como enviado${r.enviadas === 1 ? "" : "s"} (simulación)${notaColapso}.`, "success");
-          if (r.reemplazadas > 0) { window.location.reload(); return; }
+          if (r.reemplazadas > 0) { router.refresh(); return; }
           setNoticias((prev) =>
             prev.map((n) => n.estado === "pendiente" ? { ...n, estado: "simulada" as const } : n)
           );
+        } else {
+          toast(r.error ?? "No pudimos marcar los avisos como enviados. Vuelve a intentarlo.", "error");
         }
       }
     });
@@ -193,6 +206,8 @@ export function NotificacionesClient({
       if (!r) return;
       if (r.ok) {
         setNoticias((prev) => prev.map((n) => n.id === id ? { ...n, estado: "simulada" as const } : n));
+      } else {
+        toast(r.error ?? "No pudimos marcar el aviso como enviado. Vuelve a intentarlo.", "error");
       }
     });
   }

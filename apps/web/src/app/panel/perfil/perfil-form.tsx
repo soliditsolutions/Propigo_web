@@ -68,6 +68,26 @@ function initials(nombre: string): string {
 
 // ── Sección: avatar ───────────────────────────────────────────────────────────
 
+// Mismos límites que /api/upload para imágenes: validar antes evita subir
+// 5 MB para recibir un rechazo.
+const FOTO_TIPOS    = ["image/jpeg", "image/png", "image/webp"];
+const FOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+/** Valida la foto antes de subirla; devuelve el motivo del rechazo o null. */
+export function validarFotoPerfil(file: { type: string; size: number }): string | null {
+  if (!FOTO_TIPOS.includes(file.type)) return "La foto debe ser JPG, PNG o WEBP.";
+  if (file.size > FOTO_MAX_BYTES) return "La foto supera el límite de 5 MB. Elige una más liviana.";
+  return null;
+}
+
+/** Mensaje para una subida que el servidor no aceptó. */
+export function mensajeFalloSubida(status: number, errorServidor?: string): string {
+  if (status === 401) return "Tu sesión expiró. Inicia sesión de nuevo para cambiar tu foto.";
+  // Los 4xx de /api/upload explican el motivo (tamaño, tipo, ritmo de subida).
+  if (status < 500 && errorServidor) return errorServidor;
+  return "No pudimos subir la foto. Vuelve a intentarlo en unos segundos.";
+}
+
 function AvatarSection({
   nombre,
   fotoPerfil,
@@ -79,19 +99,35 @@ function AvatarSection({
 }) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { show: toast } = useToast();
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    // Vaciar el input permite volver a elegir el mismo archivo tras un error.
+    e.target.value = "";
     if (!file) return;
+    const invalida = validarFotoPerfil(file);
+    if (invalida) { toast(invalida, "error"); return; }
+
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res  = await fetch("/api/upload?type=perfil", { method: "POST", body: fd });
-      const data = await res.json() as { url?: string; error?: string };
-      if (data.url) onFotoChange(data.url);
+      const res = await fetch("/api/upload?type=perfil", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        toast(mensajeFalloSubida(res.ok ? 500 : res.status, data.error), "error");
+        return;
+      }
+      onFotoChange(data.url);
+      toast("Foto cargada. Presiona «Guardar perfil» para conservarla.", "info");
     } catch {
-      // upload silenced — user retries
+      toast(
+        navigator.onLine
+          ? "No pudimos comunicarnos con el servidor. Vuelve a intentarlo en unos segundos."
+          : "Estás sin conexión a internet. Conéctate y vuelve a elegir la foto.",
+        "error",
+      );
     } finally {
       setUploading(false);
     }

@@ -66,6 +66,14 @@ desarrollo, no versiones publicadas.
   guardar sin conexión, y sus errores se anuncian a lectores de pantalla.
 - El ingreso ya no culpa a la conexión del usuario cuando el problema es
   nuestro.
+- **Notificaciones avisa cuando un envío falla**; antes no mostraba nada y
+  el corredor creía que los avisos habían salido. El resultado de generar o
+  enviar ya no desaparece al actualizarse la lista.
+- **Dispositivos distingue "no hay dispositivos" de "no pudimos cargarlos"**,
+  con botón para reintentar y enlace para volver a entrar si la sesión
+  expiró.
+- **La foto de perfil explica por qué no se subió** (formato, tamaño, red) y
+  recuerda guardar el perfil para conservarla.
 
 ---
 

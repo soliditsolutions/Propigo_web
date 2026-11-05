@@ -11,6 +11,8 @@ vi.mock("@/app/panel/notificaciones/actions", () => ({
 vi.mock("@/lib/queries", () => ({ getAllTenantsForSystem: vi.fn(async () => []) }));
 vi.mock("@/lib/tenant-db", () => ({ withTenant: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logError: vi.fn() }));
+const { reintentar } = vi.hoisted(() => ({ reintentar: vi.fn(async () => ({ pendientes: 2, enviadas: 1, fallidas: 1 })) }));
+vi.mock("@/lib/consulta-contacto", () => ({ reintentarConsultasPendientes: reintentar }));
 
 const { GET } = await import("../route");
 const pedir = (auth?: string) =>
@@ -37,5 +39,22 @@ describe("GET /api/cron/recordatorios", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("CRON_SECRET", "");
     expect((await pedir("Bearer cualquiera")).status).toBe(500);
+  });
+
+  it("reintenta las consultas del marketplace pendientes e informa el resultado", async () => {
+    vi.stubEnv("CRON_SECRET", "secreto-de-prueba-123");
+    const res = await pedir("Bearer secreto-de-prueba-123");
+    expect(reintentar).toHaveBeenCalled();
+    expect((await res.json()).consultas).toEqual({ pendientes: 2, enviadas: 1, fallidas: 1 });
+  });
+
+  it("si el reintento de consultas falla, el cron igual responde 200 con los avisos", async () => {
+    vi.stubEnv("CRON_SECRET", "secreto-de-prueba-123");
+    reintentar.mockRejectedValueOnce(new Error("db caída"));
+    const res = await pedir("Bearer secreto-de-prueba-123");
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.ok).toBe(true);
+    expect(json.consultas).toEqual({ error: expect.any(String) });
   });
 });

@@ -22,6 +22,7 @@ import { getAllTenantsForSystem } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
 import { purgarDatosVencidos, purgaVacia, sumarPurgas } from "@/lib/retencion-purga";
 import { logError } from "@/lib/logger";
+import { reintentarConsultasPendientes } from "@/lib/consulta-contacto";
 
 /**
  * Comparación en tiempo constante del encabezado contra el secreto. Se comparan
@@ -84,10 +85,21 @@ export async function GET(req: NextRequest) {
       purgaVacia(),
     );
 
+    // Consultas del marketplace cuyo correo al corredor no salió (M-21). En su
+    // propio try: un fallo acá no debe ocultar el resultado de los avisos.
+    let consultas: Awaited<ReturnType<typeof reintentarConsultasPendientes>> | { error: string };
+    try {
+      consultas = await reintentarConsultasPendientes();
+    } catch (e) {
+      logError("cron/consultas", e);
+      consultas = { error: "No se pudieron reintentar las consultas." };
+    }
+
     return NextResponse.json({
       ok:        true,
       tenants:   tenants.length,
       purgado,
+      consultas,
       resumen,
       timestamp: new Date().toISOString(),
     });

@@ -1312,6 +1312,11 @@ model ConsultaContacto {
   tokenValoracion  String   @unique @map("token_valoracion") @db.Uuid
   valoracionDada   Boolean  @default(false) @map("valoracion_dada")
   ip               String?  @db.VarChar(45)
+  // Entrega al corredor: null mientras el correo no haya salido. El cron de
+  // recordatorios reintenta las pendientes, así una caída del proveedor de
+  // correo no hace perder la consulta (M-21, auditoría de mensajes 2026-11).
+  correoEnviadoEn  DateTime? @map("correo_enviado_en") @db.Timestamptz(6)
+  intentosEnvio    Int       @default(0) @map("intentos_envio")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   publicacion Publicacion        @relation(fields: [publicacionId], references: [id])
@@ -1320,6 +1325,7 @@ model ConsultaContacto {
 
   @@index([tenantId])
   @@index([publicacionId])
+  @@index([correoEnviadoEn, createdAt])
   @@map("consulta_contacto")
 }
 

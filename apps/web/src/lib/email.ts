@@ -32,6 +32,20 @@ async function getResend() {
   return new Resend(apiKey);
 }
 
+type ClienteResend = Awaited<ReturnType<typeof getResend>>;
+
+/**
+ * Resend no lanza cuando la API rechaza un envío (dominio sin verificar,
+ * destinatario inválido, límite de envío): devuelve `{ error }`. Sin revisarlo,
+ * un correo que nunca salió pasaba por enviado y nadie se enteraba. Se
+ * convierte en excepción, igual que la falta de configuración, para que cada
+ * llamador lo maneje con el mismo try/catch.
+ */
+async function enviarCorreo(resend: ClienteResend, datos: Parameters<ClienteResend["emails"]["send"]>[0]): Promise<void> {
+  const { error } = await resend.emails.send(datos);
+  if (error) throw new Error(`EMAIL_RECHAZADO: ${error.name} (${error.statusCode ?? "sin código"}) ${error.message}`);
+}
+
 function simular(titulo: string, campos: Record<string, string>): void {
   console.log("\n──────────────────────────────────────────────────────");
   console.log(`📧  EMAIL SIMULADO — ${titulo}`);
@@ -64,7 +78,7 @@ export async function sendPasswordResetEmail(email: string, rawToken: string): P
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.noReply), to: email,
     subject: `Restablece tu contraseña de ${MARCA}`,
     html: htmlRecuperacion(link),
@@ -94,7 +108,7 @@ export async function sendNotificacionEmail(
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: email,
     subject: notif.asunto,
     html: htmlNotificacion(notif, urlBaja),
@@ -126,7 +140,7 @@ export async function sendPortalOtpEmail(
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.noReply), to: email,
     subject: `${codigo}: tu código de acceso al portal`,
     html: htmlPortalOtp(nombre, codigo, direccion, rol),
@@ -174,7 +188,7 @@ export async function sendContactoCorredorEmail(opts: DatosContacto): Promise<vo
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: opts.emailCorredor, replyTo: opts.email,
     subject: `Nueva consulta: ${opts.titulo}`,
     html: htmlContactoCorredor(opts),
@@ -204,7 +218,7 @@ export async function sendAcuseContactoEmail(opts: DatosAcuse): Promise<void> {
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: opts.emailCliente,
     subject: "Recibimos tu consulta",
     html: htmlAcuseContacto(opts),
@@ -265,7 +279,7 @@ export async function sendDenunciaAdminEmail(opts: DatosDenuncia): Promise<void>
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: CORREO.denuncias,
     subject: `[Denuncia] ${TIPO_DENUNCIA[opts.tipo] ?? opts.tipo}: ${opts.objetivo === "propiedad" ? "propiedad" : "corredor"}`,
     html: htmlDenuncia(opts, new Date()),
@@ -332,7 +346,7 @@ export async function sendSolicitudCambioPlanEmail(opts: DatosCambioPlan): Promi
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: CORREO.soporte, replyTo: opts.emailManager,
     subject: `[Cambio de plan] ${opts.corredora}: ${opts.planOrigen} → ${opts.planDestino}`,
     html: htmlSolicitudCambioPlan(opts, new Date()),
@@ -372,7 +386,7 @@ export async function sendComentarioCorredorEmail(opts: DatosComentario): Promis
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.notificaciones), to: opts.emailArrendatario,
     subject: "Tu corredor te dejó un mensaje",
     html: htmlComentarioCorredor(opts),
@@ -402,7 +416,7 @@ export async function sendDeviceCodeEmail(
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.noReply), to: email,
     subject: `${codigo}: verifica tu nuevo dispositivo`,
     html: htmlCodigoDispositivo(nombre, codigo, meta),
@@ -434,7 +448,7 @@ export async function sendCollaboratorInviteEmail(
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.noReply), to: email,
     subject: `${nombreEmpresa} te invitó a unirte en ${MARCA}`,
     html: htmlInvitacion(nombre, nombreEmpresa, link),
@@ -466,7 +480,7 @@ export async function sendCambioContactoCodeEmail(
     return;
   }
   const resend = await getResend();
-  await resend.emails.send({
+  await enviarCorreo(resend, {
     from: remitente(CORREO.noReply), to: email,
     subject: `${codigo}: confirma tu cambio de ${campoLabel}`,
     html: htmlCambioContacto(nombre, codigo, campo, valorNuevo),

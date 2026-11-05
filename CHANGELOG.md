@@ -53,6 +53,12 @@ desarrollo, no versiones publicadas.
 - **Avisos emergentes más legibles**: los errores duran más, el tiempo se
   detiene con el mouse o el teclado encima, el mismo aviso no se apila y el
   botón de cerrar es más fácil de tocar.
+- **Las consultas del marketplace ya no se pierden.** Si el correo al corredor
+  no sale, la consulta queda pendiente y se reintenta automáticamente durante
+  una semana; antes el visitante leía "El corredor recibirá tu mensaje" y el
+  corredor nunca se enteraba.
+- **Un correo rechazado por el proveedor ya no pasa por enviado.** Ahora se
+  maneja como cualquier fallo de envío.
 
 ---
 

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { sendContactoCorredorEmail, sendAcuseContactoEmail } from "@/lib/email";
+import { randomUUID } from "node:crypto";
+import { sendAcuseContactoEmail } from "@/lib/email";
+import { entregarConsulta } from "@/lib/consulta-contacto";
+import { logError } from "@/lib/logger";
 import { z } from "zod";
-import { CORREO } from "@/lib/marca";
 import { getClientIp } from "@/lib/ip";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -38,61 +40,54 @@ export async function POST(req: NextRequest) {
 
   const { publicacionId, nombre, apellido, telefono, email, titulo, descripcion, quiereContacto, viaEmail, viaTelefono } = parsed.data;
 
-  // Verificar que la publicación existe y está activa
-  const pub = await prisma.publicacion.findFirst({
-    where:   { id: publicacionId, estado: "publicada" },
-    include: { tenant: { select: { id: true, nombre: true, emailContacto: true } } },
-  });
+  try {
+    // Verificar que la publicación existe y está activa
+    const pub = await prisma.publicacion.findFirst({
+      where:   { id: publicacionId, estado: "publicada" },
+      include: { tenant: { select: { id: true, nombre: true } } },
+    });
 
-  if (!pub) {
-    return NextResponse.json({ error: "Publicación no encontrada." }, { status: 404 });
-  }
+    if (!pub) {
+      return NextResponse.json({ error: "Publicación no encontrada." }, { status: 404 });
+    }
 
-  // Determinar email del corredor: emailContacto → primer usuario admin → CORREO.soporte
-  // ADR-0011 Fase 2: usuario está sujeto a RLS y el visitante no tiene sesión
-  // de ningún tenant — se resuelve con una función SECURITY DEFINER de solo
-  // lectura (setup.sql), no con acceso directo a la tabla completa.
-  let emailCorredor = pub.tenant.emailContacto;
-  if (!emailCorredor) {
-    const rows = await prisma.$queryRaw<{ marketplace_lookup_corredor_email_fallback: string | null }[]>`
-      SELECT marketplace_lookup_corredor_email_fallback(${pub.tenant.id}::uuid)
-    `;
-    emailCorredor = rows[0]?.marketplace_lookup_corredor_email_fallback ?? CORREO.soporte;
-  }
+    // Generar token de valoración (UUID v4)
+    const tokenValoracion = randomUUID();
 
-  // Generar token de valoración (UUID v4)
-  const { randomUUID } = await import("crypto");
-  const tokenValoracion = randomUUID();
+    // Guardar consulta: desde aquí la consulta no se pierde aunque falle el correo.
+    const consulta = await prisma.consultaContacto.create({
+      data: {
+        publicacionId,
+        tenantId:      pub.tenant.id,
+        nombre, apellido, telefono, email,
+        titulo, descripcion,
+        quiereContacto, viaEmail, viaTelefono,
+        tokenValoracion,
+        ip: ip.slice(0, 45),
+      },
+      select: { id: true },
+    });
 
-  // Guardar consulta
-  await prisma.consultaContacto.create({
-    data: {
-      publicacionId,
-      tenantId:      pub.tenant.id,
-      nombre, apellido, telefono, email,
-      titulo, descripcion,
-      quiereContacto, viaEmail, viaTelefono,
-      tokenValoracion,
-      ip: ip.slice(0, 45),
-    },
-  });
+    // Correo al corredor: sin bloquear la respuesta. Si falla, la consulta queda
+    // pendiente y el cron de recordatorios la reintenta (lib/consulta-contacto).
+    // entregarConsulta nunca lanza.
+    void entregarConsulta(consulta.id);
 
-  // Enviar emails (en paralelo, sin bloquear respuesta si fallan)
-  Promise.all([
-    sendContactoCorredorEmail({
-      emailCorredor,
-      nombreCorredor: pub.tenant.nombre,
-      tituloPub:      pub.titulo,
-      nombre, apellido, telefono, email,
-      titulo, descripcion, viaEmail, viaTelefono,
-    }),
+    // Acuse al visitante: informativo, no se reintenta.
     sendAcuseContactoEmail({
       emailCliente:   email,
       nombreCliente:  nombre,
       tituloPub:      pub.titulo,
       nombreCorredor: pub.tenant.nombre,
-    }),
-  ]).catch(err => console.error("[contacto] Error enviando emails:", err));
+    }).catch((err) => logError("contacto/acuse", err));
 
-  return NextResponse.json({ ok: true, tokenValoracion });
+    return NextResponse.json({ ok: true, tokenValoracion });
+  } catch (err) {
+    // La consulta no alcanzó a guardarse: el visitante debe saberlo y reintentar.
+    logError("contacto", err);
+    return NextResponse.json(
+      { error: "No pudimos enviar tu consulta por un problema de nuestro lado. Inténtalo de nuevo en unos minutos." },
+      { status: 500 },
+    );
+  }
 }

@@ -22,6 +22,11 @@ de carga, en `apps/web` (panel, portal, sitio público y marketplace).
   - El resultado está en la matriz de escenarios, más abajo.
   - No se envió ningún correo real: Resend no está configurado en el build y
     el log lo confirma.
+- **Tercera pasada (misma fecha, como cliente)**:
+  - 21 tareas del día a día con datos reales del seed, cada una con tres
+    perfiles: corredor, arrendatario del portal y visitante del marketplace.
+  - Cada tarea compara qué esperaría el cliente con qué vio.
+  - Agregó los hallazgos M-21 a M-29.
 
 ## Resumen
 
@@ -51,6 +56,16 @@ de carga, en `apps/web` (panel, portal, sitio público y marketplace).
 | M-18 | 🟡 Baja | **Perfil usa la validación nativa del navegador**: es el único formulario con `required` sin `noValidate`. El aviso sale fuera del diseño y en el idioma del navegador ("Please fill out this field" en un Chromium en inglés). El resto de la app muestra los errores en línea | Ejecución (E-11) |
 | M-19 | 🟡 Baja | **4 rutas API sin `try/catch`**: `auth/dispositivos` (GET y DELETE), `auth/dispositivos/[id]` (DELETE) y `panel/contratos/[id]/comentarios` (GET). Si fallan devuelven un 500 sin JSON, y el cliente lo muestra como "error de red" | Escáner |
 | M-20 | ℹ️ Diseño | **El tope de códigos del portal (3 por persona en 10 min) es silencioso a propósito**, para que no se pueda saber si un RUT existe. El usuario llega a `/portal/verificar` con un id que no corresponde a ningún código, y la página no le explica qué hacer si el código no llega. Se mantiene el anti-enumeración; falta un texto neutro como "Si no te llega en 2 minutos, revisa spam o espera 10 minutos antes de pedir otro" | Ejecución (E-16: 5 de 5 respondieron 200) |
+| **Tercera pasada (recorrido como cliente)** | | | |
+| M-21 | 🔴 Alta | **Consultas del marketplace que se pierden.** Si falla el correo al corredor, la consulta queda en la base, pero no hay bandeja en el panel ni reintento: el corredor nunca se entera. Al visitante, en cambio, se le confirma "El corredor recibirá tu mensaje". El error solo queda en el log (`api/marketplace/contacto/route.ts`) | Ejecución (V-02, con el proveedor de correo sin configurar) |
+| M-22 | 🟠 Media | **El plan tiene tres nombres distintos para la misma cuenta**: "plan Bronze" en Propiedades y Mi Plan, "plan Gratuito" en Equipo (`getCupoInfo` usa `?? "Gratuito"` en vez de `getPlanEfectivo`) y "demo" (el id interno) en el pie del menú | Ejecución (C-15) |
+| M-23 | 🟠 Media | **Mensajes contradictorios en pantalla.** El portal muestra cada error dos veces: en línea y en un toast (`portal/verificar/page.tsx`, `showError`). Como los toasts se acumulan (M-04), al tercer intento se leen a la vez "Intentos agotados (3/3)", "Te quedan 2 intentos" y "Te quedan 1 intento". En Datos de la corredora y en Seguridad, el error anterior sigue visible después de corregir el campo | Ejecución (P-02, C-12, C-07) |
+| M-24 | 🟠 Media | **El aviso de intentos del login confunde.** Tras el 2.º fallo dice "quedan 3 intentos antes del bloqueo", pero el 3.º fallo ya bloquea la cuenta 5 minutos. El texto cuenta hasta el bloqueo permanente; el cliente entiende que tiene 3 intentos libres (`login-form.tsx:47`) | Ejecución (C-01) |
+| M-25 | 🟡 Baja | **Datos de la corredora muestra un error a la vez**, como toast y no junto al campo: primero solo el RUT y, al corregirlo, recién el correo | Ejecución (C-12) |
+| M-26 | 🟡 Baja | **Los topes del plan no enlazan a Mi Plan.** "Mejora tu plan" es texto sin enlace. En Propiedades, el motivo del botón deshabilitado vive solo en su `title`, que no se ve con teclado ni en pantallas táctiles (el contador rojo "10 / 10" sí se ve) | Ejecución (C-04, C-06) |
+| M-27 | 🟡 Baja | Gramática: "Te quedan 1 intento" (`api/portal/verificar-otp/route.ts:102`); debe decir "Te queda 1 intento" | Ejecución (P-02) |
+| M-28 | 🟡 Baja | **Vouchers con "desde" posterior a "hasta"** no avisa del rango imposible y responde "Sin vouchers… concilia un pago para generar el primero", una sugerencia que no corresponde | Ejecución (C-11) |
+| M-29 | 🟡 Baja | **Confirmaciones y advertencias que no se anuncian**: "¡Consulta enviada!" y "El monto no calza" no están en una región viva, y la segunda usa un emoji como ícono. A la inversa, el contador del bloqueo del login es `aria-live="polite"` y se anuncia cada segundo (`login-form.tsx:136`) | Ejecución (V-02, C-09); código (contador) |
 
 ## Detalle por categoría
 
@@ -132,6 +147,40 @@ Con la base caída (primera pasada):
 - El login muestra un error en línea, pero el texto culpa a la conexión del
   usuario (M-08).
 
+## Tercera pasada: recorrido como cliente
+
+Build de producción, base con el seed y tareas del día a día, ejecutadas como
+lo haría cada tipo de cliente. El objetivo es ver si lo que se informa es lo
+que el cliente esperaría.
+
+| ID | Perfil y acción | Qué esperaría el cliente | Qué vio | Veredicto |
+|---|---|---|---|---|
+| C-01 | Corredor: contraseña mal 3 veces | Error en cada intento y aviso honesto antes de bloquear | Error claro. Tras el 2.º fallo, "quedan 3 intentos antes del bloqueo"; el 3.º bloquea 5 min con cuenta regresiva y la opción de cambiar la contraseña. El correo se borra en cada intento | ⚠️ M-03, M-24 |
+| C-02 | Corredor: correo no registrado | El mismo mensaje que con la contraseña mala | "Correo o contraseña incorrectos." | ✅ |
+| C-03 | Corredor: recuperar con un correo inexistente | Mensaje neutro | "Si el correo ingresado coincide con una cuenta activa, recibirás un enlace…" | ✅ |
+| C-04 | Corredor: nueva propiedad con el cupo lleno (10/10) | Saberlo antes de llenar el formulario, y cómo subir de plan | Botón deshabilitado y "10 / 10 propiedades · plan Bronze" en rojo. El motivo está solo en el `title`; sin enlace a Mi Plan | ⚠️ M-26 |
+| C-05 | Corredor: búsqueda sin resultados | Estado vacío con el texto buscado | "No se encontraron propiedades para "zzz-no-existe"." | ✅ |
+| C-06 | Corredor: invitar con el cupo de usuarios lleno | Motivo y cómo resolverlo | "Alcanzaste el límite de 1 usuario de tu plan Gratuito. Desactiva a alguien o mejora tu plan…", con el botón deshabilitado. "Gratuito" no coincide con "Bronze" | ⚠️ M-22, M-26 |
+| C-07 | Corredor: cambio de contraseña (actual mala, nueva débil, no coinciden) | Un error preciso por caso | "La contraseña actual es incorrecta." y "Las contraseñas nuevas no coinciden."; la débil desactiva el botón. El error anterior sigue visible mientras se corrige | ⚠️ M-23 (leve) |
+| C-08 | Corredor: contrato nuevo; avanzar sin arrendatario y con RUT malo | Qué falta, junto al campo | "Selecciona o crea un arrendatario para continuar.", "RUT inválido — verifique el dígito verificador." y "El nombre del arrendatario es obligatorio." | ✅ |
+| C-09 | Corredor: pago por un monto distinto | Advertencia con lo esperado, la diferencia y las opciones | "El monto no calza exactamente · Esperado $521.409 — Faltan $520.409 · Puedes aceptar la diferencia…". No se guardó nada | ✅ (sin anuncio: M-29) |
+| C-10 | Corredor: generar recordatorios sin nada nuevo | Mensaje informativo | "No hay recordatorios nuevos por generar." (`role=status`) | ✅ |
+| C-11 | Corredor: vouchers con un rango de fechas imposible | Aviso del rango | "Sin vouchers · Cambia los filtros o concilia un pago…" | ❌ M-28 |
+| C-12 | Corredor: datos bancarios con RUT y correo malos | Todos los errores, cada uno junto a su campo | Un error a la vez, como toast; el del RUT sigue visible después de corregirlo | ❌ M-23, M-25 |
+| C-13 | Corredor: Estadísticas con un plan básico | Ver lo incluido y qué plan habilita el resto | Resumen con datos; las pestañas superiores indican "Disponible desde el plan …" | ✅ |
+| C-14 | Corredor: anexo con un archivo no permitido | Formatos permitidos | No se ejecutó (el guion no llegó al formulario). Por código: `accept="application/pdf"` y error del servidor con `setUploadError` | — (revisión de código) |
+| C-15 | Corredor: nombre de su plan | El mismo nombre en todas partes | Bronze / Gratuito / demo | ❌ M-22 |
+| P-01 | Arrendatario: RUT con el dígito verificador malo | "RUT inválido", sin enviar nada | "RUT inválido." | ✅ |
+| P-02 | Arrendatario: código incorrecto hasta agotarlo | Intentos restantes y qué hacer al final | Contenido correcto ("Te quedan 2…", "Intentos agotados (3/3)… Solicitar nuevo código"), pero cada error se duplica en un toast y quedan mensajes contradictorios a la vista | ❌ M-23, M-27 |
+| V-01 | Visitante: búsqueda sin resultados | Aviso y cómo seguir | "No se encontraron propiedades con estos filtros… Ver todas las propiedades" | ✅ |
+| V-02 | Visitante: contacto vacío, con correo malo y válido | Errores por campo; una confirmación que sea verdad | Errores por campo correctos; "¡Consulta enviada! El corredor recibirá tu mensaje…" **aunque el correo al corredor falló** | ❌ M-21 |
+| V-03 | Visitante: enlace a una ficha que ya no existe | "Esta propiedad ya no está publicada" | 404 genérico en inglés | ❌ M-01 |
+| V-04 | Visitante: registro vacío y contraseña débil | Errores por campo y requisitos | 7 errores precisos con `role=alert` y `aria-invalid`, y la lista de requisitos de la contraseña en vivo | ✅ |
+
+**Datos de prueba:** las invitaciones, consultas, dispositivos e intentos de
+login creados durante el recorrido se eliminaron al terminar. La contraseña y
+los datos de la corredora quedaron sin cambios.
+
 ## Controles que funcionan bien
 
 - **Validación de campos:** en login, registro, recuperar y nueva contraseña
@@ -173,7 +222,17 @@ Con la base caída (primera pasada):
   convierta en "Tu sesión expiró" con un enlace al login. Antes de implementarlo
   hay que confirmar la causa exacta de M-14.
 
+**Prioridad 1b: que no se pierdan consultas (M-21)**
+- Guardar el estado del envío de cada consulta (enviada o pendiente) y
+  reintentar las pendientes con el cron que ya existe.
+- Complemento opcional: una bandeja de consultas en el panel, para que se vean
+  aunque falle el correo. Es una decisión de producto.
+
 **Prioridad 2: que todo error se vea y quede registrado**
+- M-22: un solo nombre de plan en todas las pantallas, el de
+  `getPlanEfectivo`.
+- M-23: el portal muestra el error en línea o en un toast, no en los dos; los
+  errores de un formulario se limpian al editar el campo.
 - M-03: el formulario conserva lo escrito (valores por defecto desde el estado
   de la acción o inputs controlados).
 - M-04: los errores no se cierran solos, o se pausan con el mouse o el foco;
@@ -189,6 +248,14 @@ Con la base caída (primera pasada):
 - M-08 a M-13, M-18 y M-20: textos, tipos de mensaje, botón de cierre de 24 px,
   `Modal` en vez de `confirm()`, `loading.tsx` en el portal, `noValidate`
   en perfil y la ayuda neutra en `/portal/verificar`.
+- M-24 a M-29:
+  - un aviso de intentos que mencione la espera de 5 minutos;
+  - en Datos de la corredora, todos los errores juntos y cada uno en su campo;
+  - un enlace a Mi Plan en los topes;
+  - "Te queda 1 intento";
+  - un aviso de rango en Vouchers;
+  - regiones vivas en las confirmaciones;
+  - un contador del bloqueo que no se anuncie cada segundo.
 
 **Pruebas**
 - Vitest:

@@ -21,7 +21,9 @@ import {
   type TipoAjusteLiquidacion,
 } from "@propigo/core";
 import { unstable_rethrow } from "next/navigation";
-import { mensajeIpcFaltante } from "@/lib/indicadores/ipc-faltante";
+import {
+  mensajeIpcDesactualizado, mensajeIpcFaltante, nombreMes, rezagoIpc, sumarMeses,
+} from "@/lib/indicadores/ipc-referencia";
 
 function primerDiaMes(fecha: Date): Date {
   return new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1));
@@ -146,31 +148,39 @@ export async function simularPago(
       }
 
       // ── Reajuste IPC (solo contratos CLP con frecuencia de reajuste activa) ──
-      let ipcReajuste: { delta: number; variacionPct: number } | null = null;
+      let ipcReajuste: { delta: number; variacionPct: number; ventana: string } | null = null;
       if (c.denominacion === "CLP" && c.reajuste !== "ninguna") {
         const mesesCiclo = c.reajuste === "semestral" ? 6 : 12;
         if (esPeriodoDeReajuste(periodo.numero, mesesCiclo)) {
           const mesInicio = primerDiaMes(c.fechaInicio);
           const mesPago   = primerDiaMes(fechaPagoReal);
-          // Secuencial, no Promise.all: tx comparte una única conexión Postgres.
-          const ipcIni = await tx.serieIpc.findUnique({ where: { periodo: mesInicio } });
-          const ipcFin = await tx.serieIpc.findUnique({ where: { periodo: mesPago  } });
-          // L-FU3: sin los dos índices no se concilia. Seguir sin reajustar dejaba
-          // cobrar una renta desactualizada sin que nadie lo supiera.
-          if (!ipcIni || !ipcFin) {
-            throw new DomainError(
-              mensajeIpcFaltante([!ipcIni && mesInicio, !ipcFin && mesPago].filter((m): m is Date => !!m)),
-            );
+          // L-10: extremo final = último IPC disponible hasta el mes del pago (el del
+          // propio mes del pago casi nunca está publicado aún). El inicial se corre
+          // los mismos meses para conservar la ventana. Secuencial: tx comparte conexión.
+          const ultimo = await tx.serieIpc.findFirst({
+            where: { periodo: { lte: mesPago } },
+            orderBy: { periodo: "desc" },
+          });
+          // L-FU3: sin índices no se concilia. Seguir sin reajustar dejaba cobrar
+          // una renta desactualizada sin que nadie lo supiera, y un IPC viejo
+          // significa que la carga automática está caída.
+          const rezago = rezagoIpc(ultimo?.periodo ?? null, mesPago);
+          if (!ultimo || rezago === null) {
+            throw new DomainError(mensajeIpcDesactualizado(ultimo?.periodo ?? null, mesPago));
           }
+          const mesIni = sumarMeses(mesInicio, -rezago);
+          const ipcIni = await tx.serieIpc.findUnique({ where: { periodo: mesIni } });
+          if (!ipcIni) throw new DomainError(mensajeIpcFaltante([mesIni]));
+
           const nuevoArriendo = aplicarReajusteIpc(
             arriendoCLP,
             Number(ipcIni.indice),
-            Number(ipcFin.indice),
+            Number(ultimo.indice),
           );
           const delta = nuevoArriendo - arriendoCLP;
-          const variacionPct = variacionIpc(Number(ipcIni.indice), Number(ipcFin.indice)) * 100;
+          const variacionPct = variacionIpc(Number(ipcIni.indice), Number(ultimo.indice)) * 100;
           if (delta !== 0) {
-            ipcReajuste = { delta, variacionPct };
+            ipcReajuste = { delta, variacionPct, ventana: `${nombreMes(mesIni)} → ${nombreMes(ultimo.periodo)}` };
             arriendoCLP = nuevoArriendo;
           }
         }
@@ -245,7 +255,7 @@ export async function simularPago(
             tipo: "CARGO_AJUSTE", concepto: "ajuste",
             montoClp: Math.abs(ipcReajuste.delta),
             signo: ipcReajuste.delta >= 0 ? 1 : -1,
-            descripcion: `Reajuste IPC período ${periodo.numero}: ${ipcReajuste.variacionPct >= 0 ? "+" : ""}${ipcReajuste.variacionPct.toFixed(2)}%`,
+            descripcion: `Reajuste IPC período ${periodo.numero}: ${ipcReajuste.variacionPct >= 0 ? "+" : ""}${ipcReajuste.variacionPct.toFixed(2)}% (IPC ${ipcReajuste.ventana})`,
           },
         });
         await tx.contrato.update({

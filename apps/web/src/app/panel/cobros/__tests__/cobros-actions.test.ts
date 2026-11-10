@@ -47,7 +47,7 @@ const mockTx = {
   $executeRaw:       vi.fn().mockResolvedValue(undefined),
   periodoPago:       { findFirst: vi.fn(), updateMany: vi.fn() },
   serieUf:           { findFirst: vi.fn() },
-  serieIpc:          { findUnique: vi.fn() },
+  serieIpc:          { findUnique: vi.fn(), findFirst: vi.fn() },
   asientoLedger:     { findFirst: vi.fn(), create: vi.fn() },
   contrato:          { update: vi.fn() },
   voucher:           { create: vi.fn() },
@@ -404,7 +404,7 @@ describe("simularPago — ownership (ADR-0013, Fase D)", () => {
   });
 });
 
-describe("simularPago — L-FU3 (sin IPC no se concilia un período que reajusta)", () => {
+describe("simularPago — L-10 y L-FU3 (reajuste con el último IPC disponible)", () => {
   const periodoReajusta = {
     ...periodoBase,
     contrato: { ...periodoBase.contrato, reajuste: "anual", fechaInicio: new Date("2025-06-10T00:00:00Z") },
@@ -433,23 +433,61 @@ describe("simularPago — L-FU3 (sin IPC no se concilia un período que reajusta
     vi.mocked(core.esPeriodoDeReajuste).mockReturnValue(false);
   });
 
-  it("rechaza y nombra el mes cuando falta el índice del mes del pago", async () => {
-    mockTx.serieIpc.findUnique
-      .mockResolvedValueOnce({ indice: "100" }) // mes de inicio
-      .mockResolvedValueOnce(null);             // mes del pago: aún no publicado
+  const fila = (periodo: string, indice: string) => ({ periodo: new Date(periodo), indice });
+
+  it("usa el último IPC disponible y corre el inicio los mismos meses (pago junio, IPC hasta mayo)", async () => {
+    const core = await import("@propigo/core");
+    vi.mocked(core.aplicarReajusteIpc).mockReturnValue(520000);
+    vi.mocked(core.variacionIpc).mockReturnValue(0.04);
+    mockTx.serieIpc.findFirst.mockResolvedValue(fila("2026-05-01T00:00:00Z", "114"));
+    mockTx.serieIpc.findUnique.mockResolvedValue(fila("2025-05-01T00:00:00Z", "109.6")); // inicio junio-2025 − 1
 
     const result = await simularPago("periodo-123", "2026-06-18", 500000);
 
-    expect(result).toEqual({ ok: false, error: expect.stringMatching(/reajuste por IPC.*junio de 2026/i) });
+    expect(result.ok).toBe(true);
+    expect(mockTx.serieIpc.findUnique).toHaveBeenCalledWith({ where: { periodo: new Date("2025-05-01T00:00:00Z") } });
+    expect(core.aplicarReajusteIpc).toHaveBeenCalledWith(500000, 109.6, 114);
+    const asiento = mockTx.asientoLedger.create.mock.calls.map((c) => c[0].data).find((d) => d.tipo === "CARGO_AJUSTE");
+    expect(asiento.descripcion).toMatch(/\(IPC mayo de 2025 → mayo de 2026\)/);
+  });
+
+  it("si el IPC del mes del pago ya está publicado, no corre nada", async () => {
+    const core = await import("@propigo/core");
+    vi.mocked(core.aplicarReajusteIpc).mockReturnValue(520000);
+    vi.mocked(core.variacionIpc).mockReturnValue(0.04);
+    mockTx.serieIpc.findFirst.mockResolvedValue(fila("2026-06-01T00:00:00Z", "114.5"));
+    mockTx.serieIpc.findUnique.mockResolvedValue(fila("2025-06-01T00:00:00Z", "110"));
+
+    await simularPago("periodo-123", "2026-06-18", 500000);
+
+    expect(mockTx.serieIpc.findUnique).toHaveBeenCalledWith({ where: { periodo: new Date("2025-06-01T00:00:00Z") } });
+  });
+
+  it("rechaza cuando el último IPC cargado tiene más de 2 meses de atraso", async () => {
+    mockTx.serieIpc.findFirst.mockResolvedValue(fila("2026-02-01T00:00:00Z", "113"));
+
+    const result = await simularPago("periodo-123", "2026-06-18", 500000);
+
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/no hay un índice reciente.*febrero de 2026/i) });
     expect(mockTx.asientoLedger.create).not.toHaveBeenCalled();
     expect(mockTx.voucher.create).not.toHaveBeenCalled();
   });
 
-  it("rechaza y nombra ambos meses cuando faltan los dos índices", async () => {
+  it("rechaza cuando no hay ningún IPC cargado", async () => {
+    mockTx.serieIpc.findFirst.mockResolvedValue(null);
+
+    const result = await simularPago("periodo-123", "2026-06-18", 500000);
+
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/no hay ningún IPC cargado/i) });
+  });
+
+  it("rechaza y nombra el mes cuando falta el índice inicial de la ventana", async () => {
+    mockTx.serieIpc.findFirst.mockResolvedValue(fila("2026-05-01T00:00:00Z", "114"));
     mockTx.serieIpc.findUnique.mockResolvedValue(null);
 
     const result = await simularPago("periodo-123", "2026-06-18", 500000);
 
-    expect(result).toEqual({ ok: false, error: expect.stringMatching(/junio de 2025 y junio de 2026/i) });
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/índice de mayo de 2025/i) });
+    expect(mockTx.voucher.create).not.toHaveBeenCalled();
   });
 });

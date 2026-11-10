@@ -34,9 +34,12 @@ desarrollo, no versiones publicadas.
 
 ### Cambiado
 
-- **Conciliar un período que reajusta por IPC ya no sigue sin reajustar si falta
-  el índice.** Se rechaza nombrando el mes que falta; antes se cobraba la renta
-  sin reajustar y sin avisar.
+- **El reajuste por IPC usa el último índice disponible.** El INE publica el IPC
+  de un mes hacia el día 8 del siguiente, así que antes de eso se usa el mes
+  anterior, con la misma ventana de meses. El asiento del reajuste indica los
+  meses usados. Si el IPC cargado tiene más de 2 meses de atraso o falta un
+  índice, la conciliación se rechaza explicando por qué; antes se cobraba la
+  renta sin reajustar y sin avisar.
 - **Revisión responsive en iOS, Android y tablet**, con un recorrido
   automatizado de 8 perfiles (`npm run qa:mobile`).
 - **Mi Plan cuenta los usuarios igual que Equipo**: las invitaciones

@@ -53,7 +53,7 @@ Leyenda — **Prioridad:** P0 impide la V1 · P1 conviene tenerlo en la V1 · P2
 | # | Funcionalidad | Estado real | Bloqueante | Qué necesitamos | Dific. | Prior. |
 |---|---|---|---|---|---|---|
 | C1 | **Carga periódica de UF e IPC** (L-FU1/2) | ✅ **Hecho 2026-11-09**: cargador dentro del cron diario (`lib/indicadores/`), con la API del Banco Central. Pendiente solo el token | `BCCH_API_TOKEN`: registrar la cuenta en si3.bcentral.cl | Gerencia obtiene el token; probar la primera carga contra la API real | Media | **P0** |
-| C2 | **Negarse a reajustar con serie incompleta** (L-FU3) | ✅ **Hecho 2026-11-09**: la conciliación se rechaza nombrando el mes que falta. **Abierto L-10**: con datos reales el IPC del mes del pago aún no existe, así que habría que reajustar con el mes anterior | L-10 (decisión de dominio y legal) | Definir el mes de referencia del reajuste | Baja | **P0** |
+| C2 | **Negarse a reajustar con serie incompleta** (L-FU3) | ✅ **Hecho 2026-11-09**: la conciliación se rechaza nombrando el mes que falta. **L-10 decidida**: se reajusta con el último IPC disponible (máx. 2 meses de atraso) | Revisión del abogado de la cláusula tipo | Confirmar redacción | Baja | **P0** |
 | C3 | **Documento de reajuste con fuente y fecha** (L-FU4, L-CM4) | No existe el aviso de reajuste en PDF | C2; G-04 | PDF con los 12 meses de IPC y la fuente | Media | P1 |
 
 ## D. Ley 21.719 — vigente 2026-12-01

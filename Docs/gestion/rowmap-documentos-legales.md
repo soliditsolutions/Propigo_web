@@ -230,9 +230,9 @@ menos.
 
 | ID | Fila | Depende de | Preguntas | Estado |
 |---|---|---|---|---|
-| **L-FU1** | Fuente oficial de **UF** (Banco Central) con carga periódica | — | **L-08** | `[!]` |
-| **L-FU2** | Fuente oficial de **IPC** (INE) con carga periódica | — | **L-08** | `[!]` |
-| **L-FU3** | El sistema **se niega a reajustar** si la serie no cubre el período, en vez de calcular con datos viejos | L-FU1, L-FU2 | — | `[ ]` |
+| **L-FU1** | Fuente oficial de **UF** (Banco Central) con carga periódica | — | **L-08** | `[x]` 2026-11-09 — `lib/indicadores/`, dentro del cron diario. Falta el token `BCCH_API_TOKEN` |
+| **L-FU2** | Fuente oficial de **IPC** (INE) con carga periódica | — | **L-08** | `[x]` 2026-11-09 — se toma del Banco Central, que republica el IPC del INE (misma API y token que la UF) |
+| **L-FU3** | El sistema **se niega a reajustar** si la serie no cubre el período, en vez de calcular con datos viejos | L-FU1, L-FU2 | **L-10** | `[x]` 2026-11-09 — la conciliación se rechaza nombrando el mes que falta. Ver L-10 |
 | **L-FU4** | El documento de reajuste **cita la fuente y la fecha** de la serie usada | L-FU3, L-CM4 | — | `[ ]` |
 
 ---
@@ -262,6 +262,8 @@ menos.
 | **L-06** | ¿Cuál es el plazo de respuesta a una solicitud de derechos? | 🔴 | L-DP7 | Leer el plazo en el texto de la ley y publicarlo. No inventarlo. | Abierta |
 | **L-07** | ¿Propigo es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | Abierta |
 | **L-08** | ¿Qué fuente para UF e IPC: API del Banco Central, del INE, o un agregador? | 🟡 | L-FU1, L-FU2 | Banco Central para UF, INE para IPC — las oficiales. Un agregador introduce un intermediario en un dato que define montos cobrados. | Abierta |
+| **L-10** | ¿Con qué mes de IPC se reajusta? Hoy el código compara el índice del mes de inicio con el del **mes del pago**. Pero el INE publica el IPC de un mes hacia el día 8 del siguiente, así que con datos reales el del mes del pago **no existe todavía** y la conciliación de un período con reajuste se rechaza (L-FU3) hasta entonces. La práctica habitual es usar el último IPC publicado (mes anterior al aniversario, con 12 meses de variación) | 🔴 | L-FU3, L-CM4 | Usar el mes anterior en ambos extremos: mismo plazo de 12 meses, y el dato ya existe el día del pago. Cambia montos reajustados: confirmar con la cláusula tipo del contrato y con el abogado. | **Abierta** |
+| **L-08b** | (nota) L-08 quedó implementada con el Banco Central para UF **e IPC** (el BCCH republica el IPC del INE): una sola API y un solo token. Confirmar si se acepta | 🟡 | L-FU1, L-FU2 | Aceptar. | Propuesta implementada |
 | **L-09** | ¿Qué campos y qué formato exige exactamente la DJ 1835? | 🟡 | L-DJ1 | Leerlos del formulario oficial. El PDF de instrucciones no se pudo extraer con confianza. | Abierta |
 
 ---

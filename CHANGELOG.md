@@ -26,8 +26,17 @@ desarrollo, no versiones publicadas.
   cuántas propiedades o usuarios sobran, con acceso directo a Propiedades o
   Equipo. El sistema nunca borra nada por su cuenta.
 
+- **UF e IPC se cargan solos desde el Banco Central.** Un paso del cron diario
+  trae la UF (con semanas de anticipación) y el IPC mensual, sin pisar valores
+  ya guardados, y avisa en el log si algo falla. Rechaza un IPC que salta más de
+  5 % respecto del anterior, señal de cambio de base. Requiere el token
+  `BCCH_API_TOKEN`.
+
 ### Cambiado
 
+- **Conciliar un período que reajusta por IPC ya no sigue sin reajustar si falta
+  el índice.** Se rechaza nombrando el mes que falta; antes se cobraba la renta
+  sin reajustar y sin avisar.
 - **Revisión responsive en iOS, Android y tablet**, con un recorrido
   automatizado de 8 perfiles (`npm run qa:mobile`).
 - **Mi Plan cuenta los usuarios igual que Equipo**: las invitaciones

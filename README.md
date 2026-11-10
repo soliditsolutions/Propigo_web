@@ -99,6 +99,7 @@ En desarrollo se definen en `apps/web/.env` (plantilla: `.env.example`); en prod
 | `AUTH_SECRET` | ✅ | Secreto para firmar JWT (panel, portal OTP y 2FA por dispositivo). Mínimo 32 caracteres. |
 | `GROQ_API_KEY` | ✅ | Clave de Groq para la validación de contratos y carnet con IA. El servidor no arranca sin ella. |
 | `CRON_SECRET` | ✅ (prod) | Protege el endpoint `/api/cron/recordatorios`. Obligatorio si el endpoint es accesible. |
+| `BCCH_API_TOKEN` | ✅ (prod) | Token de la API del Banco Central (UF diaria e IPC mensual). Sin él el cron no actualiza `serie_uf` / `serie_ipc`. En desarrollo no hace falta: el seed trae datos de ejemplo. |
 | `RESEND_API_KEY` | ⬜ | Clave de Resend para envío real de emails. Sin ella, los correos se simulan en consola. |
 | `NEXT_PUBLIC_APP_URL` | ✅ (prod) | URL pública (ej. `https://propigo.cl`) para enlaces en emails y metadatos. Se incrusta **al compilar**: en la imagen va como `--build-arg`. |
 | `UPLOADS_PATH` | ⬜ | Directorio de documentos privados. Por defecto `apps/web/private-uploads/` (nunca bajo `public/`). |

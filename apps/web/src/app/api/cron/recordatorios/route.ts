@@ -23,6 +23,9 @@ import { withTenant } from "@/lib/tenant-db";
 import { purgarDatosVencidos, purgaVacia, sumarPurgas } from "@/lib/retencion-purga";
 import { logError } from "@/lib/logger";
 import { reintentarConsultasPendientes } from "@/lib/consulta-contacto";
+import { prisma } from "@/lib/db";
+import { cargarIndicadores, type ResultadoCarga } from "@/lib/indicadores/cargar";
+import { crearPedirSerieBcch } from "@/lib/indicadores/bcch";
 
 /**
  * Comparación en tiempo constante del encabezado contra el secreto. Se comparan
@@ -33,6 +36,25 @@ function autorizado(auth: string | null, secret: string): boolean {
   const esperado = createHash("sha256").update(`Bearer ${secret}`).digest();
   const recibido = createHash("sha256").update(auth ?? "").digest();
   return timingSafeEqual(esperado, recibido);
+}
+
+async function actualizarIndicadores(): Promise<ResultadoCarga | { error: string }> {
+  const token = process.env.BCCH_API_TOKEN;
+  if (!token) {
+    const error = "BCCH_API_TOKEN no está configurado: UF e IPC no se actualizan.";
+    logError("cron/indicadores", new Error(error));
+    return { error };
+  }
+  try {
+    const r = await cargarIndicadores(prisma, crearPedirSerieBcch(token));
+    for (const [serie, res] of Object.entries(r)) {
+      if (res.error) logError(`cron/indicadores/${serie}`, new Error(res.error));
+    }
+    return r;
+  } catch (e) {
+    logError("cron/indicadores", e);
+    return { error: "No se pudieron actualizar la UF y el IPC." };
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -95,11 +117,17 @@ export async function GET(req: NextRequest) {
       consultas = { error: "No se pudieron reintentar las consultas." };
     }
 
+    // UF e IPC oficiales (L-FU1/2). Primero entre los pasos de datos globales y en
+    // su propio try: sin la UF del día los arriendos en UF no concilian, así que
+    // un fallo acá tiene que verse en el log y en la respuesta, no perderse.
+    const indicadores = await actualizarIndicadores();
+
     return NextResponse.json({
       ok:        true,
       tenants:   tenants.length,
       purgado,
       consultas,
+      indicadores,
       resumen,
       timestamp: new Date().toISOString(),
     });

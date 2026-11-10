@@ -42,6 +42,7 @@ sirve en Azure u otro proveedor.
 | `DATABASE_ADMIN_URL` | solo tarea de migraciones | Sí | Usuario maestro de RDS. **Nunca** en el servicio de la app. |
 | `AUTH_SECRET` | runtime | Sí | `openssl rand -hex 32`. Rotarlo cierra todas las sesiones. |
 | `CRON_SECRET` | runtime + EventBridge | Sí | `openssl rand -hex 32`. |
+| `BCCH_API_TOKEN` | runtime | Sí (aviso al arrancar) | Token de la API del Banco Central (registro gratuito en si3.bcentral.cl). El cron diario carga la UF y el IPC; si falta, los arriendos en UF dejan de conciliar cuando se acaba la serie. |
 | `GROQ_API_KEY` | runtime | Sí | Validación de contratos y carnet. |
 | `RESEND_API_KEY` | runtime | Sí | Sin ella los correos solo se simulan en el log. |
 | `PROXIES_CONFIABLES` | runtime | No | Proxies propios que agregan a `X-Forwarded-For`. `1` = solo App Runner; `2` = CloudFront + App Runner. Ver [verificación](#primer-despliegue). |

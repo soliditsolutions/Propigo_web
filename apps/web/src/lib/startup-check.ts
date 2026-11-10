@@ -69,6 +69,17 @@ export function runStartupChecks(): void {
     );
   }
 
+  // ── 5b. BCCH_API_TOKEN: UF e IPC oficiales ────────────────────────────────
+  // No es fatal (los datos ya cargados siguen sirviendo), pero sin el token el
+  // cron no actualiza la UF y, al agotarse la serie, los arriendos en UF dejan
+  // de conciliar. Por eso se avisa fuerte en el arranque.
+  if (isProd && !process.env.BCCH_API_TOKEN) {
+    console.warn(
+      "[STARTUP] BCCH_API_TOKEN no definido: la UF y el IPC no se actualizarán. " +
+      "Regístrate en https://si3.bcentral.cl y genera un token de API.",
+    );
+  }
+
   // ── 6. E2E_BYPASS_IDENTITY nunca en producción ────────────────────────────
   // AUD-07: esta variable omite la verificación de identidad por cédula en
   // /registro (solo para pruebas E2E automatizadas). Si llega a estar

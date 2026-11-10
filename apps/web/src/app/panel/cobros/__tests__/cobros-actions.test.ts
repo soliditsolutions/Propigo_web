@@ -5,7 +5,7 @@
  * compuerta atómica updateMany + estado en transacciones interactivas Prisma.
  * Cuando count=0, la TX se revierte y se retorna un error descriptivo al cliente.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -401,5 +401,55 @@ describe("simularPago — ownership (ADR-0013, Fase D)", () => {
     const result = await simularPago("periodo-123", "2026-06-18", 500000);
 
     expect(result.ok).toBe(true);
+  });
+});
+
+describe("simularPago — L-FU3 (sin IPC no se concilia un período que reajusta)", () => {
+  const periodoReajusta = {
+    ...periodoBase,
+    contrato: { ...periodoBase.contrato, reajuste: "anual", fechaInicio: new Date("2025-06-10T00:00:00Z") },
+  };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockGetActor.mockResolvedValue({ usuarioId: "mgr-1", tenantId: "tenant-abc", rol: "manager", tenant: { id: "tenant-abc", nombre: "Corredora QA SpA", rut: "76123456-0", giro: "Corretaje", direccion: "Av. Siempre Viva 100", esPersonaJuridica: true } });
+    mockPrismaTransaction.mockImplementation(
+      async (callback: (tx: typeof mockTx) => Promise<unknown>) => callback(mockTx),
+    );
+    mockTx.periodoPago.findFirst.mockResolvedValue(periodoReajusta);
+    mockTx.periodoPago.updateMany.mockResolvedValue({ count: 1 });
+    mockTx.folioCounter.upsert.mockResolvedValue({ ultimo: 1 });
+    mockTx.cuentaBancaria.findFirst.mockResolvedValue(null);
+    mockTx.asientoLedger.create.mockResolvedValue({});
+    mockTx.voucher.create.mockResolvedValue({});
+    mockTx.notificacion.create.mockResolvedValue({});
+    mockConciliar.mockReturnValue({ estado: "conciliado", totalEsperado: 500000, diferencia: 0 });
+    const core = await import("@propigo/core");
+    vi.mocked(core.esPeriodoDeReajuste).mockReturnValue(true);
+  });
+
+  afterEach(async () => {
+    const core = await import("@propigo/core");
+    vi.mocked(core.esPeriodoDeReajuste).mockReturnValue(false);
+  });
+
+  it("rechaza y nombra el mes cuando falta el índice del mes del pago", async () => {
+    mockTx.serieIpc.findUnique
+      .mockResolvedValueOnce({ indice: "100" }) // mes de inicio
+      .mockResolvedValueOnce(null);             // mes del pago: aún no publicado
+
+    const result = await simularPago("periodo-123", "2026-06-18", 500000);
+
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/reajuste por IPC.*junio de 2026/i) });
+    expect(mockTx.asientoLedger.create).not.toHaveBeenCalled();
+    expect(mockTx.voucher.create).not.toHaveBeenCalled();
+  });
+
+  it("rechaza y nombra ambos meses cuando faltan los dos índices", async () => {
+    mockTx.serieIpc.findUnique.mockResolvedValue(null);
+
+    const result = await simularPago("periodo-123", "2026-06-18", 500000);
+
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/junio de 2025 y junio de 2026/i) });
   });
 });

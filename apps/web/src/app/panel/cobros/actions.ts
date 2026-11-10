@@ -21,6 +21,7 @@ import {
   type TipoAjusteLiquidacion,
 } from "@propigo/core";
 import { unstable_rethrow } from "next/navigation";
+import { mensajeIpcFaltante } from "@/lib/indicadores/ipc-faltante";
 
 function primerDiaMes(fecha: Date): Date {
   return new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1));
@@ -154,20 +155,24 @@ export async function simularPago(
           // Secuencial, no Promise.all: tx comparte una única conexión Postgres.
           const ipcIni = await tx.serieIpc.findUnique({ where: { periodo: mesInicio } });
           const ipcFin = await tx.serieIpc.findUnique({ where: { periodo: mesPago  } });
-          if (ipcIni && ipcFin) {
-            const nuevoArriendo = aplicarReajusteIpc(
-              arriendoCLP,
-              Number(ipcIni.indice),
-              Number(ipcFin.indice),
+          // L-FU3: sin los dos índices no se concilia. Seguir sin reajustar dejaba
+          // cobrar una renta desactualizada sin que nadie lo supiera.
+          if (!ipcIni || !ipcFin) {
+            throw new DomainError(
+              mensajeIpcFaltante([!ipcIni && mesInicio, !ipcFin && mesPago].filter((m): m is Date => !!m)),
             );
-            const delta = nuevoArriendo - arriendoCLP;
-            const variacionPct = variacionIpc(Number(ipcIni.indice), Number(ipcFin.indice)) * 100;
-            if (delta !== 0) {
-              ipcReajuste = { delta, variacionPct };
-              arriendoCLP = nuevoArriendo;
-            }
           }
-          // Si no hay datos IPC en SerieIpc, se procede sin reajuste (no bloquea el flujo)
+          const nuevoArriendo = aplicarReajusteIpc(
+            arriendoCLP,
+            Number(ipcIni.indice),
+            Number(ipcFin.indice),
+          );
+          const delta = nuevoArriendo - arriendoCLP;
+          const variacionPct = variacionIpc(Number(ipcIni.indice), Number(ipcFin.indice)) * 100;
+          if (delta !== 0) {
+            ipcReajuste = { delta, variacionPct };
+            arriendoCLP = nuevoArriendo;
+          }
         }
       }
 

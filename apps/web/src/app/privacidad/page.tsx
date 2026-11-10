@@ -12,6 +12,7 @@ import { ShieldCheck, Eye, Database, Mail, Clock, Globe, AlertTriangle } from "l
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { RETENCIONES } from "@/lib/retencion";
 import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO } from "@/lib/marca";
+import { ALMACENAMIENTO } from "@/lib/almacenamiento";
 
 export const metadata = {
   title: `Política de Privacidad · ${MARCA}`,
@@ -19,7 +20,7 @@ export const metadata = {
     `Política de privacidad y protección de datos personales de ${MARCA}. Conozca cómo tratamos sus datos conforme a la Ley 21.719.`,
 };
 
-const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
+const ULTIMA_ACTUALIZACION = "9 de noviembre de 2026";
 const RUT_EMPRESA          = "77.000.000-0"; // Actualizar al RUT real
 const EMAIL_DATOS          = CORREO.privacidad;
 const DOMICILIO            = "Santiago, Región Metropolitana, Chile";
@@ -411,36 +412,7 @@ export default function PrivacidadPage() {
                 {MARCA} utiliza las siguientes tecnologías de almacenamiento en su dispositivo:
               </p>
               <div className="space-y-3">
-                {[
-                  {
-                    nombre: "pgo_session / __Host-pgo_session",
-                    tipo: "Cookie de sesión (httpOnly)",
-                    finalidad: "Autenticación del corredor. Sin ella no puede acceder al panel.",
-                    duracion: "8 horas (se renueva automáticamente con cada uso)",
-                    esencial: true,
-                  },
-                  {
-                    nombre: "pgo_device",
-                    tipo: "Cookie de dispositivo confiable (httpOnly)",
-                    finalidad: "Evitar solicitar 2FA en dispositivos ya verificados.",
-                    duracion: "1 año",
-                    esencial: true,
-                  },
-                  {
-                    nombre: "pgo_portal_session",
-                    tipo: "Cookie de sesión portal (httpOnly)",
-                    finalidad: "Autenticación de arrendatarios en el portal de autoconsulta.",
-                    duracion: "30 minutos",
-                    esencial: true,
-                  },
-                  {
-                    nombre: "pgo_tos_v3",
-                    tipo: "localStorage",
-                    finalidad: "Registro de que el usuario aceptó los términos de uso (Ley 21.719 art. 4).",
-                    duracion: "Persistente hasta borrar datos del navegador",
-                    esencial: true,
-                  },
-                ].map(({ nombre, tipo, finalidad, duracion, esencial }) => (
+                {ALMACENAMIENTO.map(({ nombreVisible: nombre, detalle: tipo, finalidad, duracion, esencial }) => (
                   <div key={nombre}
                     className="rounded-xl p-4 text-sm"
                     style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
@@ -449,12 +421,10 @@ export default function PrivacidadPage() {
                       <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--pf-border)", color: "var(--pf-navy)" }}>
                         {nombre}
                       </code>
-                      {esencial && (
-                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}>
-                          Esencial
-                        </span>
-                      )}
+                      <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}>
+                        {esencial ? "Esencial" : "Preferencia"}
+                      </span>
                     </div>
                     <p className="text-xs mb-1" style={{ color: "var(--pf-text-light)" }}>{tipo}</p>
                     <p><strong>Finalidad:</strong> {finalidad}</p>
@@ -463,8 +433,18 @@ export default function PrivacidadPage() {
                 ))}
               </div>
               <p>
-                No utilizamos cookies de rastreo, publicidad ni analítica de terceros.
-                Todas las cookies son estrictamente necesarias para el funcionamiento del servicio.
+                No utilizamos cookies de rastreo, publicidad, analítica ni de terceros.
+                Las tres cookies son estrictamente necesarias para prestar el servicio que usted
+                solicita (iniciar sesión y proteger su cuenta), por lo que no requieren su
+                consentimiento y no hay nada que aceptar o rechazar. Las marcadas como
+                «Preferencia» solo guardan en su navegador una elección de interfaz y nunca
+                viajan a nuestros servidores.
+              </p>
+              <p>
+                Puede borrar cualquiera de estos elementos en cualquier momento desde la
+                configuración de su navegador («Datos del sitio»). Si algún día incorporamos
+                cookies de analítica o publicidad, le pediremos su consentimiento previo,
+                separado por finalidad, y podrá retirarlo con la misma facilidad con que lo dio.
               </p>
             </Section>
 

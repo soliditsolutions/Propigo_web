@@ -44,6 +44,13 @@ desarrollo, no versiones publicadas.
 
 ### Corregido
 
+- **La tabla de cookies de la Política de Privacidad ahora coincide con el
+  código.** Citaba una cookie del portal que no existe, duraciones antiguas y
+  omitía tres preferencias guardadas en el navegador (tema, menú lateral y guía
+  de notificaciones). Se genera desde un único catálogo y una prueba falla si el
+  código usa un nombre que no esté declarado. Se deja explícito que no hay
+  cookies de analítica, publicidad ni terceros, y por eso no hay banner de
+  aceptación.
 - **Páginas de error y de "no encontrado" propias, en español.** Un enlace
   roto, una ficha que ya no está publicada o un contrato que no existe muestran
   qué pasó y cómo seguir; en el panel, sin salir del menú. Ante un error del

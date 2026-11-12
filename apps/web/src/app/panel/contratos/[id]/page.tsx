@@ -10,6 +10,7 @@ import { CierreSection } from "./cierre-section";
 import { RenovarSection } from "./renovar-section";
 import { AnexosSection } from "./anexos-section";
 import { ExportDatosPersona } from "./export-datos-persona";
+import { AnonimizarPersona } from "./anonimizar-persona";
 import { ComentariosCorredorSection } from "@/components/panel/ComentariosCorredorSection";
 import { verificarYExtenderCalendario } from "@/lib/auto-extender";
 import { idFiltro } from "@/lib/busqueda";
@@ -186,7 +187,10 @@ export default async function ContratoDetallePage({
             <p className="text-xs text-[var(--pgo-text-4)] truncate">{detalle.arrendatario.email}</p>
           )}
           {actor.rol === "manager" && (
-            <ExportDatosPersona personaId={detalle.arrendatario.id} nombre={detalle.arrendatario.nombre} />
+            <>
+              <ExportDatosPersona personaId={detalle.arrendatario.id} nombre={detalle.arrendatario.nombre} />
+              <AnonimizarPersona personaId={detalle.arrendatario.id} nombre={detalle.arrendatario.nombre} />
+            </>
           )}
         </Card>
 
@@ -195,7 +199,10 @@ export default async function ContratoDetallePage({
           <p className="font-semibold text-[var(--pgo-text-1)]">{detalle.propietario.nombre}</p>
           <p className="text-xs text-[var(--pgo-text-4)]">{detalle.propietario.rut}</p>
           {actor.rol === "manager" && (
-            <ExportDatosPersona personaId={detalle.propietario.id} nombre={detalle.propietario.nombre} />
+            <>
+              <ExportDatosPersona personaId={detalle.propietario.id} nombre={detalle.propietario.nombre} />
+              <AnonimizarPersona personaId={detalle.propietario.id} nombre={detalle.propietario.nombre} />
+            </>
           )}
         </Card>
 

@@ -20,6 +20,8 @@ Para instalar, entender y colaborar en el código.
 | [Modelo de datos y ER](tecnica/modelo-datos-er.md) | Diccionario de datos y diagrama entidad-relación: tablas, campos, tipos, relaciones, RLS, ledger. |
 | [Guía de levantamiento local](tecnica/guia-local.md) | Cómo correr e inspeccionar el prototipo (para demos y desarrollo). |
 | [Despliegue a producción](tecnica/despliegue-produccion.md) | Runbook: imagen Docker, migraciones, variables y secretos, primer despliegue, rollback y bloqueantes antes del lanzamiento. |
+| [Correo con Workspace](tecnica/correo-workspace.md) | Una bandeja central (`administracion@`) con alias y filtros de Gmail por etiqueta. |
+| [Procedimiento ante brechas](tecnica/procedimiento-brechas.md) | Qué hacer, quién y en qué plazo ante una vulneración de datos personales (Ley 21.719). |
 | [CONTRIBUTING](../CONTRIBUTING.md) | Ramas, commits, PRs, estilo de código y reglas de seguridad. |
 
 ## ⚙️ Bloque Funcional — el "Qué"
@@ -77,7 +79,7 @@ Registro cronológico de decisiones. Una decisión = un archivo en [`decisiones/
 
 | ADR | Tema |
 |---|---|
-| [0001](decisiones/ADR-0001-nube.md) | Decisión de nube (diferida, MVP portable) |
+| [0001](decisiones/ADR-0001-nube.md) | Decisión de nube (diferida, MVP portable) — cerrada por ADR-0015 |
 | [0002](decisiones/ADR-0002-stack-y-seguridad.md) | Stack Next.js + seguridad |
 | [0003](decisiones/ADR-0003-fidelidad-prototipo.md) | Fidelidad del prototipo (dominio real, integraciones simuladas) |
 | [0004](decisiones/ADR-0004-reglas-financieras.md) | Reglas financieras del dominio |
@@ -90,6 +92,8 @@ Registro cronológico de decisiones. Una decisión = un archivo en [`decisiones/
 | [0011](decisiones/ADR-0011-roles-bd-y-rls.md) | Roles de BD (`propigo`/`propigo_app`) y RLS |
 | [0012](decisiones/ADR-0012-identidad-libreria-y-ia-contrato-externa.md) | Verificación de identidad por librería + IA externa sobre contrato de-identificado |
 | [0013](decisiones/ADR-0013-cuentas-multiusuario.md) | Cuentas multi-usuario (Manager/Collaborator) — Fase A |
+| [0014](decisiones/ADR-0014-pagos-suscripciones-y-canal-de-arriendo.md) | Pagos, suscripciones y canal de arriendo |
+| [0015](decisiones/ADR-0015-hosting-gcp-santiago-vm.md) | Hosting: VM en Google Cloud Santiago con Cloud SQL |
 
 ---
 

@@ -144,14 +144,14 @@ vigencia de la ley.
 | **L-DP2** | Derecho de **acceso**: entregar copia de los datos de una persona | — | — | `[x]` |
 | **L-DP3** | Derecho de **portabilidad**: exportar en formato estructurado y reutilizable | L-DP2 | — | `[x]` |
 | **L-DP4** | Derecho de **rectificación** desde el portal | — | — | `[x]` |
-| **L-DP5** | Derecho de **supresión**, con anonimización irreversible y sin romper el ledger inmutable | L-DP1 | **L-05** | `[!]` |
+| **L-DP5** | Derecho de **supresión**, con anonimización irreversible y sin romper el ledger inmutable | L-DP1 | **L-05** | `[x]` 2026-11-12 — `lib/supresion-persona.ts`, solo el Manager, con confirmación escrita; probado contra Postgres real. Pendiente: revisión del abogado (L-05) |
 | **L-DP6** | Derecho de **oposición y bloqueo** del tratamiento | — | — | `[x]` |
-| **L-DP7** | **Canal** para ejercer los derechos, con acuse y plazo de respuesta | L-DP2…L-DP6 | **L-06** | `[!]` |
+| **L-DP7** | **Canal** para ejercer los derechos, con acuse y plazo de respuesta | L-DP2…L-DP6 | **L-06** | `[x]` 2026-11-12 — formulario `/derechos` con folio, acuse por correo, aviso diario de plazos y retención de 3 años. Plazo: 30 días corridos (L-06 por confirmar) |
 | **L-DP8** | **Registro de actividades de tratamiento** | — | — | `[x]` |
-| **L-DP9** | Procedimiento de **notificación de brechas** a la Agencia y a los afectados | — | **L-07** | `[!]` |
-| **L-DP10** | Revisar si corresponde **delegado de protección de datos** | — | **L-07** | `[!]` |
+| **L-DP9** | Procedimiento de **notificación de brechas** a la Agencia y a los afectados | — | **L-07** | `[x]` 2026-11-12 — `Docs/tecnica/procedimiento-brechas.md`. Falta el ensayo y que el abogado lo valide (L-07) |
+| **L-DP10** | Revisar si corresponde **delegado de protección de datos** | — | **L-07** | `[~]` 2026-11-12 — no se designa delegado por ahora; no se confirmó que sea obligatorio. Lo decide el abogado (L-07) |
 | **L-DP11** | Corregir las **tres afirmaciones falsas** de `privacidad/page.tsx` (OTP, logs de IP, audit log) y el plazo del art. 200 | — | — | `[x]` |
-| **L-DP12** | Volver a alinear la política una vez implementadas las capacidades | L-DP1…L-DP8 | — | `[ ]` |
+| **L-DP12** | Volver a alinear la política una vez implementadas las capacidades | L-DP1…L-DP8 | — | `[x]` 2026-11-12 — `/privacidad` corregida: canal, plazo de 30 días corridos (decía 15 hábiles con un artículo sin verificar), supresión y brechas |
 
 > ✅ **Resueltas el 2026-09-03, y por el camino largo.** Se podía rebajar el texto
 > para que dijera menos; se implementó el borrado para que lo publicado fuera
@@ -258,9 +258,9 @@ menos.
 | **L-02** | `Tenant.rut` pasa a obligatorio: ¿qué pasa con las cuentas ya creadas sin él? | 🟡 | L-DT2 | Obligatorio para emitir documentos, no para usar el panel. Se pide al primer intento de emisión. | Abierta |
 | **L-03** | ¿El avalúo fiscal se carga a mano o se obtiene del SII por el rol? | 🟡 | L-DT3 | A mano al principio. La consulta automatizada al SII es un proyecto aparte. | Abierta |
 | **L-04** | ¿Damos soporte al arriendo amoblado, que sí va afecto a IVA? | 🔴 | L-IV4 | Sí, pero en una segunda etapa: primero el caso habitacional simple, que es el 90 %. | ✅ Resuelta: IVA **incluido** en el valor del arriendo; se descompone en el comprobante. |
-| **L-05** | Supresión de datos vs. ledger inmutable: ¿cómo se resuelve? | 🔴 | L-DP5 | Anonimizar la `Persona` y conservar los asientos con el vínculo roto. El ledger conserva montos y fechas, no identidad. **Requiere revisión legal.** | Abierta |
-| **L-06** | ¿Cuál es el plazo de respuesta a una solicitud de derechos? | 🔴 | L-DP7 | Leer el plazo en el texto de la ley y publicarlo. No inventarlo. | Abierta |
-| **L-07** | ¿Propigo es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | Abierta |
+| **L-05** | Supresión de datos vs. ledger inmutable: ¿cómo se resuelve? | 🔴 | L-DP5 | Anonimizar la `Persona` y conservar los asientos con el vínculo roto. El ledger conserva montos y fechas, no identidad. **Requiere revisión legal.** | **Propuesta implementada 2026-11-12**; falta la revisión del abogado |
+| **L-06** | ¿Cuál es el plazo de respuesta a una solicitud de derechos? | 🔴 | L-DP7 | Leer el plazo en el texto de la ley y publicarlo. No inventarlo. | **Propuesta implementada 2026-11-12**; falta la revisión del abogado |
+| **L-07** | ¿Propigo es responsable o encargado del tratamiento? De eso dependen las obligaciones de brechas y de delegado | 🔴 | L-DP9, L-DP10 | Probablemente **encargado** frente a la corredora y **responsable** de sus propios usuarios. Requiere revisión legal. | **Propuesta implementada 2026-11-12**; falta la revisión del abogado |
 | **L-08** | ¿Qué fuente para UF e IPC: API del Banco Central, del INE, o un agregador? | 🟡 | L-FU1, L-FU2 | Banco Central para UF, INE para IPC — las oficiales. Un agregador introduce un intermediario en un dato que define montos cobrados. | Abierta |
 | **L-10** | ¿Con qué mes de IPC se reajusta? El INE publica el IPC de un mes hacia el día 8 del siguiente, así que el del mes del pago casi nunca existe al pagar | 🔴 | L-FU3, L-CM4 | Usar el último IPC disponible. | **Decidida 2026-11-09** → último IPC disponible hasta el mes del pago (máx. 2 meses de atraso; si no, se rechaza); el inicio se corre los mismos meses para conservar la ventana y los meses usados quedan en el asiento. Pendiente: que el abogado confirme la redacción de la cláusula tipo |
 | **L-08b** | (nota) L-08 quedó implementada con el Banco Central para UF **e IPC** (el BCCH republica el IPC del INE): una sola API y un solo token. Confirmar si se acepta | 🟡 | L-FU1, L-FU2 | Aceptar. | Propuesta implementada |

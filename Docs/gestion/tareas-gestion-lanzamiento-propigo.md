@@ -79,8 +79,8 @@ Decidido el 2026-10-21. Todas las direcciones en `@propigo.cl`.
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
-| C-01 | Contratar Google Workspace con el dominio `propigo.cl` y verificarlo (registro TXT en el DNS). | G/TI | G-01 | `[ ]` |
-| C-02 | Crear 2 cuentas a nombre de personas responsables: **Operaciones** (alias: soporte@, denuncias@, dmarc@) y **Administración** (alias: legal@, privacidad@, facturacion@, pagos@, seguridad@, tecnologia@). | G | C-01 | `[ ]` |
+| C-01 | Contratar Google Workspace con el dominio `propigo.cl` y verificarlo (registro TXT en el DNS). | G/TI | G-01 | `[~]` Workspace ya contratado, con `administracion@propigo.cl` (2026-11-12). Falta verificar el DNS |
+| C-02 | **Una sola cuenta**, `administracion@propigo.cl`, con todas las demás direcciones como **alias** (soporte@, privacidad@, legal@, denuncias@, seguridad@, facturacion@, pagos@, tecnologia@, dmarc@) ordenadas con etiquetas de Gmail. Guía y filtros: [correo-workspace.md](../tecnica/correo-workspace.md). `no-reply@` y `notificaciones@` solo envían por Resend, sin bandeja. | G | C-01 | `[~]` Decidido 2026-11-12; falta crear los alias e importar los filtros |
 | C-03 | Registros de correo en el DNS: MX de Google, SPF y DKIM (Google + Resend), DMARC con reportes a dmarc@. | TI | C-01 | `[ ]` |
 | C-04 | Crear cuenta de **Resend** con tecnologia@ y verificar el dominio para no-reply@ y notificaciones@ (solo envío, sin buzón). | TI | C-03 | `[ ]` |
 | C-05 | Asignar quién responde privacidad@ y en qué plazo: las solicitudes de datos personales tienen plazo legal. | G | C-02 | `[ ]` |
@@ -89,7 +89,7 @@ Decidido el 2026-10-21. Todas las direcciones en `@propigo.cl`.
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
-| H-01 | **Decidir proveedor y región.** Hay dos análisis distintos que conciliar: `costos-infraestructura-y-precios.md` recomienda AWS us-east-1 (la región Chile de AWS no estaba operativa); la evaluación del 2026-10-21 recomienda un servidor en Google Cloud Santiago para salir sin cambios de código y con los datos en Chile. **2026-11-01:** se evalúa GCP (región Santiago) como opción principal: ver [evaluacion-gcp-santiago.md](evaluacion-gcp-santiago.md) (recomienda VM + Cloud SQL y una prueba de concepto antes de cerrar). | G | — | `[~]` |
+| H-01 | **Decidir proveedor y región.** Hay dos análisis distintos que conciliar: `costos-infraestructura-y-precios.md` recomienda AWS us-east-1 (la región Chile de AWS no estaba operativa); la evaluación del 2026-10-21 recomienda un servidor en Google Cloud Santiago para salir sin cambios de código y con los datos en Chile. **2026-11-01:** se evalúa GCP (región Santiago) como opción principal: ver [evaluacion-gcp-santiago.md](evaluacion-gcp-santiago.md) (recomienda VM + Cloud SQL y una prueba de concepto antes de cerrar). | G | — | `[x]` 2026-11-12: VM + Cloud SQL en Santiago, ver [ADR-0015](../decisiones/ADR-0015-hosting-gcp-santiago-vm.md) (condicionada a la prueba de concepto) |
 | H-02 | Crear la cuenta del proveedor a nombre de la empresa, con tecnologia@ como dueño, tarjeta de la empresa y **alerta de presupuesto** mensual. | G | H-01, C-02 | `[ ]` |
 | H-03 | Contratar la **API de IA (Groq)** a nombre de la empresa, con límite de gasto. Hoy se usa una clave de desarrollo. | G | C-02 | `[ ]` |
 | H-04 | Definir la política de **respaldos**: frecuencia, cuánto tiempo se guardan y quién prueba restaurarlos. | G/TI | H-01 | `[ ]` |

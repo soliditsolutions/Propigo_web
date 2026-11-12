@@ -32,8 +32,23 @@ desarrollo, no versiones publicadas.
   5 % respecto del anterior, señal de cambio de base. Requiere el token
   `BCCH_API_TOKEN`.
 
+- **Canal para ejercer derechos sobre los datos personales** en `/derechos`: la
+  persona elige el derecho (acceso, rectificación, supresión, oposición,
+  portabilidad o bloqueo), recibe un número de solicitud y un correo de acuse con
+  la fecha límite (30 días corridos), y el buzón de privacidad recibe el aviso.
+  Un aviso diario recuerda las solicitudes por vencer. Se conservan 3 años.
+- **Supresión de datos de una persona (solo Manager):** anonimiza su nombre,
+  RUT, correo y teléfono y borra avisos, accesos y cuentas bancarias. Se rechaza
+  con contratos vigentes, reservas activas o períodos sin liquidar, y conserva el
+  ledger y los comprobantes que la ley obliga a guardar.
+- **Procedimiento ante brechas de seguridad** y guía de correo con alias y
+  etiquetas de Gmail, en `Docs/tecnica/`.
+
 ### Cambiado
 
+- **La política de privacidad ya no promete 15 días hábiles** (con un artículo de
+  ley sin verificar): publica el canal, 30 días corridos, la supresión con sus
+  límites y qué hacemos ante un incidente de seguridad.
 - **El reajuste por IPC usa el último índice disponible.** El INE publica el IPC
   de un mes hacia el día 8 del siguiente, así que antes de eso se usa el mes
   anterior, con la misma ventana de meses. El asiento del reajuste indica los

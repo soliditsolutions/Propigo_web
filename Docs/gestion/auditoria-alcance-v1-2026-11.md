@@ -60,10 +60,10 @@ Leyenda — **Prioridad:** P0 impide la V1 · P1 conviene tenerlo en la V1 · P2
 
 | # | Funcionalidad | Estado real | Bloqueante | Qué necesitamos | Dific. | Prior. |
 |---|---|---|---|---|---|---|
-| D1 | **Derecho de supresión** (L-DP5) | No existe. Hecho: acceso, portabilidad, rectificación, oposición, registro de tratamiento y retención | L-05: cómo anonimizar sin romper el ledger inmutable (propuesta: anonimizar la persona y conservar los asientos) — requiere revisión legal | Decisión legal; luego anonimización irreversible con pruebas contra Postgres real | Alta | **P0** |
-| D2 | **Canal para ejercer derechos, con acuse y plazo** (L-DP7) | No existe | L-06 (plazo legal) y C-05 (quién responde privacidad@) | Formulario con folio, acuse por correo y vencimiento visible | Media | P0 |
-| D3 | **Brechas y delegado de datos** (L-DP9/10) | No existe | L-07: ¿responsable o encargado? Requiere abogado | Procedimiento escrito y decisión sobre el delegado | Baja | P0 |
-| D4 | **Realinear la política** (L-DP12) | Pendiente | D1–D3 | Reescribir al final | Baja | P1 |
+| D1 | **Derecho de supresión** (L-DP5) | **Hecho 2026-11-12** (falta el abogado). Antes: no existía. Hecho: acceso, portabilidad, rectificación, oposición, registro de tratamiento y retención | L-05: cómo anonimizar sin romper el ledger inmutable (propuesta: anonimizar la persona y conservar los asientos) — requiere revisión legal | Decisión legal; luego anonimización irreversible con pruebas contra Postgres real | Alta | ✅ P0 |
+| D2 | **Canal para ejercer derechos, con acuse y plazo** (L-DP7) | **Hecho 2026-11-12**: `/derechos` | L-06 (plazo legal) y C-05 (quién responde privacidad@) | Formulario con folio, acuse por correo y vencimiento visible | Media | ✅ P0 |
+| D3 | **Brechas y delegado de datos** (L-DP9/10) | **Documentado 2026-11-12**: `procedimiento-brechas.md` | L-07: ¿responsable o encargado? Requiere abogado | Procedimiento escrito y decisión sobre el delegado | Baja | ✅ P0 |
+| D4 | **Realinear la política** (L-DP12) | **Hecho 2026-11-12** | D1–D3 | Reescribir al final | Baja | P1 |
 
 ## E. Producto a medias o sin hacer (no bloquea el cobro)
 

@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  Filtros de Gmail para la bandeja central administracion@propigo.cl.
+  Importar en: Configuración → Filtros y direcciones bloqueadas → Importar filtros.
+  Guía: Docs/tecnica/correo-workspace.md.
+  Se filtra por to: (no deliveredto:) porque con alias el Delivered-To trae la
+  dirección principal.
+-->
+<feed xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
+  <title>Filtros Propigo</title>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Privacidad (derechos, plazo legal)</title>
+    <apps:property name='to' value='privacidad@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Privacidad'/>
+    <apps:property name='shouldStar' value='true'/>
+    <apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Seguridad</title>
+    <apps:property name='to' value='seguridad@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Seguridad'/>
+    <apps:property name='shouldStar' value='true'/>
+    <apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Soporte</title>
+    <apps:property name='to' value='soporte@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Soporte'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Legal</title>
+    <apps:property name='to' value='legal@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Legal'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Denuncias</title>
+    <apps:property name='to' value='denuncias@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Denuncias'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Facturación y pagos</title>
+    <apps:property name='hasTheWord' value='to:(facturacion@propigo.cl OR pagos@propigo.cl)'/>
+    <apps:property name='label' value='Propigo/Facturación y pagos'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Tecnología</title>
+    <apps:property name='to' value='tecnologia@propigo.cl'/>
+    <apps:property name='label' value='Propigo/Tecnología'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+
+  <entry>
+    <category term='filter'></category>
+    <title>Propigo - Reportes DMARC (automáticos)</title>
+    <apps:property name='to' value='dmarc@propigo.cl'/>
+    <apps:property name='label' value='Propigo/DMARC'/>
+    <apps:property name='shouldMarkAsRead' value='true'/>
+    <apps:property name='shouldNeverSpam' value='true'/>
+  </entry>
+</feed>

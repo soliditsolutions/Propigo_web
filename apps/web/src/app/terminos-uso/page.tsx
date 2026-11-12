@@ -15,7 +15,7 @@
 import Link from "next/link";
 import { ShieldCheck, AlertTriangle, Scale, Phone, Mail } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
-import { MARCA, RAZON_SOCIAL, CORREO } from "@/lib/marca";
+import { MARCA, RAZON_SOCIAL, CORREO, EMPRESA } from "@/lib/marca";
 
 export const metadata = {
   title: `Términos y Condiciones de Uso · ${MARCA}`,
@@ -25,10 +25,10 @@ export const metadata = {
 
 // Fecha de última actualización
 const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
-const RUT_EMPRESA         = "77.000.000-0"; // Actualizar al RUT real
-const DOMICILIO           = "Santiago, Región Metropolitana, Chile";
+const RUT_EMPRESA         = EMPRESA.rut;
+const DOMICILIO           = EMPRESA.domicilio;
 const EMAIL_CONTACTO      = CORREO.legal;
-const TELEFONO            = "+56 2 0000 0000"; // Actualizar al número real
+const TELEFONO            = EMPRESA.telefono;
 
 function Section({ id, title, children }: {
   id: string; title: string; children: React.ReactNode;

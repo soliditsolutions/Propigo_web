@@ -14,6 +14,14 @@ export function verificarBaseLocal(url: string | undefined, script: string): voi
     console.warn(`⚠️  ${script}: ALLOW_REMOTE_SEED=1 — saltando el guard de base local.`);
     return;
   }
+  // Con Cloud SQL Auth Proxy la base de producción también se ve como localhost,
+  // así que el host solo no alcanza: en un entorno de producción nunca.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      `${script}: se canceló porque NODE_ENV=production. Con el proxy de Cloud SQL la base de ` +
+        "producción aparece como localhost y este script la borraría. Si de verdad lo necesitas, ALLOW_REMOTE_SEED=1.",
+    );
+  }
   const host = new URL(url).hostname;
   if (!HOSTS_LOCALES.includes(host)) {
     throw new Error(

@@ -23,6 +23,18 @@ describe("verificarBaseLocal", () => {
     expect(() => verificarBaseLocal("postgresql://u:p@localhost.atacante.com/propigo", "seed")).toThrow();
   });
 
+  it("cancela localhost si NODE_ENV=production: con el proxy de Cloud SQL esa es la base de producción", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() => verificarBaseLocal(URL_LOCAL, "db:seed")).toThrow(/production/);
+  });
+
+  it("ALLOW_REMOTE_SEED=1 sigue siendo la salida explícita aun en producción", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ALLOW_REMOTE_SEED", "1");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(() => verificarBaseLocal(URL_LOCAL, "db:seed")).not.toThrow();
+  });
+
   it("cancela si no hay URL", () => {
     expect(() => verificarBaseLocal(undefined, "seed")).toThrow(/no hay URL/);
   });

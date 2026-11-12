@@ -11,7 +11,7 @@ import Link from "next/link";
 import { ShieldCheck, Eye, Database, Mail, Clock, Globe, AlertTriangle } from "lucide-react";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { RETENCIONES } from "@/lib/retencion";
-import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO } from "@/lib/marca";
+import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO, EMPRESA } from "@/lib/marca";
 import { ALMACENAMIENTO } from "@/lib/almacenamiento";
 import { PLAZO_RESPUESTA_DIAS } from "@/lib/derechos";
 
@@ -22,9 +22,9 @@ export const metadata = {
 };
 
 const ULTIMA_ACTUALIZACION = "12 de noviembre de 2026";
-const RUT_EMPRESA          = "77.000.000-0"; // Actualizar al RUT real
+const RUT_EMPRESA          = EMPRESA.rut;
 const EMAIL_DATOS          = CORREO.privacidad;
-const DOMICILIO            = "Santiago, Región Metropolitana, Chile";
+const DOMICILIO            = EMPRESA.domicilio;
 
 const SECCIONES = [
   { id: "responsable",  label: "Responsable del tratamiento" },

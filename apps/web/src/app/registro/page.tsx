@@ -5,7 +5,12 @@ import { RegistroForm } from "./registro-form";
 import { PhotoBanner } from "@/components/public/PhotoBanner";
 import bannerFamily from "@/images/banners/bannerFamily.png";
 import { Logo } from "@/components/public/Logo";
-import { titulo } from "@/lib/marca";
+import { CORREO, titulo } from "@/lib/marca";
+import { registroAbierto } from "@/lib/registro-abierto";
+
+// Se decide en cada petición: sin esto Next prerenderiza la página en el build y
+// REGISTRO_ABIERTO del servidor en marcha nunca se leería.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: titulo("Crear cuenta"),
@@ -27,6 +32,25 @@ const benefits = [
 ];
 
 export default function RegistroPage() {
+  if (!registroAbierto()) {
+    return (
+      <main className="pgo-page-bg flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="pgo-auth-card w-full max-w-md space-y-4 rounded-2xl p-6 text-center sm:p-8">
+          <Link href="/" className="inline-flex"><Logo size="md" wordColor="var(--pgo-text-1)" /></Link>
+          <h1 className="text-xl font-bold" style={{ color: "var(--pgo-text-1)" }}>Aún no abrimos el registro</h1>
+          <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
+            Estamos preparando el lanzamiento. Si eres corredora y quieres que te avisemos cuando esté listo,
+            escríbenos a{" "}
+            <a href={`mailto:${CORREO.soporte}`} className="underline">{CORREO.soporte}</a>.
+          </p>
+          <p className="text-sm" style={{ color: "var(--pgo-text-3)" }}>
+            ¿Ya tienes cuenta? <Link href="/login" className="font-semibold underline">Inicia sesión</Link>
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--pgo-page)" }}>
 

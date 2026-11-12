@@ -44,6 +44,16 @@ desarrollo, no versiones publicadas.
 - **Procedimiento ante brechas de seguridad** y guía de correo con alias y
   etiquetas de Gmail, en `Docs/tecnica/`.
 
+### Seguridad
+
+- **El registro de corredoras queda cerrado por defecto en producción** (V0). El
+  formulario muestra un aviso y la acción rechaza el envío aunque alguien la llame
+  directamente. `REGISTRO_ABIERTO=true` lo abre.
+- **El servidor no arranca en producción con el RUT o el teléfono de relleno** en
+  los textos legales.
+- **Los scripts del seed ya no corren con `NODE_ENV=production`**, aunque la base
+  se vea como `localhost` por el proxy de Cloud SQL.
+
 ### Cambiado
 
 - **La política de privacidad ya no promete 15 días hábiles** (con un artículo de

@@ -13,6 +13,8 @@
  *   - OWASP A05:2021 – Security Misconfiguration
  */
 
+import { EMPRESA, datosDeRelleno } from "./marca";
+
 let checked = false;
 
 export function runStartupChecks(): void {
@@ -77,6 +79,18 @@ export function runStartupChecks(): void {
     console.warn(
       "[STARTUP] BCCH_API_TOKEN no definido: la UF y el IPC no se actualizarán. " +
       "Regístrate en https://si3.bcentral.cl y genera un token de API.",
+    );
+  }
+
+  // ── 5c. Datos de la empresa en los textos legales ─────────────────────────
+  // Términos y privacidad muestran RUT y teléfono de SOLIDIT SpA. Con valores
+  // de relleno (tarea E-03 pendiente) el sitio publicaría datos inventados en
+  // un documento legal, y los revisa la validación de Transbank.
+  const relleno = datosDeRelleno(EMPRESA);
+  if (isProd && relleno.length > 0) {
+    throw new Error(
+      "[STARTUP] FATAL: los datos de la empresa en lib/marca.ts siguen siendo de relleno (" +
+      relleno.join(", ") + "). Complétalos con los reales antes de publicar (tarea E-03).",
     );
   }
 

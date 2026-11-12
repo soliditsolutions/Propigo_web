@@ -36,6 +36,29 @@ export const CORREO = {
   tecnologia:     `tecnologia@${DOMINIO}`,
 } as const;
 
+/**
+ * Datos de SOLIDIT SpA que muestran los términos y la política de privacidad.
+ * PENDIENTE (tarea E-03): hoy llevan valores de relleno. En producción el
+ * servidor NO arranca mientras sigan así (startup-check): publicar una página
+ * legal con un RUT inventado es peor que no publicarla.
+ */
+export const EMPRESA = {
+  rut:       "77.000.000-0",
+  telefono:  "+56 2 0000 0000",
+  domicilio: "Santiago, Región Metropolitana, Chile",
+};
+
+const RUT_DE_RELLENO = "77.000.000-0";
+const TELEFONO_DE_RELLENO = "+56 2 0000 0000";
+
+/** Qué datos de la empresa siguen siendo de relleno (vacío si ya están todos reales). */
+export function datosDeRelleno(e: { rut: string; telefono: string }): string[] {
+  return [
+    e.rut === RUT_DE_RELLENO && "RUT",
+    e.telefono === TELEFONO_DE_RELLENO && "teléfono",
+  ].filter((x): x is string => !!x);
+}
+
 /** Remitente con nombre visible, formato "Nombre <correo>". */
 export const remitente = (correo: string) => `${MARCA} <${correo}>`;
 

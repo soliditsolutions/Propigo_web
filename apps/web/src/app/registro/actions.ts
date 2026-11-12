@@ -2,6 +2,8 @@
 
 import { headers }                         from "next/headers";
 import { redirect }                        from "next/navigation";
+import { registroAbierto }                  from "@/lib/registro-abierto";
+import { CORREO }                          from "@/lib/marca";
 import { prisma }                          from "@/lib/db";
 import { hashPassword }                    from "@/lib/password";
 import { signSession, setSessionCookie }   from "@/lib/auth";
@@ -136,6 +138,9 @@ export async function registroAction(
   _prev: RegistroState,
   formData: FormData,
 ): Promise<RegistroState> {
+  if (!registroAbierto()) {
+    return { error: "El registro todavía no está abierto. Escríbenos a " + CORREO.soporte + " y te avisamos." };
+  }
   const nombre   = formData.get("nombre")?.toString().trim()              ?? "";
   const rut      = formData.get("rut")?.toString().trim()                 ?? "";
   const email    = formData.get("email")?.toString().trim().toLowerCase() ?? "";

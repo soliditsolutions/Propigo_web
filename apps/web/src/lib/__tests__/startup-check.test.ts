@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Importar dinámicamente para poder mockear process.env antes de la importación
-async function importRunStartupChecks() {
+const EMPRESA_REAL = { rut: "76.543.210-3", telefono: "+56 2 2345 6789", domicilio: "Santiago, Chile" };
+
+async function importRunStartupChecks(empresa: { rut: string; telefono: string; domicilio: string } = EMPRESA_REAL) {
   // Limpiar cache del módulo para re-ejecutar la verificación con nuevas vars
   vi.resetModules();
+  // Los datos de la empresa son de relleno hasta la tarea E-03: la línea base
+  // válida usa valores reales, y un test aparte comprueba que el relleno aborta.
+  vi.doMock("../marca", async (orig) => ({ ...(await orig<typeof import("../marca")>()), EMPRESA: empresa }));
   const mod = await import("../startup-check");
   return mod.runStartupChecks;
 }
@@ -33,6 +38,19 @@ describe("runStartupChecks() — Fix A2 (fail-fast en arranque)", () => {
 
   it("no lanza en producción con configuración válida", async () => {
     const runStartupChecks = await importRunStartupChecks();
+    expect(() => runStartupChecks()).not.toThrow();
+  });
+
+  it("lanza en producción si el RUT o el teléfono de la empresa siguen siendo de relleno", async () => {
+    const real = await vi.importActual<typeof import("../marca")>("../marca");
+    const runStartupChecks = await importRunStartupChecks(real.EMPRESA);
+    expect(() => runStartupChecks()).toThrow(/relleno.*RUT.*teléfono/i);
+  });
+
+  it("en desarrollo los datos de relleno no abortan", async () => {
+    (process.env as Record<string, string>).NODE_ENV = "development";
+    const real = await vi.importActual<typeof import("../marca")>("../marca");
+    const runStartupChecks = await importRunStartupChecks(real.EMPRESA);
     expect(() => runStartupChecks()).not.toThrow();
   });
 

@@ -22,21 +22,21 @@ Dos fechas que mandan:
 - **Ley 21.719 (datos personales): vigente desde el 1 de diciembre de 2026**
   (ver `rowmap-documentos-legales.md`, Grupo E).
 
-### Plan de salida V0 → V1 (revisado 2026-11-01 contra transbankdevelopers.cl)
+### Plan de salida V0 → V1 (reordenado 2026-11-12)
 
-Transbank valida **una integración ya hecha**: el orden oficial es afiliación →
-integración en el ambiente de integración → formulario de validación con
-evidencias de transacciones de prueba (soporte las cruza con sus registros) →
-llave secreta → compra real de $50. Un sitio publicado **sin flujo de pago no
-tiene nada que validar**. Por eso:
+Transbank pide ver el **sitio publicado** antes de avanzar, así que el orden es: primero
+la V0 (sitio sin pagos), después la integración de Webpay Plus. Detalle y estado en
+[plan-v0-2026-11.md](plan-v0-2026-11.md).
 
 | Versión | Qué sale | Cobro |
 |---|---|---|
-| **V0** | Sitio en producción (dominio, HTTPS, legales con datos reales) **con Webpay Plus ya integrado**, apuntando al **ambiente de integración** (llaves y tarjetas de prueba públicas). Desde ahí se corren los casos de prueba y se envía la validación (P-03) | Ninguno real. El flujo de pago no se ofrece a clientes |
-| **V1** | Mismo código con el código de comercio productivo y la llave secreta (solo cambian variables de entorno), compra de $50 (P-04) | Webpay Plus manual por período |
+| **V0** | Sitio en producción (dominio, HTTPS, legales con datos reales), registros cerrados, **sin flujo de pago**. Se envía a revisión de Transbank | Ninguno |
+| **Webpay en integración** | Tras la revisión: adaptador de Webpay Plus contra el ambiente de integración, casos de prueba y formulario de validación (P-03). La documentación pública de Transbank permite integrar en paralelo, con códigos de prueba | Ninguno real |
+| **V1** | Código de comercio productivo y llave secreta (solo cambian variables de entorno), compra de $50 (P-04) | Webpay Plus manual por período |
 | **V2** | Oneclick, cargo automático (P-05), cuando haya volumen | Automático |
 
-**Decidido 2026-11-02 — alcance de la V0:** el sitio queda publicado **solo para la validación de Transbank**. No se abren registros de corredoras ni hay plan gratuito. El plan **Free Tier** (1 propiedad, para conocer la herramienta) se evalúa para la **V1**, cuando ya se pueda cobrar el paso a un plan pagado. Motivo: registros reales son datos personales bajo la Ley 21.719 (vigente desde 2026-12-01) y exigen antes respaldos, almacenamiento de archivos fuera del servidor y soporte operando; además, un Free Tier sin upgrade pagable no tiene salida.
+**Decidido 2026-11-02 — alcance de la V0:** el sitio queda publicado **solo para la revisión de Transbank**. No se abren registros de corredoras ni hay plan gratuito. El plan **Free Tier** (1 propiedad) se evalúa para la **V1**, cuando ya se pueda cobrar el paso a un plan pagado. Motivo: registros reales son datos personales bajo la Ley 21.719 y exigen antes respaldos, almacenamiento de archivos y soporte operando; además, un Free Tier sin upgrade pagable no tiene salida.
+
 
 ---
 

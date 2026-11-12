@@ -75,3 +75,19 @@ export async function purgarDatosVencidos(
     solicitudesDerecho: solicitudesDerecho.count,
   };
 }
+
+/**
+ * Borra las solicitudes del canal público de derechos que cumplieron su plazo.
+ *
+ * Aparte de `purgarDatosVencidos` porque la tabla es global (sin tenant): se
+ * corre una sola vez por pasada del cron, no una por corredora.
+ */
+export async function purgarSolicitudesCanal(
+  db: { solicitudDerecho: { deleteMany(args: { where: { recibidaAt: { lt: Date } } }): Promise<{ count: number }> } },
+  ahora: Date = new Date(),
+): Promise<{ solicitudesCanal: number }> {
+  const r = await db.solicitudDerecho.deleteMany({
+    where: { recibidaAt: { lt: fechaCorte(retencion("solicitudesCanal").dias!, ahora) } },
+  });
+  return { solicitudesCanal: r.count };
+}

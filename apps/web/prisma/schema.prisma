@@ -507,6 +507,42 @@ model SolicitudDerechoPersona {
   @@map("solicitud_derecho_persona")
 }
 
+/**
+ * Solicitud de ejercicio de derechos recibida por el canal público `/derechos`
+ * (L-DP7, Ley 21.719). Es **global** (sin tenant): quien escribe no está logueado
+ * y puede no ser parte de ningún contrato; la recibe Propigo, que la atiende o la
+ * deriva a la corredora según su rol (L-07). No confundir con
+ * `SolicitudDerechoPersona`, que es el rastro de lo ya ejercido desde el portal.
+ *
+ * Guarda lo mínimo para acusar recibo y responder en plazo. No se verifica la
+ * identidad al recibirla (el formulario no revela si el RUT existe): se verifica
+ * al responder, antes de entregar o modificar datos.
+ */
+model SolicitudDerecho {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Número que se entrega a la persona: DER-AAAA-XXXXXX.
+  folio         String    @unique
+  /// "acceso" | "rectificacion" | "supresion" | "oposicion" | "portabilidad" | "bloqueo"
+  derecho       String
+  rut           String
+  nombre        String
+  email         String
+  detalle       String?
+  /// "recibida" | "en_proceso" | "respondida" | "rechazada"
+  estado        String    @default("recibida")
+  ip            String?   @db.Inet
+  recibidaAt    DateTime  @default(now()) @map("recibida_at") @db.Timestamptz(6)
+  /// Plazo legal de respuesta, calculado al recibirla (lib/derechos.ts).
+  venceAt       DateTime  @map("vence_at") @db.Timestamptz(6)
+  respondidaAt  DateTime? @map("respondida_at") @db.Timestamptz(6)
+  /// Último aviso interno por plazo próximo o vencido (evita reenviarlo a diario).
+  avisadaAt     DateTime? @map("avisada_at") @db.Timestamptz(6)
+
+  @@index([estado, venceAt])
+  @@index([recibidaAt])
+  @@map("solicitud_derecho")
+}
+
 model Propiedad {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId           String          @map("tenant_id") @db.Uuid

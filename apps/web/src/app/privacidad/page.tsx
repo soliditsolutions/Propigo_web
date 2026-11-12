@@ -13,6 +13,7 @@ import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { RETENCIONES } from "@/lib/retencion";
 import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO } from "@/lib/marca";
 import { ALMACENAMIENTO } from "@/lib/almacenamiento";
+import { PLAZO_RESPUESTA_DIAS } from "@/lib/derechos";
 
 export const metadata = {
   title: `Política de Privacidad · ${MARCA}`,
@@ -20,7 +21,7 @@ export const metadata = {
     `Política de privacidad y protección de datos personales de ${MARCA}. Conozca cómo tratamos sus datos conforme a la Ley 21.719.`,
 };
 
-const ULTIMA_ACTUALIZACION = "9 de noviembre de 2026";
+const ULTIMA_ACTUALIZACION = "12 de noviembre de 2026";
 const RUT_EMPRESA          = "77.000.000-0"; // Actualizar al RUT real
 const EMAIL_DATOS          = CORREO.privacidad;
 const DOMICILIO            = "Santiago, Región Metropolitana, Chile";
@@ -386,9 +387,18 @@ export default function PrivacidadPage() {
               >
                 <p className="font-semibold mb-1" style={{ color: "var(--pf-navy)" }}>¿Cómo ejercer sus derechos?</p>
                 <p style={{ color: "var(--pf-text-body)" }}>
-                  Envíe su solicitud a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)", fontWeight: 500 }}>{EMAIL_DATOS}</a> indicando
-                  su nombre completo, RUT y el derecho que desea ejercer. Responderemos dentro
-                  de <strong>15 días hábiles</strong> conforme al art. 28 de la Ley 21.719.
+                  Use el <a href="/derechos" style={{ color: "var(--pf-brand)", fontWeight: 500 }}>formulario para ejercer sus derechos</a>{" "}
+                  o escriba a <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)", fontWeight: 500 }}>{EMAIL_DATOS}</a> indicando
+                  su nombre completo, RUT y el derecho que desea ejercer. Le entregaremos un número de
+                  solicitud y le responderemos en un máximo de <strong>{PLAZO_RESPUESTA_DIAS} días corridos</strong>{" "}
+                  desde que la recibamos, prorrogable en los casos que la ley permite, y le avisaremos si
+                  hace falta. Antes de entregar, modificar o eliminar datos verificaremos su identidad.
+                </p>
+                <p className="mt-2" style={{ color: "var(--pf-text-body)" }}>
+                  <strong>Supresión.</strong> Eliminamos o anonimizamos sus datos cuando la ley lo permite. No podemos
+                  hacerlo mientras tenga un contrato vigente o pagos sin liquidar, y debemos conservar los comprobantes
+                  y registros contables que la ley obliga a guardar (por ejemplo, seis años según el art. 200 del Código
+                  Tributario): esos documentos mantienen el nombre y el RUT con que se emitieron hasta que venza el plazo.
                 </p>
                 <p className="mt-2" style={{ color: "var(--pf-text-body)" }}>
                   Para los derechos de <strong>acceso</strong> y <strong>portabilidad</strong>, si sus datos
@@ -491,13 +501,20 @@ export default function PrivacidadPage() {
                   <a href={`mailto:${EMAIL_DATOS}`} style={{ color: "var(--pf-brand)" }}>{EMAIL_DATOS}</a>
                 </p>
                 <p><strong>Domicilio:</strong> {DOMICILIO}</p>
-                <p><strong>Plazo de respuesta:</strong> 15 días hábiles</p>
+                <p><strong>Plazo de respuesta:</strong> {PLAZO_RESPUESTA_DIAS} días corridos</p>
               </div>
               <p>
                 Si no recibe respuesta satisfactoria, puede acudir a la{" "}
                 <strong>Agencia de Protección de Datos Personales de Chile</strong> una vez
                 que entre en funcionamiento (Ley 21.719 Título VI), o a los Tribunales ordinarios
                 de Justicia con asiento en la ciudad de Santiago.
+              </p>
+              <p>
+                <strong>Incidentes de seguridad.</strong> Si ocurre una vulneración de nuestras medidas de seguridad
+                que pueda afectar sus datos, la investigaremos de inmediato, la comunicaremos a la Agencia de
+                Protección de Datos Personales por los medios más expeditos y sin dilaciones indebidas cuando la ley
+                lo exija, y le avisaremos directamente si sus datos sensibles, financieros o de menores se vieron
+                comprometidos.
               </p>
             </Section>
 

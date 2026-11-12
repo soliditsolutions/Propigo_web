@@ -486,3 +486,113 @@ export async function sendCambioContactoCodeEmail(
     html: htmlCambioContacto(nombre, codigo, campo, valorNuevo),
   });
 }
+
+// ── Canal de derechos (L-DP7, Ley 21.719) ───────────────────────────────────
+
+const FECHA_LARGA = new Intl.DateTimeFormat("es-CL", { dateStyle: "long", timeZone: "America/Santiago" });
+
+export type DatosAcuseDerecho = { nombre: string; folio: string; derecho: string; venceAt: Date };
+
+export function htmlAcuseDerecho(o: DatosAcuseDerecho, appUrl = APP_URL): string {
+  return plantilla({
+    appUrl,
+    preencabezado: `Recibimos tu solicitud ${o.folio}.`,
+    contenido:
+      titulo(`Recibimos tu solicitud, ${esc(o.nombre)}`) +
+      p(`Registramos tu solicitud de <strong>${esc(o.derecho)}</strong> con el número:`) +
+      cajaCodigo("Número de solicitud", o.folio, `Te responderemos a más tardar el ${FECHA_LARGA.format(o.venceAt)}`) +
+      p("Antes de entregar o modificar datos verificaremos tu identidad, y para eso podemos escribirte a este mismo correo.") +
+      pChico("Si no hiciste esta solicitud, ignora este correo: no se ha entregado ni modificado ningún dato."),
+  });
+}
+
+/** Acuse de recibo al titular: lleva el folio y la fecha límite de respuesta. */
+export async function sendAcuseDerechoEmail(email: string, o: DatosAcuseDerecho): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    simular("Acuse de derechos", { Para: `${email} (${o.nombre})`, Folio: o.folio, Derecho: o.derecho, Vence: FECHA_LARGA.format(o.venceAt) });
+    return;
+  }
+  const resend = await getResend();
+  await enviarCorreo(resend, {
+    from: remitente(CORREO.privacidad), to: email,
+    subject: `Recibimos tu solicitud ${o.folio}`,
+    html: htmlAcuseDerecho(o),
+  });
+}
+
+export type DatosSolicitudDerecho = {
+  folio: string; derecho: string; nombre: string; rut: string; email: string;
+  detalle: string | null; ip: string | null; recibidaAt: Date; venceAt: Date;
+};
+
+export function htmlSolicitudDerechoAdmin(o: DatosSolicitudDerecho, appUrl = APP_URL): string {
+  return plantilla({
+    appUrl,
+    preencabezado: `${o.folio}: ${o.derecho} — vence ${FECHA_LARGA.format(o.venceAt)}`,
+    contenido:
+      caja(
+        p(`<strong>Nueva solicitud de derechos ${esc(o.folio)}</strong>`, "margin:0;font-size:16px") +
+        p(`Responder antes del ${esc(FECHA_LARGA.format(o.venceAt))}`, "margin:4px 0 0;font-size:13px"),
+        "alerta",
+      ) +
+      tabla(
+        fila("Derecho", `<strong>${esc(o.derecho)}</strong>`, true) +
+        fila("Nombre", esc(o.nombre)) +
+        fila("RUT", esc(o.rut), true) +
+        fila("Correo", `<a href="mailto:${esc(o.email)}" style="color:${COLOR.azul}">${esc(o.email)}</a>`) +
+        fila("IP origen", esc(o.ip ?? "no disponible"), true),
+      ) +
+      (o.detalle ? caja(etiquetaSeccion("Detalle") + p(esc(o.detalle), "margin:0;white-space:pre-wrap")) : "") +
+      pChico("La identidad NO está verificada. Verifícala antes de entregar, modificar o eliminar datos."),
+  });
+}
+
+/** Aviso al buzón de privacidad: una solicitud nueva. */
+export async function sendSolicitudDerechoAdminEmail(o: DatosSolicitudDerecho): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    simular("Solicitud de derechos (interno)", { Folio: o.folio, Derecho: o.derecho, Solicitante: `${o.nombre} (${o.rut})`, Vence: FECHA_LARGA.format(o.venceAt) });
+    return;
+  }
+  const resend = await getResend();
+  await enviarCorreo(resend, {
+    from: remitente(CORREO.notificaciones), to: CORREO.privacidad,
+    replyTo: o.email,
+    subject: `[Derechos] ${o.folio} · ${o.derecho}`,
+    html: htmlSolicitudDerechoAdmin(o),
+  });
+}
+
+export type ItemAvisoDerechos = { folio: string; derecho: string; venceAt: Date; dias: number };
+
+export function htmlAvisoDerechos(items: ItemAvisoDerechos[], appUrl = APP_URL): string {
+  const filas = items
+    .map((i, n) =>
+      fila(
+        esc(i.folio),
+        `${esc(i.derecho)} · ${i.dias < 0 ? `<strong style="color:#B91C1C">vencida hace ${-i.dias} d</strong>` : `vence en ${i.dias} d`} (${esc(FECHA_LARGA.format(i.venceAt))})`,
+        n % 2 === 0,
+      ))
+    .join("");
+  return plantilla({
+    appUrl,
+    preencabezado: `${items.length} solicitud(es) de derechos por vencer`,
+    contenido:
+      titulo("Solicitudes de derechos por vencer") +
+      p("Estas solicitudes siguen abiertas y su plazo legal vence pronto o ya venció:") +
+      tabla(filas) +
+      pChico("Márcalas como respondidas en la base (`estado = 'respondida'`) para dejar de recibir este aviso."),
+  });
+}
+
+export async function sendAvisoDerechosEmail(items: ItemAvisoDerechos[]): Promise<void> {
+  if (process.env.NODE_ENV !== "production") {
+    simular("Aviso de plazos de derechos", { Solicitudes: items.map((i) => `${i.folio} (${i.dias} d)`).join(", ") });
+    return;
+  }
+  const resend = await getResend();
+  await enviarCorreo(resend, {
+    from: remitente(CORREO.notificaciones), to: CORREO.privacidad,
+    subject: `[Derechos] ${items.length} solicitud(es) por vencer o vencidas`,
+    html: htmlAvisoDerechos(items),
+  });
+}

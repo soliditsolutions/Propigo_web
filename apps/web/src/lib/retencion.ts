@@ -20,7 +20,7 @@ export type Retencion = {
   /** Identificador estable; no se muestra. */
   clave:
     | "otp" | "accesoPortal" | "auditoriaEquipo" | "cuenta" | "contratos" | "contable" | "dispositivos"
-    | "codigosContacto" | "solicitudesDerecho";
+    | "codigosContacto" | "solicitudesDerecho" | "solicitudesCanal";
   /** Cómo se le nombra a la persona que lee la política. */
   categoria: string;
   /** El plazo, en palabras. */
@@ -81,6 +81,16 @@ export const RETENCIONES: Retencion[] = [
     // Es la prueba de que la corredora respondió a tiempo a un derecho
     // ejercido — mismo plazo y mismo fundamento que la auditoría del equipo.
     periodo: "3 años",
+    fundamento: "Ley 21.719",
+    automatica: true,
+    dias: 3 * ANIO,
+  },
+  {
+    clave: "solicitudesCanal",
+    categoria: "Solicitudes recibidas por el canal público de derechos (nombre, RUT, correo y detalle)",
+    // Misma razón que las del portal: es la prueba de que se respondió en plazo.
+    // Se cuenta desde que se recibe, no desde que se responde.
+    periodo: "3 años desde que se reciben",
     fundamento: "Ley 21.719",
     automatica: true,
     dias: 3 * ANIO,

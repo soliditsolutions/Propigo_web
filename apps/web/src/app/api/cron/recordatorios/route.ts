@@ -26,6 +26,9 @@ import { reintentarConsultasPendientes } from "@/lib/consulta-contacto";
 import { prisma } from "@/lib/db";
 import { cargarIndicadores, type ResultadoCarga } from "@/lib/indicadores/cargar";
 import { crearPedirSerieBcch } from "@/lib/indicadores/bcch";
+import { avisarSolicitudesPorVencer } from "@/lib/derechos-avisos";
+import { purgarSolicitudesCanal } from "@/lib/retencion-purga";
+import { sendAvisoDerechosEmail } from "@/lib/email";
 
 /**
  * Comparación en tiempo constante del encabezado contra el secreto. Se comparan
@@ -122,12 +125,25 @@ export async function GET(req: NextRequest) {
     // un fallo acá tiene que verse en el log y en la respuesta, no perderse.
     const indicadores = await actualizarIndicadores();
 
+    // Canal de derechos (L-DP7): aviso de plazos y retención. Cada uno en su
+    // propio try, por el mismo motivo: un fallo no debe tapar el resto.
+    let derechos: { avisadas: number; purgadas: number } | { error: string };
+    try {
+      const aviso = await avisarSolicitudesPorVencer(prisma, sendAvisoDerechosEmail);
+      const purga = await purgarSolicitudesCanal(prisma);
+      derechos = { avisadas: aviso.avisadas, purgadas: purga.solicitudesCanal };
+    } catch (e) {
+      logError("cron/derechos", e);
+      derechos = { error: "No se pudo revisar el plazo de las solicitudes de derechos." };
+    }
+
     return NextResponse.json({
       ok:        true,
       tenants:   tenants.length,
       purgado,
       consultas,
       indicadores,
+      derechos,
       resumen,
       timestamp: new Date().toISOString(),
     });

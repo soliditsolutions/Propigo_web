@@ -1,20 +1,16 @@
 /**
  * Interruptor de registro de corredoras.
  *
- * V0 (decisión 2026-11-02): el sitio se publica sin abrir registros. Registrarse
- * crea datos personales reales (Ley 21.719) y exige antes respaldos, archivos
- * fuera del servidor y soporte operando.
+ * El registro está **abierto por defecto**: toda cuenta nueva nace en el plan
+ * Gratuito (1 propiedad, ver `PLAN_GRATUITO`). `REGISTRO_ABIERTO=false` lo cierra
+ * y queda como válvula de emergencia (abuso, incidente, mantención): se consulta
+ * en cada petición, tanto al mostrar la página como al crear la cuenta, porque
+ * ocultar el formulario no basta: la acción es un POST que cualquiera puede
+ * llamar directamente.
  *
- * Por defecto el registro está **cerrado en producción y abierto en desarrollo**.
- * `REGISTRO_ABIERTO=true` lo abre en producción; `REGISTRO_ABIERTO=false` lo
- * cierra también en desarrollo (para probar el estado cerrado).
- *
- * Se consulta en cada petición, tanto al mostrar la página como al crear la
- * cuenta: ocultar el formulario no basta, la acción es un POST que cualquiera
- * puede llamar directamente.
+ * Cualquier valor distinto de "false" deja el registro abierto: un error de
+ * tipeo en la variable no debe cerrar el sitio sin que nadie lo note.
  */
 export function registroAbierto(env: Record<string, string | undefined> = process.env): boolean {
-  if (env.REGISTRO_ABIERTO === "true") return true;
-  if (env.REGISTRO_ABIERTO === "false") return false;
-  return env.NODE_ENV !== "production";
+  return env.REGISTRO_ABIERTO !== "false";
 }

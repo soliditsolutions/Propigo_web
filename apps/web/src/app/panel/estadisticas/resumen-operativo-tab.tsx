@@ -18,7 +18,7 @@ const ESTADO_LABEL: Record<string, string> = {
   arrendada: "Arrendada",
 };
 
-export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
+export async function ResumenOperativoTab({ tenantId, historico = true }: { tenantId: string; historico?: boolean }) {
   const data = await getResumenOperativo(tenantId);
 
   const donutData = data.ocupacionDesglose
@@ -78,6 +78,7 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
           </div>
         </Card>
 
+        {historico ? (
         <Card className="p-5">
           <SectionTitle title="Cobrado vs. facturado" description="Últimos 3 meses" />
           <MiniBarSeries
@@ -90,6 +91,7 @@ export async function ResumenOperativoTab({ tenantId }: { tenantId: string }) {
             ]}
           />
         </Card>
+        ) : null}
       </div>
 
       <Card className="p-5">

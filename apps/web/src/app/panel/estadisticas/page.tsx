@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/panel/ui";
 import { TabNav } from "@/components/panel/tab-nav";
 import { getAnalyticsTier, tierIndex, TIER_LABEL, TIER_MIN_PLAN_LABEL, type AnalyticsTier } from "@/lib/plan-tier";
 import { Lock } from "lucide-react";
+import { getPlanEfectivo } from "@/lib/plans";
 import { ResumenOperativoTab } from "./resumen-operativo-tab";
 import { AnaliticaFinancieraTab } from "./analitica-financiera-tab";
 import { RendimientoPropiedadesTab } from "./rendimiento-propiedades-tab";
@@ -81,7 +82,7 @@ export default async function EstadisticasPage({
       {!desbloqueado ? (
         <LockedTab tab={TAB_TIER[validTab]} />
       ) : validTab === "resumen" ? (
-        <ResumenOperativoTab tenantId={tenant.id} />
+        <ResumenOperativoTab tenantId={tenant.id} historico={getPlanEfectivo(tenant.plan).resumenHistorico} />
       ) : validTab === "financiera" ? (
         <AnaliticaFinancieraTab tenantId={tenant.id} />
       ) : validTab === "rendimiento" ? (

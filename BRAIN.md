@@ -81,6 +81,9 @@
 
 Cosas que ya se investigaron y que es fácil "corregir" mal por sentido común.
 
+- **"Gratuito" es un plan real, no un alias de Bronze.** `getPlanEfectivo("Gratuito")` devuelve `PLAN_GRATUITO` (1 propiedad, 1 usuario, 1 IA al día, sin exportar, Resumen sin histórico, solo recordatorios de pago por correo). No está en `PLANS` (no se vende). Cualquier otro string desconocido sigue cayendo en Bronze, nunca en "sin límite". Los avisos que el plan no envía se filtran en un solo lugar (`enviarNotificacionesPendientes`) y en el correo de comentarios; quedan `pendiente`, no `simulada`.
+- **El registro está abierto por defecto** (también en producción); `REGISTRO_ABIERTO=false` es la válvula de emergencia (`lib/registro-abierto.ts`).
+
 - **El Rol de Avalúo no tiene dígito verificador.** Eso es del RUT. Un rol es
   solo dígitos y guiones, con la forma `manzana-predio` y la comuna opcional:
   `573-24` o `13101-573-24`. **Los bloques tampoco tienen largo fijo** — `1-1`

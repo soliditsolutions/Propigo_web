@@ -5,6 +5,7 @@ import { getActor, marcarPeriodosAtrasados, propiedadIdsVisibles } from "@/lib/q
 import { withTenant } from "@/lib/tenant-db";
 import { sendNotificacionEmail } from "@/lib/email";
 import { logError } from "@/lib/logger";
+import { getPlanEfectivo, TIPOS_AVISO_PLAN_GRATUITO } from "@/lib/plans";
 import { cantidad } from "@/lib/format";
 import { renderizarAlerta } from "@/lib/alertas";
 import { idsReemplazadas, esNotificacionDeCiclo } from "@/lib/notificaciones-ciclo";
@@ -347,6 +348,8 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
   diferidas: number;
   /** Avisos de ciclo retirados por quedar obsoletos frente a uno más nuevo. */
   reemplazadas: number;
+  /** Avisos que el plan no envía por correo (siguen pendientes en el panel). */
+  limitadasPorPlan: number;
   /** Solo cuando ok es false: qué decirle al usuario. */
   error?: string;
 }> {
@@ -361,10 +364,22 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
 
     // Lectura en su propia transacción corta — no mantenemos abierta una
     // transacción mientras esperamos el I/O externo de envío de email más abajo.
+    // El plan Gratuito solo envía recordatorios de pago; el resto queda
+    // pendiente en el panel (no se pierde ni se marca como enviado).
+    const soloRecordatorios = getPlanEfectivo(tenant.plan).avisosPorCorreo === "solo_recordatorios_pago";
+    const filtroPendientes = {
+      tenantId: tenant.id, estado: "pendiente" as const, canal: "email" as const,
+      ...(propiedadIds ? { contrato: { propiedadId: { in: propiedadIds } } } : {}),
+    };
+    const limitadasPorPlan = soloRecordatorios
+      ? await withTenant(tenant.id, (tx) => tx.notificacion.count({
+          where: { ...filtroPendientes, tipo: { notIn: [...TIPOS_AVISO_PLAN_GRATUITO] } },
+        }))
+      : 0;
     const pendientes = await withTenant(tenant.id, (tx) => tx.notificacion.findMany({
       where: {
-        tenantId: tenant.id, estado: "pendiente", canal: "email",
-        ...(propiedadIds ? { contrato: { propiedadId: { in: propiedadIds } } } : {}),
+        ...filtroPendientes,
+        ...(soloRecordatorios ? { tipo: { in: [...TIPOS_AVISO_PLAN_GRATUITO] } } : {}),
       },
       include: {
         persona: {
@@ -448,12 +463,12 @@ export async function enviarNotificacionesPendientes(tenantOverride?: Tenant): P
 
     revalidatePath("/panel/notificaciones");
     revalidatePath("/panel");
-    return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas, reemplazadas };
+    return { ok: true, enviadas, errores, sinEmail, dadasDeBaja, diferidas, reemplazadas, limitadasPorPlan };
   } catch (e) {
     unstable_rethrow(e); // sin sesión: que Next lleve al login
     logError("enviarNotificacionesPendientes", e);
     return {
-      ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0,
+      ok: false, enviadas: 0, errores: 0, sinEmail: 0, dadasDeBaja: 0, diferidas: 0, reemplazadas: 0, limitadasPorPlan: 0,
       error: "No pudimos enviar los avisos. Siguen pendientes; vuelve a intentarlo en unos minutos.",
     };
   }

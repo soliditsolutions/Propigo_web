@@ -108,7 +108,7 @@ describe("aceptarInvitacionAction — revalidación de cupo (bypass de plan)", (
     expect(mockRedirect).toHaveBeenCalledWith("/verificar-dispositivo");
   });
 
-  it("un plan desconocido o 'Gratuito' cae en el cupo de Bronce (1) — rechaza si ya hay 0 colaboradores activos más el Manager", async () => {
+  it("el plan Gratuito (1 usuario) y un plan desconocido rechazan — rechaza si ya hay 0 colaboradores activos más el Manager", async () => {
     mockTenantFindUnique.mockResolvedValue({ plan: "Gratuito" });
     mockUsuarioCount.mockResolvedValue(0); // cupoUsado = 1(manager) + 0 = 1 >= max(Bronce)=1
 

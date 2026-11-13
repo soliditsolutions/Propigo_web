@@ -127,7 +127,7 @@ describe("invitarColaboradorAction — cupo de usuarios por plan", () => {
     expect(mockInvitacionCreate).toHaveBeenCalledTimes(1);
   });
 
-  it("un plan desconocido o 'Gratuito' cae en el cupo de Bronze (1 usuario) — nunca sin límite", async () => {
+  it("el plan Gratuito y un plan desconocido tienen cupo de 1 usuario — nunca sin límite", async () => {
     mockGetActor.mockResolvedValue(actorManager("Gratuito"));
     mockUsuarioCount.mockResolvedValue(0);
     mockInvitacionCount.mockResolvedValue(0);
@@ -173,8 +173,16 @@ describe("getCupoInfo — información de cupo para la UI", () => {
     expect(info).toEqual({ usado: 4, max: 5, planLabel: "Gold" });
   });
 
-  it("un plan desconocido usa el nombre y el cupo de Bronze, como Mi Plan y Propiedades (M-22)", async () => {
+  it("el plan Gratuito muestra su propio nombre y cupo", async () => {
     mockGetActor.mockResolvedValue(actorManager("Gratuito"));
+    mockUsuarioCount.mockResolvedValue(0);
+    mockInvitacionCount.mockResolvedValue(0);
+
+    expect(await getCupoInfo()).toEqual({ usado: 1, max: 1, planLabel: "Gratuito" });
+  });
+
+  it("un plan desconocido usa el nombre y el cupo de Bronze, como Mi Plan y Propiedades (M-22)", async () => {
+    mockGetActor.mockResolvedValue(actorManager("enterprise"));
     mockUsuarioCount.mockResolvedValue(0);
     mockInvitacionCount.mockResolvedValue(0);
 

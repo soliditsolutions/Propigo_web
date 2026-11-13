@@ -29,6 +29,16 @@ export const MESES_PAGADOS_ANUAL = 10;
 
 export type PlanId = "bronze" | "silver" | "gold" | "diamond";
 
+/**
+ * Valor que se guarda en `Tenant.plan` al registrarse: el plan Gratuito. No es
+ * un PlanId comprable (no está en PLANS ni tiene precio), pero sí un plan real
+ * con sus propios límites.
+ */
+export const PLAN_GRATUITO_VALOR = "Gratuito";
+
+/** Tipos de aviso que el plan Gratuito sí envía por correo: los recordatorios de pago. */
+export const TIPOS_AVISO_PLAN_GRATUITO = ["recordatorio_vencimiento"] as const;
+
 export type PlanFeature = {
   /** Línea corta que se muestra en la card (una feature = una línea). */
   text: string;
@@ -38,7 +48,7 @@ export type PlanFeature = {
 };
 
 export type Plan = {
-  id: PlanId;
+  id: PlanId | "gratuito";
   name: string;
   /** Subtítulo de la card: a quién está dirigido el plan. */
   tagline: string;
@@ -61,6 +71,13 @@ export type Plan = {
   tokensDiarios: number;
   /** Si el plan permite exportar información (CSV). */
   permiteExportar: boolean;
+  /**
+   * Qué avisos por correo envía el plan: "todos" o solo los recordatorios de
+   * pago. Lo que no se envía queda en el panel como pendiente.
+   */
+  avisosPorCorreo: "todos" | "solo_recordatorios_pago";
+  /** Si el Resumen operativo incluye el histórico (cobrado vs. facturado). */
+  resumenHistorico: boolean;
   /** Plan destacado visualmente ("Más popular"). */
   featured?: boolean;
 };
@@ -107,6 +124,8 @@ export const PLANS: Plan[] = [
     maxUsuarios: 1,
     tokensDiarios: 3,
     permiteExportar: false,
+    avisosPorCorreo: "todos",
+    resumenHistorico: true,
     features: [
       { text: propiedadesFeatureText(10), tooltip: TOOLTIP_SLOTS },
       { text: usuariosFeatureText(1) },
@@ -128,6 +147,8 @@ export const PLANS: Plan[] = [
     maxUsuarios: 1,
     tokensDiarios: 10,
     permiteExportar: false,
+    avisosPorCorreo: "todos",
+    resumenHistorico: true,
     features: [
       { text: propiedadesFeatureText(25), tooltip: TOOLTIP_SLOTS },
       { text: usuariosFeatureText(1) },
@@ -149,6 +170,8 @@ export const PLANS: Plan[] = [
     maxUsuarios: 5,
     tokensDiarios: 30,
     permiteExportar: true,
+    avisosPorCorreo: "todos",
+    resumenHistorico: true,
     featured: true,
     features: [
       { text: propiedadesFeatureText(75), tooltip: TOOLTIP_SLOTS },
@@ -175,6 +198,8 @@ export const PLANS: Plan[] = [
     // costo abierto contra la API de IA que no controlamos. Decisión N-02.
     tokensDiarios: 100,
     permiteExportar: true,
+    avisosPorCorreo: "todos",
+    resumenHistorico: true,
     features: [
       { text: propiedadesFeatureText(200), tooltip: TOOLTIP_SLOTS },
       { text: usuariosFeatureText(10) },
@@ -189,18 +214,49 @@ export const PLANS: Plan[] = [
   },
 ];
 
-const PLAN_POR_ID = new Map<PlanId, Plan>(PLANS.map((p) => [p.id, p]));
+/**
+ * Plan Gratuito: el que recibe toda cuenta nueva. Mucho menor que Bronze.
+ *
+ * Revisiones de IA: Bronze da 3 para 10 propiedades (0,3 por propiedad). Se
+ * aplica el mismo cociente a la 1 propiedad del Gratuito y se redondea hacia
+ * arriba para que la función se pueda probar: ceil(1 × 0,3) = 1 por día.
+ */
+export const PLAN_GRATUITO: Plan = {
+  id: "gratuito",
+  name: "Gratuito",
+  tagline: "Para probar Propigo con una propiedad, sin tarjeta de crédito.",
+  mensualUf: 0,
+  anualUf: 0,
+  annualSavings: "",
+  maxPropiedades: 1,
+  maxUsuarios: 1,
+  tokensDiarios: 1,
+  permiteExportar: false,
+  avisosPorCorreo: "solo_recordatorios_pago",
+  resumenHistorico: false,
+  features: [
+    { text: "1 propiedad", tooltip: TOOLTIP_SLOTS },
+    { text: usuariosFeatureText(1) },
+    { text: "1 token diario de IA", tooltip: TOOLTIP_TOKENS },
+    { text: "Resumen de la cartera" },
+    { text: "Recordatorios de pago por correo" },
+    { text: "Soporte por correo" },
+  ],
+};
+
+const PLAN_POR_ID = new Map<string, Plan>(PLANS.map((p) => [p.id, p]));
 
 /**
  * Plan efectivo de un tenant a partir del string guardado.
  *
- * `Tenant.plan` es un string libre (todo signup nuevo recibe "Gratuito"), así
- * que cualquier valor desconocido cae en **Bronze**, el plan más bajo — nunca
- * en "sin límite". Es deliberado: un fallo o un dato corrupto en billing debe
+ * `Tenant.plan` es un string libre. "Gratuito" (el de todo signup nuevo) es el
+ * plan Gratuito; cualquier otro valor desconocido cae en **Bronze** — nunca en
+ * "sin límite". Es deliberado: un fallo o un dato corrupto en billing debe
  * restringir, jamás abrir permisos.
  */
 export function getPlanEfectivo(plan: string | null): Plan {
-  return PLAN_POR_ID.get(plan as PlanId) ?? PLAN_POR_ID.get("bronze")!;
+  if (plan === PLAN_GRATUITO_VALOR) return PLAN_GRATUITO;
+  return PLAN_POR_ID.get(plan ?? "") ?? PLAN_POR_ID.get("bronze")!;
 }
 
 /** Cupo de usuarios (Manager + Colaboradores activos + invitaciones pendientes). */
@@ -221,6 +277,12 @@ export function getCupoTokensDiarios(plan: string | null): number {
 /** Si el plan habilita exportar información (CSV). */
 export function puedeExportar(plan: string | null): boolean {
   return getPlanEfectivo(plan).permiteExportar;
+}
+
+/** Si el plan envía por correo este tipo de aviso (los demás quedan pendientes en el panel). */
+export function enviaAvisoPorCorreo(plan: string | null, tipo: string): boolean {
+  const p = getPlanEfectivo(plan);
+  return p.avisosPorCorreo === "todos" || (TIPOS_AVISO_PLAN_GRATUITO as readonly string[]).includes(tipo);
 }
 
 // ── Precios ────────────────────────────────────────────────────────────────

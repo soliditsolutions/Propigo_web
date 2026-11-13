@@ -173,8 +173,11 @@ export function NotificacionesClient({
           const notaColapso = r.reemplazadas > 0
             ? ` · ${r.reemplazadas} sin enviar por quedar obsolet${r.reemplazadas === 1 ? "a" : "as"}`
             : "";
+          const notaPlan = r.limitadasPorPlan > 0
+            ? ` · ${r.limitadasPorPlan} sin enviar: tu plan solo envía recordatorios de pago`
+            : "";
           toast(
-            `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}${notaColapso}.`,
+            `${cantidad(r.enviadas, "correo", "correos")} enviado${r.enviadas === 1 ? "" : "s"}${r.errores > 0 ? ` · ${cantidad(r.errores, "error", "errores")}` : ""}${r.sinEmail > 0 ? ` · ${r.sinEmail} sin correo registrado` : ""}${notaColapso}${notaPlan}.`,
             r.errores > 0 ? "error" : "success",
           );
           if (r.enviadas > 0 || r.reemplazadas > 0) router.refresh();

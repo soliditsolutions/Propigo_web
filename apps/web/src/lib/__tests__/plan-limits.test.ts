@@ -18,6 +18,9 @@ import {
   puedeExportar,
   precioUf,
   desglosarPrecioClp,
+  PLAN_GRATUITO,
+  PLAN_GRATUITO_VALOR,
+  enviaAvisoPorCorreo,
 } from "../plans";
 import { verificarCupoPropiedades, consumirTokenIa, consultarConsumoIaHoy } from "../plan-limits";
 import type { TenantClient } from "../tenant-db";
@@ -25,7 +28,52 @@ import type { TenantClient } from "../tenant-db";
 const TENANT = "11111111-1111-4111-8111-111111111111";
 
 /** Planes desconocidos que deben caer al cupo más bajo, no a ilimitado. */
-const PLANES_INVALIDOS = [null, "", "Gratuito", "GRATUITO", "enterprise", "diamond_v2", "DIAMOND", " gold "];
+const PLANES_INVALIDOS = [null, "", "GRATUITO", "gratuito", "enterprise", "diamond_v2", "DIAMOND", " gold "];
+
+describe("Plan Gratuito", () => {
+  it("es el plan de toda cuenta nueva y tiene sus propios cupos", () => {
+    expect(PLAN_GRATUITO_VALOR).toBe("Gratuito");
+    const p = getPlanEfectivo(PLAN_GRATUITO_VALOR);
+    expect(p).toBe(PLAN_GRATUITO);
+    expect([p.maxPropiedades, p.maxUsuarios, p.tokensDiarios, p.permiteExportar]).toEqual([1, 1, 1, false]);
+    expect(getCupoPropiedades("Gratuito")).toBe(1);
+    expect(getCupoTokensDiarios("Gratuito")).toBe(1);
+    expect(puedeExportar("Gratuito")).toBe(false);
+  });
+
+  it("no se vende: no está en PLANS ni tiene precio", () => {
+    expect(PLANS.map((p) => p.id)).not.toContain("gratuito");
+    expect([PLAN_GRATUITO.mensualUf, PLAN_GRATUITO.anualUf]).toEqual([0, 0]);
+  });
+
+  it("está por debajo de Bronze en todo lo que se mide", () => {
+    const bronze = PLANS[0];
+    expect(PLAN_GRATUITO.maxPropiedades).toBeLessThan(bronze.maxPropiedades);
+    expect(PLAN_GRATUITO.tokensDiarios).toBeLessThan(bronze.tokensDiarios);
+    expect(PLAN_GRATUITO.maxUsuarios).toBeLessThanOrEqual(bronze.maxUsuarios);
+    expect(PLAN_GRATUITO.avisosPorCorreo).not.toBe(bronze.avisosPorCorreo);
+    expect(PLAN_GRATUITO.resumenHistorico).toBe(false);
+  });
+
+  it("las revisiones de IA siguen el cociente por propiedad de Bronze, redondeado hacia arriba", () => {
+    const bronze = PLANS[0];
+    const porPropiedad = bronze.tokensDiarios / bronze.maxPropiedades;
+    expect(PLAN_GRATUITO.tokensDiarios).toBe(Math.ceil(PLAN_GRATUITO.maxPropiedades * porPropiedad));
+  });
+
+  it("solo envía por correo los recordatorios de pago", () => {
+    expect(enviaAvisoPorCorreo("Gratuito", "recordatorio_vencimiento")).toBe(true);
+    for (const tipo of ["cobro", "voucher_pago", "comentario_corredor", "alerta_personalizada", "termino_contrato"]) {
+      expect(enviaAvisoPorCorreo("Gratuito", tipo)).toBe(false);
+    }
+  });
+
+  it("los planes pagados envían todos los avisos, y un plan desconocido (Bronze) también", () => {
+    for (const plan of ["bronze", "silver", "gold", "diamond", "enterprise", null]) {
+      expect(enviaAvisoPorCorreo(plan, "comentario_corredor")).toBe(true);
+    }
+  });
+});
 
 describe("Tabla de planes", () => {
   it("los 4 planes tienen los cupos decididos", () => {
@@ -180,7 +228,7 @@ describe("consumirTokenIa", () => {
     // un futuro plan sin IA — hoy es inalcanzable porque los 4 planes tienen
     // cupo > 0 y el fallback es Bronze.
     queryRaw.mockResolvedValue([{ usados: 1 }]);
-    const r = await consumirTokenIa(tx, TENANT, "Gratuito");
+    const r = await consumirTokenIa(tx, TENANT, "enterprise");
     expect(r).toEqual({ permitido: true, usado: 1, max: 3 });
   });
 

@@ -7,6 +7,7 @@ import bannerFamily from "@/images/banners/bannerFamily.png";
 import { Logo } from "@/components/public/Logo";
 import { CORREO, titulo } from "@/lib/marca";
 import { registroAbierto } from "@/lib/registro-abierto";
+import { PLAN_GRATUITO } from "@/lib/plans";
 
 // Se decide en cada petición: sin esto Next prerenderiza la página en el build y
 // REGISTRO_ABIERTO del servidor en marcha nunca se leería.
@@ -122,6 +123,14 @@ export default function RegistroPage() {
             <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
               Comienza gratis — plan Gratuito, sin tarjeta de crédito.
             </p>
+            <ul className="mt-3 space-y-1 text-xs" style={{ color: "var(--pgo-text-3)" }}>
+              {PLAN_GRATUITO.features.map((f) => (
+                <li key={f.text} className="flex items-start gap-2">
+                  <span aria-hidden="true" style={{ color: "var(--pgo-success)" }}>✓</span>
+                  {f.text}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="pgo-auth-card p-6">

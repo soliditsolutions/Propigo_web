@@ -14,6 +14,7 @@ import { getClientIpFromHeaders }          from "@/lib/ip";
 import { checkRateLimit }                  from "@/lib/rate-limit";
 import { z }                               from "zod";
 import { logError } from "@/lib/logger";
+import { PLAN_GRATUITO_VALOR } from "@/lib/plans";
 
 // Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
 // verificación de identidad esperando indefinidamente en vez de fallar rápido.
@@ -373,7 +374,7 @@ export async function registroAction(
           nombre: empresa,
           rut:    rutEmpresaCanonical,
           esPersonaJuridica,
-          plan:   "Gratuito",
+          plan:   PLAN_GRATUITO_VALOR,
         },
         select: { id: true },
       });

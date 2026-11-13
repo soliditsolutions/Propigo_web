@@ -22,6 +22,7 @@ import { withTenant } from "@/lib/tenant-db";
 import { idFiltro } from "@/lib/busqueda";
 import { sendComentarioCorredorEmail } from "@/lib/email";
 import { MARCA } from "@/lib/marca";
+import { enviaAvisoPorCorreo } from "@/lib/plans";
 
 const schema = z.object({
   texto:       z.string().min(1).max(2000).trim(),
@@ -113,7 +114,10 @@ export async function POST(
   // conexión de BD abierta.
   const { comentario, contrato, corredorNombre, notificacionId } = resultado;
   const pref = contrato.arrendatario.preferenciaNotif[0] ?? null;
-  if (contrato.arrendatario.email && puedeRecibir(pref, "comentario_corredor")) {
+  // El plan Gratuito solo envía recordatorios de pago: el mensaje queda en el
+  // portal del arrendatario y el aviso pendiente en el panel.
+  if (contrato.arrendatario.email && puedeRecibir(pref, "comentario_corredor")
+      && enviaAvisoPorCorreo(actor.tenant.plan, "comentario_corredor")) {
     try {
       const urlBaja = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/no-molestar?t=${
         await firmarTokenBaja(contrato.arrendatarioId, tenantId)

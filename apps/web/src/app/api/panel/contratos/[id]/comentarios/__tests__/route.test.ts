@@ -51,7 +51,7 @@ const contrato = (pref: unknown) => ({
 describe("POST comentarios", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "manager", usuarioId: "u-m" });
+    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "manager", usuarioId: "u-m", tenant: { plan: "silver" } });
   });
 
   it("envía una vez, con enlace de baja, y marca la notificación como enviada", async () => {
@@ -62,6 +62,14 @@ describe("POST comentarios", () => {
     expect(mockNotifUpdate).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: "n1" }, data: expect.objectContaining({ estado: "enviada" }),
     }));
+  });
+
+  it("con el plan Gratuito no envía el correo y la notificación queda pendiente en el panel", async () => {
+    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "manager", usuarioId: "u-m", tenant: { plan: "Gratuito" } });
+    mockContratoFind.mockResolvedValue(contrato(null));
+    expect((await enviar()).status).toBe(200);
+    expect(mockEnviar).not.toHaveBeenCalled();
+    expect(mockNotifUpdate).not.toHaveBeenCalled();
   });
 
   it("con baja vigente no envía y deja la notificación al despachador", async () => {
@@ -79,7 +87,7 @@ describe("POST comentarios", () => {
   });
 
   it("el colaborador solo busca contratos de propiedades asignadas a él", async () => {
-    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "colaborador", usuarioId: "u-colab" });
+    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "colaborador", usuarioId: "u-colab", tenant: { plan: "silver" } });
     mockContratoFind.mockResolvedValue(null);
     expect((await enviar()).status).toBe(404);
     expect(mockContratoFind.mock.calls[0][0].where).toMatchObject({ propiedad: { asignadoAId: "u-colab" } });
@@ -97,7 +105,7 @@ describe("GET comentarios", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "manager", usuarioId: "u-m" });
+    mockGetActor.mockResolvedValue({ tenantId: "t1", rol: "manager", usuarioId: "u-m", tenant: { plan: "silver" } });
   });
 
   it("devuelve la lista", async () => {

@@ -17,6 +17,7 @@ desarrollo, no versiones publicadas.
 
 ### Cambiado
 
+- **Análisis del proveedor de IA** (`Docs/gestion/analisis-ia-proveedores-2026-11.md`): los modelos de Groq que usamos están apagados para planes gratis y developer; costo y proyección de Cloudflare Workers AI. Sin cambios de código todavía.
 - **Plan Gratuito real.** Hasta ahora una cuenta nueva (`"Gratuito"`) recibía los límites de Bronze (10 propiedades). Ahora tiene los suyos: 1 propiedad, 1 usuario, 1 revisión de IA al día (el cociente por propiedad de Bronze, redondeado hacia arriba), sin exportar, Resumen sin el histórico «cobrado vs. facturado» y solo recordatorios de pago por correo (los demás avisos quedan pendientes en el panel). Un plan desconocido sigue cayendo en Bronze. `/registro` lista estos límites.
 - **El registro queda abierto por defecto** también en producción (decisión 2026-11-12, con el plan Gratuito acotado). `REGISTRO_ABIERTO=false` lo cierra como válvula de emergencia; cualquier otro valor lo deja abierto.
 - **Datos reales de la empresa** en términos y privacidad: razón social «SOLID IT SpA», RUT y teléfono (`lib/marca.ts`). El domicilio es el de la escritura de constitución: comuna de La Florida, Región Metropolitana de Santiago.

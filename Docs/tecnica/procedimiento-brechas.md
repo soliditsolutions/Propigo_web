@@ -68,7 +68,7 @@ guarda mientras dure la obligación legal; lo confirma el abogado.
 
 ## Plantillas
 
-**A la Agencia** — Asunto: «Notificación de vulneración de seguridad — SOLIDIT SpA».
+**A la Agencia** — Asunto: «Notificación de vulneración de seguridad — SOLID IT SpA».
 Cuerpo: fecha y hora de detección; descripción; categorías y número de personas y
 registros; corredoras afectadas; consecuencias probables; medidas de contención y
 corrección; persona de contacto (`privacidad@propigo.cl`); compromiso de ampliar la

@@ -3,7 +3,7 @@
 Monorepo: `apps/web` (Next.js 16 + Prisma; ver `apps/web/AGENTS.md`) y `packages/core`. Documentación de producto y decisiones en `Docs/`.
 
 ## Marca
-El producto se llama **Propigo** (dominio `propigo.cl`, eslogan "Publica más. Complica menos."). El nombre anterior, "Housing", ya no se usa en ninguna parte: paquetes `@propigo/*`, base `propigo` con roles `propigo`/`propigo_app`, contenedor `propigo-db`, tokens CSS `--pgo-*`, clases `pgo-*` y cookies/claves `pgo_*`. Todo texto visible usa las constantes de `apps/web/src/lib/marca.ts` (nombre, eslogan, razón social, correos) y el componente `Logo`/`Isotipo` de `components/public/Logo.tsx`; nunca escribir la marca o un correo a mano. SOLIDIT SpA es la razón social: solo en legales, pie de página y documentos, nunca en el logo.
+El producto se llama **Propigo** (dominio `propigo.cl`, eslogan "Publica más. Complica menos."). El nombre anterior, "Housing", ya no se usa en ninguna parte: paquetes `@propigo/*`, base `propigo` con roles `propigo`/`propigo_app`, contenedor `propigo-db`, tokens CSS `--pgo-*`, clases `pgo-*` y cookies/claves `pgo_*`. Todo texto visible usa las constantes de `apps/web/src/lib/marca.ts` (nombre, eslogan, razón social, correos) y el componente `Logo`/`Isotipo` de `components/public/Logo.tsx`; nunca escribir la marca o un correo a mano. SOLID IT SpA es la razón social: solo en legales, pie de página y documentos, nunca en el logo.
 
 ## Precedencia sobre skills globales (ponytail, graphify)
 Las reglas de este proyecto prevalecen sobre ponytail y graphify. Choques resueltos:

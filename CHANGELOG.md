@@ -15,6 +15,10 @@ desarrollo, no versiones publicadas.
 
 ## [Unreleased]
 
+### Cambiado
+
+- **Datos reales de la empresa** en términos y privacidad: razón social «SOLID IT SpA», RUT y teléfono (`lib/marca.ts`). El domicilio sigue genérico hasta tener la dirección legal.
+
 ### Añadido
 
 - **Cambio de plan desde Mi Plan.** El Manager elige el plan nuevo. Si sube,

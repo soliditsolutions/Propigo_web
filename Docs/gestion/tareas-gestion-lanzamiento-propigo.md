@@ -44,7 +44,7 @@ la V0 (sitio sin pagos), después la integración de Webpay Plus. Detalle y esta
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
-| G-01 | Registrar **propigo.cl** en [NIC Chile](https://www.nic.cl), a nombre de **SOLIDIT SpA** (RUT de la empresa, no de una persona). Registrado (confirmado el 2026-10-21); verificar que el titular sea la empresa. | G | — | `[x]` |
+| G-01 | Registrar **propigo.cl** en [NIC Chile](https://www.nic.cl), a nombre de **SOLID IT SpA** (RUT de la empresa, no de una persona). Registrado (confirmado el 2026-10-21); verificar que el titular sea la empresa. | G | — | `[x]` |
 | G-02 | Comprar **propigo.com** como respaldo si está libre (no verificado: el WHOIS de NIC Chile solo cubre `.cl`). | G | — | `[ ]` |
 | G-03 | Activar renovación automática y anotar fecha de vencimiento de ambos dominios. Un dominio vencido bota el sitio y los correos. | G | G-01 | `[ ]` |
 | G-04 | Dejar como contacto técnico del dominio una cuenta de la empresa (`tecnologia@propigo.cl`), no un correo personal. | G | C-02 | `[ ]` |
@@ -58,18 +58,18 @@ Descartados en la búsqueda: `housing.cl` (de un tercero, vence 2027-03-12),
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
 | M-01 | Búsqueda de anterioridad en [INAPI](https://www.inapi.cl): que "Propigo" (y variantes fonéticas) no esté registrada en clases relacionadas. | L | — | `[ ]` |
-| M-02 | Solicitar registro de la marca "Propigo" a nombre de SOLIDIT SpA. Clases a evaluar con el abogado: **42** (software como servicio), **36** (servicios inmobiliarios/arriendo), **35** (publicidad/marketplace), **9** (software descargable, solo si habrá app). El costo es por clase. | L | M-01 | `[ ]` |
+| M-02 | Solicitar registro de la marca "Propigo" a nombre de SOLID IT SpA. Clases a evaluar con el abogado: **42** (software como servicio), **36** (servicios inmobiliarios/arriendo), **35** (publicidad/marketplace), **9** (software descargable, solo si habrá app). El costo es por clase. | L | M-01 | `[ ]` |
 | M-03 | Reservar el usuario **@propigo** en Instagram, LinkedIn, Facebook y TikTok, aunque no se usen aún. | G | — | `[ ]` |
 | M-04 | Identidad visual: logo e isotipo definidos (casa con forma de "P", azul) y eslogan **"Publica más. Complica menos."**. Ya aplicados en el sitio con una versión vectorial aproximada; falta recibir los **archivos oficiales en SVG** del diseñador para reemplazarla. | G | — | `[~]` |
-| M-05 | "SOLIDIT" sale del logo; SOLIDIT SpA queda solo como responsable en legales, pie de página y documentos. Decidido y aplicado el 2026-10-21. | G | — | `[x]` |
+| M-05 | "SOLIDIT" sale del logo; SOLID IT SpA queda solo como responsable en legales, pie de página y documentos. Decidido y aplicado el 2026-10-21. | G | — | `[x]` |
 
 ## 3. Empresa y legal
 
 | ID | Tarea | Resp. | Depende de | Estado |
 |---|---|---|---|---|
 | E-01 | Confirmar **inicio de actividades** en el SII con un giro coherente (servicios de software / plataforma inmobiliaria). Transbank lo exige. | L | — | `[ ]` |
-| E-02 | **Cuenta corriente** a nombre del RUT de SOLIDIT SpA, sin morosidades en el boletín comercial (requisito Transbank). | G | — | `[ ]` |
-| E-03 | Entregar a TI el **RUT real y el teléfono** de la empresa: hoy términos y privacidad muestran valores de relleno (`77.000.000-0`, `+56 2 0000 0000`) y Transbank los revisa. | G | — | `[ ]` |
+| E-02 | **Cuenta corriente** a nombre del RUT de SOLID IT SpA, sin morosidades en el boletín comercial (requisito Transbank). | G | — | `[ ]` |
+| E-03 | Entregar a TI el **RUT real y el teléfono** de la empresa: RUT y teléfono entregados y cargados el 2026-11-12 (`lib/marca.ts`). Falta el domicilio legal. | G | — | `[x]` |
 | E-04 | Revisión de abogado de **términos y privacidad** con: la marca nueva, el cobro de la suscripción a corredores (hoy dicen que la plataforma "nunca solicita pagos") y las promesas de retención de datos que aún no se cumplen (Ley 21.719, Grupo E del rowmap legal). | L | M-05 | `[ ]` |
 | E-05 | Contratar proveedor de **facturación electrónica** con API (boletas y facturas al SII por la suscripción). Las pasarelas de pago no emiten documentos tributarios. | G/L | E-01 | `[ ]` |
 

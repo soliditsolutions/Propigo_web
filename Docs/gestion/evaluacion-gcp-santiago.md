@@ -99,7 +99,7 @@ el ahorro.
 
 ## 6. Siguiente paso: prueba de concepto (1-2 días de TI)
 
-1. Proyecto GCP a nombre de SOLIDIT SpA con alerta de presupuesto (H-02).
+1. Proyecto GCP a nombre de SOLID IT SpA con alerta de presupuesto (H-02).
 2. Cloud SQL `db-g1-small` en Santiago → `npm run db:deploy` con el rol
    administrador. **Criterio:** `setup.sql` aplica completo (roles, RLS,
    funciones) y la app conecta como `propigo_app`.

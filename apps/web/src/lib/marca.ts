@@ -1,11 +1,11 @@
 /**
  * Identidad de la plataforma en un solo lugar: nombre comercial, eslogan,
- * dominio y correos. SOLIDIT SpA es la empresa responsable (razón social en
+ * dominio y correos. SOLID IT SpA es la empresa responsable (razón social en
  * los documentos legales), no la marca: no aparece en el logo ni en títulos.
  */
 export const MARCA = "Propigo";
 export const ESLOGAN = "Publica más. Complica menos.";
-export const RAZON_SOCIAL = "SOLIDIT SpA";
+export const RAZON_SOCIAL = "SOLID IT SpA";
 export const DOMINIO = "propigo.cl";
 
 /**
@@ -37,14 +37,15 @@ export const CORREO = {
 } as const;
 
 /**
- * Datos de SOLIDIT SpA que muestran los términos y la política de privacidad.
- * PENDIENTE (tarea E-03): hoy llevan valores de relleno. En producción el
- * servidor NO arranca mientras sigan así (startup-check): publicar una página
- * legal con un RUT inventado es peor que no publicarla.
+ * Datos de SOLID IT SpA que muestran los términos y la política de privacidad.
+ * RUT y teléfono reales (tarea E-03, 2026-11-12). Los valores de relleno de
+ * abajo siguen vigilados: en producción el servidor NO arranca si alguien los
+ * vuelve a poner (startup-check). El domicilio es genérico hasta tener la
+ * dirección legal.
  */
 export const EMPRESA = {
-  rut:       "77.000.000-0",
-  telefono:  "+56 2 0000 0000",
+  rut:       "78.395.184-3",
+  telefono:  "+56 9 5776 3289",
   domicilio: "Santiago, Región Metropolitana, Chile",
 };
 

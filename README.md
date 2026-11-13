@@ -5,7 +5,7 @@
 - **SaaS B2B** — panel para corredores de propiedades: inventario, contratos, calendario de pagos, conciliación automática con la **fecha real** del pago, reajuste de IPC por aniversario, ledger contable inmutable y liquidación a propietarios.
 - **Marketplace B2C** — sitio público de arriendos con búsqueda/filtros, ficha de propiedad, contacto con el corredor, valoraciones y denuncias, más un **portal de autoconsulta** (OTP) para que arrendatarios y propietarios vean su arriendo sin cuenta.
 
-Empresa responsable: **SOLIDIT SpA** (no aparece en el logo). Marca, eslogan, dominio y correos se definen solo en `apps/web/src/lib/marca.ts`. Mercado: Chile. Indexación: **UF** y **CLP + IPC**.
+Empresa responsable: **SOLID IT SpA** (no aparece en el logo). Marca, eslogan, dominio y correos se definen solo en `apps/web/src/lib/marca.ts`. Mercado: Chile. Indexación: **UF** y **CLP + IPC**.
 
 > **Estado:** MVP local ~97 % (núcleo financiero real + integraciones simuladas). Detalle en [`Docs/gestion/PROGRESO.md`](Docs/gestion/PROGRESO.md). Documentación completa en [`Docs/`](Docs/README.md).
 

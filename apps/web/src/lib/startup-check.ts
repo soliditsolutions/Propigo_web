@@ -83,7 +83,7 @@ export function runStartupChecks(): void {
   }
 
   // ── 5c. Datos de la empresa en los textos legales ─────────────────────────
-  // Términos y privacidad muestran RUT y teléfono de SOLIDIT SpA. Con valores
+  // Términos y privacidad muestran RUT y teléfono de SOLID IT SpA. Con valores
   // de relleno (tarea E-03 pendiente) el sitio publicaría datos inventados en
   // un documento legal, y los revisa la validación de Transbank.
   const relleno = datosDeRelleno(EMPRESA);

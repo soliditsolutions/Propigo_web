@@ -40,13 +40,13 @@ export const CORREO = {
  * Datos de SOLID IT SpA que muestran los términos y la política de privacidad.
  * RUT y teléfono reales (tarea E-03, 2026-11-12). Los valores de relleno de
  * abajo siguen vigilados: en producción el servidor NO arranca si alguien los
- * vuelve a poner (startup-check). El domicilio es genérico hasta tener la
- * dirección legal.
+ * vuelve a poner (startup-check). El domicilio es el de la escritura de
+ * constitución (art. segundo): la comuna, no una calle.
  */
 export const EMPRESA = {
   rut:       "78.395.184-3",
   telefono:  "+56 9 5776 3289",
-  domicilio: "Santiago, Región Metropolitana, Chile",
+  domicilio: "comuna de La Florida, Región Metropolitana de Santiago, Chile",
 };
 
 const RUT_DE_RELLENO = "77.000.000-0";

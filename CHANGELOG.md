@@ -17,7 +17,7 @@ desarrollo, no versiones publicadas.
 
 ### Cambiado
 
-- **Datos reales de la empresa** en términos y privacidad: razón social «SOLID IT SpA», RUT y teléfono (`lib/marca.ts`). El domicilio sigue genérico hasta tener la dirección legal.
+- **Datos reales de la empresa** en términos y privacidad: razón social «SOLID IT SpA», RUT y teléfono (`lib/marca.ts`). El domicilio es el de la escritura de constitución: comuna de La Florida, Región Metropolitana de Santiago.
 
 ### Añadido
 

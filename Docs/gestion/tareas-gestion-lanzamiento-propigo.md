@@ -69,7 +69,7 @@ Descartados en la búsqueda: `housing.cl` (de un tercero, vence 2027-03-12),
 |---|---|---|---|---|
 | E-01 | Confirmar **inicio de actividades** en el SII con un giro coherente (servicios de software / plataforma inmobiliaria). Transbank lo exige. | L | — | `[ ]` |
 | E-02 | **Cuenta corriente** a nombre del RUT de SOLID IT SpA, sin morosidades en el boletín comercial (requisito Transbank). | G | — | `[ ]` |
-| E-03 | Entregar a TI el **RUT real y el teléfono** de la empresa: RUT y teléfono entregados y cargados el 2026-11-12 (`lib/marca.ts`). Falta el domicilio legal. | G | — | `[x]` |
+| E-03 | Entregar a TI el **RUT real y el teléfono** de la empresa: RUT y teléfono entregados y cargados el 2026-11-12 (`lib/marca.ts`). Domicilio: comuna de La Florida (escritura de constitución, art. segundo). | G | — | `[x]` |
 | E-04 | Revisión de abogado de **términos y privacidad** con: la marca nueva, el cobro de la suscripción a corredores (hoy dicen que la plataforma "nunca solicita pagos") y las promesas de retención de datos que aún no se cumplen (Ley 21.719, Grupo E del rowmap legal). | L | M-05 | `[ ]` |
 | E-05 | Contratar proveedor de **facturación electrónica** con API (boletas y facturas al SII por la suscripción). Las pasarelas de pago no emiten documentos tributarios. | G/L | E-01 | `[ ]` |
 

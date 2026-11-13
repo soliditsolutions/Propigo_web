@@ -308,10 +308,10 @@ export default function PrivacidadPage() {
                     garantia: "Cláusulas contractuales estándar (SCCs). Política: resend.com/privacy",
                   },
                   {
-                    nombre: "Groq Inc. (EE.UU.)",
-                    rol: "Proveedor de IA para validación de contratos",
-                    datos: "Texto del contrato (sin datos de pago ni identificación directa)",
-                    garantia: "Datos procesados y no almacenados por Groq. Política: groq.com/privacy",
+                    nombre: "Cloudflare, Inc. (EE.UU.)",
+                    rol: "Proveedor de IA (Workers AI) para validar la cédula al registrarse y revisar contratos",
+                    datos: "Imagen de la cédula al registrarse (reducida y sin metadatos) y texto del contrato (sin datos de pago ni identificación directa)",
+                    garantia: "Retención cero de lo enviado y sin uso para entrenar modelos, según su documentación de Workers AI. Política: cloudflare.com/privacypolicy",
                   },
                   {
                     nombre: "Proveedor de infraestructura cloud",

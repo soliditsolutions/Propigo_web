@@ -14,6 +14,7 @@
  */
 
 import { EMPRESA, datosDeRelleno } from "./marca";
+import { iaConfigurada } from "./ia/cloudflare";
 
 let checked = false;
 
@@ -26,7 +27,7 @@ export function runStartupChecks(): void {
 
   // ── 1. NODE_TLS_REJECT_UNAUTHORIZED en producción ──────────────────────────
   // Deshabilitar la verificación de certificados TLS es catastrófico en prod:
-  // permite ataques MITM contra cualquier servicio externo (Groq, Resend, etc.).
+  // permite ataques MITM contra cualquier servicio externo (Cloudflare, Resend, etc.).
   if (isProd && process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") {
     throw new Error(
       "[STARTUP] FATAL: NODE_TLS_REJECT_UNAUTHORIZED=0 no está permitido en producción. " +
@@ -51,13 +52,16 @@ export function runStartupChecks(): void {
     );
   }
 
-  // ── 4. GROQ_API_KEY para verificación de identidad en registro ───────────
-  // Sin esta clave el endpoint de registro queda inoperativo silenciosamente.
-  if (!process.env.GROQ_API_KEY) {
-    throw new Error(
-      "[STARTUP] FATAL: GROQ_API_KEY no definida. " +
-      "El registro de nuevos corredores estará bloqueado hasta que se configure.",
-    );
+  // ── 4. IA externa (Cloudflare Workers AI) ────────────────────────────────
+  // Verifica la cédula al registrarse y revisa contratos. Sin las dos variables
+  // el registro queda bloqueado, así que en producción es fatal; en desarrollo
+  // solo se avisa (hay un modo de prueba que omite la verificación).
+  if (!iaConfigurada()) {
+    const mensaje =
+      "CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_API_TOKEN no están definidas. " +
+      "La verificación de cédula y la revisión de contratos con IA quedarán inoperativas.";
+    if (isProd) throw new Error("[STARTUP] FATAL: " + mensaje);
+    console.warn("[STARTUP] " + mensaje);
   }
 
   // ── 5. CRON_SECRET requerido en producción ────────────────────────────────

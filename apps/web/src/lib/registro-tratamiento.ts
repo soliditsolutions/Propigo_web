@@ -81,7 +81,7 @@ export const ACTIVIDADES_TRATAMIENTO: ActividadTratamiento[] = [
     baseLegal: "Consentimiento (art. 13 b) Ley 21.719) — se pide antes de cada envío, no una vez por todas",
     categoriasDatos: ["Texto del contrato", "Imagen de la cédula (al registrarse)"],
     categoriasTitulares: ["Corredor (Usuario), al crear su cuenta o un contrato"],
-    destinatarios: ["Groq Inc. (EE.UU.) — proveedor de IA, no almacena lo enviado, como encargado del tratamiento"],
+    destinatarios: ["Cloudflare, Inc. (EE.UU.) — proveedor de IA (Workers AI), no retiene lo enviado ni lo usa para entrenar, como encargado del tratamiento"],
     retencionClaves: [],
     medidasSeguridad: [...MEDIDAS_BASE, "Registro del consentimiento (ConsentimientoIa) previo a cada envío a un proveedor externo"],
   },

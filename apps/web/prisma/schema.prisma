@@ -543,6 +543,27 @@ model SolicitudDerecho {
   @@map("solicitud_derecho")
 }
 
+/// Una fila por llamada a la IA externa (Cloudflare Workers AI): solo cifras de
+/// consumo, nunca el contenido enviado ni la respuesta. Global (sin tenant): el
+/// registro de una cuenta nueva ocurre antes de que exista un tenant. Sirve para
+/// el tope diario de neuronas y para reemplazar con datos reales las estimaciones
+/// de costo.
+model UsoIa {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "registro_cedula" | "contrato_validar_doc".
+  flujo         String
+  modelo        String
+  tokensEntrada Int      @default(0) @map("tokens_entrada")
+  tokensSalida  Int      @default(0) @map("tokens_salida")
+  /// Neuronas estimadas con la tabla de precios de lib/ia/precios.ts.
+  neuronas      Int      @default(0)
+  ok            Boolean
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@map("uso_ia")
+}
+
 model Propiedad {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId           String          @map("tenant_id") @db.Uuid

@@ -389,7 +389,7 @@ function CarnetModalBody({
           nombre coincidan. No se almacena ni se comparte con terceros.
         </p>
 
-        {/* Consentimiento IA — específico para el envío de esta imagen a Groq
+        {/* Consentimiento IA — específico para el envío de esta imagen a Cloudflare
             (proveedor externo), distinto del consentimiento general de T&C del
             formulario. Registro auditable en ConsentimientoIa al crear la cuenta. */}
         <label className="flex cursor-pointer items-start gap-2.5">
@@ -402,7 +402,7 @@ function CarnetModalBody({
           />
           <span className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-3)" }}>
             Acepto que la imagen de mi cédula sea enviada a nuestro proveedor de
-            verificación de identidad por IA (Groq) exclusivamente para este análisis.
+            verificación de identidad por IA (Cloudflare Workers AI) exclusivamente para este análisis.
           </span>
         </label>
 

@@ -475,7 +475,7 @@ export function ValidacionPanel({
           {archivoSeleccionado && (
             <>
               {/* Consentimiento IA — específico para el envío de este documento a
-                  Groq (proveedor externo). Registro auditable en ConsentimientoIa. */}
+                  Cloudflare (proveedor externo). Registro auditable en ConsentimientoIa. */}
               <label className="flex cursor-pointer items-start gap-2.5">
                 <input
                   type="checkbox"
@@ -486,7 +486,7 @@ export function ValidacionPanel({
                 />
                 <span className="text-xs leading-relaxed" style={{ color: "var(--pgo-text-3)" }}>
                   Acepto que el texto de este documento sea enviado a nuestro proveedor
-                  de análisis por IA (Groq) exclusivamente para esta revisión.
+                  de análisis por IA (Cloudflare Workers AI) exclusivamente para esta revisión.
                 </span>
               </label>
 
@@ -516,7 +516,7 @@ export function ValidacionPanel({
         </div>
 
         <p className="text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
-          Groq · Llama 3.3 70B · Ley 18.101 + Ley 21.461 Chile 2026 · Las observaciones son informativas
+          Cloudflare Workers AI · Llama 3.3 70B · Ley 18.101 + Ley 21.461 Chile 2026 · Las observaciones son informativas
         </p>
       </div>
     </div>

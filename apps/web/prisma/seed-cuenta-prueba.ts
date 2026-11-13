@@ -8,7 +8,7 @@
  * contraseña si se cambió durante una prueba.
  *
  * Replica lo que crea `registroAction` tras la verificación de identidad
- * (que no es automatizable: requiere cédula real + Groq), y además deja el
+ * (que no es automatizable: requiere cédula real + la IA externa), y además deja el
  * **perfil completo** para que la cuenta entre directo al panel sin pasar por
  * el formulario de "completa tu perfil".
  *

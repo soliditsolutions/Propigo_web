@@ -12,13 +12,10 @@ import { validateRut, canonicalRut }       from "@/lib/rut";
 import { verificarMagicBytes, ALLOWED_MIME_IMAGES } from "@/lib/magic-bytes";
 import { getClientIpFromHeaders }          from "@/lib/ip";
 import { checkRateLimit }                  from "@/lib/rate-limit";
-import { z }                               from "zod";
 import { logError } from "@/lib/logger";
 import { PLAN_GRATUITO_VALOR } from "@/lib/plans";
-
-// Timeout de la llamada a Groq — sin esto, un proveedor colgado deja la
-// verificación de identidad esperando indefinidamente en vez de fallar rápido.
-const GROQ_TIMEOUT_MS = 20_000;
+import { leerCedulaConIA } from "@/lib/ia/cedula";
+import { ErrorIa, iaConfigurada } from "@/lib/ia/cloudflare";
 
 export type RegistroState = { error: string; field?: string } | null;
 
@@ -58,80 +55,6 @@ function nombresCoinciden(entrado: string, carnet: string): boolean {
   const requerido  = Math.max(2, Math.ceil(ne.length * 0.7));
   const coincidencias = ne.filter((w) => nc.includes(w));
   return coincidencias.length >= requerido;
-}
-
-// ── Verificación de carnet con IA (Groq vision) ──────────────────────────────
-const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
-
-const PROMPT_CARNET = `Analiza esta imagen de una Cédula de Identidad chilena (RUT).
-
-Extrae EXACTAMENTE:
-1. El RUT del campo "R.U.N.", "RUN" o "RUT" → formato sin puntos, con guión: "12345678-9"
-2. El nombre completo → concatena APELLIDOS + " " + NOMBRES tal como aparecen, en mayúsculas
-
-Responde SOLAMENTE con JSON válido, sin texto adicional:
-{"rut":"12345678-9","nombre":"GARCIA LOPEZ JUAN PABLO"}
-
-Si la imagen NO es una cédula de identidad chilena: {"error":"no_es_carnet"}
-Si la imagen es ilegible, borrosa o parcialmente tapada: {"error":"ilegible"}
-Si no puedes leer el RUT o el nombre con certeza: {"error":"incompleto"}`;
-
-type CarnetIA =
-  | { rut: string; nombre: string }
-  | { error: "no_es_carnet" | "ilegible" | "incompleto" | string };
-
-// La respuesta del modelo es entrada no confiable (la imagen la elige quien se
-// registra): se valida la forma antes de usarla. Un `rut` que no fuera texto
-// hacía lanzar a canonicalRut fuera de todo manejo de errores.
-const carnetIASchema = z.union([
-  z.object({ error: z.string().max(40) }),
-  z.object({ rut: z.string().max(20), nombre: z.string().max(200) }),
-]);
-
-async function leerCarnetConIA(base64: string, mimeType: string): Promise<CarnetIA> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("GROQ_API_KEY no configurado");
-
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method:  "POST",
-    signal:  AbortSignal.timeout(GROQ_TIMEOUT_MS),
-    headers: {
-      Authorization:  `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model:       GROQ_VISION_MODEL,
-      temperature: 0,
-      max_tokens:  200,
-      messages: [
-        {
-          role:    "user",
-          content: [
-            {
-              type:      "image_url",
-              image_url: { url: `data:${mimeType};base64,${base64}` },
-            },
-            { type: "text", text: PROMPT_CARNET },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Groq vision error ${res.status}`);
-  }
-
-  const data    = await res.json();
-  const content = (data.choices?.[0]?.message?.content ?? "") as string;
-
-  // Extraer el primer bloque JSON de la respuesta (el modelo puede añadir texto)
-  const jsonMatch = content.match(/\{[\s\S]*?\}/);
-  if (!jsonMatch) throw new Error("Respuesta IA sin JSON");
-
-  const parsed = carnetIASchema.safeParse(JSON.parse(jsonMatch[0]));
-  if (!parsed.success) throw new Error("Respuesta IA con forma inesperada");
-  return parsed.data;
 }
 
 // ── Server Action principal ──────────────────────────────────────────────────
@@ -242,7 +165,7 @@ export async function registroAction(
       return { error: "La imagen del carnet no puede superar los 5 MB.", field: "carnet" };
     }
 
-    // Consentimiento explícito ANTES de enviar la imagen a la IA externa (Groq).
+    // Consentimiento explícito ANTES de enviar la imagen a la IA externa (Cloudflare Workers AI).
     // Distinto del checkbox general de T&C (`consent`, Ley 21.719 Art. 4): este
     // es específico para el procesamiento de la foto del carnet por un tercero.
     if (!consentIa) {
@@ -258,11 +181,9 @@ export async function registroAction(
       return { error: "El archivo no corresponde al tipo de imagen declarado.", field: "carnet" };
     }
 
-    const base64 = buffer.toString("base64");
-
     // BL-INIT1 runtime: verificación explícita antes de la llamada a la API externa
     // para entregar un mensaje descriptivo al usuario en vez de un error genérico.
-    if (!process.env.GROQ_API_KEY) {
+    if (!iaConfigurada()) {
       return {
         error: "El servicio de verificación de identidad no está disponible temporalmente. Contacta con soporte.",
         field: "carnet",
@@ -282,11 +203,18 @@ export async function registroAction(
       };
     }
 
-    let carnetDatos: CarnetIA;
+    let carnetDatos: Awaited<ReturnType<typeof leerCedulaConIA>>;
     try {
-      carnetDatos = await leerCarnetConIA(base64, carnetFile.type);
+      carnetDatos = await leerCedulaConIA(buffer);
     } catch (e) {
       logError("registro/leer-carnet", e);
+      // Tope diario o límite del proveedor: reintentar no sirve hasta mañana.
+      if (e instanceof ErrorIa && (e.codigo === "cupo_diario" || e.codigo === "limite_proveedor")) {
+        return {
+          error: "La verificación de identidad tiene mucha demanda hoy. Intenta de nuevo mañana o escríbenos a " + CORREO.soporte + ".",
+          field: "carnet",
+        };
+      }
       return {
         error: "No pudimos procesar la imagen en este momento. Intenta de nuevo en unos segundos.",
         field: "carnet",
@@ -399,13 +327,13 @@ export async function registroAction(
       });
 
       // Registro auditable del consentimiento IA dado más arriba — solo aplica
-      // si de verdad se llamó a Groq (bypassIdentidad se salta todo el flujo).
+      // si de verdad se llamó a la IA (bypassIdentidad se salta todo el flujo).
       // Limitación conocida: si el RUT/nombre del carnet no coincide con el
       // formulario (o cualquier otro paso posterior falla), la cuenta nunca se
       // crea y este registro tampoco se persiste — no existe tenant/usuario al
       // cual asociarlo antes de este punto (RLS exige tenant_id no nulo). El
       // consentimiento sigue exigiéndose y aplicándose correctamente antes de
-      // la llamada a Groq; lo que no queda es la traza para un intento fallido.
+      // la llamada a la IA; lo que no queda es la traza para un intento fallido.
       if (!bypassIdentidad) {
         await tx.consentimientoIa.create({
           data: {

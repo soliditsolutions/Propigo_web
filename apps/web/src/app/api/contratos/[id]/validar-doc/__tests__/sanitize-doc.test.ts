@@ -2,7 +2,7 @@
  * Tests: sanitizarTextoDocumento — validar-doc/route.ts
  *
  * La función recibe texto extraído de un PDF/DOCX de terceros (potencialmente
- * malicioso) y elimina vectores de prompt injection antes de enviarlo a Groq.
+ * malicioso) y elimina vectores de prompt injection antes de enviarlo a la IA.
  *
  * Vectores cubiertos:
  *  1. Caracteres de control invisibles (U+0000–U+001F, U+007F)

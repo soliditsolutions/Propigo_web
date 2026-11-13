@@ -1,7 +1,7 @@
 /**
  * TEMPORAL — bootstrap de cuenta corredor para auditoría E2E 2026-07.
  * Replica exactamente lo que crea registroAction tras la verificación de
- * identidad (que no es automatizable: requiere cédula real + Groq).
+ * identidad (que no es automatizable: requiere cédula real + la IA externa).
  * Eliminar al terminar la auditoría.
  */
 import "dotenv/config";

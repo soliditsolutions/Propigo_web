@@ -23,7 +23,8 @@ describe("runStartupChecks() — Fix A2 (fail-fast en arranque)", () => {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
     process.env.AUTH_SECRET = "a".repeat(32);
     process.env.DATABASE_URL = "postgresql://user:pass@host:5432/db";
-    process.env.GROQ_API_KEY = "gsk_test_key_abc123";
+    process.env.CLOUDFLARE_ACCOUNT_ID = "cuenta_de_prueba";
+    process.env.CLOUDFLARE_API_TOKEN = "token_de_prueba";
     process.env.CRON_SECRET  = "cron_secret_test_value_abc123";
     process.env.NEXT_PUBLIC_APP_URL = "https://app.propigo.cl";
     // Variables que deben estar AUSENTES en la línea base válida: si un test
@@ -91,15 +92,31 @@ describe("runStartupChecks() — Fix A2 (fail-fast en arranque)", () => {
     expect(() => runStartupChecks()).toThrow(/CRON_SECRET/i);
   });
 
-  // BL-INIT1: GROQ_API_KEY requerida para verificación de identidad en registro
-  it("lanza si GROQ_API_KEY está ausente", async () => {
-    delete process.env.GROQ_API_KEY;
+  // BL-INIT1: la IA externa verifica la cédula en el registro
+  it("lanza en producción si faltan las variables de Cloudflare", async () => {
+    delete process.env.CLOUDFLARE_API_TOKEN;
     const runStartupChecks = await importRunStartupChecks();
-    expect(() => runStartupChecks()).toThrow(/GROQ_API_KEY/i);
+    expect(() => runStartupChecks()).toThrow(/CLOUDFLARE_API_TOKEN/i);
   });
 
-  it("no lanza cuando GROQ_API_KEY está configurada", async () => {
-    process.env.GROQ_API_KEY = "gsk_live_test_key_abc123";
+  it("lanza en producción si falta el ID de cuenta de Cloudflare", async () => {
+    delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    const runStartupChecks = await importRunStartupChecks();
+    expect(() => runStartupChecks()).toThrow(/CLOUDFLARE_ACCOUNT_ID/i);
+  });
+
+  it("en desarrollo, sin variables de Cloudflare solo avisa", async () => {
+    (process.env as Record<string, string>).NODE_ENV = "development";
+    delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    delete process.env.CLOUDFLARE_API_TOKEN;
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const runStartupChecks = await importRunStartupChecks();
+    expect(() => runStartupChecks()).not.toThrow();
+    expect(aviso).toHaveBeenCalledWith(expect.stringContaining("CLOUDFLARE_API_TOKEN"));
+    aviso.mockRestore();
+  });
+
+  it("no lanza cuando las variables de Cloudflare están configuradas", async () => {
     const runStartupChecks = await importRunStartupChecks();
     expect(() => runStartupChecks()).not.toThrow();
   });

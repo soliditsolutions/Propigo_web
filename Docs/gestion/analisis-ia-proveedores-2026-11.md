@@ -94,3 +94,37 @@ Esfuerzo estimado de la migración: 1 a 1,5 días, incluidas pruebas, variables 
 - developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/
 - developers.cloudflare.com/workers/platform/pricing/
 - console.groq.com/docs/rate-limits · /docs/models · /docs/deprecations
+
+## 8. ¿Híbrido? (evaluado 2026-11-12)
+
+Costo por operación con los mismos supuestos de §3 (revisión: 7.000 tokens de entrada y 700 de salida; cédula: imagen
++ instrucciones). Precios de las páginas oficiales leídas ese día.
+
+| Caso | Opción | US$ por operación | Nota |
+|---|---|---|---|
+| Revisión de contrato | Groq `gpt-oss-120b` | 0,0015 | Plan gratis: 8 K tokens/min, 200 K/día ⇒ 1 por minuto, ≈ 25 al día |
+| | Cloudflare `gpt-oss-120b` (el mismo modelo) | 0,0030 | ≈ 36 al día gratis |
+| | Cloudflare Llama 3.3 70B | 0,0036 | ≈ 30 al día gratis |
+| | Cloudflare Qwen3-30B-A3B | 0,0006 | ≈ 186 al día gratis; calidad en español jurídico sin probar |
+| Cédula (visión) | Cloudflare Llama 4 Scout | 0,0005 | El modelo que ya usamos |
+| | Groq `qwen3.8-27b` (único con visión disponible; cada imagen cuenta 2.048 tokens) | 0,0020 | Plan gratis: ≈ 3 por minuto, ≈ 85 al día |
+
+- **La premisa estaba al revés en costo:** en texto es Groq el más barato y en imágenes lo es Cloudflare. El híbrido por
+  precio sería texto en Groq y cédula en Cloudflare.
+- **El ahorro es chico:** con 8 registros y 20 revisiones al día, todo en Cloudflare cuesta ≈ US$ 2,3 al mes en tokens
+  y el híbrido ≈ US$ 1,0; con 20 y 60, ≈ US$ 6,9 contra ≈ US$ 3,0. Pesa más la **calidad** que el precio.
+- **Ventaja real del híbrido:** cada proveedor tiene su propia cuota gratis, así que las revisiones de contrato no
+  pueden dejar sin verificación de cédula a quien se registra (el riesgo de §4).
+- **`gpt-oss-120b` está en ambos proveedores:** la revisión de contratos puede conmutar de uno a otro con las mismas
+  instrucciones si uno cae o se acaba su cuota. La cédula no (solo Cloudflare tiene un modelo de visión probado).
+- **Costos del híbrido:** dos cuentas, dos claves, dos fallas posibles y dos destinatarios que declarar en privacidad.
+- **Datos:** Groq no retiene por defecto, pero puede guardar entradas y salidas hasta 30 días por confiabilidad o abuso;
+  hay que **activar Zero Data Retention en sus Data Controls**. Datos retenidos en EE.UU. Cloudflare: retención cero.
+- **Descartado:** el nivel gratis de Gemini, porque su contenido «se usa para mejorar los productos de Google» (el
+  nivel de pago no). Los contratos y las cédulas no deben ir ahí.
+- **Sin verificar:** `gpt-oss` es un modelo de razonamiento y sus tokens de razonamiento cuentan como salida, así que el
+  costo real puede ser mayor al estimado; el soporte de JSON y de imágenes en el endpoint de Cloudflare; la calidad de
+  cualquiera con nuestros contratos y cédulas.
+- **Otra opción para la cédula:** leer el código de barras o la zona legible por máquina de la cédula en nuestro
+  servidor, sin enviar la imagen a ningún tercero. Reduce la transferencia internacional de un dato sensible; su
+  precisión con fotos de celular no está probada.

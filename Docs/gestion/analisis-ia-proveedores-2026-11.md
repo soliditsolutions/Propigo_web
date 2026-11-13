@@ -128,3 +128,36 @@ Costo por operación con los mismos supuestos de §3 (revisión: 7.000 tokens de
 - **Otra opción para la cédula:** leer el código de barras o la zona legible por máquina de la cédula en nuestro
   servidor, sin enviar la imagen a ningún tercero. Reduce la transferencia internacional de un dato sensible; su
   precisión con fotos de celular no está probada.
+
+## 9. Verificar la cédula con su QR (propuesta 2026-11-12)
+
+**Qué sabemos (fuentes públicas, no verificado con una cédula física):**
+
+- Según Regula Forensics, la cédula chilena trae un QR con RUN, número de documento, fecha de nacimiento y de
+  vencimiento, y «los inspectores autorizados» lo consultan en un sitio del Estado. **No sabemos si el QR guarda los
+  datos o solo una dirección web** ni qué formato tiene: hay que escanear una cédula real y ver su contenido.
+- Una resolución del Diario Oficial de mayo de 2026 describiría el QR de la cédula **digital** como de vigencia
+  limitada (según un resumen de búsqueda; no leí el documento). Una foto de la cédula digital podría traer un QR vencido.
+- El Registro Civil no publica una API para empresas privadas. Hay convenios con organismos públicos (el SII consulta la
+  vigencia con RUN + número de serie) y proveedores privados que validan contra el Registro Civil: Didit anuncia KYC
+  básico a US$ 0,33 por verificación (página comercial, sin confirmar la consulta al Registro Civil), con selfie y
+  prueba de vida.
+
+**Seguridad:** leer un QR de una foto prueba lo mismo que leer el texto con IA: que la imagen dice ese RUN. No prueba
+que la persona tenga la cédula ni que el documento sea auténtico (un QR se puede fabricar). Eso solo lo da una
+consulta al Registro Civil con selfie y prueba de vida.
+
+**Propuesta por niveles:**
+
+1. **Nivel básico (todas las cuentas):** decodificar el QR **en el navegador** y enviar solo el texto leído, no la
+   foto. Validar el RUN (dígito verificador), comparar con el formulario y revisar el vencimiento. Costo cero, sin IA y
+   sin transferencia internacional de la imagen. Si no se logra leer, respaldo con visión en Cloudflare.
+2. **Nivel verificado (planes de pago, publicar en el marketplace o antes de manejar dinero):** proveedor con selfie y
+   consulta al Registro Civil.
+3. **Pasaportes y extranjeros:** zona legible por máquina (MRZ, ICAO 9303), común a todos los países y con dígitos
+   verificadores que atrapan errores de lectura (no falsificaciones). La lectura del chip por NFC da autenticidad
+   criptográfica, pero exige una app nativa. A escala internacional, un proveedor de KYC por país. Los residentes
+   extranjeros en Chile con cédula y RUN entrarían por el nivel básico (por confirmar que su cédula trae el mismo QR).
+
+**Fuentes (2026-11-12):** regulaforensics.com/blog/chile-id-card-processing/ ·
+didit.me/es/blog/non-doc-verification-chile-registro-civil/ · Diario Oficial (resolución de mayo de 2026).

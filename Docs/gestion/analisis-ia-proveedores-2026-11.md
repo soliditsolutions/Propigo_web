@@ -171,3 +171,28 @@ consulta al Registro Civil con selfie y prueba de vida.
 
 **Fuentes (2026-11-12):** regulaforensics.com/blog/chile-id-card-processing/ ·
 didit.me/es/blog/non-doc-verification-chile-registro-civil/ · Diario Oficial (resolución de mayo de 2026).
+
+## 10. Implementado y medido con la API real (2026-11-12)
+
+Decisión en [ADR-0016](../decisiones/ADR-0016-ia-cloudflare-workers-ai.md). Se probó con las credenciales reales del
+proyecto, con una imagen sintética (no una cédula real) y un contrato inventado de pocas líneas.
+
+| Prueba | Tokens (entrada / salida) | Neuronas | Resultado |
+|---|---|---|---|
+| Texto simple (autenticación) | 40 / 2 | 2 | Respondió bien |
+| Visión: imagen de 1.280 px con RUN y nombre | 1.911 / 24 | 49 | Leyó el texto exacto. El formato de imagen en `image_url` funciona |
+| Revisión de un contrato corto con una inyección escrita dentro («ignora las instrucciones…») | 1.317 / 218 | 80 | Devolvió el JSON esperado, **ignoró la inyección y la marcó** como alerta crítica |
+
+**Correcciones a las estimaciones de §3 y §4:**
+
+- **El prompt fijo de contratos pesa ≈ 1.200 tokens, no 4.000.** Medí mal los caracteres del prompt (tomé también código
+  que venía después). Una revisión típica (contrato de ≈ 3.000 tokens y ≈ 350 de salida) cuesta ≈ **185 neuronas**, no 330:
+  ≈ 54 revisiones al día caben en lo gratis (≈ 38 con el 70 % reservado a contratos).
+- **La cédula cuesta lo estimado:** ≈ 49 neuronas (≈ 200 verificaciones al día gratis). Una foto de 1.280 px cuenta
+  ≈ 1.880 tokens de imagen.
+- **JSON sin modo forzado:** el endpoint compatible respondió bien sin `response_format`; el código extrae el objeto con
+  `extraerObjetoJson` por si el modelo lo rodea de texto. No probé `response_format` ni salida estructurada.
+
+**Sin verificar todavía:** calidad con contratos y cédulas reales; latencia sostenida; qué hace Cloudflare al agotar las
+10.000 neuronas (el código trata un 429 como corte por límite); si una foto de celular real, más oscura o inclinada,
+se lee con la misma fiabilidad que una imagen sintética limpia.

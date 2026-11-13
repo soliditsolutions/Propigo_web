@@ -43,7 +43,10 @@ sirve en Azure u otro proveedor.
 | `AUTH_SECRET` | runtime | Sí | `openssl rand -hex 32`. Rotarlo cierra todas las sesiones. |
 | `CRON_SECRET` | runtime + EventBridge | Sí | `openssl rand -hex 32`. |
 | `BCCH_API_TOKEN` | runtime | Sí (aviso al arrancar) | Token de la API del Banco Central (registro gratuito en si3.bcentral.cl). El cron diario carga la UF y el IPC; si falta, los arriendos en UF dejan de conciliar cuando se acaba la serie. |
-| `GROQ_API_KEY` | runtime | Sí | Validación de contratos y carnet. |
+| `CLOUDFLARE_ACCOUNT_ID` | runtime | Sí | Cloudflare Workers AI: verificación de cédula y revisión de contratos. |
+| `CLOUDFLARE_API_TOKEN` | runtime | Sí | Token con «Workers AI · Leer» y «Editar», limitado a esa cuenta. Uno distinto para producción y para desarrollo. |
+| `IA_NEURONAS_DIA` | runtime | No | Tope diario propio de neuronas (10.000 por defecto, lo gratis de Cloudflare). `0` lo quita al pasar a Workers Paid. |
+| `IA_MODELO_VISION`, `IA_MODELO_TEXTO` | runtime | No | Modelos de Workers AI; por defecto Llama 4 Scout y Llama 3.3 70B. |
 | `RESEND_API_KEY` | runtime | Sí | Sin ella los correos solo se simulan en el log. |
 | `PROXIES_CONFIABLES` | runtime | No | Proxies propios que agregan a `X-Forwarded-For`. `1` = solo App Runner; `2` = CloudFront + App Runner. Ver [verificación](#primer-despliegue). |
 | `UPLOADS_PATH` | runtime | No | Directorio de documentos privados (ver bloqueante 1). |

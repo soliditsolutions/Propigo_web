@@ -22,7 +22,7 @@ Empresa responsable: **SOLID IT SpA** (no aparece en el logo). Marca, eslogan, d
 | Núcleo financiero | `@propigo/core` — paquete sin framework (dinero, UF, IPC, calendario) |
 | Auth | JWT con `jose` (cookies `pgo_session` / `pgo_portal`) + 2FA por dispositivo |
 | Email | Resend (real) / simulado en consola (dev) |
-| IA | Groq SDK (validación de contratos y carnet) |
+| IA | Cloudflare Workers AI (verificación de cédula y revisión de contratos) |
 | Tests | Vitest + Testing Library (CI en GitHub Actions) |
 | Despliegue | Contenedor Docker (Next.js standalone) — AWS App Runner + RDS PostgreSQL |
 
@@ -97,7 +97,8 @@ En desarrollo se definen en `apps/web/.env` (plantilla: `.env.example`); en prod
 | `DATABASE_URL` | ✅ | Conexión de la **app**, con el rol restringido `propigo_app` (sujeto a RLS). Con Docker: `postgresql://propigo_app:propigo_app_dev@localhost:5433/propigo?schema=public` |
 | `DATABASE_ADMIN_URL` | ✅ (CLI) | Rol **dueño** para migraciones, `setup.sql` y seeds. La app nunca lo usa. Con Docker: `postgresql://propigo:propigo_dev@localhost:5433/propigo?schema=public` |
 | `AUTH_SECRET` | ✅ | Secreto para firmar JWT (panel, portal OTP y 2FA por dispositivo). Mínimo 32 caracteres. |
-| `GROQ_API_KEY` | ✅ | Clave de Groq para la validación de contratos y carnet con IA. El servidor no arranca sin ella. |
+| `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` | ✅ | Cloudflare Workers AI: verificación de cédula y revisión de contratos. Token con «Workers AI · Leer» y «Editar». En producción el servidor no arranca sin ellas. |
+| `IA_MODELO_VISION` / `IA_MODELO_TEXTO` / `IA_NEURONAS_DIA` | — | Opcionales: modelos y tope diario de neuronas (10.000 por defecto; `0` lo quita al pasar al plan de pago). |
 | `CRON_SECRET` | ✅ (prod) | Protege el endpoint `/api/cron/recordatorios`. Obligatorio si el endpoint es accesible. |
 | `BCCH_API_TOKEN` | ✅ (prod) | Token de la API del Banco Central (UF diaria e IPC mensual). Sin él el cron no actualiza `serie_uf` / `serie_ipc`. En desarrollo no hace falta: el seed trae datos de ejemplo. |
 | `RESEND_API_KEY` | ⬜ | Clave de Resend para envío real de emails. Sin ella, los correos se simulan en consola. |

@@ -124,14 +124,14 @@ Genera los recordatorios pendientes y envía los emails para **todos los tenants
 ## Contratos — Validación con IA
 
 ### `POST /api/contratos/[id]/validar`
-Valida el **texto** de un contrato con IA (Groq): detecta cláusulas faltantes, riesgos y conformidad legal. Endurecido contra *prompt-injection*.
+Valida el **texto** de un contrato con IA (Cloudflare Workers AI): detecta cláusulas faltantes, riesgos y conformidad legal. Endurecido contra *prompt-injection*.
 - **Auth:** `pgo_session`. · **Body:** `{ texto: string }`.
 - **Respuesta:** `200 { estado: "aprobado"|"con_alertas"|"requiere_revision", alertas: [...] }`. Persiste el resultado en `contrato.validacionIa`.
 
 ### `POST /api/contratos/[id]/validar-doc`
 Igual que el anterior pero recibe un **documento PDF** (extrae texto con `pdf-parse`, lo sanitiza y valida).
 - **Auth:** `pgo_session`. · **Body:** `multipart/form-data` (PDF).
-- **Respuesta:** `200 { ... }` · `400` PDF inválido · `503` `GROQ_API_KEY` no configurada.
+- **Respuesta:** `200 { ... }` · `400` PDF inválido · `503` IA no configurada o tope diario de la plataforma agotado.
 
 ---
 

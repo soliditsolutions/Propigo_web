@@ -82,6 +82,7 @@
 Cosas que ya se investigaron y que es fácil "corregir" mal por sentido común.
 
 - **"Gratuito" es un plan real, no un alias de Bronze.** `getPlanEfectivo("Gratuito")` devuelve `PLAN_GRATUITO` (1 propiedad, 1 usuario, 1 IA al día, sin exportar, Resumen sin histórico, solo recordatorios de pago por correo). No está en `PLANS` (no se vende). Cualquier otro string desconocido sigue cayendo en Bronze, nunca en "sin límite". Los avisos que el plan no envía se filtran en un solo lugar (`enviarNotificacionesPendientes`) y en el correo de comentarios; quedan `pendiente`, no `simulada`.
+- **Toda la IA externa pasa por `lib/ia/cloudflare.ts`** (`pedirChat`): credenciales por variable, tope diario de neuronas por flujo (el registro conserva el 30 % reservado) y una fila en `uso_ia` por llamada, solo con cifras. No se fuerza `response_format`: el JSON se extrae con `extraerObjetoJson`. No activar AI Gateway con registro o caché: guardaría el contenido. Medido con la API real: la cédula cuesta ≈ 49 neuronas y una revisión corta ≈ 80; el prompt fijo de contratos pesa ≈ 1.200 tokens, no 4.000.
 - **El registro está abierto por defecto** (también en producción); `REGISTRO_ABIERTO=false` es la válvula de emergencia (`lib/registro-abierto.ts`).
 
 - **El Rol de Avalúo no tiene dígito verificador.** Eso es del RUT. Un rol es

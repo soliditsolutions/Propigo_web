@@ -94,6 +94,7 @@ Registro cronológico de decisiones. Una decisión = un archivo en [`decisiones/
 | [0013](decisiones/ADR-0013-cuentas-multiusuario.md) | Cuentas multi-usuario (Manager/Collaborator) — Fase A |
 | [0014](decisiones/ADR-0014-pagos-suscripciones-y-canal-de-arriendo.md) | Pagos, suscripciones y canal de arriendo |
 | [0015](decisiones/ADR-0015-hosting-gcp-santiago-vm.md) | Hosting: VM en Google Cloud Santiago con Cloud SQL |
+| [0016](decisiones/ADR-0016-ia-cloudflare-workers-ai.md) | IA externa: Cloudflare Workers AI (reemplaza a Groq) |
 
 ---
 

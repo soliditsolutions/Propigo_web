@@ -115,7 +115,7 @@ Decisión **diferida** intencionalmente (ver [ADR-0001](../decisiones/ADR-0001-n
 | Entorno | Propósito | Datos |
 |---|---|---|
 | **Local** | Desarrollo | PostgreSQL en Docker (puerto 5433), integraciones simuladas |
-| **Staging** | Validación previa a producción | BD aislada, claves de sandbox (Resend/Groq de prueba) |
+| **Staging** | Validación previa a producción | BD aislada, claves de sandbox (Resend/Cloudflare de prueba) |
 | **Producción** | Operación real | BD gestionada + réplica, secretos en vault, integraciones reales |
 
 ### Pipeline (por Pull Request)

@@ -129,7 +129,17 @@ Costo por operación con los mismos supuestos de §3 (revisión: 7.000 tokens de
   servidor, sin enviar la imagen a ningún tercero. Reduce la transferencia internacional de un dato sensible; su
   precisión con fotos de celular no está probada.
 
-## 9. Verificar la cédula con su QR (propuesta 2026-11-12)
+## 9. Verificar la cédula con su QR (probado 2026-11-12: no sirve como verificación)
+
+> **Resultado de la prueba con una cédula real:** el QR abre una página de consulta del Registro Civil que exige
+> resolver un **captcha** y luego muestra solo la vigencia, el RUN y el número de documento (sin nombre). Un captcha
+> impide consultarla desde nuestro servidor, y no se debe eludir. Sin una API oficial para privados, el QR no
+> verifica nada por sí solo. **Se descarta el «nivel básico» con QR.** La extracción de RUN y nombre sigue con visión
+> (Llama 4 Scout en Cloudflare, ≈ US$ 0,0005 por cédula). Si el contenido del QR trae el RUN en la dirección, podría
+> servir más adelante como contraste barato contra el RUN leído de la foto. La autenticidad real queda para el
+> nivel verificado (proveedor con consulta al Registro Civil, selfie y prueba de vida).
+>
+> El resto de esta sección se conserva como contexto de la propuesta original.
 
 **Qué sabemos (fuentes públicas, no verificado con una cédula física):**
 

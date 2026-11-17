@@ -8,13 +8,11 @@ import { withTenant } from "@/lib/tenant-db";
 import { getClientIpFromHeaders } from "@/lib/ip";
 import { logError } from "@/lib/logger";
 import { anonimizarPersona } from "@/lib/supresion-persona";
+import { PALABRA_CONFIRMACION } from "./supresion-constantes";
 
 export type ResultadoSupresionAction =
   | { ok: true; borrados: Record<string, number>; conservado: string[] }
   | { ok: false; error: string };
-
-/** Lo que hay que escribir para confirmar: un clic suelto no puede borrar una identidad. */
-export const PALABRA_CONFIRMACION = "ANONIMIZAR";
 
 /**
  * Derecho de supresión de una persona de la corredora (L-DP5). Solo el Manager.

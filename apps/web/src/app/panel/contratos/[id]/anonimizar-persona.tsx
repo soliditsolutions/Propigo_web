@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Eraser, Loader2 } from "lucide-react";
-import { anonimizarPersonaAction, PALABRA_CONFIRMACION } from "./supresion-actions";
+import { anonimizarPersonaAction } from "./supresion-actions";
+import { PALABRA_CONFIRMACION } from "./supresion-constantes";
 import { useAccionSegura } from "@/components/ui/use-accion-segura";
 
 /**

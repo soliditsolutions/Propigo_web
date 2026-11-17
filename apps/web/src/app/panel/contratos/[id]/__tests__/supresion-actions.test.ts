@@ -11,7 +11,8 @@ vi.mock("@/lib/tenant-db", () => ({ withTenant: async (_id: string, fn: (tx: unk
 vi.mock("@/lib/supresion-persona", () => ({ anonimizarPersona: anonimizar }));
 vi.mock("@/lib/logger", () => ({ logError: vi.fn() }));
 
-const { anonimizarPersonaAction, PALABRA_CONFIRMACION } = await import("../supresion-actions");
+const { anonimizarPersonaAction } = await import("../supresion-actions");
+const { PALABRA_CONFIRMACION } = await import("../supresion-constantes");
 
 const manager = { usuarioId: "u1", tenantId: "t1", rol: "manager" };
 

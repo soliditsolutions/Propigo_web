@@ -13,8 +13,10 @@ import { verificarBaseLocal } from "./guard-base-local";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { redondearPeso } from "@propigo/core";
 
-verificarBaseLocal(process.env.DATABASE_URL, "db:clean");
-const adapter = adaptadorPg(process.env.DATABASE_URL);
+// TRUNCATE exige el rol administrador: el de la app (propigo_app) no tiene ese privilegio.
+const limpiezaUrl = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_URL;
+verificarBaseLocal(limpiezaUrl, "db:clean");
+const adapter = adaptadorPg(limpiezaUrl);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           // No filtrar la URL de origen a sitios externos
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // La app no usa cámara/micrófono/geolocalización
+          // Ninguna ruta usa micrófono ni geolocalización; la cámara solo se abre en /registro (regla de abajo)
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           // HSTS: solo en prod (dev usa HTTP). 2 años + subdomains + preload.
           ...(isProd ? [{
@@ -58,6 +58,15 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
             ].join("; "),
           },
+        ],
+      },
+      {
+        // Verificar la cédula al registrarse permite sacar la foto con la cámara. Sin esto el
+        // navegador la bloquea en silencio (sin pedir permiso) y solo queda subir un archivo.
+        // Va después de la regla general: si dos reglas fijan la misma cabecera, gana la última.
+        source: "/registro",
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
         ],
       },
       {

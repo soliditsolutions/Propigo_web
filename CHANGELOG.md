@@ -90,6 +90,7 @@ desarrollo, no versiones publicadas.
 
 ### Corregido
 
+- **La cámara del registro nunca se podía usar:** la cabecera `Permissions-Policy: camera=()` iba en todas las rutas, así que el navegador la bloqueaba sin pedir permiso y solo quedaba subir un archivo. Ahora `/registro` envía `camera=(self)`; las demás rutas siguen con la cámara bloqueada, y micrófono y geolocalización en todas. Con prueba.
 - **`next build` fallaba** por la acción de supresión: `supresion-actions.ts` ("use server") exportaba la constante `PALABRA_CONFIRMACION`, y Next solo admite funciones asíncronas ahí. La constante pasó a `supresion-constantes.ts`. Nueva prueba que revisa todos los archivos "use server" del proyecto.
 
 - **La tabla de cookies de la Política de Privacidad ahora coincide con el

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Menu, X, LogOut } from "lucide-react";
 import { Nav } from "@/components/panel/nav";
@@ -27,6 +28,7 @@ function initials(nombre: string): string {
 export function PanelShell({ tenant, user, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed]     = useState(false);
+  const router = useRouter();
   const [loggingOut, setLoggingOut]   = useState(false);
 
   // Cargar preferencia guardada
@@ -61,7 +63,9 @@ export function PanelShell({ tenant, user, children }: Props) {
     setLoggingOut(true);
     // fetch sigue el 303 del servidor; al resolver, Set-Cookie ya fue procesado
     try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* red */ }
-    window.location.href = "/login";
+    // router.replace y no una recarga completa: las páginas del panel son dinámicas
+    // (la caché del router no las conserva) y /login se pide de nuevo al servidor.
+    router.replace("/login");
   }
 
   const userInitials = initials(user.nombre);

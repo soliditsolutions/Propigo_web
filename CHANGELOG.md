@@ -17,6 +17,7 @@ desarrollo, no versiones publicadas.
 
 ### Cambiado
 
+- **Next.js 16.4.2 → 16.4.6** (y `eslint-config-next` a la misma versión) por el aviso GHSA-mfr8-8qww-v76h, que afecta a 16.3.0–16.4.4: fuga entre parámetros raíz al llamar una función `'use cache'` desde `unstable_cache()`. El código no usa ninguna de las dos, así que no era explotable acá. El cierre de sesión del panel y de la verificación de dispositivo ahora usa `router.replace('/login')` (la regla nueva de ESLint desaconseja `window.location`).
 - **La IA externa pasa de Groq a Cloudflare Workers AI** (Groq apagó los dos modelos que usábamos para planes gratis y developer). Un solo cliente en `lib/ia/` para la verificación de cédula y la revisión de contratos: prompts fijos en inglés con respuesta en español, foto de la cédula reducida a 1.280 px y sin metadatos, salida acotada (80 y 800 tokens), reglas anti-inyección en capas (instrucciones de sistema, marcadores falsos neutralizados, esquema estricto y leyes citadas fuera de nuestra lista reemplazadas por «Ley [no verificada]»), registro de cada llamada en la tabla `uso_ia` (solo cifras) y tope diario de neuronas que reserva el 30 % para el registro. Variables nuevas `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` (en producción el servidor no arranca sin ellas; en desarrollo solo avisa); `GROQ_API_KEY` y la dependencia `groq-sdk` desaparecen, `sharp` pasa a dependencia explícita. Textos de consentimiento y de privacidad nombran a Cloudflare (pendiente de revisión del abogado).
 - **Análisis del proveedor de IA** (`Docs/gestion/analisis-ia-proveedores-2026-11.md`): los modelos de Groq que usamos están apagados para planes gratis y developer; costo y proyección de Cloudflare Workers AI. Sin cambios de código todavía.
 - **Plan Gratuito real.** Hasta ahora una cuenta nueva (`"Gratuito"`) recibía los límites de Bronze (10 propiedades). Ahora tiene los suyos: 1 propiedad, 1 usuario, 1 revisión de IA al día (el cociente por propiedad de Bronze, redondeado hacia arriba), sin exportar, Resumen sin el histórico «cobrado vs. facturado» y solo recordatorios de pago por correo (los demás avisos quedan pendientes en el panel). Un plan desconocido sigue cayendo en Bronze. `/registro` lista estos límites.
@@ -88,6 +89,8 @@ desarrollo, no versiones publicadas.
   ya no renueva la inactividad del panel.
 
 ### Corregido
+
+- **`next build` fallaba** por la acción de supresión: `supresion-actions.ts` ("use server") exportaba la constante `PALABRA_CONFIRMACION`, y Next solo admite funciones asíncronas ahí. La constante pasó a `supresion-constantes.ts`. Nueva prueba que revisa todos los archivos "use server" del proyecto.
 
 - **La tabla de cookies de la Política de Privacidad ahora coincide con el
   código.** Citaba una cookie del portal que no existe, duraciones antiguas y

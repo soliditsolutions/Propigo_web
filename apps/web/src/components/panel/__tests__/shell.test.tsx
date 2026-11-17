@@ -2,7 +2,7 @@
 /**
  * Tests: PanelShell — skip link (UI-C4, WCAG 2.4.1 Bypass Blocks)
  */
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import React from "react";
 import { PanelShell } from "../shell";
@@ -31,8 +31,10 @@ vi.mock("next/link", () => ({
   }) => <a href={href} {...rest}>{children}</a>,
 }));
 
+const { mockReplace } = vi.hoisted(() => ({ mockReplace: vi.fn() }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/panel",
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 vi.mock("@/components/panel/nav", () => ({
@@ -82,5 +84,28 @@ describe("PanelShell — skip link (UI-C4)", () => {
     // Lo pintan el menú de escritorio y el cajón móvil.
     expect(screen.getAllByText("Corredora Test · plan Gold").length).toBeGreaterThan(0);
     expect(screen.queryByText(/· demo/)).toBeNull();
+  });
+});
+
+describe("PanelShell — cerrar sesión", () => {
+  it("llama al cierre de sesión y lleva a /login", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<PanelShell {...PROPS} />);
+
+    fireEvent.click(screen.getAllByLabelText("Cerrar sesión")[0]);
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/login"));
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/logout", { method: "POST" });
+  });
+
+  it("si la red falla igual lleva a /login", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("sin red")));
+    mockReplace.mockClear();
+    render(<PanelShell {...PROPS} />);
+
+    fireEvent.click(screen.getAllByLabelText("Cerrar sesión")[0]);
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/login"));
   });
 });

@@ -19,6 +19,8 @@
 
 ## 2. Gotchas técnicos ya resueltos (no repetir)
 
+- **Un archivo `"use server"` solo puede exportar funciones asíncronas (y tipos).** Una constante exportada pasa los tests y el modo desarrollo, pero rompe `next build` («the module has no exports at all»). Las constantes van en un módulo aparte; `src/__tests__/use-server-exports.test.ts` lo vigila. Después de subir Next u otra dependencia grande, correr `npm run build --workspace @propigo/web`, no solo los tests.
+
 - **Next.js 16 usa `proxy.ts`, NO `middleware.ts`.** La función se llama `proxy()`. Convención nueva de Next 16. El gate de sesión + dispositivo vive ahí.
 - **Turbopack cachea errores de compilación obsoletos.** Tras editar/regenerar (especialmente el cliente Prisma o secuencias largas de edits), el log puede mostrar errores de un estado intermedio aunque el archivo ya esté correcto. Si el archivo en disco está bien y la página renderiza, el error del log es basura de caché → se limpia recompilando o reiniciando el dev server. No perseguir errores fantasma.
 - **Turbopack puede dejar de recompilar `globals.css` específicamente, sin ningún error visible.** Distinto del punto anterior (ahí el problema es un error viejo en el log; acá el problema es que el CSS nuevo directamente nunca llega al navegador — el chunk servido queda con el contenido de antes, byte a byte, aunque el archivo en disco ya tenga el cambio). Reiniciar el dev server **no alcanza**: el chunk en `.next/dev/static/chunks/` queda con timestamp viejo indefinidamente. Fix: parar el server, `rm -rf apps/web/.next`, volver a levantarlo. Diagnóstico rápido: `getComputedStyle(el, '::before').backgroundImage` (o la propiedad que corresponda) sigue devolviendo el valor anterior pese a que el archivo fuente ya cambió.

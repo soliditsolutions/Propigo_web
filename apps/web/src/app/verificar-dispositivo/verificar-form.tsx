@@ -292,7 +292,9 @@ export default function VerificarForm({
   async function handleLogout() {
     setLoggingOut(true);
     try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* red */ }
-    window.location.href = "/login";
+    // router.replace y no una recarga completa: las páginas del panel son dinámicas
+    // (la caché del router no las conserva) y /login se pide de nuevo al servidor.
+    router.replace("/login");
   }
 
   const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");

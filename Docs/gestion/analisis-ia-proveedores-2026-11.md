@@ -196,3 +196,17 @@ proyecto, con una imagen sintética (no una cédula real) y un contrato inventad
 **Sin verificar todavía:** calidad con contratos y cédulas reales; latencia sostenida; qué hace Cloudflare al agotar las
 10.000 neuronas (el código trata un 429 como corte por límite); si una foto de celular real, más oscura o inclinada,
 se lee con la misma fiabilidad que una imagen sintética limpia.
+
+### Prueba con una cédula real y la cámara (2026-11-18)
+
+Registro completo en Chrome o Edge, sin el modo de pruebas que omite la verificación, con la cédula de una persona real
+fotografiada con la cámara del equipo.
+
+- **Resultado:** la IA leyó el RUN y el nombre, coincidieron con el formulario y la cuenta se creó en el plan Gratuito,
+  con el consentimiento de IA guardado y el dispositivo verificado.
+- **Costo medido:** 970 tokens de entrada y 27 de salida, **26 neuronas** por verificación (una foto real reducida a
+  1.280 px cuenta menos tokens que la imagen sintética de §10). Caben ≈ 380 verificaciones al día en lo gratis.
+- **Dos hallazgos del camino:** la cabecera `Permissions-Policy` bloqueaba la cámara en todo el sitio (corregido), y el
+  navegador integrado del panel de la aplicación la bloquea por sí mismo, así que la prueba debe hacerse en un
+  navegador normal. Con `E2E_BYPASS_IDENTITY` activa el servidor no lee la cédula aunque la pantalla la pida.
+- **Sigue sin probar:** fotos difíciles (poca luz, reflejos, inclinadas), cédulas del formato anterior y la cédula digital.

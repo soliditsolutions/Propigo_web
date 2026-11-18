@@ -13,6 +13,7 @@ import { accionDeFormulario } from "@/lib/fallo-accion";
 const accionSegura = accionDeFormulario(registroAction);
 import { evaluatePassword }       from "@/lib/password-strength";
 import { validateRut, formatRut } from "@/lib/rut";
+import { diagnosticarCamara } from "@/lib/camara";
 import {
   Dialog,
   DialogClose,
@@ -86,6 +87,7 @@ function CarnetModalBody({
   );
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraReintentable, setCameraReintentable] = useState(false);
   const videoRef  = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -130,10 +132,14 @@ function CarnetModalBody({
         setCameraReady(true);
         setCameraError(null);
       })
-      .catch(() => {
-        // Permiso denegado, sin cámara disponible, o contexto no seguro (http).
-        // Nunca bloqueamos el registro por esto — el upload manual sigue disponible.
-        setCameraError("No pudimos acceder a la cámara. Puedes subir una foto en su lugar.");
+      .catch((e: unknown) => {
+        // Permiso denegado, sin cámara, cámara ocupada o contexto no seguro (http):
+        // el mensaje dice cuál, para que la persona sepa qué hacer. Nunca bloqueamos
+        // el registro por esto — el upload manual sigue disponible.
+        console.warn("[camara]", e instanceof Error ? e.name : "error desconocido");
+        const d = diagnosticarCamara(e);
+        setCameraError(d.mensaje);
+        setCameraReintentable(d.reintentable);
         setModo("archivo");
       });
 
@@ -319,15 +325,15 @@ function CarnetModalBody({
                 }}
               />
             </label>
-            {CAMERA_SUPPORTED && !cameraError && (
+            {CAMERA_SUPPORTED && (!cameraError || cameraReintentable) && (
               <button
                 type="button"
-                onClick={() => setModo("camara")}
+                onClick={() => { setCameraError(null); setModo("camara"); }}
                 className="flex items-center gap-1.5 text-xs font-medium"
                 style={{ color: "var(--pgo-primary)" }}
               >
                 <Camera className="h-3.5 w-3.5" aria-hidden="true" />
-                Usar la cámara en su lugar
+                {cameraError ? "Reintentar con la cámara" : "Usar la cámara en su lugar"}
               </button>
             )}
           </div>

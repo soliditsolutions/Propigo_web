@@ -90,6 +90,7 @@ desarrollo, no versiones publicadas.
 
 ### Corregido
 
+- **La cámara de la verificación de cédula decía siempre lo mismo y no dejaba reintentar.** Ahora el mensaje distingue la causa (permiso bloqueado, sin cámara, cámara ocupada por otra aplicación, conexión sin https) y, si puede cambiar, aparece «Reintentar con la cámara». Antes, tras el primer error el botón desaparecía y había que reabrir el diálogo. Con pruebas.
 - **`npm run db:clean` fallaba** con «permission denied for table tenant»: usaba el rol de la app, que no puede truncar. Ahora usa `DATABASE_ADMIN_URL`, como `db:seed`.
 - **La cámara del registro nunca se podía usar:** la cabecera `Permissions-Policy: camera=()` iba en todas las rutas, así que el navegador la bloqueaba sin pedir permiso y solo quedaba subir un archivo. Ahora `/registro` envía `camera=(self)`; las demás rutas siguen con la cámara bloqueada, y micrófono y geolocalización en todas. Con prueba.
 - **`next build` fallaba** por la acción de supresión: `supresion-actions.ts` ("use server") exportaba la constante `PALABRA_CONFIRMACION`, y Next solo admite funciones asíncronas ahí. La constante pasó a `supresion-constantes.ts`. Nueva prueba que revisa todos los archivos "use server" del proyecto.

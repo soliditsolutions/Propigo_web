@@ -17,9 +17,9 @@ import { ACTIVIDADES_TRATAMIENTO, retencionesDe } from "@/lib/registro-tratamien
 import { MARCA } from "@/lib/marca";
 
 export const metadata = {
-  title: `Registro de Actividades de Tratamiento · ${MARCA}`,
+  title: `Registro de actividades de tratamiento · ${MARCA}`,
   description:
-    "Registro de actividades de tratamiento de datos personales de ${MARCA}, conforme a la Ley 21.719: qué datos, con qué finalidad, con quién se comparten y por cuánto tiempo.",
+    `Registro de actividades de tratamiento de datos personales de ${MARCA}, conforme a la Ley 21.719: qué datos, con qué finalidad, con quién se comparten y por cuánto tiempo.`,
 };
 
 const ULTIMA_ACTUALIZACION = "21 de octubre de 2026";
@@ -29,7 +29,7 @@ export default function RegistroTratamientoPage() {
     <div className="min-h-screen" style={{ background: "var(--pf-surface)" }}>
       <PublicNavbar />
 
-      <div className="mx-auto max-w-4xl px-6 py-10">
+      <main className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8 flex items-start gap-3">
           <div
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
@@ -39,7 +39,7 @@ export default function RegistroTratamientoPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold" style={{ color: "var(--pf-navy)", letterSpacing: "-0.01em" }}>
-              Registro de Actividades de Tratamiento
+              Registro de actividades de tratamiento
             </h1>
             <p className="mt-1 text-sm" style={{ color: "var(--pf-text-light)" }}>
               Ley 21.719, Título IV · Última actualización: {ULTIMA_ACTUALIZACION}
@@ -144,7 +144,7 @@ export default function RegistroTratamientoPage() {
             <Link href="/portal" style={{ color: "var(--pf-brand)" }}>el portal de autoconsulta → Mis datos</Link>.
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

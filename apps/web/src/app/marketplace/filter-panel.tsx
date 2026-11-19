@@ -181,7 +181,7 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
         aria-label="Abrir panel de filtros"
       >
         <SlidersHorizontal className="h-4 w-4" aria-hidden />
-        Crear Filtro
+        Crear filtro
         {activeCount > 0 && (
           <span
             className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"

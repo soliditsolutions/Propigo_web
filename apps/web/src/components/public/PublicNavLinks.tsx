@@ -13,7 +13,7 @@ export const NAV_LINKS = [
   { href: "/",             label: "Inicio" },
   { href: "/#acerca-de",   label: "Acerca de" },
   { href: "/#destacado",   label: "Destacado" },
-  { href: "/#planes",      label: "Nuestros Planes" },
+  { href: "/#planes",      label: "Nuestros planes" },
 ] as const;
 
 const HOME_HREF = "/";

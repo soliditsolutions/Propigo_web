@@ -146,7 +146,7 @@ export default async function Home() {
       </span>
       <h1 className="pgo-fluid-hero mt-4 text-balance font-bold leading-tight tracking-tight text-[var(--pf-navy)]">
         La gestión de arriendos,{" "}
-        <span className="pf-headline-accent">automática y sin errores</span>.
+        <span className="pf-headline-accent">automática y sin errores</span>
       </h1>
       <p className="mx-auto mt-3 max-w-lg text-pretty text-base leading-relaxed text-[var(--pf-text-body)] sm:text-lg">
         Detecta los pagos, aplica el reajuste del IPC en el aniversario de

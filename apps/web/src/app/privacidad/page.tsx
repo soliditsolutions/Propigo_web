@@ -16,7 +16,7 @@ import { ALMACENAMIENTO } from "@/lib/almacenamiento";
 import { PLAZO_RESPUESTA_DIAS } from "@/lib/derechos";
 
 export const metadata = {
-  title: `Política de Privacidad · ${MARCA}`,
+  title: `Política de privacidad · ${MARCA}`,
   description:
     `Política de privacidad y protección de datos personales de ${MARCA}. Conozca cómo tratamos sus datos conforme a la Ley 21.719.`,
 };
@@ -84,7 +84,7 @@ export default function PrivacidadPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
 
           {/* Índice lateral */}
-          <aside className="hidden lg:block">
+          <aside className="hidden lg:block" aria-label="Índice de la política">
             <div
               className="sticky top-6 rounded-2xl p-5"
               style={{ background: "var(--pf-surface)", border: "1px solid var(--pf-border)" }}
@@ -132,7 +132,7 @@ export default function PrivacidadPage() {
                 className="text-3xl font-bold tracking-tight mb-3"
                 style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
               >
-                Política de Privacidad
+                Política de privacidad
               </h1>
               <p className="text-base" style={{ color: "var(--pf-text-body)" }}>
                 En <strong>{RAZON_SOCIAL}</strong> nos comprometemos a proteger su privacidad y tratar sus

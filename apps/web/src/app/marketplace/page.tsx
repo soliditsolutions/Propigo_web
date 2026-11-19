@@ -214,6 +214,9 @@ export default async function MarketplacePage({
       {/* ── Navbar público ────────────────────────────────────────────── */}
       <PublicNavbar />
 
+      {/* Un solo main con hero, filtros, resultados y CTA: el h1 del hero
+          queda dentro de main y el pie fuera (regla de estructura de textos). */}
+      <main>
       {/* ── Hero section ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ paddingTop: "96px", paddingBottom: "72px" }}>
         <div
@@ -409,7 +412,8 @@ export default async function MarketplacePage({
       </div>
 
       {/* ── Resultados ────────────────────────────────────────────────── */}
-      <main
+      <section
+        aria-label="Resultados"
         className="mx-auto max-w-7xl px-4 py-10 sm:px-6"
         style={{ background: "var(--pf-surface)" }}
       >
@@ -592,7 +596,7 @@ export default async function MarketplacePage({
             </div>
           </>
         )}
-      </main>
+      </section>
 
       {/* ── CTA dark ─────────────────────────────────────────────────── */}
       <section className="pf-cta-dark">
@@ -621,6 +625,7 @@ export default async function MarketplacePage({
           </div>
         </div>
       </section>
+      </main>
 
       {/* ── Footer público ───────────────────────────────────────────── */}
       <PublicFooter />

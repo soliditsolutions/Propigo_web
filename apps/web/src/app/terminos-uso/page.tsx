@@ -18,7 +18,7 @@ import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { MARCA, RAZON_SOCIAL, CORREO, EMPRESA } from "@/lib/marca";
 
 export const metadata = {
-  title: `Términos y Condiciones de Uso · ${MARCA}`,
+  title: `Términos y condiciones de uso · ${MARCA}`,
   description:
     `Términos y condiciones de uso del sitio público de ${MARCA}. Lea con atención antes de utilizar el marketplace o el portal de autoconsulta.`,
 };
@@ -77,6 +77,7 @@ export default function TerminosUsoPage() {
 
       <PublicNavbar />
 
+      <main>
       {/* Hero */}
       <div
         className="border-b pt-24 pb-12"
@@ -91,7 +92,7 @@ export default function TerminosUsoPage() {
             className="text-4xl font-bold"
             style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
           >
-            Términos y Condiciones de Uso
+            Términos y condiciones de uso
           </h1>
           <p className="mt-3 text-lg" style={{ color: "var(--pf-text-body)" }}>
             Del sitio público {MARCA} — marketplace de arriendos y portal de autoconsulta.
@@ -106,7 +107,7 @@ export default function TerminosUsoPage() {
         <div className="flex gap-12">
 
           {/* Índice lateral */}
-          <aside className="hidden w-56 shrink-0 lg:block">
+          <aside className="hidden w-56 shrink-0 lg:block" aria-label="Índice de los términos">
             <div className="sticky top-24">
               <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--pf-text-muted)" }}>
                 Contenido
@@ -138,7 +139,7 @@ export default function TerminosUsoPage() {
           </aside>
 
           {/* Contenido */}
-          <main className="min-w-0 flex-1">
+          <article className="min-w-0 flex-1">
 
             {/* Banner de advertencia fraudes — lo primero y más prominente */}
             <div
@@ -504,9 +505,10 @@ export default function TerminosUsoPage() {
               </p>
             </div>
 
-          </main>
+          </article>
         </div>
       </div>
+      </main>
     </div>
   );
 }

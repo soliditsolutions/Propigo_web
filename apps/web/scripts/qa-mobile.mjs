@@ -7,7 +7,9 @@
 //
 // Mide por página: scroll horizontal, elementos fuera de pantalla, inputs que
 // hacen zoom en iOS (< 16px), contenido escondido tras scroll horizontal y
-// errores de consola. Sale con código 1 si encuentra alguno.
+// errores de consola, estructura de textos (h1/main/hgroup, niveles, títulos
+// sin punto, nombres accesibles) y redirecciones
+// inesperadas. Sale con código 1 si encuentra alguno.
 //
 // SOLO LOCAL: para entrar sin correo inserta un dispositivo confiable y fija el
 // código OTP del portal directamente en la base. Se niega a correr contra otra
@@ -105,7 +107,42 @@ async function medir(page, tactil) {
     const scrollInterno = [...document.querySelectorAll("body *")]
       .filter((el) => !el.classList.contains("pgo-scroll-x") && /(auto|scroll)/.test(getComputedStyle(el).overflowX) && el.scrollWidth > el.clientWidth + 2 && el.clientHeight > 0)
       .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 50)} oculto=${el.scrollWidth - el.clientWidth}px`);
-    return { scrollHorizontal: document.documentElement.scrollWidth - vw, fuera: fuera.slice(0, 8), zoomIOS, chicos, scrollInterno };
+    // Estructura de textos (PRODUCT.md): un h1 dentro del único main, con su
+    // subtítulo en hgroup; niveles sin saltos; títulos sin punto final;
+    // controles y campos con nombre accesible. Los diálogos abiertos no
+    // cuentan para la jerarquía de la página. Las mayúsculas de título no se
+    // miden aquí (direcciones y nombres propios darían falsos positivos): las
+    // revisan las pruebas sobre los textos fijos.
+    const estructura = [];
+    const fueraDeDialogo = (el) => !el.closest("[role=dialog], dialog");
+    const h1 = [...document.querySelectorAll("h1")].filter(fueraDeDialogo);
+    if (h1.length !== 1) estructura.push(`h1=${h1.length}`);
+    if (document.querySelectorAll("main").length !== 1) estructura.push(`main=${document.querySelectorAll("main").length}`);
+    for (const h of h1) {
+      if (!h.closest("main")) estructura.push("h1 fuera de main");
+      if (h.nextElementSibling?.tagName === "P" && h.parentElement.tagName !== "HGROUP") estructura.push("subtítulo fuera de hgroup");
+    }
+    if (document.querySelector("main footer")) estructura.push("footer dentro de main");
+    const titulos = [...document.querySelectorAll("main h1, main h2, main h3, main h4, main h5")].filter(fueraDeDialogo);
+    let previo = 0;
+    for (const h of titulos) {
+      const n = Number(h.tagName[1]), t = h.textContent.trim().replace(/\s+/g, " ");
+      if (previo && n > previo + 1) estructura.push(`salto h${previo}→h${n} "${t.slice(0, 30)}"`);
+      previo = n;
+      if (/\.$/.test(t)) estructura.push(`título con punto "${t.slice(0, 30)}"`);
+    }
+    for (const el of document.querySelectorAll("a[href], button")) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (!(el.textContent.trim() || el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || el.getAttribute("title") || el.querySelector("img[alt]:not([alt=\"\"]), svg[aria-label]"))) {
+        estructura.push(`${el.tagName.toLowerCase()} sin nombre ${(el.getAttribute("href") || el.className || "").toString().slice(0, 40)}`);
+      }
+    }
+    for (const el of document.querySelectorAll("input:not([type=hidden]), select, textarea")) {
+      if (el.getBoundingClientRect().width === 0) continue;
+      if (!(el.labels?.length || el.getAttribute("aria-label") || el.getAttribute("aria-labelledby"))) estructura.push(`campo sin etiqueta ${el.name || el.id || el.type}`);
+    }
+    return { scrollHorizontal: document.documentElement.scrollWidth - vw, fuera: fuera.slice(0, 8), zoomIOS, chicos, scrollInterno, estructura: [...new Set(estructura)].slice(0, 10) };
   }, tactil);
 }
 
@@ -132,6 +169,10 @@ async function visitar(page, disp, ruta, nombre, informe) {
     const r = await page.goto(BASE + ruta, { waitUntil: "networkidle", timeout: 45_000 });
     await page.waitForTimeout(600);
     const m = await medir(page, !!disp.d.hasTouch);
+    // Una ruta que termina en otra (p. ej. el panel mandando a completar el
+    // perfil) mide la pantalla equivocada: se reporta en vez de pasar en verde.
+    const final = new URL(page.url()).pathname;
+    if (final !== new URL(BASE + ruta).pathname) m.redirigido = final;
     // El panel desplaza un contenedor interno: expandirlo para capturar la página completa.
     await page.evaluate(() => {
       for (const el of document.querySelectorAll("body *")) {
@@ -242,9 +283,9 @@ try {
 }
 
 writeFileSync(join(OUT, "informe.json"), JSON.stringify(informe, null, 2));
-const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.errores?.length);
+const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.estructura?.length || r.redirigido || r.errores?.length);
 console.log(`páginas: ${informe.length} · con problemas: ${conProblemas.length} · capturas en ${OUT}`);
 for (const r of conProblemas) {
-  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
+  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, estructura: r.estructura?.length ? r.estructura : undefined, redirigido: r.redirigido, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
 }
 process.exit(conProblemas.length ? 1 : 0);

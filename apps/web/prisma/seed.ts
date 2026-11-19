@@ -84,6 +84,13 @@ async function main() {
       nombre:       "María Corredora",
       email:        "maria@corredorademo.cl",
       telefono:     "+56 9 1111 1111",
+      // Perfil completo: sin él, el proxy manda cada ruta del panel a
+      // /panel/perfil?setup=1 y el recorrido qa:mobile medía siempre esa pantalla.
+      rut:             "14725836-4",
+      fechaNacimiento: new Date("1985-04-12"),
+      direccion:       "Av. Providencia 1234, of. 501",
+      ciudad:          "Santiago",
+      perfilCompleto:  true,
       passwordHash: await hashPassword("Demo1234!"),
     },
   });

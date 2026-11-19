@@ -5,6 +5,9 @@ Monorepo: `apps/web` (Next.js 16 + Prisma; ver `apps/web/AGENTS.md`) y `packages
 ## Marca
 El producto se llama **Propigo** (dominio `propigo.cl`, eslogan "Publica más. Complica menos."). El nombre anterior, "Housing", ya no se usa en ninguna parte: paquetes `@propigo/*`, base `propigo` con roles `propigo`/`propigo_app`, contenedor `propigo-db`, tokens CSS `--pgo-*`, clases `pgo-*` y cookies/claves `pgo_*`. Todo texto visible usa las constantes de `apps/web/src/lib/marca.ts` (nombre, eslogan, razón social, correos) y el componente `Logo`/`Isotipo` de `components/public/Logo.tsx`; nunca escribir la marca o un correo a mano. SOLID IT SpA es la razón social: solo en legales, pie de página y documentos, nunca en el logo.
 
+## Estructura de textos
+Regla general para toda pantalla: un solo `h1` dentro de `main`, título + subtítulo en `hgroup`, niveles sin saltos, `footer` fuera de `main`, títulos sin punto final y párrafos con punto (RAE). Detalle en `apps/web/PRODUCT.md` § «Estructura de textos».
+
 ## Precedencia sobre skills globales (ponytail, graphify)
 Las reglas de este proyecto prevalecen sobre ponytail y graphify. Choques resueltos:
 - **Comentarios `shortcut:`** — no se usan. Este proyecto exige cero deuda técnica: lo que se detecta se corrige en el acto, no se deja anotado como atajo.

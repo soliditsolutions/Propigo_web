@@ -61,3 +61,17 @@ Hecho para el arriendo chileno: UF e IPC, RUT con dígito verificador, Ley 18.10
 ## Accessibility & Inclusion
 
 WCAG 2.1 AA como mínimo: contraste, foco visible, teclado completo, etiquetas y errores asociados, `prefers-reduced-motion` respetado. Texto legible en el tema claro con la misma calidad que en el oscuro.
+
+## Estructura de textos (regla general)
+
+Basada en HTML (WHATWG), WCAG 1.3.1 / 2.4.6 / 2.4.10 y la ortografía de la RAE:
+
+- **Encabezados por estructura, no por tamaño.** Un solo `h1` por pantalla, con el propósito de esa pantalla, dentro de `main`. Luego `h2`, `h3`… sin saltar niveles. Un texto grande de marca o de ambiente es un párrafo (`p`), no un encabezado.
+- **Título y subtítulo juntos en `hgroup`:** `<hgroup><h1>…</h1><p>…</p></hgroup>`. El subtítulo es un párrafo, nunca otro encabezado.
+- **Regiones:** `header`, `main`, `aside` (con `aria-label`) y `footer`. El `footer` va fuera de `main`.
+- **Párrafos en `p`;** listas en `ul`/`ol`; grupos de opciones en `fieldset` + `legend`; cada campo con su `label`.
+- **No ocultar texto visible** a lectores de pantalla (`aria-hidden`). Si un texto se parte para animarlo, el texto completo va en `.sr-only` y las piezas en `aria-hidden`.
+- **Puntuación (RAE):** títulos, subtítulos de sección, etiquetas, botones y elementos de lista que no son oración van **sin punto final**. Párrafos y oraciones completas, **con punto**. Mayúscula solo inicial (no Title Case).
+- **Marca y correos** desde `lib/marca.ts`, nunca a mano.
+
+Las pantallas de acceso lo comprueban en `components/acceso/__tests__/acceso.test.tsx`.

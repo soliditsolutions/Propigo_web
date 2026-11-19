@@ -7,7 +7,7 @@
 import { MARCA } from "@/lib/marca";
 import { PLAN_GRATUITO } from "@/lib/plans";
 
-export type Flujo = "login" | "recuperar" | "registro" | "nueva" | "verificar";
+export type Flujo = "login" | "recuperar" | "registro" | "nueva" | "verificar" | "invitacion" | "portal";
 
 export const T = {
   login: {
@@ -155,6 +155,43 @@ export const T = {
     salir: "Cerrar sesión",
     saliendo: "Cerrando sesión…",
   },
+  invitacion: {
+    titulo: "Activa tu cuenta",
+    sub: (empresa: string, email: string) =>
+      `${empresa || "Tu corredora"} te invitó a ${MARCA}. Crea una contraseña para entrar con ${email}.`,
+    clave: "Elige tu contraseña",
+    clavePlaceholder: "Una frase larga que recuerdes",
+    cta: "Aceptar la invitación",
+    ctaCargando: "Creando tu cuenta…",
+    yaTengo: "Ya tengo una cuenta",
+    invalidaTitulo: "Esta invitación ya no sirve",
+    sinToken: "El enlace llegó incompleto. Ábrelo directo desde el correo de invitación.",
+    vencida: "Venció o ya se usó. Pide a quien te invitó que te envíe una nueva.",
+    irLogin: "Ir a iniciar sesión",
+  },
+  portal: {
+    titulo: "Consulta tu arriendo",
+    sub: "Escribe tu RUT y te enviamos un código al correo que registró tu corredora.",
+    rut: "RUT",
+    cta: "Recibir el código",
+    ctaCargando: "Enviando el código…",
+    volver: "Volver a las propiedades",
+    verificarTitulo: "Revisa tu correo",
+    verificarSub: "Escribe el código de 6 dígitos que enviamos a tu correo registrado.",
+    codigo: "Código de 6 dígitos",
+    verificarCta: "Verificar código",
+    verificando: "Verificando…",
+    venceEn: "El código vence en",
+    noLlego: "¿No llegó? Puede tardar un par de minutos; revisa también la carpeta de spam. Puedes pedir hasta 3 códigos cada 10 minutos.",
+    otroCodigo: "Volver y pedir otro código",
+    vencidoTitulo: "Tu código venció",
+    vencidoTexto: "Ya no sirve. Vuelve al portal y pide uno nuevo.",
+    agotadoTitulo: "Intentos agotados",
+    agotadoTexto: "Superaste los 3 intentos. Vuelve al portal y pide un código nuevo.",
+    pedirNuevo: "Solicitar nuevo código",
+    exitoTitulo: "Acceso verificado",
+    exitoTexto: "Te llevamos a tu portal.",
+  },
   pronto: {
     titulo: "Aún no abrimos el registro",
     sub: "Estamos preparando el lanzamiento. Si eres corredora y quieres que te avisemos, escríbenos a",
@@ -166,6 +203,8 @@ export const T = {
     registro: { titulo: "Crea tu cuenta en tres pasos", texto: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
     nueva: { titulo: "Una contraseña nueva y listo", texto: "Una frase larga y fácil de recordar protege más que una clave corta llena de símbolos." },
     verificar: { titulo: "Cuidamos cada entrada", texto: "Cuando entras desde un equipo nuevo te pedimos un código. Así nadie más usa tu cuenta." },
+    invitacion: { titulo: "Te sumas a tu equipo", texto: "Vas a trabajar con las propiedades y contratos de tu corredora, con tu propio usuario." },
+    portal: { titulo: "Tu arriendo, claro y al día", texto: "Revisa tus pagos, comprobantes y contrato sin tener que pedírselos a tu corredora." },
     pronto: { titulo: "Muy pronto", texto: "Estamos terminando los últimos detalles para abrir las cuentas nuevas." },
   },
   destellosEtiqueta: `Lo que hace ${MARCA} por ti`,
@@ -184,6 +223,13 @@ export const T = {
     ],
     verificar: [
       { titulo: "Código de un solo uso", detalle: "Vence a los 10 minutos" },
+    ],
+    invitacion: [
+      { titulo: "Tu propio usuario", detalle: "Cada acción queda a tu nombre" },
+    ],
+    portal: [
+      { titulo: "Pagos y comprobantes", detalle: "El historial de tu contrato" },
+      { titulo: "Sin contraseña", detalle: "Entras con un código al correo" },
     ],
   },
   confianza: [

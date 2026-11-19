@@ -102,6 +102,8 @@ describe("estructura de los textos (regla general)", () => {
       "app/registro/registro-form.tsx", "app/registro/page.tsx",
       "app/nueva-contrasena/nueva-form.tsx", "app/nueva-contrasena/page.tsx",
       "app/verificar-dispositivo/verificar-form.tsx", "app/verificar-dispositivo/page.tsx",
+      "app/invitacion/invitacion-form.tsx", "app/invitacion/page.tsx",
+      "app/portal/page.tsx", "app/portal/verificar/page.tsx",
     ]) {
       const fuente = readFileSync(join(raiz, archivo), "utf8");
       expect(`${archivo}: ${fuente.match(/Propigo/)?.[0] ?? ""}`).toBe(`${archivo}: `);

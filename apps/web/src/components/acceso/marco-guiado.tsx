@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { Fragment, useRef, type CSSProperties, type ReactNode } from "react";
-import { Check, FileCheck2, FileText, KeyRound, Link2, Lock, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
+import {
+  Check, FileCheck2, FileText, KeyRound, Link2, Lock, Mail, Receipt, ShieldCheck, TrendingUp, UserCheck, Wallet,
+} from "lucide-react";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CORREO, ESLOGAN, MARCA } from "@/lib/marca";
@@ -27,7 +29,10 @@ function Confianza() {
   );
 }
 
-const ICONOS_DESTELLO_FLUJO = { login: ICONOS_DESTELLO, recuperar: [Link2], nueva: [KeyRound], verificar: [ShieldCheck] };
+const ICONOS_DESTELLO_FLUJO = {
+  login: ICONOS_DESTELLO, recuperar: [Link2], nueva: [KeyRound], verificar: [ShieldCheck],
+  invitacion: [UserCheck], portal: [Receipt, Mail],
+};
 
 function Destellos({ flujo }: { flujo: FlujoMarco }) {
   if (!(flujo in T.destellos)) return null;

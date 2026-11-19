@@ -9,13 +9,11 @@ import React from "react";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }));
 vi.mock("@/components/public/Logo", () => ({ Logo: () => <span>Logo</span> }));
 vi.mock("@/components/public/TerminosAviso", () => ({ TerminosAviso: () => null }));
-vi.mock("@/images/backgrounds/001_Consulta.png", () => ({ default: { src: "x.png", width: 1, height: 1 } }));
 
 const { default: PortalPage } = await import("../page");
 const { ToastProvider } = await import("@/components/ui/toast");

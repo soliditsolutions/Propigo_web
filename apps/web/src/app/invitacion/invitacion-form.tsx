@@ -1,159 +1,101 @@
 "use client";
 
-import { useActionState, useState, startTransition } from "react";
-import Link                from "next/link";
-import { Eye, EyeOff, KeyRound, AlertCircle } from "lucide-react";
+import { useActionState, useState, startTransition, type FormEvent } from "react";
+import Link from "next/link";
+import { ArrowLeft, Lock, ShieldAlert } from "lucide-react";
 import { aceptarInvitacionAction } from "./actions";
 import { accionDeFormulario } from "@/lib/fallo-accion";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
+import { Aviso, Boton, CampoClave } from "@/components/acceso/campos";
+import { T } from "@/components/acceso/textos";
 
 // Un fallo de red o del servidor vuelve como { error } y no rompe la página.
 const accionSegura = accionDeFormulario(aceptarInvitacionAction);
-import { Spinner }                 from "@/components/ui/spinner";
-import { PasswordStrengthMeter }   from "@/components/ui/password-strength-meter";
+
+function YaTengoCuenta() {
+  return (
+    <Link href="/login" className="pgo-acc-enlace pgo-acc-enlace--suave" style={{ justifySelf: "center" }}>
+      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+      {T.invitacion.yaTengo}
+    </Link>
+  );
+}
+
+/** La invitación venció, ya se usó o llegó sin token: se explica en la tarjeta. */
+export function InvitacionInvalida({ mensaje }: { mensaje: string }) {
+  return (
+    <div className="pgo-acc-cuerpo">
+      <div className="pgo-acc-sello pgo-acc-sello--error"><ShieldAlert aria-hidden="true" /></div>
+      <hgroup className="pgo-acc-cabecera">
+        <h1 className="pgo-acc-titulo">{T.invitacion.invalidaTitulo}</h1>
+        <p className="pgo-acc-sub">{mensaje}</p>
+      </hgroup>
+      <Link href="/login" className="pgo-acc-btn pgo-acc-btn--primario pgo-acc-btn--bloque">
+        {T.invitacion.irLogin}
+      </Link>
+    </div>
+  );
+}
 
 export function InvitacionForm({
-  token, nombre, email,
+  token, nombre, email, empresa,
 }: {
-  token: string; nombre?: string; email?: string;
+  token: string; nombre: string; email: string; empresa: string;
 }) {
   const [state, formAction, pending] = useActionState(accionSegura, null);
-  const [showPwd, setShowPwd]        = useState(false);
-  const [password, setPassword]      = useState("");
+  const [password, setPassword] = useState("");
   // Controlado y enviado sin `<form action>`: tras una acción, React 19 hace
   // form.reset() nativo y no restaura un checkbox controlado, así que un error
   // de red desmarcaría el consentimiento que el usuario ya dio.
-  const [consent, setConsent]        = useState(false);
+  const [consent, setConsent] = useState(false);
 
-  function enviar(e: React.FormEvent<HTMLFormElement>) {
+  function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const datos = new FormData(e.currentTarget);
     startTransition(() => formAction(datos));
   }
 
-  const inputStyle: React.CSSProperties = {
-    height:       "44px",
-    width:        "100%",
-    borderRadius: "12px",
-    border:       "1px solid var(--pgo-border-2)",
-    background:   "var(--pgo-glass-input)",
-    color:        "var(--pgo-text-1)",
-    fontSize:     "14px",
-    padding:      "0 44px 0 14px",
-    outline:      "none",
-    boxShadow:    "var(--pgo-input-shadow)",
-    transition:   "border-color 150ms ease, box-shadow 150ms ease",
-    opacity:      pending ? 0.6 : 1,
-  };
-
   return (
-    <form onSubmit={enviar} className="space-y-5" noValidate>
+    <form onSubmit={enviar} className="pgo-acc-cuerpo" noValidate>
       <input type="hidden" name="token" value={token} />
+      <hgroup className="pgo-acc-cabecera">
+        <h1 className="pgo-acc-titulo">{T.invitacion.titulo}</h1>
+        <p className="pgo-acc-sub">{T.invitacion.sub(empresa, email)}</p>
+      </hgroup>
 
-      <div className="space-y-1.5">
-        <label htmlFor="invitacion-pwd" className="block text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
-          Elige tu contraseña
-        </label>
-        <div className="relative">
-          <input
-            id="invitacion-pwd"
-            name="password"
-            type={showPwd ? "text" : "password"}
-            autoComplete="new-password"
-            required
-            placeholder="••••••••••••••••"
-            disabled={pending}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--pgo-primary)";
-              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--pgo-border-2)";
-              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPwd((v) => !v)}
-            aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70 transition-opacity"
-            style={{ color: "var(--pgo-text-4)" }}
-          >
-            {showPwd
-              ? <EyeOff className="h-4 w-4" aria-hidden="true" />
-              : <Eye    className="h-4 w-4" aria-hidden="true" />}
-          </button>
-        </div>
-        <PasswordStrengthMeter password={password} nombre={nombre} email={email} />
-        <p className="text-xs" style={{ color: "var(--pgo-text-4)" }}>
-          Mínimo 8 caracteres, con letras, números y un carácter especial. Evita tu nombre o correo.
-        </p>
-      </div>
-
-      {/* Consentimiento — Ley 21.719 Art. 4: NO premarcado */}
-      <div className="flex items-start gap-3 pt-1">
-        <input
-          id="consent"
-          name="consent"
-          type="checkbox"
-          value="1"
-          required
-          disabled={pending}
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded shrink-0"
-          style={{ accentColor: "var(--pgo-primary)", cursor: "pointer" }}
+      <div className="pgo-acc-campo">
+        <CampoClave
+          id="invitacion-pwd" etiqueta={T.invitacion.clave} icono={Lock}
+          name="password" autoComplete="new-password" required placeholder={T.invitacion.clavePlaceholder}
+          ayuda={T.registro.claveAyuda}
+          value={password} onChange={(e) => setPassword(e.target.value)} disabled={pending}
         />
-        <label htmlFor="consent" className="text-xs leading-relaxed cursor-pointer" style={{ color: "var(--pgo-text-3)" }}>
-          He leído y acepto los{" "}
-          <Link href="/terminos-uso" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--pgo-primary)" }}>
-            Términos de uso
-          </Link>
-          {" "}y la{" "}
-          <Link href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 font-medium" style={{ color: "var(--pgo-primary)" }}>
-            Política de privacidad
-          </Link>
-          {" "}conforme a la Ley 21.719.
-        </label>
+        <div aria-live="polite" aria-atomic="true">
+          <PasswordStrengthMeter password={password} nombre={nombre} email={email} />
+        </div>
       </div>
 
-      {state?.error && (
-        <div
-          className="flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm"
-          role="alert"
-          style={{ background: "var(--pgo-danger-lt)", color: "var(--pgo-danger)", border: "1px solid var(--pgo-danger-bd)" }}
-        >
-          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-          {state.error}
-        </div>
-      )}
+      {/* Consentimiento — Ley 21.719 Art. 4: nunca premarcado */}
+      <label className="pgo-acc-check" htmlFor="consent">
+        <input
+          id="consent" name="consent" type="checkbox" value="1" required
+          disabled={pending} checked={consent} onChange={(e) => setConsent(e.target.checked)}
+        />
+        <span>
+          {T.registro.consentTerminos}{" "}
+          <Link href="/terminos-uso" target="_blank" rel="noopener noreferrer">{T.registro.terminos}</Link>
+          {" "}{T.registro.y}{" "}
+          <Link href="/privacidad" target="_blank" rel="noopener noreferrer">{T.registro.privacidad}</Link>
+          {" "}{T.registro.leyFin}
+        </span>
+      </label>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="pgo-btn-primary w-full justify-center"
-        style={{ height: "46px", fontSize: "15px", borderRadius: "12px" }}
-      >
-        {pending ? (
-          <>
-            <Spinner />
-            Creando cuenta…
-          </>
-        ) : (
-          <>
-            <KeyRound className="h-4 w-4" aria-hidden="true" />
-            Aceptar invitación
-          </>
-        )}
-      </button>
+      {state?.error ? <Aviso variante="error">{state.error}</Aviso> : null}
 
-      <p className="text-center text-sm" style={{ color: "var(--pgo-text-3)" }}>
-        <Link href="/login" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: "var(--pgo-primary)" }}>
-          ← Ya tengo una cuenta
-        </Link>
-      </p>
+      <Boton type="submit" bloque cargando={pending}>
+        {pending ? T.invitacion.ctaCargando : T.invitacion.cta}
+      </Boton>
+      <YaTengoCuenta />
     </form>
   );
 }

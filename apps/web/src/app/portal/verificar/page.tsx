@@ -1,154 +1,73 @@
 "use client";
 
-import { useEffect, useState, useTransition, Suspense } from "react";
+import { useEffect, useState, useTransition, Suspense, type ChangeEvent, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ShieldCheck, CheckCircle2, ArrowLeft,
-  Clock, AlertTriangle, XCircle,
-} from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
-import { Logo } from "@/components/public/Logo";
+import { ArrowLeft, Check, KeyRound } from "lucide-react";
+import { Aviso, Boton, Campo, formatoReloj } from "@/components/acceso/campos";
+import { MarcoGuiado } from "@/components/acceso/marco-guiado";
+import { T } from "@/components/acceso/textos";
 
 const CODE_TTL_MS  = 10 * 60 * 1000; // 10 min — debe coincidir con el backend
 const MAX_INTENTOS = 3;
 
 type OtpMode = "NORMAL" | "EXPIRADO" | "AGOTADO";
 
-function formatTime(totalSec: number): string {
-  if (totalSec <= 0) return "0s";
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return m > 0 ? `${m}m ${s.toString().padStart(2, "0")}s` : `${s}s`;
-}
-
-// ── Sub-componentes ───────────────────────────────────────────────────────────
-
-function ExpiryClock({ secsLeft }: { secsLeft: number }) {
-  const urgent = secsLeft <= 60;
+function Encabezado() {
   return (
-    <div
-      className="flex items-center gap-1.5 text-xs"
-      style={{ color: urgent ? "var(--pgo-danger)" : "var(--pf-text-muted)" }}
-    >
-      <Clock className="h-3 w-3 shrink-0" aria-hidden />
-      <span>Código válido por: <strong>{formatTime(secsLeft)}</strong></span>
-    </div>
+    <hgroup className="pgo-acc-cabecera">
+      <h1 className="pgo-acc-titulo">{T.portal.verificarTitulo}</h1>
+      <p className="pgo-acc-sub">{T.portal.verificarSub}</p>
+    </hgroup>
   );
 }
 
-function IntentosRestantesBadge({ restantes }: { restantes: number }) {
-  if (restantes >= MAX_INTENTOS) return null;
+function VolverAlPortal() {
   return (
-    <div
-      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs"
-      style={{
-        background: restantes === 1 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)",
-        color:      restantes === 1 ? "var(--pgo-danger)"    : "var(--pgo-warning-dk)",
-        border:     `1px solid ${restantes === 1 ? "var(--pgo-danger-bd)" : "var(--pgo-warning-bd)"}`,
-      }}
-      role="status"
-      aria-live="polite"
-    >
-      <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
-      <span>
-        {restantes === 1
-          ? "Último intento disponible."
-          : `${restantes} intentos restantes.`}
-      </span>
-    </div>
+    <Link href="/portal" className="pgo-acc-enlace pgo-acc-enlace--suave" style={{ justifySelf: "center" }}>
+      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+      {T.portal.otroCodigo}
+    </Link>
   );
 }
-
-function PanelFinal({
-  tipo,
-}: { tipo: "EXPIRADO" | "AGOTADO" }) {
-  const esExpirado = tipo === "EXPIRADO";
-  return (
-    <div
-      className="space-y-4"
-      role="alert"
-    >
-      <div
-        className="flex flex-col items-center gap-2 rounded-xl p-4 text-center"
-        style={{
-          background: esExpirado ? "var(--pgo-warning-lt)" : "var(--pgo-danger-lt)",
-          border:     `1px solid ${esExpirado ? "var(--pgo-warning-bd)" : "var(--pgo-danger-bd)"}`,
-        }}
-      >
-        {esExpirado
-          ? <Clock className="h-6 w-6" style={{ color: "var(--pgo-warning)" }} aria-hidden />
-          : <XCircle className="h-6 w-6" style={{ color: "var(--pgo-danger)" }} aria-hidden />}
-        <p className="text-sm font-semibold" style={{ color: esExpirado ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
-          {esExpirado ? "Código expirado" : `Intentos agotados (${MAX_INTENTOS}/${MAX_INTENTOS})`}
-        </p>
-        <p className="text-xs" style={{ color: esExpirado ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
-          {esExpirado
-            ? "El código ya no es válido. Vuelve al portal para solicitar uno nuevo."
-            : "Has superado el máximo de intentos. Vuelve al portal para solicitar un nuevo código."}
-        </p>
-      </div>
-
-      <a
-        href="/portal"
-        className="pf-btn-primary flex w-full items-center justify-center gap-2"
-        style={{ height: "46px", fontSize: "15px", borderRadius: "12px", textDecoration: "none" }}
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
-        Solicitar nuevo código
-      </a>
-    </div>
-  );
-}
-
-// ── Formulario principal ──────────────────────────────────────────────────────
 
 function VerificarOtpForm() {
   const router  = useRouter();
   const params  = useSearchParams();
   const otpId   = params.get("id") ?? "";
 
-  const [codigo, setCodigo]                         = useState("");
-  const [inputError, setInputError]                 = useState<string | null>(null);
-  const [exito, setExito]                           = useState(false);
-  const [isPending, start]                          = useTransition();
-  const [mode, setMode]                             = useState<OtpMode>("NORMAL");
-  const [intentosRestantes, setIntentosRestantes]   = useState<number>(MAX_INTENTOS);
-  const [startedAt]                                 = useState<number>(() => Date.now());
-  const [expirySecsLeft, setExpirySecsLeft]         = useState<number>(Math.floor(CODE_TTL_MS / 1000));
+  const [codigo, setCodigo]                       = useState("");
+  const [inputError, setInputError]               = useState<string | null>(null);
+  const [exito, setExito]                         = useState(false);
+  const [isPending, start]                        = useTransition();
+  const [mode, setMode]                           = useState<OtpMode>("NORMAL");
+  const [intentosRestantes, setIntentosRestantes] = useState<number>(MAX_INTENTOS);
+  const [startedAt]                               = useState<number>(() => Date.now());
+  const [expirySecsLeft, setExpirySecsLeft]       = useState<number>(Math.floor(CODE_TTL_MS / 1000));
 
-  // Countdown de expiración — aproximado al momento en que el usuario recibió el código.
+  // Cuenta regresiva: aproximada al momento en que la persona recibió el código.
   useEffect(() => {
     const tick = () => {
-      const elapsed = Date.now() - startedAt;
-      const left    = Math.max(0, Math.floor((CODE_TTL_MS - elapsed) / 1000));
+      const left = Math.max(0, Math.floor((CODE_TTL_MS - (Date.now() - startedAt)) / 1000));
       setExpirySecsLeft(left);
-      if (left <= 0) {
-        setMode((m) => m === "NORMAL" ? "EXPIRADO" : m);
-      }
+      if (left <= 0) setMode((m) => (m === "NORMAL" ? "EXPIRADO" : m));
     };
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [startedAt]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setCodigo(v);
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6));
     setInputError(null);
   }
 
-  // Un solo canal: el mensaje bajo el campo (role="alert"). Repetirlo en un
-  // toast dejaba a la vista, a la vez, avisos de intentos ya superados
-  // ("Te quedan 2…" junto a "Intentos agotados").
-  function showError(msg: string) {
-    setInputError(msg);
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  // Un solo canal para el error: el mensaje bajo el campo (role="alert"). Repetirlo
+  // en un toast dejaba a la vista, a la vez, avisos de intentos ya superados.
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (codigo.length !== 6) { showError("Ingresa los 6 dígitos del código."); return; }
-    if (!otpId)               { showError("Enlace inválido. Vuelve a iniciar el proceso."); return; }
+    if (codigo.length !== 6) { setInputError("Ingresa los 6 dígitos del código."); return; }
+    if (!otpId)               { setInputError("Enlace inválido. Vuelve a iniciar el proceso."); return; }
 
     start(async () => {
       try {
@@ -160,205 +79,89 @@ function VerificarOtpForm() {
         const data = await res.json().catch(() => null);
         if (!data) {
           // Sin cuerpo JSON: falló el servidor, no la red ni el código.
-          showError("No pudimos verificar el código por un problema de nuestro lado. Intenta de nuevo en unos minutos.");
+          setInputError("No pudimos verificar el código por un problema de nuestro lado. Intenta de nuevo en unos minutos.");
           return;
         }
-
         if (data.ok && data.redirectTo) {
           setExito(true);
           router.push(data.redirectTo);
           return;
         }
-
         const errorCode = data.errorCode as string | undefined;
+        setCodigo("");
         if (errorCode === "EXPIRADO") {
           setMode("EXPIRADO");
-          setCodigo("");
         } else if (errorCode === "AGOTADO") {
           setMode("AGOTADO");
-          setCodigo("");
         } else {
-          if (typeof data.intentosRestantes === "number") {
-            setIntentosRestantes(data.intentosRestantes);
-          }
-          showError(data.error ?? "Código incorrecto o expirado.");
-          setCodigo("");
+          if (typeof data.intentosRestantes === "number") setIntentosRestantes(data.intentosRestantes);
+          setInputError(data.error ?? "Código incorrecto o expirado.");
         }
       } catch {
-        showError("Error de conexión. Intenta nuevamente.");
+        setInputError("Error de conexión. Intenta nuevamente.");
       }
     });
   }
 
   if (exito) {
     return (
-      <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-full"
-          style={{ background: "rgba(34,197,94,0.12)" }}
-        >
-          <CheckCircle2 className="h-6 w-6" style={{ color: "var(--pgo-success)" }} />
-        </div>
-        <p className="font-semibold" style={{ color: "var(--pf-navy)" }}>Acceso verificado</p>
-        <p className="text-sm" style={{ color: "var(--pf-text-muted)" }}>Redirigiendo a tu portal…</p>
+      <div className="pgo-acc-cuerpo pgo-acc-exito" role="status">
+        <div className="pgo-acc-sello"><Check aria-hidden="true" /></div>
+        <hgroup className="pgo-acc-cabecera">
+          <h1 className="pgo-acc-titulo">{T.portal.exitoTitulo}</h1>
+          <p className="pgo-acc-sub">{T.portal.exitoTexto}</p>
+        </hgroup>
       </div>
     );
   }
 
   if (mode === "EXPIRADO" || mode === "AGOTADO") {
-    return <PanelFinal tipo={mode} />;
+    const vencido = mode === "EXPIRADO";
+    return (
+      <div className="pgo-acc-cuerpo">
+        <Encabezado />
+        <Aviso variante="error" titulo={vencido ? T.portal.vencidoTitulo : T.portal.agotadoTitulo}>
+          <p className="pgo-acc-aviso-p">{vencido ? T.portal.vencidoTexto : T.portal.agotadoTexto}</p>
+        </Aviso>
+        <Link href="/portal" className="pgo-acc-btn pgo-acc-btn--primario pgo-acc-btn--bloque">
+          {T.portal.pedirNuevo}
+        </Link>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-      <div className="space-y-1.5">
-        <label htmlFor="portal-otp" className="block text-sm font-semibold" style={{ color: "var(--pf-navy)" }}>
-          Código de 6 dígitos
-        </label>
-        <input
-          id="portal-otp"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          placeholder="000000"
-          maxLength={6}
-          value={codigo}
-          onChange={handleChange}
-          disabled={isPending}
-          aria-invalid={inputError ? true : undefined}
-          aria-describedby={inputError ? "portal-otp-error" : undefined}
-          style={{
-            height:        "56px",
-            width:         "100%",
-            borderRadius:  "12px",
-            border:        `1px solid ${inputError ? "var(--pgo-danger)" : "var(--pf-border-input)"}`,
-            background:    "var(--pf-surface)",
-            color:         "var(--pf-navy)",
-            fontSize:      "28px",
-            fontWeight:    700,
-            textAlign:     "center",
-            letterSpacing: "0.25em",
-            padding:       "0 14px",
-            outline:       "none",
-            boxShadow:     "0 1px 3px rgba(10,37,64,0.06)",
-            transition:    "border-color 150ms ease",
-            opacity:       isPending ? 0.6 : 1,
-          }}
-          onFocus={(e) => {
-            if (!inputError) {
-              e.currentTarget.style.borderColor = "var(--pf-brand)";
-              e.currentTarget.style.boxShadow   = "0 0 0 3px color-mix(in srgb, var(--pf-brand) 15%, transparent)";
-            }
-          }}
-          onBlur={(e) => {
-            if (!inputError) {
-              e.currentTarget.style.borderColor = "var(--pf-border-input)";
-              e.currentTarget.style.boxShadow   = "0 1px 3px rgba(10,37,64,0.06)";
-            }
-          }}
-        />
-        {inputError && (
-          <p id="portal-otp-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
-            {inputError}
-          </p>
-        )}
-
-        {/* Fila de estado: intentos + countdown */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <IntentosRestantesBadge restantes={intentosRestantes} />
-          {expirySecsLeft > 0 && (
-            <ExpiryClock secsLeft={expirySecsLeft} />
-          )}
-          {intentosRestantes >= MAX_INTENTOS && expirySecsLeft <= 0 && (
-            <p className="text-xs" style={{ color: "var(--pf-text-muted)" }}>
-              Válido 10 min · Máx. {MAX_INTENTOS} intentos
-            </p>
-          )}
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={isPending || codigo.length !== 6}
-        className="pf-btn-primary w-full"
-        style={{ height: "46px", fontSize: "15px", borderRadius: "12px" }}
-      >
-        {isPending ? (
-          <>
-            <Spinner />
-            Verificando…
-          </>
-        ) : (
-          "Verificar código"
-        )}
-      </button>
-
+    <form onSubmit={handleSubmit} className="pgo-acc-cuerpo" noValidate>
+      <Encabezado />
+      <Campo
+        id="portal-otp" etiqueta={T.portal.codigo} icono={KeyRound} codigo
+        inputMode="numeric" autoComplete="one-time-code" placeholder="000000" maxLength={6}
+        value={codigo} onChange={handleChange} disabled={isPending} error={inputError}
+        ayuda={expirySecsLeft > 0 ? `${T.portal.venceEn} ${formatoReloj(expirySecsLeft)}.` : undefined}
+      />
+      {intentosRestantes < MAX_INTENTOS && !inputError ? (
+        <Aviso variante="pausa" titulo={T.verificar.quedanTitulo(intentosRestantes)}>
+          <p className="pgo-acc-aviso-p">{T.verificar.quedanTexto}</p>
+        </Aviso>
+      ) : null}
+      <Boton type="submit" bloque cargando={isPending} disabled={codigo.length !== 6}>
+        {isPending ? T.portal.verificando : T.portal.verificarCta}
+      </Boton>
       {/* Texto neutro a propósito: no confirma si el RUT existe ni si se envió
           un código (el tope por persona es silencioso para no permitir
           averiguar qué RUT están registrados). */}
-      <p className="text-center text-xs leading-relaxed" style={{ color: "var(--pf-text-muted)" }}>
-        ¿No te llegó? Puede tardar un par de minutos; revisa también la carpeta de
-        spam o correo no deseado. Puedes pedir hasta 3 códigos cada 10 minutos.
-      </p>
-
-      <div className="flex justify-center">
-        <a
-          href="/portal"
-          className="inline-flex items-center gap-1.5 text-sm"
-          style={{ color: "var(--pgo-text-3)" }}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-          Volver y solicitar nuevo código
-        </a>
-      </div>
+      <p className="pgo-acc-ayuda" style={{ margin: 0, textAlign: "center" }}>{T.portal.noLlego}</p>
+      <VolverAlPortal />
     </form>
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function VerificarPortalPage() {
   return (
-    <div
-      className="flex min-h-screen flex-col items-center justify-center px-4 py-12"
-      style={{ background: "linear-gradient(160deg, var(--pf-hero-1) 0%, var(--pf-hero-2) 45%, var(--pf-surface) 100%)" }}
-    >
-      <div className="w-full max-w-sm">
-
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <Link href="/marketplace" className="inline-flex">
-            <Logo size="lg" />
-          </Link>
-          <p className="mt-1 text-sm" style={{ color: "var(--pf-text-muted)" }}>Portal de autoconsulta</p>
-        </div>
-
-        <div
-          className="pf-card rounded-2xl p-7"
-          style={{ boxShadow: "0 20px 60px rgba(10, 37, 64, 0.10)" }}
-        >
-          <h1 className="mb-1 text-xl font-bold" style={{ color: "var(--pf-navy)" }}>
-            Verifica tu identidad
-          </h1>
-          <p className="mb-6 text-sm" style={{ color: "var(--pf-text-body)" }}>
-            Ingresa el código de 6 dígitos que enviamos a tu correo registrado.
-          </p>
-
-          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl" style={{ background: "var(--pf-brand-tint)" }} />}>
-            <VerificarOtpForm />
-          </Suspense>
-        </div>
-
-        <div className="mt-6 space-y-2 text-center">
-          <div className="flex items-center justify-center gap-2 text-xs" style={{ color: "var(--pf-text-muted)" }}>
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pf-success-check)" }} aria-hidden />
-            Acceso seguro · Código de un solo uso · Ley 21.719
-          </div>
-          <Link href="/marketplace" className="block text-xs hover:underline" style={{ color: "var(--pf-text-muted)" }}>
-            ← Volver al marketplace
-          </Link>
-        </div>
-      </div>
-    </div>
+    <MarcoGuiado flujo="portal">
+      <Suspense fallback={<div className="pgo-acc-cuerpo"><Encabezado /></div>}>
+        <VerificarOtpForm />
+      </Suspense>
+    </MarcoGuiado>
   );
 }

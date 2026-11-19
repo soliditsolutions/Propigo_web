@@ -773,7 +773,6 @@ html {
 .pgo-lamina .pgo-lamina-grueso { stroke-width: 2; }
 .pgo-lamina .pgo-lamina-acento { stroke: var(--pf-cyan); stroke-opacity: 0.6; }
 .pgo-lamina .pgo-lamina-relleno { fill: var(--pf-cyan); fill-opacity: 0.08; }
-.pgo-lamina .pgo-lamina-cota   { stroke-opacity: 0.3; }
 .pgo-lamina .pgo-lamina-rotulo,
 .pgo-lamina-rotulo {
   stroke: none;

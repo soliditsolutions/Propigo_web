@@ -27,17 +27,8 @@ export function LaminaPlano() {
       <path style={TRAZO} className="pgo-lamina-acento" d="M128 360 V320 M128 320 A40 40 0 0 1 168 360 M96 500 V540 M96 540 A40 40 0 0 0 136 500 M244 500 V540 M244 540 A40 40 0 0 0 284 500 M260 430 H298 M298 430 A40 40 0 0 1 260 470" />
       {/* Muebles fijos: cocina y baño */}
       <path style={TRAZO} d="M48 368 H162 V392 H48 M60 380 h20 M100 380 h20 M178 368 h74 v44 h-74 z M196 452 a14 18 0 1 0 28 0 a14 18 0 1 0 -28 0" />
-      {/* Cotas */}
-      <path style={TRAZO} className="pgo-lamina-cota" d="M20 120 V700 M14 120 H26 M14 700 H26 M40 740 H360 M40 734 V746 M360 734 V746" />
-      <g className="pgo-lamina-rotulo">
-        <text x="200" y="245" textAnchor="middle">LIVING · COMEDOR</text>
-        <text x="105" y="455" textAnchor="middle">COCINA</text>
-        <text x="215" y="485" textAnchor="middle">BAÑO</text>
-        <text x="130" y="610" textAnchor="middle">DORM. 1</text>
-        <text x="290" y="610" textAnchor="middle">DORM. 2</text>
-        <text x="200" y="762" textAnchor="middle">8,00 m</text>
-        <text x="12" y="410" textAnchor="middle" transform="rotate(-90 12 410)">14,50 m</text>
-      </g>
+      {/* Sin cotas ni rótulos de recintos: medidas como «14,50 m» se leían
+          como un dato de una propiedad real y no decían nada de Propigo. */}
     </svg>
   );
 }

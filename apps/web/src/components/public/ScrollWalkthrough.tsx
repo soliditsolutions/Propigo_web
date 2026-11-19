@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import Image, { type StaticImageData } from "next/image";
+import Image, { getImageProps, type StaticImageData } from "next/image";
 import { ChevronDown } from "lucide-react";
 import { setActiveSection } from "./PublicNavLinks";
 import { ScrollReveal } from "./ScrollReveal";
@@ -45,6 +45,12 @@ export type WalkStop = {
    * Una decisión de compra necesita más calma visual que una parada narrativa.
    */
   image?: StaticImageData;
+  /**
+   * Fondo de esta parada en teléfono y tablet (bajo 1024 px), en lugar de la
+   * foto: una lámina de dibujo técnico (ver LaminasMovil). Las fotos están
+   * compuestas para una pantalla horizontal y en vertical perdían la escena.
+   */
+  lamina?: ReactNode;
   /** Contenido (UI) que aparece sobre la foto en esta parada. */
   node: ReactNode;
   /**
@@ -557,20 +563,17 @@ export function ScrollWalkthrough({
                     además la precarga en el <head> con el mismo srcset). */}
                 {i === 0 && s.image && (
                   <div
-                    className="pgo-walk-stop-bg"
+                    className="pgo-walk-stop-bg pgo-walk-stop-bg--foto"
                     aria-hidden="true"
                     style={active ? { display: "none" } : undefined}
                   >
-                    <Image
-                      src={s.image}
-                      alt=""
-                      fill
-                      sizes="100vw"
-                      loading="eager"
-                      fetchPriority="high"
-                      className="object-cover"
-                    />
+                    <FotoSoloEscritorio src={s.image} />
                     <div className="absolute inset-0" style={{ background: scrimBg }} />
+                  </div>
+                )}
+                {s.lamina && (
+                  <div className="pgo-walk-lamina" aria-hidden="true" style={active ? { display: "none" } : undefined}>
+                    {s.lamina}
                   </div>
                 )}
                 {/* ScrollReveal: no-op en modo fijado (el fade ya lo maneja `vis`
@@ -578,8 +581,9 @@ export function ScrollWalkthrough({
                     que dispara casi al montar) — pero en modo apilado (mobile/
                     reduced-motion) es la ÚNICA transición entre categorías: sin
                     esto, cada parada aparecía de golpe al hacer scroll normal. */}
-                {/* Paradas 1+ en modo apilado (teléfono, tablet, movimiento
-                    reducido): su foto va como franja 16:9 sobre el contenido.
+                {/* Paradas 1+ en modo apilado con movimiento reducido en
+                    escritorio: su foto va como franja 16:9 sobre el contenido
+                    (bajo 1024 px la reemplaza la lámina y no se descarga).
                     De fondo no servía (recortada a la altura del texto se veía
                     una porción arbitraria de la escena) y sin ella la parada
                     se quedaba sin imagen. En 16:9 la escena se ve casi entera.
@@ -590,7 +594,7 @@ export function ScrollWalkthrough({
                     aria-hidden="true"
                     style={active ? { display: "none" } : undefined}
                   >
-                    <Image src={s.image} alt="" fill sizes="(max-width: 1023px) 100vw, 768px" className="object-cover" />
+                    <FotoSoloEscritorio src={s.image} sizes="768px" media={MEDIA_FRANJA} />
                   </div>
                 )}
                 <div className="relative mx-auto w-full max-w-6xl">
@@ -621,5 +625,36 @@ export function ScrollWalkthrough({
         )}
       </div>
     </section>
+  );
+}
+
+/** Única situación en que la franja se ve: escritorio sin el recorrido animado. */
+const MEDIA_FRANJA = "(min-width: 1024px) and (prefers-reduced-motion: reduce)";
+
+/** GIF transparente de 1×1: la imagen de reserva del <picture> bajo 1024 px. */
+const SIN_FOTO = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/**
+ * Foto del recorrido que solo se descarga desde 1024 px. En teléfono y tablet
+ * el fondo es la lámina: con un <Image> oculto por CSS el navegador la bajaba
+ * igual (Chromium descarga incluso las `loading="lazy"` con display:none),
+ * cientos de KB sin usar. El <source> con `media` deja al teléfono sin
+ * fuente y solo con el GIF de 1×1 (la franja, además, solo la trae con
+ * movimiento reducido: con el recorrido animado la ponen los fotogramas y se
+ * descargaba dos veces). Sin `sizes` es la del hero: el LCP de
+ * escritorio, con carga temprana y prioridad alta.
+ */
+export function FotoSoloEscritorio({ src, sizes: ancho, media = "(min-width: 1024px)" }: { src: StaticImageData; sizes?: string; media?: string }) {
+  const { props } = getImageProps(
+    ancho
+      ? { src, alt: "", fill: true, sizes: ancho, loading: "lazy", className: "object-cover" }
+      : { src, alt: "", fill: true, sizes: "100vw", loading: "eager", fetchPriority: "high", className: "object-cover" },
+  );
+  const { srcSet, sizes, ...resto } = props;
+  return (
+    <picture>
+      <source media={media} srcSet={srcSet} sizes={sizes} />
+      <img {...resto} src={SIN_FOTO} alt="" />
+    </picture>
   );
 }

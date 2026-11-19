@@ -11,6 +11,7 @@ import { PropiedadDestacadaCard, type PropiedadDestacada } from "@/components/pu
 import { HomeHashHandler } from "@/components/public/HomeHashHandler";
 import { ScrollWalkthrough } from "@/components/public/ScrollWalkthrough";
 import { PlanesStop } from "@/components/public/PlanesStop";
+import { LaminaCalendario, LaminaFachadas, LaminaMapa, LaminaPlano } from "@/components/public/LaminasMovil";
 import walkDoor from "@/images/backgrounds/scroll-walkthrough_door.png";
 import walkRoom from "@/images/backgrounds/scroll-walkthrough_keys_and_costumers.png";
 import walkContract from "@/images/backgrounds/scroll-walkthrough_signed_contract.png";
@@ -318,10 +319,10 @@ export default async function Home() {
               usado en login/registro. */}
           <ScrollWalkthrough
             stops={[
-              { image: walkDoor,     node: stopHero },
-              { image: walkRoom,     node: stopFeatures,    anchorId: "acerca-de" },
-              { image: walkContract, node: stopPropiedades, anchorId: "destacado" },
-              { node: <PlanesStop />, anchorId: "planes" },
+              { image: walkDoor,     lamina: <LaminaPlano />,      node: stopHero },
+              { image: walkRoom,     lamina: <LaminaCalendario />, node: stopFeatures,    anchorId: "acerca-de" },
+              { image: walkContract, lamina: <LaminaMapa />,       node: stopPropiedades, anchorId: "destacado" },
+              { lamina: <LaminaFachadas />, node: <PlanesStop />, anchorId: "planes" },
             ]}
           />
         </main>

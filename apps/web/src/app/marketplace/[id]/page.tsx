@@ -202,11 +202,13 @@ export default async function MarketplaceFichaPage({
                   Disponible
                 </span>
               </div>
+              <hgroup>
               <h1 className="text-xl font-bold sm:text-2xl" style={{ color: "var(--pf-navy)" }}>{pub.titulo}</h1>
               <p className="mt-1.5 flex items-center gap-1.5 text-sm" style={{ color: "var(--pf-text-muted)" }}>
                 <MapPin className="h-4 w-4 shrink-0" style={{ color: "var(--pf-text-light)" }} aria-hidden />
                 {direccionMostrada}
               </p>
+              </hgroup>
             </div>
 
             {/* Amenities */}

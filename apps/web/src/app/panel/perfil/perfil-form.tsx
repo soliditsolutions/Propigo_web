@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useMemo, useEffect, useRef, useTransition, startTransition } from "react";
+import { useActionState, useState, useMemo, useEffect, useRef, useTransition, startTransition, useId } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -373,6 +373,7 @@ function CambiarContactoField({
   const { show: toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const ejecutar = useAccionSegura();
+  const idActual = useId();
   const [paso, setPaso]           = useState<"idle" | "nuevo" | "codigo">("idle");
   const [nuevoValor, setNuevoValor] = useState("");
   const [password, setPassword]     = useState("");
@@ -456,7 +457,7 @@ function CambiarContactoField({
 
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
+      <label htmlFor={idActual} className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--pgo-text-2)" }}>
         {icon}
         {label}
       </label>
@@ -464,6 +465,7 @@ function CambiarContactoField({
       {paso === "idle" && (
         <div className="flex items-center gap-2">
           <input
+            id={idActual}
             type={inputType} value={valorMostrado} disabled readOnly
             title={valorMostrado}
             style={{ ...fieldStyle, opacity: 0.55, cursor: "not-allowed", minWidth: 0, textOverflow: "ellipsis" }}
@@ -739,12 +741,13 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
               guardarPerfilAction, esto es solo la capa visual). */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-sm font-semibold" style={labelStyle}>
+              <label htmlFor="nombre-completo" className="flex items-center gap-1.5 text-sm font-semibold" style={labelStyle}>
                 <User className="h-3.5 w-3.5" aria-hidden="true" />
                 Nombre completo
               </label>
               <div className="relative">
                 <input
+                  id="nombre-completo"
                   type="text" value={perfil.nombre} disabled readOnly
                   style={{ ...inputBase, opacity: 0.55, cursor: "not-allowed", paddingRight: "38px" }}
                 />

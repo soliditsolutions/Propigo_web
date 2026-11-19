@@ -273,6 +273,7 @@ export default async function MarketplacePage({
             Corredores verificados · {MARCA}
           </span>
 
+          <hgroup>
           <h1
             className="pgo-enter pgo-fluid-hero mt-2 font-bold tracking-tight"
             style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
@@ -282,9 +283,10 @@ export default async function MarketplacePage({
           <p className="mt-4 text-lg" style={{ color: "var(--pf-text-body)", animationDelay: "60ms" }}>
             Arriendos en Chile gestionados por corredores certificados {MARCA}
           </p>
+          </hgroup>
 
           {/* Buscador + botón filtros */}
-          <form method="GET" action="/marketplace" className="mt-8 flex flex-col gap-2 sm:flex-row">
+          <form method="GET" action="/marketplace" role="search" className="mt-8 flex flex-col gap-2 sm:flex-row">
             {/* Preservar otros params al buscar por texto */}
             {tipo && tipo !== "todas" && <input type="hidden" name="tipo" value={tipo} />}
             {Object.entries(sp).filter(([k]) => !["q", "tipo"].includes(k)).map(([k, v]) =>
@@ -298,10 +300,11 @@ export default async function MarketplacePage({
               />
               <input
                 name="q"
-                type="text"
+                type="search"
+                aria-label="Buscar por dirección, comuna o región"
                 defaultValue={q}
                 placeholder="Dirección, comuna o región…"
-                className="pf-input w-full"
+                className="pf-input w-full appearance-none"
               />
             </div>
             <div className="flex gap-2">

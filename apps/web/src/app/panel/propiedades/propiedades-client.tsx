@@ -1482,7 +1482,7 @@ export function PropiedadesClient({
                     <ChevronRight className="h-3.5 w-3.5 text-[var(--pgo-text-4)]" />
                   </div>
                 </div>
-                <h3 className="mt-3 font-semibold text-[var(--pgo-text-1)]">{TIPO_LABEL[p.tipo] ?? p.tipo}</h3>
+                <h2 className="mt-3 font-semibold text-[var(--pgo-text-1)]">{TIPO_LABEL[p.tipo] ?? p.tipo}</h2>
                 <p className="mt-1 flex items-center gap-1 text-sm text-[var(--pgo-text-3)]">
                   <MapPin className="h-3 w-3 shrink-0 text-[var(--pgo-text-4)]" />
                   {p.direccion}{p.comuna ? `, ${p.comuna}` : ""}

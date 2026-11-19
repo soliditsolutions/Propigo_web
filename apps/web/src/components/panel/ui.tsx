@@ -64,13 +64,8 @@ export function StatCard({
       className="pgo-card pgo-card-glow pgo-sheen relative overflow-hidden p-5 flex gap-4 items-start"
       style={{ "--pgo-card-glow": accentBar[tone] } as React.CSSProperties}
     >
-      {/* Barra accent lateral */}
-      <div
-        aria-hidden="true"
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[14px]"
-        style={{ background: accentBar[tone], boxShadow: `0 0 10px ${accentBar[tone]}` }}
-      />
-
+      {/* El tono vive en el ícono y en el resplandor de la tarjeta, no en una
+          franja lateral (patrón «side-tab», diseño sobrio del panel). */}
       {/* Ícono */}
       {icon && (
         <div
@@ -87,7 +82,7 @@ export function StatCard({
       )}
 
       {/* Contenido */}
-      <div className="pl-1 min-w-0">
+      <div className="min-w-0">
         <p
           className="text-xs font-semibold uppercase tracking-wider"
           style={{ color: "var(--pgo-text-3)" }}
@@ -205,7 +200,8 @@ export function PageTitle({
 }) {
   return (
     <div className="mb-6 flex items-start justify-between gap-4">
-      <div className="min-w-0">
+      {/* hgroup: título y subtítulo forman un solo encabezado (regla de estructura de textos). */}
+      <hgroup className="min-w-0">
         <h1
           className="text-2xl font-bold tracking-tight"
           style={{ color: "var(--pgo-text-1)" }}
@@ -220,7 +216,7 @@ export function PageTitle({
             {subtitle}
           </p>
         )}
-      </div>
+      </hgroup>
       {action && <div className="shrink-0">{action}</div>}
     </div>
   );
@@ -240,9 +236,9 @@ export function SectionTitle({
   description?: string;
   as?: "h2" | "h3";
 }) {
-  return (
+  const titulo = (
     <Tag
-      className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-semibold"
+      className={`flex items-center gap-x-2 font-semibold ${description ? "" : "mb-3"}`}
       style={{ color: "var(--pgo-text-1)" }}
     >
       {count !== undefined && (
@@ -258,16 +254,19 @@ export function SectionTitle({
         </span>
       )}
       {title}
-      {description && (
-        // En mobile baja a su propia línea: en la misma fila, título y descripción quedaban en columnas angostas.
-        <span
-          className="basis-full text-xs font-normal sm:basis-auto"
-          style={{ color: "var(--pgo-text-4)" }}
-        >
-          {description}
-        </span>
-      )}
     </Tag>
+  );
+  if (!description) return titulo;
+  // La descripción va fuera del encabezado (dentro, el lector de pantalla leía
+  // «Alertas personalizadasAvisos…» como un solo título). En mobile baja a su
+  // propia línea: en la misma fila quedaban dos columnas angostas.
+  return (
+    <hgroup className="mb-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      {titulo}
+      <p className="basis-full text-xs sm:basis-auto" style={{ color: "var(--pgo-text-4)" }}>
+        {description}
+      </p>
+    </hgroup>
   );
 }
 

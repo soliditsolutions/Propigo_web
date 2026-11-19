@@ -101,7 +101,7 @@ export default async function PerfilPage({
 
       <div className={`mx-auto px-4 py-8 sm:px-6 ${tab === "plan" ? "max-w-4xl" : "max-w-2xl"}`}>
         {/* Encabezado */}
-        <div className="mb-6">
+        <hgroup className="mb-6">
           <h1
             className="text-2xl font-bold"
             style={{ color: "var(--pgo-text-1)" }}
@@ -111,7 +111,7 @@ export default async function PerfilPage({
           <p className="mt-1 text-sm" style={{ color: "var(--pgo-text-3)" }}>
             Configura tus datos personales y de seguridad.
           </p>
-        </div>
+        </hgroup>
 
         {/* ── Tab nav ───────────────────────────────────────────────────── */}
         <TabNav
@@ -119,7 +119,7 @@ export default async function PerfilPage({
             { key: "datos",        label: "Datos personales" },
             { key: "seguridad",    label: "Seguridad" },
             { key: "dispositivos", label: "Dispositivos" },
-            ...(esManager ? [{ key: "plan", label: "Mi Plan" }] : []),
+            ...(esManager ? [{ key: "plan", label: "Mi plan" }] : []),
           ]}
           activeTab={tab}
           baseHref="/panel/perfil"

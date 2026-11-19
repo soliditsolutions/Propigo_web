@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import Link from "next/link";
 import { getTenant, getResumen } from "@/lib/queries";
 import { Card, StatCard, Badge, estadoTone, estadoPulse, estadoLabel, PageTitle } from "@/components/panel/ui";
@@ -7,6 +8,8 @@ import { AlertTriangle, Banknote, FileText, ArrowLeftRight, ArrowRight } from "l
 import { ProximosClient } from "./proximos-client";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Resumen") };
 
 export default async function Dashboard() {
   const tenant = await getTenant();

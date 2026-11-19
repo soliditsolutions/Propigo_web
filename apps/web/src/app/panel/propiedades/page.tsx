@@ -1,8 +1,11 @@
+import { titulo } from "@/lib/marca";
 import { getActor, getPropiedades, getColaboradoresActivos, propiedadIdsVisibles, getCupoPropiedadesInfo } from "@/lib/queries";
 import { PageTitle } from "@/components/panel/ui";
 import { PropiedadesClient } from "./propiedades-client";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Propiedades") };
 
 export default async function PropiedadesPage() {
   const actor = await getActor();

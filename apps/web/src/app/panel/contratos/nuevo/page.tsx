@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getActor, propiedadIdsVisibles } from "@/lib/queries";
@@ -6,6 +7,8 @@ import { PageTitle } from "@/components/panel/ui";
 import { NuevoContratoClient } from "./nuevo-contrato-client";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Nuevo contrato") };
 
 export default async function NuevoContratoPage() {
   const actor = await getActor();

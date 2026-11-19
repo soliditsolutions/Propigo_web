@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import { getActor, getVouchers, getContratosSelect, propiedadIdsVisibles } from "@/lib/queries";
 import { clp, fecha } from "@/lib/format";
 import { PageTitle } from "@/components/panel/ui";
@@ -12,6 +13,8 @@ const TIPO_LABEL = {
   liquidacion: { label: "Liquidación", color: "var(--pgo-success)" },
   garantia:    { label: "Devolución de garantía", color: "var(--pgo-warning)" },
 } as const;
+
+export const metadata = { title: titulo("Historial de vouchers") };
 
 export default async function VouchersPage({
   searchParams,

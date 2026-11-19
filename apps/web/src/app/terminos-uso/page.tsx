@@ -88,6 +88,7 @@ export default function TerminosUsoPage() {
             <Scale className="h-4 w-4" aria-hidden />
             <span className="font-semibold">Marco legal chileno 2026</span>
           </div>
+          <hgroup>
           <h1
             className="text-4xl font-bold"
             style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
@@ -97,6 +98,7 @@ export default function TerminosUsoPage() {
           <p className="mt-3 text-lg" style={{ color: "var(--pf-text-body)" }}>
             Del sitio público {MARCA} — marketplace de arriendos y portal de autoconsulta.
           </p>
+          </hgroup>
           <p className="mt-2 text-sm" style={{ color: "var(--pf-text-muted)" }}>
             Última actualización: <strong>{ULTIMA_ACTUALIZACION}</strong>
           </p>

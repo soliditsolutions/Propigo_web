@@ -1,9 +1,12 @@
+import { titulo } from "@/lib/marca";
 import { getActor } from "@/lib/queries";
 import { getEquipo, getInvitacionesPendientes, getCupoInfo } from "./actions";
 import { PageTitle } from "@/components/panel/ui";
 import { EquipoClient } from "./equipo-client";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Equipo") };
 
 export default async function EquipoPage() {
   // El proxy ya bloquea /panel/equipo para no-managers vía session.rol; este

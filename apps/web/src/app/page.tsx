@@ -144,6 +144,7 @@ export default async function Home() {
         <ShieldCheck className="h-3.5 w-3.5 text-[var(--pgo-success)]" />
         PropTech para corredores de propiedades · Chile
       </span>
+      <hgroup>
       <h1 className="pgo-fluid-hero mt-4 text-balance font-bold leading-tight tracking-tight text-[var(--pf-navy)]">
         La gestión de arriendos,{" "}
         <span className="pf-headline-accent">automática y sin errores</span>
@@ -153,6 +154,7 @@ export default async function Home() {
         cada contrato y deja el respaldo listo para rendirle al propietario.
         Sin planillas.
       </p>
+      </hgroup>
       {/* CTA primario — el negocio es el corredor. pgo-sheen: barrido de luz al
           hover, reservado para el CTA principal de la página. */}
       <div className="mt-5 flex justify-center">

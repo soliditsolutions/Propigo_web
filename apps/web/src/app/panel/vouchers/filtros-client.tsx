@@ -44,10 +44,11 @@ export function FiltrosClient({
     >
       {/* Tipo */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
+        <label htmlFor="voucher-filtro-tipo" className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Tipo
         </label>
         <select
+          id="voucher-filtro-tipo"
           name="tipo"
           defaultValue={tipoActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
@@ -66,11 +67,12 @@ export function FiltrosClient({
 
       {/* Desde */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
+        <label htmlFor="voucher-filtro-desde" className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Desde
         </label>
         <input
           type="date"
+          id="voucher-filtro-desde"
           name="desde"
           defaultValue={desdeActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
@@ -84,11 +86,12 @@ export function FiltrosClient({
 
       {/* Hasta */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
+        <label htmlFor="voucher-filtro-hasta" className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Hasta
         </label>
         <input
           type="date"
+          id="voucher-filtro-hasta"
           name="hasta"
           defaultValue={hastaActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"
@@ -102,10 +105,11 @@ export function FiltrosClient({
 
       {/* Contrato / Propiedad */}
       <div className="flex flex-col gap-1 min-w-[200px]">
-        <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
+        <label htmlFor="voucher-filtro-contratoId" className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--pgo-text-4)" }}>
           Propiedad
         </label>
         <select
+          id="voucher-filtro-contratoId"
           name="contratoId"
           defaultValue={contratoIdActivo ?? ""}
           className="rounded-lg border px-3 py-1.5 text-sm"

@@ -163,11 +163,13 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
       {paso === "editando" && (
         <div className="mt-3 space-y-2">
           <input
-            type={campo === "email" ? "email" : "text"}
+            type={campo === "email" ? "email" : "tel"}
+            aria-label={campo === "email" ? "Correo nuevo" : "Teléfono nuevo"}
+            autoComplete={campo === "email" ? "email" : "tel"}
             value={valorNuevo}
             onChange={(e) => setValorNuevo(e.target.value)}
             placeholder={campo === "email" ? "nuevo@correo.cl" : "+56 9 1234 5678"}
-            className="w-full rounded-lg border px-3 py-2 text-sm"
+            className="w-full rounded-lg border px-3 py-2 text-base sm:text-sm"
             style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
           {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
@@ -187,10 +189,11 @@ function RectificacionCard({ campo, valorActual }: { campo: Campo; valorActual: 
           <p className="text-xs" style={{ color: "var(--pgo-text-3)" }}>Ingresa el código de 6 dígitos que enviamos.</p>
           <input
             type="text" inputMode="numeric" maxLength={6}
+            aria-label="Código de 6 dígitos" autoComplete="one-time-code"
             value={codigo}
             onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))}
             placeholder="000000"
-            className="w-32 rounded-lg border px-3 py-2 text-center text-sm tabular-nums tracking-widest"
+            className="w-32 rounded-lg border px-3 py-2 text-center text-base tabular-nums tracking-widest sm:text-sm"
             style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
           {error && <p className="text-xs" style={{ color: "var(--pgo-danger)" }}>{error}</p>}
@@ -256,7 +259,8 @@ function OposicionCard({ suscrito, alcance }: { suscrito: boolean; alcance: "sol
           <input
             type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)}
             placeholder="Motivo (opcional)"
-            className="w-full rounded-lg border px-3 py-1.5 text-sm"
+            aria-label="Motivo (opcional)"
+            className="w-full rounded-lg border px-3 py-1.5 text-base sm:text-sm"
             style={{ borderColor: "var(--pgo-border)", background: "var(--pgo-surface)", color: "var(--pgo-text-1)" }}
           />
           {alcanceElegido === "todos" && (

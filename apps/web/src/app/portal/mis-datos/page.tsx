@@ -73,13 +73,13 @@ export default async function MisDatosPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6 space-y-4">
-        <div>
+        <hgroup>
           <h1 className="text-lg font-bold" style={{ color: "var(--pgo-text-1)" }}>Mis datos personales</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--pgo-text-3)" }}>
             Ejerce tus derechos sobre los datos que {MARCA} guarda de ti, conforme a la Ley 21.719.{" "}
             <a href="/privacidad#derechos" className="underline" style={{ color: "var(--pgo-primary)" }}>Más sobre tus derechos</a>.
           </p>
-        </div>
+        </hgroup>
 
         <MisDatosClient
           nombre={persona.nombre}

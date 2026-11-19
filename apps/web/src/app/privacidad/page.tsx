@@ -126,8 +126,9 @@ export default function PrivacidadPage() {
                 style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)", border: "1px solid var(--pgo-primary-bd)" }}
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Ley 21.719 · Protección de Datos Personales
+                Ley 21.719 · Protección de datos personales
               </div>
+              <hgroup>
               <h1
                 className="text-3xl font-bold tracking-tight mb-3"
                 style={{ color: "var(--pf-navy)", letterSpacing: "-0.02em" }}
@@ -139,6 +140,7 @@ export default function PrivacidadPage() {
                 datos personales con transparencia, conforme a la legislación chilena vigente.
                 Lea esta política con atención antes de utilizar nuestra plataforma.
               </p>
+              </hgroup>
               <p className="mt-2 text-sm" style={{ color: "var(--pf-text-light)" }}>
                 Última actualización: {ULTIMA_ACTUALIZACION}
               </p>

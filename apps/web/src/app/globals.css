@@ -888,25 +888,13 @@ html {
   animation: pgo-anchor-flash 1.1s var(--pgo-ease) 1;
 }
 
-/* ── Filas de tabla — barra de acento con glow en la fila activa ──────
-   Mismo lenguaje que la barra lateral de cards/KPIs. La primera celda
-   necesita position:relative para anclar la barra a su borde izquierdo. */
+/* ── Filas de tabla — la fila activa solo cambia de fondo ───────────────
+   Sin franja lateral de color: el panel es sobrio (decisión 2026-11). */
 .pgo-row-hover {
   transition: background-color 150ms ease;
 }
 .pgo-row-hover:hover {
   background: var(--pgo-surface-2);
-}
-.pgo-row-hover > td:first-child {
-  position: relative;
-}
-.pgo-row-hover:hover > td:first-child::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--pgo-primary);
-  box-shadow: 0 0 8px var(--pgo-primary-bd);
 }
 
 /* Toast / Dialog modal — slide + scale in */

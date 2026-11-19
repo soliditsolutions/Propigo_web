@@ -241,14 +241,17 @@ export default async function PortalContratoPage({
                 : <Home      className="h-5 w-5" style={{ color: "var(--pgo-primary-bd)" }} aria-hidden />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-base leading-tight" style={{ color: "var(--pgo-sidebar-text)" }}>
-                {p.direccion}
-              </p>
-              {(p.comuna || p.region) && (
-                <p className="text-sm mt-0.5" style={{ color: "var(--pgo-sidebar-muted)" }}>
-                  {[p.comuna, p.region].filter(Boolean).join(", ")}
-                </p>
-              )}
+              {/* La dirección es el título de la página: la persona entra a ver su arriendo. */}
+              <hgroup>
+                <h1 className="font-bold text-base leading-tight" style={{ color: "var(--pgo-sidebar-text)" }}>
+                  {p.direccion}
+                </h1>
+                {(p.comuna || p.region) && (
+                  <p className="text-sm mt-0.5" style={{ color: "var(--pgo-sidebar-muted)" }}>
+                    {[p.comuna, p.region].filter(Boolean).join(", ")}
+                  </p>
+                )}
+              </hgroup>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <span className="rounded-full px-2 py-0.5 text-xs font-medium capitalize" style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.75)" }}>
                   {p.tipo}

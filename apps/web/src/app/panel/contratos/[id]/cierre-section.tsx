@@ -221,6 +221,7 @@ export function CierreSection({
             Causal de término
           </legend>
           <select
+            aria-label="Causal de término"
             value={causal}
             onChange={(e) => {
               setCausal(e.target.value);

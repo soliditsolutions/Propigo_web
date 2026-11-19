@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, ShieldCheck, AlertTriangle, Download } from "lucide-react";
@@ -60,6 +61,8 @@ const TIPOS_ENTRADA = new Set([
   "PAGO_RECIBIDO",
   "GARANTIA_RECIBIDA",
 ]);
+
+export const metadata = { title: titulo("Detalle del contrato") };
 
 export default async function ContratoDetallePage({
   params,

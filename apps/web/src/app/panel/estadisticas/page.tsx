@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import { redirect } from "next/navigation";
 import { getActor } from "@/lib/queries";
 import { PageTitle } from "@/components/panel/ui";
@@ -44,6 +45,8 @@ function LockedTab({ tab }: { tab: AnalyticsTier }) {
     </div>
   );
 }
+
+export const metadata = { title: titulo("Estadísticas") };
 
 export default async function EstadisticasPage({
   searchParams,

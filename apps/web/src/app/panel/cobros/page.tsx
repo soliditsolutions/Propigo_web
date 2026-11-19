@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import { Suspense } from "react";
 import { getActor, getPeriodosPendientes, propiedadIdsVisibles } from "@/lib/queries";
 import { withTenant } from "@/lib/tenant-db";
@@ -7,6 +8,8 @@ import { CobrosClient } from "./cobros-client";
 import { CheckCircle2, TrendingUp } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Cobros y liquidaciones") };
 
 export default async function CobrosPage() {
   const actor    = await getActor();
@@ -39,7 +42,7 @@ export default async function CobrosPage() {
   return (
     <>
       <PageTitle
-        title="Cobros y Liquidaciones"
+        title="Cobros y liquidaciones"
         subtitle="Gestiona los pagos recibidos y cierra las liquidaciones del mes."
       />
 

@@ -1,3 +1,4 @@
+import { titulo } from "@/lib/marca";
 import { getActor, getNotificaciones, propiedadIdsVisibles } from "@/lib/queries";
 import { tieneEmailReal } from "@/lib/email";
 import { PageTitle } from "@/components/panel/ui";
@@ -7,6 +8,8 @@ import { listarAlertas } from "./alertas-actions";
 import { withTenant } from "@/lib/tenant-db";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = { title: titulo("Notificaciones") };
 
 export default async function NotificacionesPage() {
   const actor = await getActor();

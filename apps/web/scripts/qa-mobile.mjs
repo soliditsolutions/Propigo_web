@@ -8,8 +8,11 @@
 // Mide por página: scroll horizontal, elementos fuera de pantalla, inputs que
 // hacen zoom en iOS (< 16px), contenido escondido tras scroll horizontal y
 // errores de consola, estructura de textos (h1/main/hgroup, niveles, títulos
-// sin punto, nombres accesibles) y redirecciones
-// inesperadas. Sale con código 1 si encuentra alguno.
+// sin punto, nombres accesibles), redirecciones inesperadas, textos o
+// controles que se traslapan, texto recortado sin puntos suspensivos e
+// imágenes rotas, sin tamaño o invisibles tras recorrer la página. Sale con
+// código 1 si encuentra alguno. Avisa (sin fallar) las páginas que en un
+// teléfono pasan de 8 pantallas de alto.
 //
 // SOLO LOCAL: para entrar sin correo inserta un dispositivo confiable y fija el
 // código OTP del portal directamente en la base. Se niega a correr contra otra
@@ -103,9 +106,9 @@ async function medir(page, tactil) {
       })
       .map((el) => `${el.tagName.toLowerCase()} "${(el.innerText || el.getAttribute("aria-label") || el.getAttribute("href") || "").trim().slice(0, 30)}" ${Math.round(el.getBoundingClientRect().width)}×${Math.round(el.getBoundingClientRect().height)}`);
     // Contenido escondido tras un scroll horizontal interno. Las filas .pgo-scroll-x
-    // se desplazan a propósito (con difuminado que lo indica), no cuentan.
+    // .pgo-chips-fila y .pgo-carrusel se desplazan a propósito (con difuminado que lo indica), no cuentan.
     const scrollInterno = [...document.querySelectorAll("body *")]
-      .filter((el) => !el.classList.contains("pgo-scroll-x") && /(auto|scroll)/.test(getComputedStyle(el).overflowX) && el.scrollWidth > el.clientWidth + 2 && el.clientHeight > 0)
+      .filter((el) => !el.matches(".pgo-scroll-x, .pgo-chips-fila, .pgo-carrusel") && /(auto|scroll)/.test(getComputedStyle(el).overflowX) && el.scrollWidth > el.clientWidth + 2 && el.clientHeight > 0)
       .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 50)} oculto=${el.scrollWidth - el.clientWidth}px`);
     // Estructura de textos (PRODUCT.md): un h1 dentro del único main, con su
     // subtítulo en hgroup; niveles sin saltos; títulos sin punto final;
@@ -142,8 +145,118 @@ async function medir(page, tactil) {
       if (el.getBoundingClientRect().width === 0) continue;
       if (!(el.labels?.length || el.getAttribute("aria-label") || el.getAttribute("aria-labelledby"))) estructura.push(`campo sin etiqueta ${el.name || el.id || el.type}`);
     }
-    return { scrollHorizontal: document.documentElement.scrollWidth - vw, fuera: fuera.slice(0, 8), zoomIOS, chicos, scrollInterno, estructura: [...new Set(estructura)].slice(0, 10) };
+    // Traslapes: texto o controles que se pisan entre sí. Solo hojas visibles
+    // (elementos con texto propio, controles, campos); las imágenes no cuentan
+    // porque un sello sobre una foto es a propósito. Tampoco lo que está dentro
+    // de un diálogo, de algo aria-hidden o de un elemento fijo (navbar, toasts).
+    const visible = (el) => {
+      for (let a = el; a && a !== document.body; a = a.parentElement) {
+        const s = getComputedStyle(a);
+        if (s.visibility === "hidden" || s.display === "none" || Number(s.opacity) < 0.05 || a.getAttribute("aria-hidden") === "true") return false;
+        if (s.position === "fixed" || s.position === "sticky") return false;
+        if (a.matches("[role=dialog], dialog, .sr-only, details:not([open]) > :not(summary)")) return false;
+      }
+      return true;
+    };
+    // Lo que queda fuera de un contenedor con scroll o recorte (una lista con
+    // alto máximo) no se ve: se mide solo la parte dentro de su ventana.
+    const recortar = (el, c) => {
+      let { left, top, right, bottom } = c;
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const s = getComputedStyle(a);
+        if (s.overflowX === "visible" && s.overflowY === "visible") continue;
+        const v = a.getBoundingClientRect();
+        if (s.overflowX !== "visible") { left = Math.max(left, v.left); right = Math.min(right, v.right); }
+        if (s.overflowY !== "visible") { top = Math.max(top, v.top); bottom = Math.min(bottom, v.bottom); }
+      }
+      return { left, top, right, bottom, width: right - left, height: bottom - top };
+    };
+    const conTextoPropio = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+    const hojas = [...document.querySelectorAll("body *")]
+      .filter((el) => (el.matches("button, a[href], input:not([type=hidden]), select, textarea") || conTextoPropio(el)))
+      // getClientRects: un enlace en línea que salta de renglón tiene una caja
+      // por renglón; su caja envolvente pisaría a los vecinos sin hacerlo.
+      .map((el) => ({ el, r: el.getBoundingClientRect(), cajas: [...el.getClientRects()].map((c) => recortar(el, c)).filter((c) => c.width > 2 && c.height > 2) }))
+      .filter(({ el, r, cajas }) => r.width > 2 && r.height > 2 && cajas.length && visible(el));
+    // Adorno a propósito: un elemento posicionado en absoluto dentro del
+    // mismo contenedor que el otro (ojo de la contraseña, sello del avatar).
+    const adorno = (x, y) => {
+      for (let a = x; a && a !== document.body; a = a.parentElement) {
+        if (getComputedStyle(a).position === "absolute") return !!a.offsetParent?.contains(y);
+      }
+      return false;
+    };
+    const pisan = (A, B) => A.cajas.some((a) => B.cajas.some((b) =>
+      Math.min(a.right, b.right) - Math.max(a.left, b.left) > 4 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 4));
+    const traslapes = [];
+    for (let i = 0; i < hojas.length && traslapes.length < 6; i++) {
+      for (let j = i + 1; j < hojas.length; j++) {
+        const A = hojas[i], B = hojas[j];
+        if (A.el.contains(B.el) || B.el.contains(A.el)) continue;
+        // Más de 4 px en ambos ejes: los bordes que se tocan no son traslape.
+        if (pisan(A, B) && !adorno(A.el, B.el) && !adorno(B.el, A.el)) {
+          const t = (x) => `${x.el.tagName.toLowerCase()} "${(x.el.innerText || x.el.getAttribute("aria-label") || x.el.name || "").trim().slice(0, 24)}"`;
+          traslapes.push(`${t(A)} ⨯ ${t(B)}`);
+          break;
+        }
+      }
+    }
+    // Texto cortado: una caja con overflow oculto que esconde parte de su texto
+    // sin puntos suspensivos ni line-clamp (esos recortes son a propósito).
+    const cortados = hojas
+      .filter(({ el }) => conTextoPropio(el) && !el.matches("input, select, textarea"))
+      .filter(({ el }) => {
+        const s = getComputedStyle(el);
+        if (s.textOverflow === "ellipsis" || s.webkitLineClamp !== "none" && s.webkitLineClamp !== "") return false;
+        const ocultaX = /(hidden|clip)/.test(s.overflowX) && el.scrollWidth > el.clientWidth + 2;
+        const ocultaY = /(hidden|clip)/.test(s.overflowY) && el.scrollHeight > el.clientHeight + 2;
+        return ocultaX || ocultaY;
+      })
+      .slice(0, 6)
+      .map(({ el }) => `${el.tagName.toLowerCase()} "${el.innerText.trim().slice(0, 30)}"`);
+    // Largo de la página en pantallas: en móvil, más de ~8 cansa (se mide
+    // aparte, como advertencia, no como error).
+    const scroller = [...document.querySelectorAll("main")].find((m) => /(auto|scroll)/.test(getComputedStyle(m).overflowY)) ?? document.documentElement;
+    const pantallas = Math.round((scroller.scrollHeight / window.innerHeight) * 10) / 10;
+    return { scrollHorizontal: document.documentElement.scrollWidth - vw, fuera: fuera.slice(0, 8), zoomIOS, chicos, scrollInterno, estructura: [...new Set(estructura)].slice(0, 10), traslapes, cortados, pantallas };
   }, tactil);
+}
+
+/**
+ * Recorre la página de arriba abajo (para que carguen las imágenes diferidas y
+ * se disparen las animaciones de entrada) y devuelve las imágenes que no se
+ * ven: rotas, con tamaño cero dentro de un contenedor visible, o que quedaron
+ * invisibles (opacidad 0) después de pasar por ellas.
+ */
+async function imagenesPerdidas(page) {
+  await page.evaluate(async () => {
+    const sc = [...document.querySelectorAll("main")].find((m) => /(auto|scroll)/.test(getComputedStyle(m).overflowY));
+    const alto = () => (sc ? sc.scrollHeight : document.documentElement.scrollHeight);
+    for (let y = 0; y < alto(); y += Math.round(window.innerHeight * 0.7)) {
+      if (sc) sc.scrollTo(0, y); else window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    if (sc) sc.scrollTo(0, 0); else window.scrollTo(0, 0);
+  });
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await page.waitForTimeout(400);
+  return page.evaluate(() => {
+    const perdidas = [];
+    for (const img of document.querySelectorAll("img")) {
+      if (img.closest("[aria-hidden=true], [hidden]")) continue;
+      const r = img.getBoundingClientRect();
+      const padre = img.parentElement?.getBoundingClientRect();
+      const nombre = (img.getAttribute("alt") || img.currentSrc || img.src).slice(-50);
+      if (img.complete && img.naturalWidth === 0 && img.getAttribute("src")) perdidas.push(`rota: ${nombre}`);
+      else if ((r.width === 0 || r.height === 0) && padre && padre.width > 40 && padre.height > 40 && getComputedStyle(img).display !== "none") perdidas.push(`sin tamaño: ${nombre}`);
+      else if (r.width > 0 && Number(getComputedStyle(img).opacity) < 0.05) {
+        let oculta = false;
+        for (let a = img.parentElement; a && a !== document.body; a = a.parentElement) if (Number(getComputedStyle(a).opacity) < 0.05) { oculta = true; break; }
+        if (!oculta) perdidas.push(`invisible: ${nombre}`);
+      }
+    }
+    return perdidas.slice(0, 6);
+  });
 }
 
 async function visitar(page, disp, ruta, nombre, informe) {
@@ -173,6 +286,7 @@ async function visitar(page, disp, ruta, nombre, informe) {
     // perfil) mide la pantalla equivocada: se reporta en vez de pasar en verde.
     const final = new URL(page.url()).pathname;
     if (final !== new URL(BASE + ruta).pathname) m.redirigido = final;
+    m.imagenes = await imagenesPerdidas(page);
     // El panel desplaza un contenedor interno: expandirlo para capturar la página completa.
     await page.evaluate(() => {
       for (const el of document.querySelectorAll("body *")) {
@@ -283,9 +397,13 @@ try {
 }
 
 writeFileSync(join(OUT, "informe.json"), JSON.stringify(informe, null, 2));
-const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.estructura?.length || r.redirigido || r.errores?.length);
+const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.estructura?.length || r.traslapes?.length || r.cortados?.length || r.imagenes?.length || r.redirigido || r.errores?.length);
 console.log(`páginas: ${informe.length} · con problemas: ${conProblemas.length} · capturas en ${OUT}`);
 for (const r of conProblemas) {
-  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, estructura: r.estructura?.length ? r.estructura : undefined, redirigido: r.redirigido, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
+  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, estructura: r.estructura?.length ? r.estructura : undefined, traslapes: r.traslapes?.length ? r.traslapes : undefined, cortados: r.cortados?.length ? r.cortados : undefined, imagenes: r.imagenes?.length ? r.imagenes : undefined, redirigido: r.redirigido, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
 }
+// Advertencia (no error): páginas que en un teléfono pasan de 8 pantallas de alto.
+const LARGO_MAX = 8;
+const largas = informe.filter((r) => r.pantallas > LARGO_MAX && ["iphone-se", "iphone-15", "pixel-7", "galaxy-s9"].includes(r.disp));
+if (largas.length) console.log(`advertencia: ${largas.length} páginas de más de ${LARGO_MAX} pantallas en teléfono: ${[...new Set(largas.map((r) => `${r.nombre} (${r.pantallas})`))].join(", ")}`);
 process.exit(conProblemas.length ? 1 : 0);

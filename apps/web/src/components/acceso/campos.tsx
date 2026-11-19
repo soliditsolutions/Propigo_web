@@ -112,10 +112,11 @@ export function Boton({ variante = "primario", bloque, chico, cargando, type = "
 
 const ICONO_AVISO = { error: AlertCircle, ok: Check, info: Info, pausa: Clock } as const;
 
-export function Aviso({ variante, titulo, children }: { variante: keyof typeof ICONO_AVISO; titulo?: string; children: ReactNode }) {
+/** Un error se anuncia como alerta; el resto como estado, salvo `alerta` (p. ej. un bloqueo por intentos). */
+export function Aviso({ variante, titulo, alerta, children }: { variante: keyof typeof ICONO_AVISO; titulo?: string; alerta?: boolean; children: ReactNode }) {
   const Icono = ICONO_AVISO[variante];
   return (
-    <div className={`pgo-acc-aviso pgo-acc-aviso--${variante}`} role={variante === "error" ? "alert" : "status"}>
+    <div className={`pgo-acc-aviso pgo-acc-aviso--${variante}`} role={variante === "error" || alerta ? "alert" : "status"}>
       <Icono aria-hidden="true" />
       <div>
         {titulo ? <strong>{titulo}</strong> : null}

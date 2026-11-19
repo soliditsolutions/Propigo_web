@@ -1,92 +1,59 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Eye, EyeOff, LogIn, AlertTriangle, Lock, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import { KeyRound, Lock, Mail } from "lucide-react";
 import { loginAction } from "./actions";
 import { accionDeFormulario } from "@/lib/fallo-accion";
+import { useToast } from "@/components/ui/toast";
+import { Aviso, Boton, Campo, CampoClave } from "@/components/acceso/campos";
+import { T } from "@/components/acceso/textos";
 
 // Un fallo de red o del servidor vuelve como { error } y no rompe la página.
 const accionSegura = accionDeFormulario(loginAction);
-import { useToast } from "@/components/ui/toast";
-import { Spinner } from "@/components/ui/spinner";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatCountdown(totalSec: number): string {
-  if (totalSec <= 0) return "0s";
+export function formatCountdown(totalSec: number): string {
+  if (totalSec <= 0) return "0 s";
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  if (h > 0) return `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
-  if (m > 0) return `${m}m ${String(s).padStart(2, "0")}s`;
-  return `${s}s`;
+  if (h > 0) return `${h} h ${String(m).padStart(2, "0")} min ${String(s).padStart(2, "0")} s`;
+  if (m > 0) return `${m} min ${String(s).padStart(2, "0")} s`;
+  return `${s} s`;
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-componentes ───────────────────────────────────────────────────────────
 
-/** Banner de advertencia progresiva — aparece desde el 2° intento fallido */
-function WarningBanner({ attempts }: { attempts: number }) {
-  // Texto que cambia según cuántos intentos quedan antes del bloqueo permanente
-  const lines = [
-    { label: "3° intento fallido", consequence: "espera de 5 minutos", done: attempts >= 3 },
-    { label: "4° intento fallido", consequence: "espera de 1 hora",     done: attempts >= 4 },
-    { label: "5° intento fallido", consequence: "cuenta bloqueada",      done: attempts >= 5 },
+/** Advertencia progresiva: aparece desde el 2.º intento fallido. */
+function Advertencia({ attempts }: { attempts: number }) {
+  const quedan = 5 - attempts;
+  const lineas = [
+    { etiqueta: "3.er intento fallido", efecto: "espera de 5 minutos", hecho: attempts >= 3 },
+    { etiqueta: "4.º intento fallido", efecto: "espera de 1 hora", hecho: attempts >= 4 },
+    { etiqueta: "5.º intento fallido", efecto: "cuenta bloqueada", hecho: attempts >= 5 },
   ];
-
   return (
-    <div
-      role="alert"
-      className="rounded-xl px-4 py-3 text-sm"
-      style={{
-        background: "var(--pgo-warning-lt)",
-        border:     "1px solid var(--pgo-warning-bd)",
-        color:      "var(--pgo-warning-dk)",
-      }}
+    <Aviso
+      variante="pausa"
+      alerta
+      titulo={`Te ${quedan === 1 ? "queda 1 intento" : `quedan ${quedan} intentos`} antes del bloqueo`}
     >
-      <div className="flex items-start gap-2.5">
-        <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--pgo-warning)" }} aria-hidden="true" />
-        <div className="space-y-1.5 w-full">
-          <p className="font-semibold" style={{ color: "var(--pgo-warning-dk)" }}>
-            Atención — quedan {5 - attempts} intento{5 - attempts !== 1 ? "s" : ""} antes del bloqueo
-          </p>
-          <ul className="space-y-0.5">
-            {lines.map(({ label, consequence, done }) => (
-              <li
-                key={label}
-                className="flex items-center gap-1.5 text-xs"
-                style={{ opacity: done ? 0.45 : 1, textDecoration: done ? "line-through" : "none" }}
-              >
-                <span
-                  className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
-                  style={{ background: "var(--pgo-warning)" }}
-                  aria-hidden="true"
-                />
-                <span>
-                  <strong>{label}</strong> → {consequence}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
+      <ul className="pgo-acc-escala">
+        {lineas.map((l) => (
+          <li key={l.etiqueta} data-hecho={l.hecho || undefined}>
+            <strong>{l.etiqueta}</strong>: {l.efecto}
+          </li>
+        ))}
+      </ul>
+    </Aviso>
   );
 }
 
-/** Panel de bloqueo temporal con countdown y enlace a recuperar contraseña */
-function LockPanel({
-  lockedUntil,
-  attempts,
-  onExpire,
-}: {
-  lockedUntil: number;
-  attempts:    number;
-  onExpire:    () => void;
-}) {
-  const [secsLeft, setSecsLeft] = useState(() =>
-    Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000)),
-  );
+/** Pausa temporal (3.er o 4.º intento) con cuenta regresiva. */
+function Pausa({ lockedUntil, attempts, onExpire }: { lockedUntil: number; attempts: number; onExpire: () => void }) {
+  const [secsLeft, setSecsLeft] = useState(() => Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000)));
 
   useEffect(() => {
     if (secsLeft <= 0) { onExpire(); return; }
@@ -100,123 +67,50 @@ function LockPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lockedUntil]);
 
-  const is5min  = attempts === 3;
-  const isWarned = attempts === 4; // próximo = bloqueo permanente
-
+  const es5min = attempts === 3;
   return (
-    <div
-      role="alert"
-      className="rounded-xl px-4 py-4 text-sm space-y-3"
-      style={{
-        background: is5min ? "var(--pgo-warning-lt)"  : "var(--pgo-danger-lt)",
-        border:     is5min ? "1px solid var(--pgo-warning-bd)" : "1px solid var(--pgo-danger-bd)",
-      }}
+    <Aviso
+      variante={es5min ? "pausa" : "error"}
+      alerta
+      titulo={es5min ? "Tu cuenta queda en pausa 5 minutos" : "Tu cuenta queda en pausa 1 hora"}
     >
-      {/* Cabecera */}
-      <div className="flex items-start gap-2.5">
-        <Lock
-          className="h-4 w-4 mt-0.5 shrink-0"
-          style={{ color: is5min ? "var(--pgo-warning)" : "var(--pgo-danger)" }}
-          aria-hidden="true"
-        />
-        <div>
-          <p className="font-semibold" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
-            {is5min ? "Cuenta bloqueada por 5 minutos" : "Cuenta bloqueada por 1 hora"}
-          </p>
-          <p className="mt-0.5" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
-            Demasiados intentos fallidos. Espera o cambia tu contraseña.
-          </p>
-        </div>
-      </div>
-
-      {/* Countdown */}
-      {secsLeft > 0 && (
-        <div
-          className="flex items-center justify-center gap-2 rounded-lg py-2 font-mono text-lg font-bold tracking-widest"
-          style={{
-            background: is5min ? "var(--pgo-warning-lt)" : "var(--pgo-danger-lt)",
-            color:      is5min ? "var(--pgo-warning)" : "var(--pgo-danger)",
-          }}
-          aria-live="polite"
-          aria-label={`Tiempo restante: ${formatCountdown(secsLeft)}`}
-        >
-          <Lock className="h-4 w-4" aria-hidden="true" />
-          {formatCountdown(secsLeft)}
-        </div>
-      )}
-
-      {/* Enlace cambio de contraseña */}
-      <p className="text-xs text-center" style={{ color: is5min ? "var(--pgo-warning-dk)" : "var(--pgo-danger-dk)" }}>
-        ¿No quieres esperar?{" "}
-        <Link
-          href="/recuperar-contrasena"
-          className="font-semibold underline underline-offset-2 hover:opacity-70 transition-opacity"
-          style={{ color: is5min ? "var(--pgo-warning)" : "var(--pgo-danger)" }}
-        >
-          Cambia tu contraseña ahora
-        </Link>
+      <p className="pgo-acc-aviso-p">{T.login.pausaTexto}</p>
+      {secsLeft > 0 ? (
+        // role="timer": la cuenta no se anuncia cada segundo (aria-live off implícito).
+        <p className="pgo-acc-aviso-p">
+          {T.login.pausaFalta} <span role="timer" className="pgo-acc-contador">{formatCountdown(secsLeft)}</span>
+        </p>
+      ) : null}
+      <p className="pgo-acc-aviso-p">
+        <Link href="/recuperar-contrasena" className="pgo-acc-enlace">{T.login.crearClave}</Link>
       </p>
-
-      {/* Aviso escalación (solo en bloqueo de 5min: siguiente es 1hr) */}
-      {is5min && (
-        <p className="text-xs text-center opacity-75" style={{ color: "var(--pgo-warning-dk)" }}>
-          El siguiente intento fallido bloqueará tu cuenta por 1 hora.
+      {es5min ? (
+        <p className="pgo-acc-aviso-p pgo-acc-aviso-nota">Si el próximo intento falla, la pausa será de 1 hora.</p>
+      ) : (
+        <p className="pgo-acc-aviso-p pgo-acc-aviso-nota">
+          Si el próximo intento falla, bloqueamos la cuenta y tendrás que crear una contraseña nueva.
         </p>
       )}
-
-      {/* Aviso crítico (en bloqueo de 1hr: siguiente es permanente) */}
-      {isWarned && (
-        <p
-          className="text-xs text-center font-semibold"
-          style={{ color: "var(--pgo-danger-dk)" }}
-        >
-          ⚠️ El siguiente intento fallido bloqueará permanentemente tu cuenta.
-        </p>
-      )}
-    </div>
+    </Aviso>
   );
 }
 
-/** Panel de bloqueo permanente */
-function BlockedPanel() {
+/** Bloqueo permanente (5.º intento). */
+function Bloqueo() {
   return (
-    <div
-      role="alert"
-      className="rounded-xl px-4 py-4 text-sm space-y-3"
-      style={{
-        background: "var(--pgo-danger-lt)",
-        border:     "1px solid var(--pgo-danger-bd)",
-      }}
-    >
-      <div className="flex items-start gap-2.5">
-        <ShieldAlert className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--pgo-danger-dk)" }} aria-hidden="true" />
-        <div>
-          <p className="font-bold" style={{ color: "var(--pgo-danger-dk)" }}>
-            Cuenta bloqueada por seguridad
-          </p>
-          <p className="mt-1 leading-relaxed" style={{ color: "var(--pgo-danger-dk)" }}>
-            Detectamos demasiados intentos fallidos y bloqueamos tu cuenta para proteger
-            tu información.
-          </p>
-        </div>
-      </div>
-      <Link
-        href="/recuperar-contrasena"
-        className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-opacity hover:opacity-80"
-        style={{ background: "var(--pgo-danger)", color: "#fff" }}
-      >
-        <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-        Solicitar cambio de contraseña
+    <Aviso variante="error" titulo={T.login.bloqueoTitulo}>
+      <p className="pgo-acc-aviso-p">{T.login.bloqueoTexto}</p>
+      <Link href="/recuperar-contrasena" className="pgo-acc-btn pgo-acc-btn--primario pgo-acc-btn--chico" style={{ marginTop: 10 }}>
+        {T.login.crearClave}
       </Link>
-    </div>
+    </Aviso>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) {
   const [state, formAction, pending] = useActionState(accionSegura, null);
-  const [showPwd, setShowPwd]        = useState(false);
   const [lockExpired, setLockExpired] = useState(false);
   const { show: toast } = useToast();
 
@@ -224,7 +118,7 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
   // la acción, y el usuario perdía el correo en cada intento (M-03). La
   // contraseña se vacía solo si el servidor la rechazó; ante un fallo de red
   // se conserva para reintentar.
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [estadoVisto, setEstadoVisto] = useState(state);
   if (state !== estadoVisto) {
@@ -232,206 +126,68 @@ export function LoginForm({ resetSuccess = false }: { resetSuccess?: boolean }) 
     if (state?.credencialRechazada) setPassword("");
   }
 
-  // Resetear cuando llega un nuevo estado del servidor
+  // Un estado nuevo del servidor reinicia el fin de la pausa.
   useEffect(() => { queueMicrotask(() => setLockExpired(false)); }, [state?.lockedUntil]);
 
-  // Nota: los errores de autenticación NO se muestran como toast — cada caso
-  // ya tiene su propio anuncio accesible inline (emailError/pwdError con
-  // role="alert" + aria-describedby, o el WarningBanner/LockoutPanel). Un
-  // toast adicional duplicaría el mismo mensaje con dos elementos
-  // role="alert" simultáneos, rompiendo la asociación 1:1 que exige WCAG 4.1.2.
-
-  // Mostrar éxito de reset de contraseña como toast
+  // Los errores de autenticación no van como toast: cada caso ya tiene su
+  // anuncio accesible en línea, y un toast duplicaría el role="alert" (WCAG 4.1.2).
   useEffect(() => {
-    if (resetSuccess) toast("Contraseña actualizada. Ya puedes iniciar sesión.", "success");
+    if (resetSuccess) toast(T.login.resetOk, "success");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const emailError    = state?.field === "email" ? state.error : null;
-  const isLocked      = !!state?.lockedUntil && !lockExpired;
-  const isBlocked     = !!state?.blocked;
-  const showLockUI    = isLocked || isBlocked;
-  const attempts      = state?.attempts ?? 0;
-  const showWarning   = !showLockUI && attempts >= 2;
-
-  // Solo mostramos el error genérico de contraseña cuando NO hay panel de bloqueo
+  const emailError  = state?.field === "email" ? state.error : null;
+  const isLocked    = !!state?.lockedUntil && !lockExpired;
+  const isBlocked   = !!state?.blocked;
+  const showLockUI  = isLocked || isBlocked;
+  const attempts    = state?.attempts ?? 0;
+  const showWarning = !showLockUI && attempts >= 2;
+  // El error genérico de contraseña solo cuando no hay panel de bloqueo.
   const pwdError = !state?.field && state?.error && !showLockUI ? state.error : null;
-
   const formDisabled = pending || showLockUI;
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
-      {/* Email */}
-      <div className="space-y-1.5">
-        <label
-          htmlFor="email"
-          className="block text-sm font-semibold"
-          style={{ color: "var(--pgo-text-2)" }}
-        >
-          Correo electrónico
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          placeholder="correo@empresa.cl"
-          disabled={formDisabled}
-          aria-invalid={emailError ? true : undefined}
-          aria-describedby={emailError ? "email-error" : undefined}
-          style={{
-            height:      "44px",
-            width:       "100%",
-            borderRadius:"12px",
-            border:      `1px solid ${emailError ? "var(--pgo-danger)" : "var(--pgo-border-2)"}`,
-            background:  "var(--pgo-glass-input)",
-            color:       "var(--pgo-text-1)",
-            fontSize:    "14px",
-            padding:     "0 14px",
-            outline:     "none",
-            boxShadow:   "var(--pgo-input-shadow)",
-            transition:  "border-color 150ms ease, box-shadow 150ms ease",
-            opacity:     formDisabled ? 0.5 : 1,
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = "var(--pgo-primary)";
-            e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = emailError ? "var(--pgo-danger)" : "var(--pgo-border-2)";
-            e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
-          }}
-        />
-        {emailError && (
-          <p id="email-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
-            {emailError}
-          </p>
+    <form action={formAction} className="pgo-acc-cuerpo" noValidate>
+      <hgroup className="pgo-acc-cabecera">
+        <h1 className="pgo-acc-titulo">{T.login.titulo}</h1>
+        <p className="pgo-acc-sub">{T.login.sub}</p>
+      </hgroup>
+
+      <Campo
+        id="email" etiqueta={T.login.correo} icono={Mail}
+        name="email" type="email" autoComplete="email" inputMode="email" required
+        placeholder={T.login.correoPlaceholder}
+        value={email} onChange={(e) => setEmail(e.target.value)}
+        disabled={formDisabled} error={emailError}
+      />
+      <CampoClave
+        id="password" etiqueta={T.login.clave} icono={Lock}
+        name="password" autoComplete="current-password" required
+        placeholder={T.login.clavePlaceholder}
+        value={password} onChange={(e) => setPassword(e.target.value)}
+        disabled={formDisabled} error={pwdError}
+        derecha={<Link href="/recuperar-contrasena" className="pgo-acc-enlace">{T.login.olvido}</Link>}
+      />
+
+      {showWarning ? <Advertencia attempts={attempts} /> : null}
+      {isLocked && state?.lockedUntil ? (
+        <Pausa lockedUntil={state.lockedUntil} attempts={attempts} onExpire={() => setLockExpired(true)} />
+      ) : null}
+      {isBlocked ? <Bloqueo /> : null}
+
+      <Boton type="submit" bloque cargando={pending} disabled={showLockUI}>
+        {pending ? T.login.ctaCargando : isBlocked ? T.login.ctaBloqueada : isLocked ? T.login.ctaPausa : (
+          <><KeyRound className="h-4 w-4" aria-hidden="true" />{T.login.cta}</>
         )}
-      </div>
+      </Boton>
 
-      {/* Contraseña */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor="password"
-            className="block text-sm font-semibold"
-            style={{ color: "var(--pgo-text-2)" }}
-          >
-            Contraseña
-          </label>
-          <Link
-            href="/recuperar-contrasena"
-            className="text-xs font-medium transition-opacity hover:opacity-70"
-            style={{ color: "var(--pgo-primary)" }}
-          >
-            ¿Olvidaste la contraseña?
-          </Link>
-        </div>
-        <div className="relative">
-          <input
-            id="password"
-            name="password"
-            type={showPwd ? "text" : "password"}
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="••••••••"
-            disabled={formDisabled}
-            aria-invalid={pwdError ? true : undefined}
-            aria-describedby={pwdError ? "pwd-error" : undefined}
-            style={{
-              height:      "44px",
-              width:       "100%",
-              borderRadius:"12px",
-              border:      `1px solid ${pwdError ? "var(--pgo-danger)" : "var(--pgo-border-2)"}`,
-              background:  "var(--pgo-surface)",
-              color:       "var(--pgo-text-1)",
-              fontSize:    "14px",
-              padding:     "0 44px 0 14px",
-              outline:     "none",
-              boxShadow:   "var(--pgo-input-shadow)",
-              transition:  "border-color 150ms ease, box-shadow 150ms ease",
-              opacity:     formDisabled ? 0.5 : 1,
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--pgo-primary)";
-              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow-focus)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = pwdError ? "var(--pgo-danger)" : "var(--pgo-border-2)";
-              e.currentTarget.style.boxShadow   = "var(--pgo-input-shadow)";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPwd(!showPwd)}
-            aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-            className="pgo-tap-target absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 hover:opacity-70 transition-opacity"
-            style={{ color: "var(--pgo-text-4)" }}
-          >
-            {showPwd
-              ? <EyeOff className="h-4 w-4" aria-hidden="true" />
-              : <Eye    className="h-4 w-4" aria-hidden="true" />}
-          </button>
-        </div>
-        {pwdError && (
-          <p id="pwd-error" role="alert" className="text-xs" style={{ color: "var(--pgo-danger)" }}>
-            {pwdError}
-          </p>
-        )}
-      </div>
-
-      {/* ── Paneles de estado de seguridad ─────────────────────────────── */}
-
-      {/* Advertencia progresiva (2° intento en adelante, sin bloqueo activo) */}
-      {showWarning && <WarningBanner attempts={attempts} />}
-
-      {/* Bloqueo temporal (3° o 4° intento) */}
-      {isLocked && state?.lockedUntil && (
-        <LockPanel
-          lockedUntil={state.lockedUntil}
-          attempts={attempts}
-          onExpire={() => setLockExpired(true)}
-        />
-      )}
-
-      {/* Bloqueo permanente (5° intento) */}
-      {isBlocked && <BlockedPanel />}
-
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={formDisabled}
-        className="pgo-btn-primary w-full justify-center"
-        style={{ height: "46px", fontSize: "15px", borderRadius: "12px" }}
-        aria-busy={pending}
-      >
-        {pending ? (
-          <>
-            <Spinner />
-            Verificando…
-          </>
-        ) : isBlocked ? (
-          <>
-            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-            Cuenta bloqueada
-          </>
-        ) : isLocked ? (
-          <>
-            <Lock className="h-4 w-4" aria-hidden="true" />
-            Cuenta bloqueada temporalmente
-          </>
-        ) : (
-          <>
-            <LogIn className="h-4 w-4" aria-hidden="true" />
-            Iniciar sesión
-          </>
-        )}
-      </button>
+      <p className="pgo-acc-centrado">
+        {T.login.primeraVez} <Link href="/registro" className="pgo-acc-enlace">{T.login.crear}</Link>
+      </p>
+      <p className="pgo-acc-ayuda pgo-acc-legal">
+        {T.login.legalAntes} <Link href="/terminos-uso">{T.registro.terminos}</Link> {T.registro.y}{" "}
+        <Link href="/privacidad">{T.registro.privacidad}</Link> {T.registro.leyFin}
+      </p>
     </form>
   );
 }

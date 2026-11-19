@@ -1,25 +1,13 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { formatoReloj, Aviso, Campo } from "../campos";
-import { saludoSegunHora, T } from "../textos";
+import { T } from "../textos";
 import { Mail } from "lucide-react";
 import { luzDesdePuntero } from "../luz";
-import { EstructuraGuiada } from "../estructuras";
+import { MarcoGuiado } from "../marco-guiado";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-
-describe("saludoSegunHora", () => {
-  it("cambia en los bordes de la mañana, la tarde y la noche", () => {
-    expect(saludoSegunHora(4)).toBe("Buenas noches");
-    expect(saludoSegunHora(5)).toBe("Buenos días");
-    expect(saludoSegunHora(11)).toBe("Buenos días");
-    expect(saludoSegunHora(12)).toBe("Buenas tardes");
-    expect(saludoSegunHora(19)).toBe("Buenas tardes");
-    expect(saludoSegunHora(20)).toBe("Buenas noches");
-    expect(saludoSegunHora(0)).toBe("Buenas noches");
-  });
-});
 
 describe("formatoReloj", () => {
   it("da minutos y segundos con dos dígitos", () => {
@@ -87,19 +75,6 @@ describe("Aviso", () => {
   });
 });
 
-describe("ruta de vista previa", () => {
-  afterEach(() => vi.unstubAllEnvs());
-
-  it("en producción no existe (404)", async () => {
-    vi.resetModules();
-    vi.doMock("next/navigation", () => ({ notFound: () => { throw new Error("NEXT_NOT_FOUND"); } }));
-    vi.doMock("@/app/preview-acceso/preview-acceso", () => ({ PreviewAcceso: () => null }));
-    vi.stubEnv("NODE_ENV", "production");
-    const { default: Pagina } = await import("@/app/preview-acceso/page");
-    await expect(Pagina({ searchParams: Promise.resolve({}) })).rejects.toThrow("NEXT_NOT_FOUND");
-  });
-});
-
 describe("estructura de los textos (regla general)", () => {
   /** Recorre T y junta los textos que se muestran como título o titular. */
   function titulos(obj: unknown, ruta = ""): [string, string][] {
@@ -119,17 +94,25 @@ describe("estructura de los textos (regla general)", () => {
   });
 
   it("la marca no se escribe a mano: sale de lib/marca.ts", () => {
-    for (const archivo of ["textos.ts", "estructuras.tsx", "forms.tsx", "campos.tsx"]) {
-      const fuente = readFileSync(join(__dirname, "..", archivo), "utf8");
+    const raiz = join(__dirname, "..", "..", "..");
+    for (const archivo of [
+      "components/acceso/textos.ts", "components/acceso/marco-guiado.tsx", "components/acceso/campos.tsx",
+      "app/login/login-form.tsx", "app/login/page.tsx",
+      "app/recuperar-contrasena/recuperar-form.tsx", "app/recuperar-contrasena/page.tsx",
+      "app/registro/registro-form.tsx", "app/registro/page.tsx",
+    ]) {
+      const fuente = readFileSync(join(raiz, archivo), "utf8");
       expect(`${archivo}: ${fuente.match(/Propigo/)?.[0] ?? ""}`).toBe(`${archivo}: `);
     }
   });
 
-  it("la estructura guiada tiene un solo h1, dentro de main, con su subtítulo en hgroup y el pie fuera de main", () => {
+  it("el marco guiado pone el h1 del contenido dentro de main, con su subtítulo en hgroup y el pie fuera de main", () => {
     // jsdom no trae ResizeObserver (PanelAnimado lo usa para animar el alto).
     vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
     const { container } = render(
-      <EstructuraGuiada flujo="login" onFlujo={() => {}} demo="normal" paso={0} onPaso={() => {}} />,
+      <MarcoGuiado flujo="login">
+        <hgroup><h1>Título</h1><p>Subtítulo.</p></hgroup>
+      </MarcoGuiado>,
     );
     const h1 = container.querySelectorAll("h1");
     expect(h1).toHaveLength(1);

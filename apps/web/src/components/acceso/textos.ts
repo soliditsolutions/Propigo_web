@@ -1,6 +1,7 @@
 /**
  * Textos de las pantallas de acceso. Voz confirmada: tú cercano y claro, frases
  * cortas, sin exclamaciones ni emojis, y con el porqué de cada pedido sensible.
+ * Títulos sin punto final; párrafos con punto (PRODUCT.md § Estructura de textos).
  * La marca, el eslogan y los correos salen de lib/marca.ts, nunca a mano.
  */
 import { MARCA } from "@/lib/marca";
@@ -12,21 +13,24 @@ export const T = {
   login: {
     titulo: "Qué bueno verte de nuevo",
     sub: "Entra para ver cómo van tus arriendos.",
-    correo: "Correo",
+    correo: "Correo electrónico",
     correoPlaceholder: "tu@correo.cl",
     clave: "Contraseña",
+    clavePlaceholder: "Tu contraseña",
     olvido: "¿Olvidaste tu contraseña?",
     cta: "Entrar",
     ctaCargando: "Entrando…",
-    ctaOk: "Listo, entrando",
+    ctaPausa: "Cuenta en pausa",
+    ctaBloqueada: "Cuenta bloqueada",
     primeraVez: `¿Primera vez en ${MARCA}?`,
     crear: "Crea tu cuenta gratis",
-    errorCredenciales: "Ese correo y esa contraseña no coinciden. Revísalos e inténtalo otra vez.",
-    errorCorreo: "Escribe un correo válido, por ejemplo tu@correo.cl.",
-    pausaTitulo: "Hacemos una pausa de seguridad",
-    pausaTexto:
-      "Hubo varios intentos seguidos y, para proteger tu cuenta, queda en pausa unos minutos. Puedes esperar o crear una contraseña nueva.",
+    legalAntes: "Al entrar aceptas los",
+    resetOk: "Contraseña actualizada. Ya puedes entrar.",
     pausaFalta: "Puedes volver a intentar en",
+    pausaTexto: "Hubo varios intentos seguidos. Puedes esperar o crear una contraseña nueva.",
+    crearClave: "Crear una contraseña nueva",
+    bloqueoTitulo: "Bloqueamos tu cuenta para protegerla",
+    bloqueoTexto: "Hubo demasiados intentos fallidos. Para volver a entrar, crea una contraseña nueva.",
   },
   recuperar: {
     titulo: "Recupera tu acceso",
@@ -37,13 +41,11 @@ export const T = {
     enviadoTitulo: "Revisa tu correo",
     enviadoTexto:
       `Si ese correo tiene una cuenta en ${MARCA}, en unos minutos te llega un enlace. Sirve una sola vez y vence a los 15 minutos.`,
-    noLlego: "¿No llegó? Mira en spam o pide otro enlace",
+    noLlego: "¿No llegó? Mira en spam o pide otro enlace.",
     reenviar: "Enviar otro enlace",
     reenviarEn: "Podrás pedir otro en",
   },
   registro: {
-    titulo: "Crea tu cuenta gratis",
-    sub: "Empieza con tu primera propiedad. Sin tarjeta de crédito.",
     yaTienes: "¿Ya tienes cuenta?",
     entrar: "Entra",
     pasos: [
@@ -55,11 +57,13 @@ export const T = {
     paso1Sub: "Tal como aparecen en tu cédula: los vamos a comparar.",
     nombre: "Nombre completo",
     nombrePlaceholder: "María José Pérez González",
+    nombreAyuda: "Tal como aparece en tu cédula de identidad.",
     rut: "RUT",
     rutPlaceholder: "12.345.678-9",
-    rutError: "Revisa el RUT: el dígito verificador no coincide.",
-    correo: "Correo",
+    correo: "Correo electrónico",
     clave: "Contraseña",
+    clavePlaceholder: "Crea una contraseña segura",
+    claveAyuda: "Mínimo 8 caracteres, con letras, números y un carácter especial. Evita tu nombre o tu correo.",
     paso2Titulo: "Ahora, tu corredora",
     paso2Sub: "Va en cada comprobante y liquidación que emitas.",
     corredora: "Nombre de la corredora",
@@ -68,7 +72,7 @@ export const T = {
     empresa: "Como empresa",
     empresaDetalle: "SpA, Ltda., EIRL u otra sociedad con RUT propio.",
     natural: "Como persona natural",
-    naturalDetalle: "La corredora eres tú, con tu mismo RUT.",
+    naturalDetalle: "Corredor independiente: la corredora eres tú, con tu mismo RUT.",
     rutCorredora: "RUT de la corredora",
     rutCorredoraAyuda: "No es el tuyo: es el de la empresa.",
     paso3Titulo: "Verifica que eres tú",
@@ -80,32 +84,48 @@ export const T = {
       "Tarda unos segundos.",
     ],
     camara: "Usar la cámara",
-    subir: "Subir una foto",
+    camaraReintentar: "Reintentar con la cámara",
+    capturar: "Tomar la foto",
+    encuadre: "Encuadra el frente de tu cédula dentro del marco.",
     subirTitulo: "Arrastra la foto o elígela",
     subirAyuda: "Frente de tu cédula, JPG, PNG o WEBP, hasta 5 MB.",
-    camaraBloqueada:
-      "El navegador bloqueó la cámara. Permítela desde el candado junto a la dirección y reintenta, o sube una foto.",
+    subirEtiqueta: "Subir la foto de tu cédula",
+    fotoLista: "Foto lista",
+    cambiarFoto: "Cambiar la foto",
+    fotoAlt: "Vista previa de tu cédula",
+    errorTipo: "Esa imagen no sirve: usa JPG, PNG o WEBP.",
+    errorTamano: "La imagen pesa más de 5 MB. Prueba con una foto más liviana.",
+    faltaFoto: "Falta la foto de tu cédula.",
     consentIa:
       "Acepto que la foto de mi cédula se envíe a Cloudflare (Workers AI) solo para verificar mi identidad.",
+    faltaConsentIa: "Para leer la cédula necesitamos tu autorización.",
     consentTerminos: "He leído y acepto los",
     terminos: "Términos de uso",
     y: "y la",
     privacidad: "Política de privacidad",
     leyFin: "conforme a la Ley 21.719.",
+    faltaTerminos: "Para crear la cuenta tienes que aceptar los términos y la política de privacidad.",
     cta: "Crear mi cuenta",
     ctaCargando: "Verificando tu cédula…",
     siguiente: "Continuar",
     atras: "Atrás",
-    exitoTitulo: "Tu cuenta está lista",
-    exitoTexto:
-      "Un último paso: confirma este dispositivo con el código de 6 dígitos que te enviamos al correo.",
-    exitoCta: "Ingresar el código",
+    errorNombre: "Escribe tu nombre completo (mínimo 2 caracteres).",
+    errorRut: "Revisa el RUT: el dígito verificador no coincide.",
+    errorCorreo: "Escribe un correo válido, por ejemplo tu@correo.cl.",
+    errorCorredora: "Escribe el nombre de tu corredora (mínimo 2 caracteres).",
+    errorRutCorredora: "Revisa el RUT de la corredora: el dígito verificador no coincide.",
+    errorClave: "Crea una contraseña.",
   },
-  /** Panel de marca (estructura guiada): titular sin punto final y párrafo con punto. */
+  pronto: {
+    titulo: "Aún no abrimos el registro",
+    sub: "Estamos preparando el lanzamiento. Si eres corredora y quieres que te avisemos, escríbenos a",
+  },
+  /** Panel de marca: titular sin punto final y párrafo con punto. */
   marca: {
     login: { titulo: "Tu cartera de arriendos, al día", texto: "Detecta los pagos, aplica el reajuste del IPC y deja el respaldo listo para rendirle al propietario." },
     recuperar: { titulo: "A todos nos pasa", texto: "Te enviamos un enlace al correo y en un minuto vuelves a estar adentro." },
     registro: { titulo: "Crea tu cuenta en tres pasos", texto: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
+    pronto: { titulo: "Muy pronto", texto: "Estamos terminando los últimos detalles para abrir las cuentas nuevas." },
   },
   destellosEtiqueta: `Lo que hace ${MARCA} por ti`,
   /** Tarjetas flotantes del panel de marca: funciones del producto, sin cifras inventadas. */
@@ -129,10 +149,3 @@ export const T = {
     detalle: `${PLAN_GRATUITO.maxPropiedades} propiedad · ${PLAN_GRATUITO.maxUsuarios} usuario · sin tarjeta`,
   },
 } as const;
-
-/** Saludo según la hora local, para la cabecera narrativa. */
-export function saludoSegunHora(hora: number): string {
-  if (hora >= 5 && hora < 12) return "Buenos días";
-  if (hora >= 12 && hora < 20) return "Buenas tardes";
-  return "Buenas noches";
-}

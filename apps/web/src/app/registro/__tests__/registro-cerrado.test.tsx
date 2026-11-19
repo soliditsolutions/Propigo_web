@@ -28,7 +28,8 @@ describe("registro cerrado", () => {
     expect(screen.getByRole("heading", { name: /aún no abrimos el registro/i })).toBeTruthy();
     expect(screen.queryByTestId("formulario")).toBeNull();
     expect(screen.queryByText(/plan Gratuito/i)).toBeNull();
-    expect(screen.getByRole("link", { name: /soporte@propigo\.cl/ })).toBeTruthy();
+    // El correo va en el texto y en el pie del marco.
+    expect(screen.getAllByRole("link", { name: /soporte@propigo\.cl/ }).length).toBeGreaterThan(0);
   });
 
   it("la acción rechaza el envío sin tocar la base", async () => {

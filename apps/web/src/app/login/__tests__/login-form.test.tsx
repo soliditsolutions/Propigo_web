@@ -123,15 +123,15 @@ describe("LoginForm — error general de credenciales (UI-C2)", () => {
     expect(screen.getByLabelText("Contraseña")).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("input password tiene aria-describedby='pwd-error'", () => {
+  it("input password tiene aria-describedby='password-error'", () => {
     renderLoginForm();
     expect(screen.getByLabelText("Contraseña"))
-      .toHaveAttribute("aria-describedby", "pwd-error");
+      .toHaveAttribute("aria-describedby", "password-error");
   });
 
-  it("existe #pwd-error con role='alert'", () => {
+  it("existe #password-error con role='alert'", () => {
     renderLoginForm();
-    const el = document.getElementById("pwd-error");
+    const el = document.getElementById("password-error");
     expect(el).toBeInTheDocument();
     expect(el).toHaveAttribute("role", "alert");
   });
@@ -224,7 +224,7 @@ describe("LoginForm — advertencia progresiva (2° intento fallido)", () => {
       vi.fn(), false,
     ]);
     renderLoginForm();
-    expect(screen.getByRole("button", { name: /iniciar sesión/i })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /^entrar$/i })).not.toBeDisabled();
   });
 });
 
@@ -241,24 +241,24 @@ describe("LoginForm — bloqueo temporal 5 minutos (3° intento)", () => {
   it("muestra panel de bloqueo con role='alert'", () => {
     renderLoginForm();
     const alerts = screen.getAllByRole("alert");
-    const lockAlert = alerts.find((el) => /bloqueada/i.test(el.textContent ?? ""));
+    const lockAlert = alerts.find((el) => /pausa/i.test(el.textContent ?? ""));
     expect(lockAlert).toBeInTheDocument();
   });
 
   it("el panel indica bloqueo de 5 minutos", () => {
     renderLoginForm();
-    expect(screen.getByText(/bloqueada por 5 minutos/i)).toBeInTheDocument();
+    expect(screen.getByText(/en pausa 5 minutos/i)).toBeInTheDocument();
   });
 
   it("muestra enlace para cambiar contraseña", () => {
     renderLoginForm();
-    const link = screen.getByRole("link", { name: /cambia tu contraseña ahora/i });
+    const link = screen.getByRole("link", { name: /crear una contraseña nueva/i });
     expect(link).toHaveAttribute("href", "/recuperar-contrasena");
   });
 
   it("el botón de submit está deshabilitado durante el bloqueo", () => {
     renderLoginForm();
-    expect(screen.getByRole("button", { name: /bloqueada temporalmente/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /cuenta en pausa/i })).toBeDisabled();
   });
 
   it("los inputs de email y contraseña están deshabilitados", () => {
@@ -269,12 +269,12 @@ describe("LoginForm — bloqueo temporal 5 minutos (3° intento)", () => {
 
   it("avisa que el siguiente intento causará bloqueo de 1 hora", () => {
     renderLoginForm();
-    expect(screen.getByText(/siguiente intento fallido bloqueará tu cuenta por 1 hora/i)).toBeInTheDocument();
+    expect(screen.getByText(/próximo intento falla, la pausa será de 1 hora/i)).toBeInTheDocument();
   });
 
   it("NO muestra error de contraseña (pwdError) durante el bloqueo", () => {
     renderLoginForm();
-    expect(document.getElementById("pwd-error")).not.toBeInTheDocument();
+    expect(document.getElementById("password-error")).not.toBeInTheDocument();
   });
 });
 
@@ -290,23 +290,23 @@ describe("LoginForm — bloqueo temporal 1 hora (4° intento)", () => {
 
   it("el panel indica bloqueo de 1 hora", () => {
     renderLoginForm();
-    expect(screen.getByText(/bloqueada por 1 hora/i)).toBeInTheDocument();
+    expect(screen.getByText(/en pausa 1 hora/i)).toBeInTheDocument();
   });
 
   it("avisa que el siguiente intento bloqueará permanentemente", () => {
     renderLoginForm();
-    expect(screen.getByText(/siguiente intento fallido bloqueará permanentemente/i)).toBeInTheDocument();
+    expect(screen.getByText(/bloqueamos la cuenta y tendrás que crear una contraseña nueva/i)).toBeInTheDocument();
   });
 
   it("muestra enlace para cambiar contraseña", () => {
     renderLoginForm();
-    const link = screen.getByRole("link", { name: /cambia tu contraseña ahora/i });
+    const link = screen.getByRole("link", { name: /crear una contraseña nueva/i });
     expect(link).toBeInTheDocument();
   });
 
   it("el botón está deshabilitado", () => {
     renderLoginForm();
-    expect(screen.getByRole("button", { name: /bloqueada temporalmente/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /cuenta en pausa/i })).toBeDisabled();
   });
 });
 
@@ -321,13 +321,13 @@ describe("LoginForm — bloqueo permanente (5° intento)", () => {
   it("muestra panel de bloqueo permanente con role='alert'", () => {
     renderLoginForm();
     const alerts = screen.getAllByRole("alert");
-    const blockAlert = alerts.find((el) => /bloqueada por seguridad/i.test(el.textContent ?? ""));
+    const blockAlert = alerts.find((el) => /bloqueamos tu cuenta para protegerla/i.test(el.textContent ?? ""));
     expect(blockAlert).toBeInTheDocument();
   });
 
   it("muestra botón/enlace para solicitar cambio de contraseña", () => {
     renderLoginForm();
-    const link = screen.getByRole("link", { name: /solicitar cambio de contraseña/i });
+    const link = screen.getByRole("link", { name: /crear una contraseña nueva/i });
     expect(link).toHaveAttribute("href", "/recuperar-contrasena");
   });
 
@@ -350,6 +350,6 @@ describe("LoginForm — bloqueo permanente (5° intento)", () => {
 
   it("NO muestra error de contraseña en el input", () => {
     renderLoginForm();
-    expect(document.getElementById("pwd-error")).not.toBeInTheDocument();
+    expect(document.getElementById("password-error")).not.toBeInTheDocument();
   });
 });

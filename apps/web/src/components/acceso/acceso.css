@@ -108,8 +108,7 @@
 }
 
 /* El hilo de luz: franja de borde con un tramo brillante que gira */
-.pgo-acc-card::before,
-.pgo-acc-hoja::before {
+.pgo-acc-card::before {
   content: "";
   position: absolute;
   inset: -1px;
@@ -130,23 +129,19 @@
   pointer-events: none;
   z-index: 2;
 }
-.pgo-acc-card[data-estado="cargando"]::before,
-.pgo-acc-hoja[data-estado="cargando"]::before { opacity: 1; }
-.pgo-acc-card[data-estado="ok"]::before,
-.pgo-acc-hoja[data-estado="ok"]::before {
+/* El estado sale del contenido, sin JS: enviando (botón aria-busy), listo
+   (panel de éxito) o con error (texto o aviso de error a la vista). */
+.pgo-acc-card:has([aria-busy="true"])::before { opacity: 1; }
+.pgo-acc-card:has(.pgo-acc-exito)::before {
   opacity: 1;
   background: var(--pgo-success);
 }
-.pgo-acc-card[data-estado="error"],
-.pgo-acc-hoja[data-estado="error"] { border-color: var(--pgo-danger-bd); }
+.pgo-acc-card:has(.pgo-acc-error-texto, .pgo-acc-aviso--error) { border-color: var(--pgo-danger-bd); }
 
 @media (prefers-reduced-motion: no-preference) {
-  .pgo-acc-card[data-estado="cargando"]::before,
-  .pgo-acc-hoja[data-estado="cargando"]::before { animation: pgo-acc-hilo 1.5s linear infinite; }
-  .pgo-acc-card[data-estado="ok"]::before,
-  .pgo-acc-hoja[data-estado="ok"]::before { animation: pgo-acc-asienta 1.6s var(--acc-ease) both; }
-  .pgo-acc-card[data-estado="error"] .pgo-acc-cuerpo,
-  .pgo-acc-hoja[data-estado="error"] .pgo-acc-cuerpo { animation: pgo-acc-sacudida 0.36s var(--acc-ease); }
+  .pgo-acc-card:has([aria-busy="true"])::before { animation: pgo-acc-hilo 1.5s linear infinite; }
+  .pgo-acc-card:has(.pgo-acc-exito)::before { animation: pgo-acc-asienta 1.6s var(--acc-ease) both; }
+  .pgo-acc-card:has(.pgo-acc-error-texto, .pgo-acc-aviso--error) > .pgo-acc-entra > .pgo-acc-cuerpo { animation: pgo-acc-sacudida 0.36s var(--acc-ease); }
   .pgo-acc-card { animation: pgo-acc-sube 0.7s var(--acc-ease) backwards; }
 }
 @keyframes pgo-acc-hilo { to { --acc-ang: 360deg; } }
@@ -347,7 +342,9 @@ button.pgo-acc-lado:hover { color: var(--pgo-text-1); background: var(--pgo-glas
 
 .pgo-acc-enlace {
   display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: 0; padding: 0; cursor: pointer;
+  background: none; border: 0; cursor: pointer;
+  /* Área táctil sobre 24px (WCAG 2.5.8) sin mover el diseño. */
+  padding: 4px 0; margin: -4px 0;
   font: inherit; font-size: 0.875rem; font-weight: 600;
   color: var(--pgo-primary-dk);
   text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px;
@@ -379,35 +376,6 @@ button.pgo-acc-lado:hover { color: var(--pgo-text-1); background: var(--pgo-glas
 .pgo-acc-aviso--pausa { background: var(--pgo-warning-lt); border-color: var(--pgo-warning-bd); }
 .pgo-acc-aviso--pausa svg { color: var(--pgo-warning); }
 .pgo-acc-contador { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--pgo-text-1); }
-
-/* ── Control segmentado (pestañas) ───────────────────────────────────────── */
-.pgo-acc-tabs {
-  position: relative;
-  display: grid; grid-template-columns: 1fr 1fr;
-  padding: 4px;
-  border: 1px solid var(--pgo-border);
-  border-radius: 12px;
-  background: var(--pgo-glass-input);
-}
-.pgo-acc-tab {
-  position: relative; z-index: 1;
-  height: 40px; border: 0; border-radius: 9px; background: none; cursor: pointer;
-  font: inherit; font-size: 0.9375rem; font-weight: 600;
-  color: var(--pgo-text-3);
-  transition: color 0.25s var(--acc-ease);
-}
-.pgo-acc-tab:hover { color: var(--pgo-text-1); }
-.pgo-acc-tab[aria-selected="true"] { color: var(--pgo-text-1); }
-.pgo-acc-tabs-ind {
-  position: absolute; top: 4px; bottom: 4px; left: 4px;
-  width: calc(50% - 4px);
-  border: 1px solid var(--pgo-border-2);
-  border-radius: 9px;
-  background: var(--pgo-surface-2);
-  transition: transform 0.4s var(--acc-ease);
-}
-.pgo-acc-tabs[data-activa="1"] .pgo-acc-tabs-ind { transform: translateX(100%); }
-@media (prefers-reduced-motion: reduce) { .pgo-acc-tabs-ind { transition: none; } }
 
 /* ── Progreso por pasos ──────────────────────────────────────────────────── */
 .pgo-acc-progreso { display: grid; gap: 8px; }
@@ -751,175 +719,56 @@ button.pgo-acc-lado:hover { color: var(--pgo-text-1); background: var(--pgo-glas
   100% { opacity: 0; scale: 1.9; }
 }
 
-/* ═════ Estructura C — cabecera narrativa ═════ */
-.pgo-acc-columna { position: relative; z-index: 2; width: min(100%, 580px); margin-inline: auto; padding: 8px 20px 24px; }
-.pgo-acc-saludo {
-  margin: 8px 0 0;
-  font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
-  line-height: 1.03; font-weight: 600; letter-spacing: -0.03em; text-wrap: balance;
-}
-.pgo-acc-saludo-sub { margin: 12px 0 0; max-width: 34ch; font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem); line-height: 1.4; color: var(--pgo-text-3); text-wrap: balance; }
-.pgo-acc-hoja {
-  position: relative; isolation: isolate;
-  margin-top: 32px; padding: 28px;
-  border: 1px solid var(--pgo-glass-line); border-radius: 16px;
-  background: color-mix(in srgb, var(--pgo-surface) 84%, transparent);
-}
-.pgo-acc-secciones { display: grid; gap: 28px; }
-.pgo-acc-seccion { position: relative; display: grid; gap: 16px; }
-.pgo-acc-seccion-titulo { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; }
-.pgo-acc-seccion-n {
-  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
-  background: var(--pgo-primary-lt); border: 1px solid var(--pgo-primary-bd);
-  font-size: 0.75rem; font-weight: 600; color: var(--pgo-primary-dk);
-}
-.pgo-acc-seccion + .pgo-acc-seccion { padding-top: 28px; border-top: 1px solid var(--pgo-border); }
-.pgo-acc-columna .pgo-acc-confianza { justify-content: flex-start; margin-top: 28px; }
+/* ── Avisos con varias líneas (bloqueo por intentos) ── */
+.pgo-acc-aviso-p { margin: 4px 0 0; }
+.pgo-acc-aviso-nota { font-size: 0.8125rem; opacity: 0.85; }
+.pgo-acc-escala { display: grid; gap: 2px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 0.8125rem; }
+.pgo-acc-escala li[data-hecho] { opacity: 0.5; text-decoration: line-through; }
+.pgo-acc-legal { margin: 0; text-align: center; }
+.pgo-acc-legal a { color: var(--pgo-text-3); text-decoration: underline; text-underline-offset: 3px; }
+.pgo-acc-legal a:hover { color: var(--pgo-text-1); }
+.pgo-acc-reenvio { display: grid; justify-items: start; gap: 10px; }
+.pgo-acc-grupo { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
 
-/* ═════ Estructura D — escena del producto ═════ */
-.pgo-acc-escena-grid {
-  position: relative; z-index: 2;
-  display: grid; grid-template-columns: minmax(420px, 1fr) minmax(420px, 1fr);
-  gap: 16px; min-height: 100dvh; padding: 16px;
-}
-.pgo-acc-escena-form { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding: 8px clamp(16px, 3vw, 40px) 8px; }
-.pgo-acc-escena-form .pgo-acc-card {
-  width: min(100%, 440px); margin-inline: auto;
-}
-.pgo-acc-escena-form .pgo-acc-barra { padding: 12px 0; }
-
-.pgo-acc-escena {
+/* ── Foto de la cédula: subida, cámara y vista previa ── */
+.pgo-acc-cedula { display: grid; gap: 10px; }
+.pgo-acc-subida span { font-size: 0.8125rem; color: var(--pgo-text-4); }
+.pgo-acc-subida[data-arrastrando] { border-color: var(--pgo-primary); background: var(--pgo-primary-lt); }
+.pgo-acc-subida:has(input:focus-visible) { outline: 2px solid var(--pgo-primary-dk); outline-offset: 2px; }
+.pgo-acc-cedula-camara { display: grid; gap: 10px; }
+.pgo-acc-visor {
   position: relative; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
-  padding: clamp(24px, 3vw, 44px);
-  border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;
-  background: color-mix(in srgb, var(--pgo-sidebar) 82%, transparent);
-  color: var(--pgo-sidebar-text);
+  height: 220px; border-radius: 12px; background: #05080F;
 }
-.pgo-acc-escena-titulo { margin: 0; max-width: 18ch; font-size: clamp(1.75rem, 1.2rem + 1.2vw, 2.25rem); line-height: 1.12; font-weight: 600; letter-spacing: -0.025em; text-wrap: balance; }
-.pgo-acc-escena-texto { margin: 12px 0 0; max-width: 42ch; font-size: 0.9375rem; line-height: 1.6; color: rgba(255, 255, 255, 0.7); }
-.pgo-acc-ejemplo { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 4px 10px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); }
-
-.esc { display: grid; gap: 0; width: min(100%, 460px); }
-.esc-meses { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
-.esc-mes { display: grid; justify-items: center; gap: 8px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.62); }
-.esc-mes i { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(52, 211, 153, 0.18); color: #6EE7B7; }
-.esc-mes i { position: relative; }
-.esc-mes i svg { width: 13px; height: 13px; }
-.esc-mes--ahora i svg { position: absolute; inset: 0; margin: auto; }
-.esc-i-ok { opacity: 0; }
-.esc-mes--ahora i { background: rgba(251, 191, 36, 0.18); color: #FCD34D; }
-.esc-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.9375rem; }
-.esc-fila span:first-child { color: rgba(255, 255, 255, 0.7); }
-.esc-fila b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.esc-fila--total b { font-size: 1.25rem; letter-spacing: -0.01em; }
-.esc-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 0 12px; }
-.esc-cabeza strong { font-size: 1.0625rem; font-weight: 600; }
-.esc-cabeza small { display: block; margin-top: 2px; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.6); }
-.esc-estado { position: relative; display: inline-grid; align-items: center; min-width: 108px; height: 28px; font-size: 0.8125rem; font-weight: 600; }
-.esc-estado span { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; padding: 0 12px; white-space: nowrap; }
-.esc-estado .esc-e-pend { background: rgba(251, 191, 36, 0.16); color: #FCD34D; }
-.esc-estado .esc-e-ok { background: rgba(52, 211, 153, 0.18); color: #6EE7B7; opacity: 0; }
-.esc-estado svg { width: 13px; height: 13px; }
-.esc-aviso {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 0.875rem; opacity: 0;
+.pgo-acc-visor video { width: 100%; height: 100%; object-fit: cover; }
+.pgo-acc-visor-marco { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; pointer-events: none; }
+/* Proporción de la cédula chilena; el sombreado exterior oscurece todo lo que queda fuera del marco */
+.pgo-acc-visor-marco span {
+  width: 100%; max-height: 140px; aspect-ratio: 1.586;
+  border: 2px solid rgb(255 255 255 / 0.9); border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.5);
 }
-.esc-aviso svg { flex: none; width: 18px; height: 18px; color: var(--pgo-accent-cyan); }
-.esc-aviso b { font-variant-numeric: tabular-nums; font-weight: 600; }
-.esc-comprobante {
-  display: flex; gap: 12px; align-items: center; margin-top: 18px; padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 0.875rem; opacity: 0;
+.pgo-acc-visor-carga { position: absolute; inset: 0; display: grid; place-items: center; }
+.pgo-acc-foto { display: grid; gap: 8px; margin: 0; }
+.pgo-acc-foto img {
+  width: 100%; height: 170px; object-fit: contain;
+  border: 1px solid var(--pgo-glass-line); border-radius: 12px; background: var(--pgo-glass-input);
 }
-.esc-comprobante svg { flex: none; width: 20px; height: 20px; color: #6EE7B7; }
-.esc-comprobante strong { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
-.esc-comprobante small { display: block; margin-top: 2px; color: rgba(255, 255, 255, 0.62); font-size: 0.8125rem; }
-.esc-reajuste { opacity: 0; }
-
-/* Sin preferencia de movimiento reducido: el ciclo de 14 s cuenta el mes entero.
-   Con ella, queda el estado final y completo (ver las reglas base de arriba). */
-.esc--fin .esc-aviso, .esc--fin .esc-comprobante, .esc--fin .esc-reajuste { opacity: 1; }
-.esc--fin .esc-e-pend { opacity: 0; }
-.esc--fin .esc-e-ok { opacity: 1; }
-.esc--fin .esc-mes--ahora i { background: rgba(52, 211, 153, 0.18); color: #6EE7B7; }
-.esc--fin .esc-i-pend { opacity: 0; }
-.esc--fin .esc-i-ok { opacity: 1; }
+.pgo-acc-foto figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pgo-acc-foto-lista { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 600; color: var(--pgo-success-dk, var(--pgo-success)); }
+.pgo-acc-foto-lista svg { width: 14px; height: 14px; }
 @media (prefers-reduced-motion: no-preference) {
-  .esc--vivo .esc-aviso { animation: esc-aviso 14s var(--acc-ease) infinite; }
-  .esc--vivo .esc-e-pend { animation: esc-pend 14s linear infinite; }
-  .esc--vivo .esc-e-ok { animation: esc-ok 14s var(--acc-ease) infinite; }
-  .esc--vivo .esc-mes--ahora i { animation: esc-mes 14s linear infinite; }
-  .esc--vivo .esc-i-pend { animation: esc-pend 14s linear infinite; }
-  .esc--vivo .esc-i-ok { animation: esc-ok 14s var(--acc-ease) infinite; }
-  .esc--vivo .esc-reajuste { animation: esc-reajuste 14s var(--acc-ease) infinite; }
-  .esc--vivo .esc-comprobante { animation: esc-comprobante 14s var(--acc-ease) infinite; }
-}
-@keyframes esc-aviso {
-  0%, 8%   { opacity: 0; transform: translateY(-8px); }
-  14%, 40% { opacity: 1; transform: translateY(0); }
-  48%, 100% { opacity: 0; transform: translateY(0); }
-}
-@keyframes esc-pend {
-  0%, 30%  { opacity: 1; }
-  36%, 94% { opacity: 0; }
-  100%     { opacity: 1; }
-}
-@keyframes esc-ok {
-  0%, 30%  { opacity: 0; }
-  36%, 94% { opacity: 1; }
-  100%     { opacity: 0; }
-}
-@keyframes esc-mes {
-  0%, 30%  { background: rgba(251, 191, 36, 0.18); color: #FCD34D; }
-  36%, 94% { background: rgba(52, 211, 153, 0.18); color: #6EE7B7; }
-  100%     { background: rgba(251, 191, 36, 0.18); color: #FCD34D; }
-}
-@keyframes esc-reajuste {
-  0%, 22% { opacity: 0; transform: translateY(6px); }
-  30%, 94% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; }
-}
-@keyframes esc-comprobante {
-  0%, 44% { opacity: 0; transform: translateY(10px); }
-  54%, 94% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; }
+  .pgo-acc-foto img { animation: pgo-acc-asoma 0.5s var(--acc-ease); }
 }
 
 /* ═════ Responsive ═════ */
 @media (max-width: 1023px) {
-  .pgo-acc-dividida, .pgo-acc-escena-grid { grid-template-columns: 1fr; }
-  .pgo-acc-marca, .pgo-acc-escena { display: none; }
+  .pgo-acc-dividida { grid-template-columns: 1fr; }
+  .pgo-acc-marca { display: none; }
   .pgo-acc-form-lado { padding-top: 72px; }
 }
 @media (max-width: 520px) {
   .pgo-acc-card { padding: 22px 18px; }
-  .pgo-acc-hoja { padding: 20px 16px; }
   .pgo-acc-centro { padding-inline: 12px; }
 }
 
-/* ═════ Barra de la vista previa (solo desarrollo) ═════ */
-.pgo-prev-barra {
-  position: fixed; left: 50%; bottom: 16px; z-index: 60; translate: -50% 0;
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px;
-  max-width: calc(100vw - 24px); padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px;
-  background: rgba(7, 12, 24, 0.94); color: #fff; font-size: 0.8125rem;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
-}
-.pgo-prev-grupo { display: flex; align-items: center; gap: 4px; }
-.pgo-prev-grupo > span { margin-right: 4px; color: rgba(255, 255, 255, 0.55); }
-.pgo-prev-barra button {
-  height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 8px;
-  background: transparent; color: rgba(255, 255, 255, 0.78); font: inherit; cursor: pointer;
-}
-.pgo-prev-barra button:hover { background: rgba(255, 255, 255, 0.08); }
-.pgo-prev-barra button[aria-pressed="true"] { background: #fff; color: #0B1631; font-weight: 600; }
-.pgo-prev-barra select {
-  height: 30px; padding: 0 8px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit;
-}
-.pgo-prev-barra select option { color: #000; }

@@ -35,6 +35,8 @@ import { esRegionValida, esComunaValidaEnRegion } from "@propigo/core";
 import { validateRut, canonicalRut } from "@/lib/rut";
 import { MARCA } from "@/lib/marca";
 import { logError } from "@/lib/logger";
+import { esFotoPerfilValida } from "@/lib/foto-perfil";
+import { revalidatePath } from "next/cache";
 
 /**
  * Sesión del panel solo si el usuario sigue activo. El JWT de un colaborador
@@ -65,7 +67,6 @@ export async function guardarPerfilAction(
   const direccion       = formData.get("direccion")?.toString().trim()         ?? "";
   const ciudad          = formData.get("ciudad")?.toString().trim()            ?? "";
   const region          = formData.get("region")?.toString().trim()            ?? "";
-  const fotoPerfil      = formData.get("fotoPerfil")?.toString().trim()        ?? "";
 
   // ── Identidad ya verificada — RUT y fecha de nacimiento se fijan una sola
   // vez y quedan inmutables (mismo criterio que nombre/email, que ya eran
@@ -183,7 +184,6 @@ export async function guardarPerfilAction(
         direccion,
         ciudad,
         region:          region || null,
-        fotoPerfil:      fotoPerfil || null,
         perfilCompleto:  requiredComplete,
       },
     }));
@@ -208,6 +208,35 @@ export async function guardarPerfilAction(
   }
 
   return { ok: true, perfilCompleto: requiredComplete };
+}
+
+// ── Foto de perfil ───────────────────────────────────────────────────────────
+// Se guarda apenas termina la subida, aparte del formulario: antes dependía de
+// «Guardar perfil» y de que todos los demás campos fueran válidos, así que
+// la foto se perdía con cualquier dato pendiente o al salir de la página.
+
+export type FotoPerfilState = { ok: true } | { ok: false; error: string };
+
+export async function guardarFotoPerfilAction(url: string): Promise<FotoPerfilState> {
+  const session = await sesionActiva();
+  if (!session) return { ok: false, error: "Tu sesión expiró. Inicia sesión de nuevo para cambiar tu foto." };
+  if (typeof url !== "string" || !esFotoPerfilValida(url)) {
+    return { ok: false, error: "No pudimos guardar la foto. Vuelve a elegirla." };
+  }
+
+  try {
+    await withTenant(session.tenantId, (tx) => tx.usuario.update({
+      where: { id: session.sub },
+      data:  { fotoPerfil: url },
+    }));
+  } catch (e) {
+    logError("perfil/guardar-foto", e);
+    return { ok: false, error: "No pudimos guardar la foto. Vuelve a intentarlo en unos segundos." };
+  }
+
+  // El avatar de la barra superior y del menú lateral salen del layout del panel.
+  revalidatePath("/panel", "layout");
+  return { ok: true };
 }
 
 // ── Cambiar contraseña ───────────────────────────────────────────────────────

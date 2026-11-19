@@ -55,8 +55,18 @@ desarrollo, no versiones publicadas.
 - **Procedimiento ante brechas de seguridad** y guía de correo con alias y
   etiquetas de Gmail, en `Docs/tecnica/`.
 
+### Corregido
+
+- **La foto de perfil se guarda al subirla y aparece en los avatares del panel.**
+  Antes solo se guardaba si después se presionaba «Guardar perfil» con todo el
+  formulario válido, y la barra superior y el menú lateral mostraban siempre las
+  iniciales, porque nunca recibían la foto.
+
 ### Seguridad
 
+- **La foto de perfil solo acepta URLs que entregó nuestra subida** (`/uploads/perfil/<uuid>.<ext>`).
+  Antes `guardarPerfilAction` guardaba cualquier texto, incluso una URL externa
+  como `//otro-sitio/x.png`.
 - **El registro de corredoras queda cerrado por defecto en producción** (V0). El
   formulario muestra un aviso y la acción rechaza el envío aunque alguien la llame
   directamente. `REGISTRO_ABIERTO=true` lo abre.

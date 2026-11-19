@@ -43,9 +43,30 @@ vi.mock("@/components/panel/nav", () => ({
 
 const PROPS = {
   tenant:   { nombre: "Corredora Test", plan: "Gold" },
-  user:     { nombre: "Juan García", email: "juan@test.cl", rol: "admin" },
+  user:     { nombre: "Juan García", email: "juan@test.cl", rol: "admin", foto: null as string | null },
   children: <div>Contenido de prueba</div>,
 };
+
+vi.mock("next/image", () => ({
+  // eslint-disable-next-line @next/next/no-img-element -- doble de prueba de next/image, no se renderiza en la app
+  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+}));
+
+describe("PanelShell — avatar", () => {
+  it("sin foto muestra las iniciales", () => {
+    render(<PanelShell {...PROPS} />);
+    expect(screen.getByLabelText("Usuario: Juan García")).toHaveTextContent("JG");
+  });
+
+  it("con foto de perfil la muestra en lugar de las iniciales", () => {
+    const foto = "/uploads/perfil/0f8fad5b-d9cb-469f-a165-70867728950e.jpg";
+    const { container } = render(<PanelShell {...PROPS} user={{ ...PROPS.user, foto }} />);
+    const avatar = screen.getByLabelText("Usuario: Juan García");
+    expect(avatar).not.toHaveTextContent("JG");
+    expect(avatar.querySelector("img")).toHaveAttribute("src", foto);
+    expect(container.querySelectorAll(`img[src="${foto}"]`).length).toBeGreaterThan(0);
+  });
+});
 
 describe("PanelShell — skip link (UI-C4)", () => {
   it("renderiza el skip link con texto correcto", () => {

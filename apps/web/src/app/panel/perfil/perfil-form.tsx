@@ -8,7 +8,7 @@ import {
   Eye, EyeOff, CheckCircle2, Loader2, Camera, Send, RotateCw, X, Mail,
 } from "lucide-react";
 import {
-  guardarPerfilAction, cambiarPasswordAction,
+  guardarPerfilAction, cambiarPasswordAction, guardarFotoPerfilAction,
   solicitarCambioContactoAction, confirmarCambioContactoAction,
 } from "./actions";
 import { REGIONES_CHILE, getComunasDeRegion } from "@propigo/core";
@@ -119,8 +119,13 @@ function AvatarSection({
         toast(mensajeFalloSubida(res.ok ? 500 : res.status, data.error), "error");
         return;
       }
+      const guardada = await guardarFotoPerfilAction(data.url);
+      if (!guardada.ok) {
+        toast(guardada.error, "error");
+        return;
+      }
       onFotoChange(data.url);
-      toast("Foto cargada. Presiona «Guardar perfil» para conservarla.", "info");
+      toast("Foto de perfil actualizada.", "success");
     } catch {
       toast(
         navigator.onLine
@@ -713,12 +718,10 @@ export function PerfilForm({ perfil, section = "datos" }: { perfil: PerfilData; 
           fotoPerfil={fotoPerfil}
           onFotoChange={setFotoPerfil}
         />
-        <input type="hidden" name="fotoPerfil" value={fotoPerfil} form="perfil-form" />
       </section>
 
       {/* Sección: datos del corredor */}
       <form id="perfil-form" onSubmit={enviarSinReinicio(formAction)}>
-        <input type="hidden" name="fotoPerfil" value={fotoPerfil} />
 
         <section
           className="rounded-2xl p-6 space-y-5"

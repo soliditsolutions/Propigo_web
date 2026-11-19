@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Menu, X, LogOut } from "lucide-react";
@@ -11,7 +12,7 @@ import { MARCA } from "@/lib/marca";
 
 interface Props {
   tenant:   { nombre: string; plan: string };
-  user:     { nombre: string; email: string; rol: string };
+  user:     { nombre: string; email: string; rol: string; foto: string | null };
   children: React.ReactNode;
 }
 
@@ -68,7 +69,11 @@ export function PanelShell({ tenant, user, children }: Props) {
     router.replace("/login");
   }
 
-  const userInitials = initials(user.nombre);
+  // La foto de perfil, si hay; si no, las iniciales. El nombre ya va en el
+  // aria-label o el title del contenedor, así que la imagen es decorativa.
+  const avatar = user.foto
+    ? <Image src={user.foto} alt="" fill sizes="32px" className="object-cover" />
+    : initials(user.nombre);
 
   const sidebarContent = (isMobile = false) => (
     <>
@@ -161,11 +166,11 @@ export function PanelShell({ tenant, user, children }: Props) {
       >
         {!isMobile && collapsed ? (
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold mx-auto cursor-default"
+            className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg text-xs font-bold mx-auto cursor-default"
             style={{ background: "var(--pgo-panel-nav-surface-2)", color: "var(--pgo-panel-nav-text)" }}
             title={`${user.nombre} · ${tenant.nombre}`}
           >
-            {userInitials}
+            {avatar}
           </div>
         ) : (
           <div
@@ -293,7 +298,7 @@ export function PanelShell({ tenant, user, children }: Props) {
 
             {/* Avatar */}
             <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white"
               aria-label={`Usuario: ${user.nombre}`}
               title={user.email}
               style={{
@@ -301,7 +306,7 @@ export function PanelShell({ tenant, user, children }: Props) {
                 boxShadow: "0 2px 6px color-mix(in srgb, var(--pgo-primary) 35%, transparent)",
               }}
             >
-              {userInitials}
+              {avatar}
             </div>
 
             <ThemeToggle />

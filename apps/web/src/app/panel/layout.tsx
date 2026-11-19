@@ -4,6 +4,7 @@ import { prisma }      from "@/lib/db";
 import { withTenant }  from "@/lib/tenant-db";
 import { PanelShell }  from "@/components/panel/shell";
 import { getPlanEfectivo } from "@/lib/plans";
+import { esFotoPerfilValida } from "@/lib/foto-perfil";
 
 export default async function PanelLayout({
   children,
@@ -30,7 +31,7 @@ export default async function PanelLayout({
   // firma válida y rebotaría de vuelta a /panel en loop — por eso el
   // redirect va a la ruta GET dedicada que sí puede limpiarla.
   const usuarioActivo = await withTenant(session.tenantId, (tx) => tx.usuario.findUnique({
-    where: { id: session.sub }, select: { desactivadoEn: true },
+    where: { id: session.sub }, select: { desactivadoEn: true, fotoPerfil: true },
   }));
   if (!usuarioActivo || usuarioActivo.desactivadoEn) {
     redirect("/api/auth/logout");
@@ -45,7 +46,10 @@ export default async function PanelLayout({
     <PanelShell
       // Nombre del plan que rige, no el id interno ("demo", "Gratuito").
       tenant={{ nombre: tenant.nombre, plan: getPlanEfectivo(tenant.plan).name }}
-      user={{ nombre: session.nombre, email: session.email, rol: session.rol }}
+      user={{
+        nombre: session.nombre, email: session.email, rol: session.rol,
+        foto: esFotoPerfilValida(usuarioActivo.fotoPerfil ?? "") ? usuarioActivo.fotoPerfil : null,
+      }}
     >
       {children}
     </PanelShell>

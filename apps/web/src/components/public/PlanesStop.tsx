@@ -272,7 +272,7 @@ export function PlanesStop() {
                   style={
                     billing === "anual"
                       ? { background: "rgba(255,255,255,0.22)", color: "#fff" }
-                      : { background: "var(--pgo-success-lt)", color: "var(--pgo-success)" }
+                      : { background: "var(--pgo-success-lt)", color: "var(--pgo-success-dk)" }
                   }
                 >
                   2 meses gratis

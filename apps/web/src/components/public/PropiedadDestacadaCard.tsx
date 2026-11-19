@@ -85,7 +85,7 @@ export function PropiedadDestacadaCard({ propiedad }: { propiedad: PropiedadDest
 
         <div className="mt-auto flex items-center justify-between pt-2.5" style={{ borderTop: "1px solid var(--pf-border)" }}>
           <div>
-            <p className="text-[11px]" style={{ color: "var(--pf-text-light)" }}>{propiedad.corredorNombre}</p>
+            <p className="text-[11px]" style={{ color: "var(--pf-text-muted)" }}>{propiedad.corredorNombre}</p>
             {propiedad.corredorPromedio !== null && (
               <RatingStars
                 promedio={propiedad.corredorPromedio}

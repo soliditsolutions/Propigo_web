@@ -248,7 +248,8 @@
   --pf-headline-grad: linear-gradient(100deg, #6FB0FF 0%, var(--pf-cyan) 100%);
   --pf-navy:          #F3F7FF;
   --pf-text-body:     #B7C2D8;
-  --pf-text-muted:    #8996AD;
+  /* #8996AD quedaba en 4,4:1 en el selector de facturación de la portada. */
+  --pf-text-muted:    #909DB4;
   /* #64748F daba solo 3.90:1 sobre --pf-surface — bajo el mínimo AA de
      4.5:1 para texto normal. Este tono más claro (misma familia) da 5.63:1. */
   --pf-text-light:    #7E8FAC;
@@ -386,9 +387,13 @@
   --ring:                 var(--pgo-primary);
 
   /* ── Tokens de la web pública (claro) — paleta Propigo ─────────────── */
-  --pf-brand:        #1E6FE8;
-  /* En claro el azul del logo ya da 4,77:1 con blanco — no necesita variante. */
-  --pf-brand-btn:    var(--pf-brand);
+  /* Azul para TEXTO y acentos. El del logo (#1E6FE8) da 4,7:1 sobre blanco,
+     pero los paneles de vidrio de la portada dejan ver el fondo y la foto:
+     ahí bajaba a 3,7–4,1:1. Este tono, un paso más profundo, da 5,8:1 sobre
+     blanco y supera 4,5:1 sobre el vidrio. */
+  --pf-brand:        #1A5FD0;
+  /* Los botones mantienen el azul del logo: el texto blanco encima da 4,7:1. */
+  --pf-brand-btn:    #1E6FE8;
   --pf-brand-tint:   #EAF2FF;
   --pf-brand-shadow: rgba(30, 111, 232, 0.35);
   --pf-brand-glow:   rgba(30, 111, 232, 0.50);
@@ -405,7 +410,9 @@
      "lavaban" y hacían sentir el tema claro descolorido. Ahora 4.52:1 y
      3.32:1 respectivamente (este último solo se usa en texto de apoyo y
      iconografía, donde aplica el umbral de 3:1). */
-  --pf-text-muted:    #64748B;
+  /* Sobre el vidrio de la portada #64748B quedaba en 4,0:1; este da 5,9:1
+     sobre blanco y pasa 4,5:1 también ahí. */
+  --pf-text-muted:    #586579;
   --pf-text-light:    #7D8A9C;
   --pf-surface:       #F8F9FD;
   --pf-hero-1:        #F7FAFF;
@@ -1864,6 +1871,9 @@ html {
   color: var(--pf-gold);
   background: var(--pf-gold-tint);
 }
+/* En claro el ámbar del acento (#D97706) es para íconos: como texto sobre su
+   propio tinte quedaba en 2,2:1. El texto del chip va en ámbar profundo (≥ 4,5:1). */
+:root[data-theme="aurora-light"] .pf-invite-eyebrow { color: #92400E; }
 
 /* Mismo tratamiento de gradiente, para el titular del aside oscuro de
    login/registro (--pgo-sidebar-accent-grad, no themeado — ver arriba). */

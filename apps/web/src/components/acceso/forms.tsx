@@ -74,10 +74,10 @@ export function FormLogin({
   return (
     <form onSubmit={enviar} noValidate className="pgo-acc-cuerpo">
       {sinTitulo ? null : (
-        <div className="pgo-acc-cabecera">
+        <hgroup className="pgo-acc-cabecera">
           <h1 className="pgo-acc-titulo">{T.login.titulo}</h1>
           <p className="pgo-acc-sub">{T.login.sub}</p>
-        </div>
+        </hgroup>
       )}
 
       {enPausa ? (
@@ -162,10 +162,10 @@ export function FormRecuperar({
     return (
       <div className="pgo-acc-cuerpo pgo-acc-exito">
         <div className="pgo-acc-sello pgo-acc-sello--info"><MailCheck aria-hidden="true" /></div>
-        <div className="pgo-acc-cabecera">
+        <hgroup className="pgo-acc-cabecera">
           <Titulo className="pgo-acc-titulo">{T.recuperar.enviadoTitulo}</Titulo>
           <p className="pgo-acc-sub">{T.recuperar.enviadoTexto}</p>
-        </div>
+        </hgroup>
         <p className="pgo-acc-ayuda">
           {T.recuperar.noLlego}.{" "}
           {faltan > 0
@@ -183,10 +183,10 @@ export function FormRecuperar({
   return (
     <form onSubmit={enviar} noValidate className="pgo-acc-cuerpo">
       {sinTitulo ? <p className="pgo-acc-sub" style={{ margin: 0 }}>{T.recuperar.sub}</p> : (
-        <div className="pgo-acc-cabecera">
+        <hgroup className="pgo-acc-cabecera">
           <h1 className="pgo-acc-titulo">{T.recuperar.titulo}</h1>
           <p className="pgo-acc-sub">{T.recuperar.sub}</p>
-        </div>
+        </hgroup>
       )}
       <Campo
         id="acc-rec-correo" etiqueta={T.login.correo} icono={Mail}
@@ -387,10 +387,10 @@ export function FormRegistro({
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
         </div>
-        <div className="pgo-acc-cabecera">
+        <hgroup className="pgo-acc-cabecera">
           <h1 className="pgo-acc-titulo">{T.registro.exitoTitulo}</h1>
           <p className="pgo-acc-sub">{T.registro.exitoTexto}</p>
-        </div>
+        </hgroup>
         <Boton bloque>{T.registro.exitoCta}</Boton>
       </div>
     );
@@ -450,10 +450,10 @@ export function FormRegistro({
       {progreso !== "no" ? <ProgresoPasos paso={paso} movil={progreso === "movil"} /> : null}
       <PanelAnimado clave={`paso-${paso}`} direccion={direccion}>
         <div className="pgo-acc-cuerpo">
-          <div className="pgo-acc-cabecera">
+          <hgroup className="pgo-acc-cabecera">
             <h1 className="pgo-acc-titulo">{encabezados[paso].t}</h1>
             <p className="pgo-acc-sub">{encabezados[paso].s}</p>
-          </div>
+          </hgroup>
           {bloques[paso]}
         </div>
       </PanelAnimado>

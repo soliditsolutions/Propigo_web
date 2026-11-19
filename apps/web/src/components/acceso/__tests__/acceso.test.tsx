@@ -5,16 +5,19 @@ import { formatoReloj, Aviso, Campo } from "../campos";
 import { saludoSegunHora, T } from "../textos";
 import { Mail } from "lucide-react";
 import { luzDesdePuntero } from "../luz";
+import { EstructuraGuiada } from "../estructuras";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 describe("saludoSegunHora", () => {
   it("cambia en los bordes de la mañana, la tarde y la noche", () => {
-    expect(saludoSegunHora(4)).toBe("Buenas noches.");
-    expect(saludoSegunHora(5)).toBe("Buenos días.");
-    expect(saludoSegunHora(11)).toBe("Buenos días.");
-    expect(saludoSegunHora(12)).toBe("Buenas tardes.");
-    expect(saludoSegunHora(19)).toBe("Buenas tardes.");
-    expect(saludoSegunHora(20)).toBe("Buenas noches.");
-    expect(saludoSegunHora(0)).toBe("Buenas noches.");
+    expect(saludoSegunHora(4)).toBe("Buenas noches");
+    expect(saludoSegunHora(5)).toBe("Buenos días");
+    expect(saludoSegunHora(11)).toBe("Buenos días");
+    expect(saludoSegunHora(12)).toBe("Buenas tardes");
+    expect(saludoSegunHora(19)).toBe("Buenas tardes");
+    expect(saludoSegunHora(20)).toBe("Buenas noches");
+    expect(saludoSegunHora(0)).toBe("Buenas noches");
   });
 });
 
@@ -94,5 +97,49 @@ describe("ruta de vista previa", () => {
     vi.stubEnv("NODE_ENV", "production");
     const { default: Pagina } = await import("@/app/preview-acceso/page");
     await expect(Pagina({ searchParams: Promise.resolve({}) })).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+});
+
+describe("estructura de los textos (regla general)", () => {
+  /** Recorre T y junta los textos que se muestran como título o titular. */
+  function titulos(obj: unknown, ruta = ""): [string, string][] {
+    if (typeof obj === "string") return /titulo$/i.test(ruta) ? [[ruta, obj]] : [];
+    if (Array.isArray(obj)) return obj.flatMap((v, i) => titulos(v, `${ruta}[${i}]`));
+    if (obj && typeof obj === "object") {
+      return Object.entries(obj).flatMap(([k, v]) => titulos(v, ruta ? `${ruta}.${k}` : k));
+    }
+    return [];
+  }
+
+  it("títulos y titulares sin punto final (RAE), los párrafos sí lo llevan", () => {
+    const lista = titulos(T);
+    expect(lista.length).toBeGreaterThan(10);
+    for (const [ruta, texto] of lista) expect(`${ruta}: ${texto}`).not.toMatch(/\.$/);
+    for (const m of Object.values(T.marca)) expect(m.texto).toMatch(/\.$/);
+  });
+
+  it("la marca no se escribe a mano: sale de lib/marca.ts", () => {
+    for (const archivo of ["textos.ts", "estructuras.tsx", "forms.tsx", "campos.tsx"]) {
+      const fuente = readFileSync(join(__dirname, "..", archivo), "utf8");
+      expect(`${archivo}: ${fuente.match(/Propigo/)?.[0] ?? ""}`).toBe(`${archivo}: `);
+    }
+  });
+
+  it("la estructura guiada tiene un solo h1, dentro de main, con su subtítulo en hgroup y el pie fuera de main", () => {
+    // jsdom no trae ResizeObserver (PanelAnimado lo usa para animar el alto).
+    vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
+    const { container } = render(
+      <EstructuraGuiada flujo="login" onFlujo={() => {}} demo="normal" paso={0} onPaso={() => {}} />,
+    );
+    const h1 = container.querySelectorAll("h1");
+    expect(h1).toHaveLength(1);
+    expect(h1[0].closest("main")).not.toBeNull();
+    expect(h1[0].parentElement?.tagName).toBe("HGROUP");
+    expect(container.querySelector("main footer")).toBeNull();
+    expect(container.querySelector("footer")).not.toBeNull();
+    // El titular de marca es visible y legible para lectores de pantalla (no aria-hidden).
+    const titular = container.querySelector(".pgo-acc-marca-titulo");
+    expect(titular?.getAttribute("aria-hidden")).toBeNull();
+    expect(titular?.querySelector(".sr-only")?.textContent).toBe(T.marca.login.titulo);
   });
 });

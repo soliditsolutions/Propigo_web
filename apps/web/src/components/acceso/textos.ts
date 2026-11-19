@@ -3,6 +3,7 @@
  * cortas, sin exclamaciones ni emojis, y con el porqué de cada pedido sensible.
  * La marca, el eslogan y los correos salen de lib/marca.ts, nunca a mano.
  */
+import { MARCA } from "@/lib/marca";
 import { PLAN_GRATUITO } from "@/lib/plans";
 
 export type Flujo = "login" | "recuperar" | "registro";
@@ -18,7 +19,7 @@ export const T = {
     cta: "Entrar",
     ctaCargando: "Entrando…",
     ctaOk: "Listo, entrando",
-    primeraVez: "¿Primera vez en Propigo?",
+    primeraVez: `¿Primera vez en ${MARCA}?`,
     crear: "Crea tu cuenta gratis",
     errorCredenciales: "Ese correo y esa contraseña no coinciden. Revísalos e inténtalo otra vez.",
     errorCorreo: "Escribe un correo válido, por ejemplo tu@correo.cl.",
@@ -35,7 +36,7 @@ export const T = {
     volver: "Volver a entrar",
     enviadoTitulo: "Revisa tu correo",
     enviadoTexto:
-      "Si ese correo tiene una cuenta en Propigo, en unos minutos te llega un enlace. Sirve una sola vez y vence a los 15 minutos.",
+      `Si ese correo tiene una cuenta en ${MARCA}, en unos minutos te llega un enlace. Sirve una sola vez y vence a los 15 minutos.`,
     noLlego: "¿No llegó? Mira en spam o pide otro enlace",
     reenviar: "Enviar otro enlace",
     reenviarEn: "Podrás pedir otro en",
@@ -46,9 +47,9 @@ export const T = {
     yaTienes: "¿Ya tienes cuenta?",
     entrar: "Entra",
     pasos: [
-      { titulo: "Quién eres", detalle: "Tu nombre, RUT, correo y contraseña." },
-      { titulo: "Tu corredora", detalle: "El nombre que va en tus comprobantes." },
-      { titulo: "Verifica que eres tú", detalle: "Una foto de tu cédula, solo para esto." },
+      { titulo: "Quién eres", detalle: "Tu nombre, RUT, correo y contraseña" },
+      { titulo: "Tu corredora", detalle: "El nombre que va en tus comprobantes" },
+      { titulo: "Verifica que eres tú", detalle: "Una foto de tu cédula, solo para esto" },
     ],
     paso1Titulo: "Cuéntanos quién eres",
     paso1Sub: "Tal como aparecen en tu cédula: los vamos a comparar.",
@@ -100,6 +101,13 @@ export const T = {
       "Un último paso: confirma este dispositivo con el código de 6 dígitos que te enviamos al correo.",
     exitoCta: "Ingresar el código",
   },
+  /** Panel de marca (estructura guiada): titular sin punto final y párrafo con punto. */
+  marca: {
+    login: { titulo: "Tu cartera de arriendos, al día", texto: "Detecta los pagos, aplica el reajuste del IPC y deja el respaldo listo para rendirle al propietario." },
+    recuperar: { titulo: "A todos nos pasa", texto: "Te enviamos un enlace al correo y en un minuto vuelves a estar adentro." },
+    registro: { titulo: "Crea tu cuenta en tres pasos", texto: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
+  },
+  destellosEtiqueta: `Lo que hace ${MARCA} por ti`,
   /** Tarjetas flotantes del panel de marca: funciones del producto, sin cifras inventadas. */
   destellos: {
     login: [
@@ -124,7 +132,7 @@ export const T = {
 
 /** Saludo según la hora local, para la cabecera narrativa. */
 export function saludoSegunHora(hora: number): string {
-  if (hora >= 5 && hora < 12) return "Buenos días.";
-  if (hora >= 12 && hora < 20) return "Buenas tardes.";
-  return "Buenas noches.";
+  if (hora >= 5 && hora < 12) return "Buenos días";
+  if (hora >= 12 && hora < 20) return "Buenas tardes";
+  return "Buenas noches";
 }

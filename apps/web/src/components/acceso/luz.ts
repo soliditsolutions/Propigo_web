@@ -32,7 +32,7 @@ const CONSULTA = "(pointer: fine) and (prefers-reduced-motion: no-preference)";
 export function useLuzPuntero(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
-    if (!el || !window.matchMedia(CONSULTA).matches) return;
+    if (!el || typeof window.matchMedia !== "function" || !window.matchMedia(CONSULTA).matches) return;
 
     let cuadro = 0;
     let ultimo: { x: number; y: number } | null = null;

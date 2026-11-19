@@ -171,11 +171,6 @@ export function EstructuraTabs(p: PropsEstructura) {
 
 /* ═════ B — Recorrido guiado ═════ */
 
-const TITULOS_MARCA: Record<Flujo, { t: string; x: string }> = {
-  login: { t: "Tu cartera de arriendos, al día.", x: "Detecta los pagos, aplica el reajuste del IPC y deja el respaldo listo para rendirle al propietario." },
-  recuperar: { t: "A todos nos pasa.", x: "Te enviamos un enlace al correo y en un minuto vuelves a estar adentro." },
-  registro: { t: "Crea tu cuenta en tres pasos.", x: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
-};
 
 const ICONOS_DESTELLO = [Wallet, TrendingUp, FileCheck2];
 
@@ -184,7 +179,7 @@ function Destellos({ flujo }: { flujo: Flujo }) {
   const items = T.destellos[flujo];
   const iconos = flujo === "recuperar" ? [Link2] : ICONOS_DESTELLO;
   return (
-    <ul className="pgo-acc-destellos" aria-label="Lo que hace Propigo por ti">
+    <ul className="pgo-acc-destellos" aria-label={T.destellosEtiqueta}>
       {items.map((d, i) => {
         const Icono = iconos[i];
         return (
@@ -201,7 +196,7 @@ function Destellos({ flujo }: { flujo: Flujo }) {
 export function EstructuraGuiada(p: PropsEstructura) {
   const [estado, setEstado] = useState<EstadoCard>("reposo");
   const dir = useDireccion(p.flujo);
-  const m = TITULOS_MARCA[p.flujo];
+  const m = T.marca[p.flujo];
   const marca = useRef<HTMLElement>(null);
   const card = useRef<HTMLDivElement>(null);
   useLuzPuntero(marca);
@@ -211,22 +206,27 @@ export function EstructuraGuiada(p: PropsEstructura) {
     <div className="pgo-acc">
       <Fondo />
       <div className="pgo-acc-dividida">
-        <aside className="pgo-acc-marca" ref={marca}>
+        <aside className="pgo-acc-marca" ref={marca} aria-label={`Sobre ${MARCA}`}>
           <div className="pgo-acc-orbes" aria-hidden="true"><span /><span /></div>
           <Link href="/" aria-label={`${MARCA}: ir al inicio`} style={{ display: "inline-flex", width: "fit-content" }}>
             <Logo size="lg" wordColor="#fff" />
           </Link>
 
           <div key={p.flujo} className="pgo-acc-entra">
-            <p className="pgo-acc-marca-titulo" aria-hidden="true">
-              {m.t.split(" ").map((w, i) => (
+            {/* Titular de marca, no encabezado: el único h1 es el del formulario. El texto
+                completo va oculto para lectores de pantalla; las palabras sueltas, solo a la vista. */}
+            <p className="pgo-acc-marca-titulo">
+              <span className="sr-only">{m.titulo}</span>
+              <span aria-hidden="true">
+              {m.titulo.split(" ").map((w, i) => (
                 <Fragment key={i}>
                   {i > 0 ? " " : null}
                   <span className="pgo-acc-palabra" style={{ "--i": i } as CSSProperties}>{w}</span>
                 </Fragment>
               ))}
+              </span>
             </p>
-            <p className="pgo-acc-marca-texto">{m.x}</p>
+            <p className="pgo-acc-marca-texto">{m.texto}</p>
             <Destellos flujo={p.flujo} />
             {p.flujo === "registro" ? (
               <ol className="pgo-acc-ruta" aria-label="Pasos para crear tu cuenta">
@@ -248,18 +248,21 @@ export function EstructuraGuiada(p: PropsEstructura) {
           </div>
         </aside>
 
-        <main className="pgo-acc-form-lado">
+        {/* Regiones separadas: el pie (contentinfo) no va dentro de main */}
+        <div className="pgo-acc-form-lado">
           <div className="pgo-acc-toggle"><ThemeToggle /></div>
           <Link href="/" className="pgo-acc-logo-movil" aria-label={`${MARCA}: ir al inicio`}>
             <Logo size="md" wordColor="var(--pgo-text-1)" />
           </Link>
-          <div ref={card} className="pgo-acc-card pgo-acc-card--viva" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
-            <PanelAnimado clave={p.flujo} direccion={dir}>
-              <Flujos p={p} onEstado={setEstado} progreso="movil" />
-            </PanelAnimado>
-          </div>
+          <main className="pgo-acc-form-main">
+            <div ref={card} className="pgo-acc-card pgo-acc-card--viva" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
+              <PanelAnimado clave={p.flujo} direccion={dir}>
+                <Flujos p={p} onEstado={setEstado} progreso="movil" />
+              </PanelAnimado>
+            </div>
+          </main>
           <Pie />
-        </main>
+        </div>
       </div>
     </div>
   );
@@ -269,8 +272,8 @@ export function EstructuraGuiada(p: PropsEstructura) {
 
 const SALUDOS: Record<Flujo, { t: (h: string) => string; x: string }> = {
   login: { t: (h) => h, x: "Tus arriendos te esperan." },
-  recuperar: { t: () => "Recupera tu acceso.", x: "Le pasa a todos. Te enviamos un enlace al correo." },
-  registro: { t: () => "Empieza con tu primera propiedad.", x: "Gratis, sin tarjeta, y listo en unos minutos." },
+  recuperar: { t: () => "Recupera tu acceso", x: "Le pasa a todos. Te enviamos un enlace al correo." },
+  registro: { t: () => "Empieza con tu primera propiedad", x: "Gratis, sin tarjeta, y listo en unos minutos." },
 };
 
 export function EstructuraNarrativa(p: PropsEstructura) {
@@ -323,11 +326,11 @@ export function EstructuraEscena(p: PropsEstructura) {
           <Pie />
         </div>
 
-        <aside className="pgo-acc-escena" aria-label="Así se ve un mes de arriendo en Propigo">
+        <aside className="pgo-acc-escena" aria-label={`Así se ve un mes de arriendo en ${MARCA}`}>
           <div>
-            <h2 className="pgo-acc-escena-titulo">Un mes de arriendo, de principio a fin.</h2>
+            <h2 className="pgo-acc-escena-titulo">Un mes de arriendo, de principio a fin</h2>
             <p className="pgo-acc-escena-texto">
-              Propigo detecta el pago, aplica el reajuste del IPC y deja el comprobante listo para rendirle al propietario.
+              {MARCA} detecta el pago, aplica el reajuste del IPC y deja el comprobante listo para rendirle al propietario.
             </p>
             <span className="pgo-acc-ejemplo"><Wallet className="h-3.5 w-3.5" aria-hidden="true" />Ejemplo con datos ficticios</span>
           </div>

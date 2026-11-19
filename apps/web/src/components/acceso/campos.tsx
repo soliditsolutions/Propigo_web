@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
 import { AlertCircle, CircleCheck, Eye, EyeOff, Check, Info, Clock, type LucideIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
 /* ── Campo de texto con etiqueta, ícono, ayuda, error y marca de validez ── */
 
 type CampoProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "className"> & {
+  ref?: Ref<HTMLInputElement>;
   id: string;
   etiqueta: string;
   icono: LucideIcon;
@@ -19,9 +20,11 @@ type CampoProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "className"
   /** Botón u otro control dentro del campo, a la derecha. */
   lado?: ReactNode;
   numeros?: boolean;
+  /** Código de un solo uso: dígitos grandes, espaciados y centrados. */
+  codigo?: boolean;
 };
 
-export function Campo({ id, etiqueta, icono: Icono, ayuda, error, valido, derecha, lado, numeros, ...input }: CampoProps) {
+export function Campo({ id, etiqueta, icono: Icono, ayuda, error, valido, derecha, lado, numeros, codigo, ...input }: CampoProps) {
   const ayudaId = ayuda ? `${id}-ayuda` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   return (
@@ -34,7 +37,7 @@ export function Campo({ id, etiqueta, icono: Icono, ayuda, error, valido, derech
         <Icono className="pgo-acc-icono" aria-hidden="true" />
         <input
           id={id}
-          className={`pgo-acc-input${numeros ? " pgo-acc-input--numeros" : ""}`}
+          className={`pgo-acc-input${numeros ? " pgo-acc-input--numeros" : ""}${codigo ? " pgo-acc-input--codigo" : ""}`}
           aria-invalid={error ? true : undefined}
           aria-describedby={[ayudaId, errorId].filter(Boolean).join(" ") || undefined}
           {...input}

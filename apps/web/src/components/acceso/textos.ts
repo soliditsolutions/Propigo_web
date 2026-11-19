@@ -7,7 +7,7 @@
 import { MARCA } from "@/lib/marca";
 import { PLAN_GRATUITO } from "@/lib/plans";
 
-export type Flujo = "login" | "recuperar" | "registro";
+export type Flujo = "login" | "recuperar" | "registro" | "nueva" | "verificar";
 
 export const T = {
   login: {
@@ -116,6 +116,45 @@ export const T = {
     errorRutCorredora: "Revisa el RUT de la corredora: el dígito verificador no coincide.",
     errorClave: "Crea una contraseña.",
   },
+  nueva: {
+    titulo: "Crea tu contraseña nueva",
+    sub: "Con ella vuelves a entrar desde cualquier equipo.",
+    clave: "Contraseña nueva",
+    clavePlaceholder: "Una frase larga que recuerdes",
+    cta: "Guardar la contraseña",
+    ctaCargando: "Guardando…",
+    invalidaTitulo: "Este enlace ya no sirve",
+    sinToken: "El enlace llegó incompleto. Pide uno nuevo y ábrelo directo desde el correo.",
+    vencido: "Venció o ya se usó: cada enlace sirve una sola vez y dura 15 minutos. Pide uno nuevo.",
+    pedirOtro: "Pedir un enlace nuevo",
+  },
+  verificar: {
+    titulo: "Confirma que eres tú",
+    subEnviando: "Estamos enviando un código a tu correo.",
+    subAntes: "Entraste desde un equipo que no conocemos. Escribe el código de 6 dígitos que enviamos a",
+    subEspera: "Entraste desde un equipo que no conocemos. Pide un código para confirmar que eres tú.",
+    codigo: "Código de verificación",
+    venceEn: "El código vence en",
+    cta: "Verificar",
+    ctaCargando: "Verificando…",
+    reenviar: "Enviar otro código",
+    reenviarEn: "Podrás pedir otro en",
+    enviando: "Enviando…",
+    incompleto: "Escribe los 6 dígitos del código.",
+    incorrecto: "Ese código no coincide.",
+    quedanTitulo: (n: number) => (n === 1 ? "Te queda 1 intento" : `Te quedan ${n} intentos`),
+    quedanTexto: "Después tendrás que pedir un código nuevo.",
+    vencidoTitulo: "Tu código venció",
+    vencidoTexto: "Los códigos duran 10 minutos. Pide uno nuevo para seguir.",
+    agotadoTitulo: "Se acabaron los intentos",
+    agotadoTexto: "Por seguridad, este código ya no sirve. Pide uno nuevo para seguir.",
+    pedirNuevo: "Pedir un código nuevo",
+    devTitulo: "Modo desarrollo",
+    devTexto: "El código aparece en la consola del servidor, no en tu correo.",
+    otraCuenta: "¿No eres tú o quieres usar otra cuenta?",
+    salir: "Cerrar sesión",
+    saliendo: "Cerrando sesión…",
+  },
   pronto: {
     titulo: "Aún no abrimos el registro",
     sub: "Estamos preparando el lanzamiento. Si eres corredora y quieres que te avisemos, escríbenos a",
@@ -125,6 +164,8 @@ export const T = {
     login: { titulo: "Tu cartera de arriendos, al día", texto: "Detecta los pagos, aplica el reajuste del IPC y deja el respaldo listo para rendirle al propietario." },
     recuperar: { titulo: "A todos nos pasa", texto: "Te enviamos un enlace al correo y en un minuto vuelves a estar adentro." },
     registro: { titulo: "Crea tu cuenta en tres pasos", texto: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
+    nueva: { titulo: "Una contraseña nueva y listo", texto: "Una frase larga y fácil de recordar protege más que una clave corta llena de símbolos." },
+    verificar: { titulo: "Cuidamos cada entrada", texto: "Cuando entras desde un equipo nuevo te pedimos un código. Así nadie más usa tu cuenta." },
     pronto: { titulo: "Muy pronto", texto: "Estamos terminando los últimos detalles para abrir las cuentas nuevas." },
   },
   destellosEtiqueta: `Lo que hace ${MARCA} por ti`,
@@ -137,6 +178,12 @@ export const T = {
     ],
     recuperar: [
       { titulo: "Enlace de un solo uso", detalle: "Vence a los 15 minutos" },
+    ],
+    nueva: [
+      { titulo: "Ejemplo de frase segura", detalle: "café azul montaña 2026 gato" },
+    ],
+    verificar: [
+      { titulo: "Código de un solo uso", detalle: "Vence a los 10 minutos" },
     ],
   },
   confianza: [

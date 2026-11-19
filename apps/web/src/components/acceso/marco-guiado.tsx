@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useRef, type CSSProperties, type ReactNode } from "react";
-import { Check, FileCheck2, FileText, Link2, Lock, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
+import { Check, FileCheck2, FileText, KeyRound, Link2, Lock, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CORREO, ESLOGAN, MARCA } from "@/lib/marca";
@@ -27,10 +27,13 @@ function Confianza() {
   );
 }
 
+const ICONOS_DESTELLO_FLUJO = { login: ICONOS_DESTELLO, recuperar: [Link2], nueva: [KeyRound], verificar: [ShieldCheck] };
+
 function Destellos({ flujo }: { flujo: FlujoMarco }) {
-  if (flujo !== "login" && flujo !== "recuperar") return null;
-  const items = T.destellos[flujo];
-  const iconos = flujo === "recuperar" ? [Link2] : ICONOS_DESTELLO;
+  if (!(flujo in T.destellos)) return null;
+  const f = flujo as keyof typeof T.destellos;
+  const items = T.destellos[f];
+  const iconos = ICONOS_DESTELLO_FLUJO[f];
   return (
     <ul className="pgo-acc-destellos" aria-label={T.destellosEtiqueta}>
       {items.map((d, i) => {

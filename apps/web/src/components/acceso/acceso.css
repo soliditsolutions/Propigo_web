@@ -431,8 +431,14 @@ button.pgo-acc-lado:hover { color: var(--pgo-text-1); background: var(--pgo-glas
 }
 .pgo-acc-sello svg { width: 24px; height: 24px; }
 .pgo-acc-sello--info { background: var(--pgo-primary-lt); color: var(--pgo-primary-dk); }
+.pgo-acc-sello--error { background: var(--pgo-danger-lt); color: var(--pgo-danger); }
+/* Código de un solo uso: dígitos grandes y espaciados, centrados */
+.pgo-acc-input--codigo { text-align: center; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.4em; font-variant-numeric: tabular-nums; }
+.pgo-acc-salida { display: grid; justify-items: center; gap: 4px; padding-top: 16px; border-top: 1px solid var(--pgo-border); }
+.pgo-acc-salida p { margin: 0; font-size: 0.8125rem; color: var(--pgo-text-3); }
 @media (prefers-reduced-motion: no-preference) {
-  .pgo-acc-sello svg path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: pgo-acc-trazo 0.5s 0.15s var(--acc-ease) forwards; }
+  /* Solo el check del sello de éxito: un trazo de más de 30 unidades quedaría con huecos */
+  .pgo-acc-sello:not(.pgo-acc-sello--info, .pgo-acc-sello--error) svg path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: pgo-acc-trazo 0.5s 0.15s var(--acc-ease) forwards; }
 }
 @keyframes pgo-acc-trazo { to { stroke-dashoffset: 0; } }
 

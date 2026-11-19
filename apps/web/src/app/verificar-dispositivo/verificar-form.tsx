@@ -1,183 +1,61 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Shield, RotateCcw, ArrowRight, Loader2, LogOut, Terminal,
-  Clock, AlertTriangle, XCircle,
-} from "lucide-react";
+import { KeyRound, LogOut, ShieldCheck } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { Aviso, Boton, Campo, formatoReloj } from "@/components/acceso/campos";
+import { MarcoGuiado } from "@/components/acceso/marco-guiado";
+import { T } from "@/components/acceso/textos";
 
-const IS_DEV          = process.env.NODE_ENV === "development";
-const RESEND_COOLDOWN = 30;              // segundos por defecto entre reenvíos
-const CODE_TTL_MS     = 10 * 60 * 1000; // 10 min — debe coincidir con el backend
-const MAX_INTENTOS    = 3;
+const IS_DEV = process.env.NODE_ENV === "development";
+/** Debe coincidir con /api/auth/dispositivo/enviar (1 envío por minuto). */
+export const ESPERA_REENVIO_S = 60;
+const CODE_TTL_MS = 10 * 60 * 1000; // 10 min — debe coincidir con el backend
+const MAX_INTENTOS = 3;
 
 type OtpMode = "NORMAL" | "EXPIRADO" | "AGOTADO";
 
-function formatTime(totalSec: number): string {
-  if (totalSec <= 0) return "0s";
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m ${s.toString().padStart(2, "0")}s`;
-  if (m > 0) return `${m}m ${s.toString().padStart(2, "0")}s`;
-  return `${s}s`;
+/** Oculta el correo dejando las dos primeras letras y el dominio. */
+export function enmascararCorreo(email: string): string {
+  return email.replace(/(.{2}).+(@.+)/, "$1***$2");
 }
 
-// ── Sub-componentes ───────────────────────────────────────────────────────────
-
-function ExpiryClock({ secsLeft }: { secsLeft: number }) {
-  const urgent = secsLeft <= 60;
-  return (
-    <div
-      className="flex items-center justify-center gap-1.5 text-xs mt-1"
-      style={{ color: urgent ? "var(--pgo-danger)" : "var(--pgo-text-3)" }}
-    >
-      <Clock className="h-3 w-3" aria-hidden />
-      <span>Código válido por: <strong>{formatTime(secsLeft)}</strong></span>
-    </div>
-  );
-}
-
-function IntentosRestantesBadge({ restantes }: { restantes: number }) {
-  if (restantes >= MAX_INTENTOS) return null;
-  const color = restantes === 1 ? "var(--pgo-danger)" : "var(--pgo-warning)";
-  return (
-    <div
-      className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs mt-1.5"
-      style={{ background: restantes === 1 ? "var(--pgo-danger-lt)" : "var(--pgo-warning-lt)", color }}
-      role="status"
-      aria-live="polite"
-    >
-      <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
-      <span>
-        {restantes === 1
-          ? "Último intento. Si falla, deberás solicitar un nuevo código."
-          : `${restantes} intentos restantes antes de bloquear el código.`}
-      </span>
-    </div>
-  );
-}
-
-function ReenviarButton({
-  cooldown,
-  enviando,
-  onClick,
-  label = "Reenviar código",
-}: {
-  cooldown: number;
-  enviando: boolean;
-  onClick:  () => void;
-  label?:   string;
+function BotonReenviar({ cooldown, enviando, onClick, etiqueta, variante = "secundario" }: {
+  cooldown: number; enviando: boolean; onClick: () => void; etiqueta: string; variante?: "primario" | "secundario";
 }) {
-  const disabled = enviando || cooldown > 0;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex items-center justify-center gap-1.5 text-sm transition-opacity disabled:opacity-40"
-      style={{ color: "var(--pgo-primary)" }}
-    >
-      {enviando ? (
-        <><Loader2 className="h-3.5 w-3.5 animate-spin" />Enviando…</>
-      ) : cooldown > 0 ? (
-        <><Clock className="h-3.5 w-3.5" />{`Espera ${formatTime(cooldown)}`}</>
-      ) : (
-        <><RotateCcw className="h-3.5 w-3.5" />{label}</>
-      )}
-    </button>
+    <Boton variante={variante} chico={variante === "secundario"} bloque={variante === "primario"}
+      cargando={enviando} disabled={cooldown > 0} onClick={onClick}>
+      {enviando ? T.verificar.enviando : cooldown > 0 ? (
+        <>{T.verificar.reenviarEn} <span className="pgo-acc-contador">{formatoReloj(cooldown)}</span></>
+      ) : etiqueta}
+    </Boton>
   );
 }
 
-function CodigoExpiradoPanel({
-  cooldown, enviando, onSolicitar,
-}: { cooldown: number; enviando: boolean; onSolicitar: () => void }) {
-  return (
-    <div
-      className="rounded-xl p-4 text-center"
-      role="alert"
-      style={{ background: "var(--pgo-warning-lt)", border: "1px solid var(--pgo-warning-bd)" }}
-    >
-      <Clock className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--pgo-warning)" }} aria-hidden />
-      <p className="text-sm font-semibold mb-1" style={{ color: "var(--pgo-warning-dk)" }}>
-        Tu código expiró
-      </p>
-      <p className="text-xs mb-3" style={{ color: "var(--pgo-warning-dk)" }}>
-        Los códigos son válidos por 10 minutos. Solicita uno nuevo para continuar.
-      </p>
-      <ReenviarButton
-        cooldown={cooldown}
-        enviando={enviando}
-        onClick={onSolicitar}
-        label="Solicitar nuevo código"
-      />
-    </div>
-  );
-}
-
-function IntentosAgotadosPanel({
-  cooldown, enviando, onSolicitar,
-}: { cooldown: number; enviando: boolean; onSolicitar: () => void }) {
-  return (
-    <div
-      className="rounded-xl p-4 text-center"
-      role="alert"
-      style={{ background: "var(--pgo-danger-lt)", border: "1px solid var(--pgo-danger-bd)" }}
-    >
-      <XCircle className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--pgo-danger)" }} aria-hidden />
-      <p className="text-sm font-semibold mb-1" style={{ color: "var(--pgo-danger-dk)" }}>
-        Intentos agotados ({MAX_INTENTOS}/{MAX_INTENTOS})
-      </p>
-      <p className="text-xs mb-3" style={{ color: "var(--pgo-danger-dk)" }}>
-        Has superado el máximo de {MAX_INTENTOS} intentos para este código.
-        Solicita uno nuevo para continuar.
-      </p>
-      <ReenviarButton
-        cooldown={cooldown}
-        enviando={enviando}
-        onClick={onSolicitar}
-        label="Solicitar nuevo código"
-      />
-    </div>
-  );
-}
-
-// ── Componente principal ──────────────────────────────────────────────────────
-
-export default function VerificarForm({
-  email,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reservado para un saludo personalizado, no implementado aún
-  nombre: _nombre,
-}: {
-  email: string;
-  nombre: string;
-}) {
+export default function VerificarForm({ email }: { email: string }) {
   const router = useRouter();
   const { show: toast } = useToast();
 
-  const [codigo, setCodigo]         = useState("");
-  const [hasError, setHasError]     = useState(false);
-  const [cargando, setCargando]     = useState(false);
-  const [enviando, setEnviando]     = useState(false);
-  const [cooldown, setCooldown]     = useState(0);
-  const [enviado, setEnviado]       = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [codigo, setCodigo] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [enviado, setEnviado] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
 
-  const [mode, setMode]                           = useState<OtpMode>("NORMAL");
-  const [intentosRestantes, setIntentosRestantes] = useState<number>(MAX_INTENTOS);
-  const [codeExpiresAt, setCodeExpiresAt]         = useState<number | null>(null);
-  const [expirySecsLeft, setExpirySecsLeft]       = useState<number | null>(null);
+  const [mode, setMode] = useState<OtpMode>("NORMAL");
+  const [intentosRestantes, setIntentosRestantes] = useState(MAX_INTENTOS);
+  const [codeExpiresAt, setCodeExpiresAt] = useState<number | null>(null);
+  const [expirySecsLeft, setExpirySecsLeft] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Enviar código automáticamente al montar. Guardia contra doble invocación
-  // (p.ej. React Strict Mode en desarrollo remonta el componente una vez):
-  // sin esto, dos POST a /enviar casi simultáneos pueden crear dos códigos
-  // válidos a la vez para el mismo usuario — el usuario recibe por email
-  // el más reciente, pero /confirmar puede terminar comparando contra el
-  // otro si ambas filas quedan con el mismo timestamp de creación.
+  // Enviar el código al montar. Guardia contra doble invocación (React Strict Mode
+  // remonta una vez en desarrollo): dos POST casi simultáneos a /enviar podían
+  // dejar dos códigos válidos y /confirmar comparar contra el que no llegó.
   const enviadoAlMontar = useRef(false);
   useEffect(() => {
     if (enviadoAlMontar.current) return;
@@ -186,21 +64,21 @@ export default function VerificarForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Countdown de cooldown del botón "Reenviar"
+  // Cuenta regresiva del reenvío
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  // Countdown de expiración del código
+  // Cuenta regresiva del vencimiento del código
   useEffect(() => {
     if (!codeExpiresAt) return;
     const tick = () => {
       const left = Math.floor((codeExpiresAt - Date.now()) / 1000);
       if (left <= 0) {
         setExpirySecsLeft(0);
-        // Solo marcar EXPIRADO si seguimos en NORMAL (no sobreescribir AGOTADO)
+        // Solo pasa a EXPIRADO desde NORMAL (no pisa AGOTADO)
         setMode((m) => (m === "NORMAL" ? "EXPIRADO" : m));
       } else {
         setExpirySecsLeft(left);
@@ -214,15 +92,15 @@ export default function VerificarForm({
   async function enviarCodigo() {
     if (enviando || cooldown > 0) return;
     setEnviando(true);
-    setHasError(false);
+    setError(null);
     try {
-      const res  = await fetch("/api/auth/dispositivo/enviar", { method: "POST" });
+      const res = await fetch("/api/auth/dispositivo/enviar", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         // 429 = esperar (advertencia, con la cuenta regresiva del servidor);
         // cualquier otro fallo es un error y se puede reintentar enseguida.
         if (res.status === 429) {
-          setCooldown(typeof data.cooldownSec === "number" ? data.cooldownSec : RESEND_COOLDOWN);
+          setCooldown(typeof data.cooldownSec === "number" ? data.cooldownSec : ESPERA_REENVIO_S);
           toast(data.error ?? "Espera un momento antes de pedir otro código.", "warning");
         } else {
           toast(data.error ?? "No pudimos enviar el código. Inténtalo de nuevo.", "error");
@@ -230,12 +108,11 @@ export default function VerificarForm({
         return;
       }
       setEnviado(true);
-      setCooldown(RESEND_COOLDOWN);
+      setCooldown(ESPERA_REENVIO_S);
       setMode("NORMAL");
       setIntentosRestantes(MAX_INTENTOS);
       setCodeExpiresAt(Date.now() + CODE_TTL_MS);
       setCodigo("");
-      setHasError(false);
       inputRef.current?.focus();
     } catch {
       toast("Error de red. Verifica tu conexión.", "error");
@@ -244,39 +121,35 @@ export default function VerificarForm({
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!/^\d{6}$/.test(codigo)) {
-      setHasError(true);
-      toast("Ingresa los 6 dígitos del código.", "error");
+      setError(T.verificar.incompleto);
       return;
     }
     setCargando(true);
-    setHasError(false);
+    setError(null);
     try {
-      const res  = await fetch("/api/auth/dispositivo/confirmar", {
-        method:  "POST",
+      const res = await fetch("/api/auth/dispositivo/confirmar", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ codigo }),
+        body: JSON.stringify({ codigo }),
       });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         const errorCode = data.errorCode as string | undefined;
+        setCodigo("");
         if (errorCode === "EXPIRADO") {
           setMode("EXPIRADO");
-          setCodigo("");
         } else if (errorCode === "AGOTADO") {
           setMode("AGOTADO");
-          setCodigo("");
-        } else {
-          if (typeof data.intentosRestantes === "number") {
-            setIntentosRestantes(data.intentosRestantes);
-          }
-          setHasError(true);
-          toast(data.error ?? "Código incorrecto.", "error");
-          setCodigo("");
+        } else if (errorCode === "INCORRECTO") {
+          if (typeof data.intentosRestantes === "number") setIntentosRestantes(data.intentosRestantes);
+          setError(T.verificar.incorrecto);
           inputRef.current?.focus();
+        } else {
+          setError(data.error ?? "No pudimos verificar el código. Inténtalo de nuevo.");
         }
         return;
       }
@@ -289,177 +162,78 @@ export default function VerificarForm({
     }
   }
 
-  async function handleLogout() {
-    setLoggingOut(true);
+  async function salir() {
+    setSaliendo(true);
     try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* red */ }
-    // router.replace y no una recarga completa: las páginas del panel son dinámicas
-    // (la caché del router no las conserva) y /login se pide de nuevo al servidor.
+    // router.replace y no una recarga completa: /login se pide de nuevo al servidor.
     router.replace("/login");
   }
 
-  const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+  const sub = enviado ? (
+    <>{T.verificar.subAntes} <strong>{enmascararCorreo(email)}</strong>.</>
+  ) : enviando ? T.verificar.subEnviando : T.verificar.subEspera;
 
   return (
-    <div className="pgo-auth-card w-full max-w-md p-8">
-      {/* Icono */}
-      <div className="mb-6 flex justify-center">
-        <div
-          className="flex h-16 w-16 items-center justify-center rounded-2xl"
-          style={{ background: "linear-gradient(135deg, var(--pgo-primary-lt) 0%, var(--pgo-primary-bd) 100%)" }}
-        >
-          <Shield className="h-8 w-8" style={{ color: "var(--pgo-primary)" }} />
-        </div>
-      </div>
+    <MarcoGuiado flujo="verificar">
+      <div className="pgo-acc-cuerpo">
+        <div className="pgo-acc-sello pgo-acc-sello--info"><ShieldCheck aria-hidden="true" /></div>
+        <hgroup className="pgo-acc-cabecera">
+          <h1 className="pgo-acc-titulo">{T.verificar.titulo}</h1>
+          <p className="pgo-acc-sub" aria-live="polite">{sub}</p>
+        </hgroup>
 
-      {/* Título */}
-      <h1 className="mb-2 text-center text-xl font-semibold" style={{ color: "var(--pgo-text-1)" }}>
-        Nuevo dispositivo detectado
-      </h1>
-      <p className="mb-6 text-center text-sm" style={{ color: "var(--pgo-text-3)" }}>
-        {enviado ? (
-          <>
-            Enviamos un código de 6 dígitos a{" "}
-            <span className="font-medium" style={{ color: "var(--pgo-text-1)" }}>{maskedEmail}</span>.
-            Válido por 10 minutos.
-          </>
-        ) : enviando ? (
-          "Enviando código a tu email…"
-        ) : (
-          "Verifica tu identidad para continuar."
-        )}
-      </p>
-
-      {/* ── Panel EXPIRADO ── */}
-      {mode === "EXPIRADO" && (
-        <div className="mb-4">
-          <CodigoExpiradoPanel
-            cooldown={cooldown}
-            enviando={enviando}
-            onSolicitar={enviarCodigo}
-          />
-        </div>
-      )}
-
-      {/* ── Panel AGOTADO ── */}
-      {mode === "AGOTADO" && (
-        <div className="mb-4">
-          <IntentosAgotadosPanel
-            cooldown={cooldown}
-            enviando={enviando}
-            onSolicitar={enviarCodigo}
-          />
-        </div>
-      )}
-
-      {/* ── Formulario (solo en NORMAL) ── */}
-      {mode === "NORMAL" && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="codigo"
-              className="mb-1.5 block text-sm font-medium"
-              style={{ color: "var(--pgo-text-2)" }}
-            >
-              Código de verificación
-            </label>
-            <input
+        {mode === "NORMAL" ? (
+          <form onSubmit={handleSubmit} className="pgo-acc-cuerpo" noValidate>
+            <Campo
               ref={inputRef}
-              id="codigo"
-              type="text"
-              inputMode="numeric"
-              pattern="\d{6}"
-              maxLength={6}
-              value={codigo}
+              id="codigo" etiqueta={T.verificar.codigo} icono={KeyRound} codigo
+              inputMode="numeric" pattern="\d{6}" maxLength={6} autoComplete="one-time-code" placeholder="000000"
+              value={codigo} disabled={cargando} error={error}
+              ayuda={enviado && expirySecsLeft ? `${T.verificar.venceEn} ${formatoReloj(expirySecsLeft)}.` : undefined}
               onChange={(e) => {
                 setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6));
-                if (hasError) setHasError(false);
+                if (error) setError(null);
               }}
-              placeholder="000000"
-              disabled={cargando}
-              autoComplete="one-time-code"
-              className="w-full rounded-xl px-4 py-3 text-center text-2xl font-bold tracking-[0.4em] outline-none transition-all"
-              style={{
-                background:    "var(--pgo-surface-2)",
-                border:        hasError ? "1.5px solid var(--pgo-danger)" : "1.5px solid var(--pgo-border-2)",
-                color:         "var(--pgo-text-1)",
-                letterSpacing: "0.4em",
-              }}
-              onFocus={(e) => (e.currentTarget.style.border = "1.5px solid var(--pgo-primary)")}
-              onBlur={(e)  => (e.currentTarget.style.border = hasError
-                ? "1.5px solid var(--pgo-danger)"
-                : "1.5px solid var(--pgo-border-2)")}
             />
+            {intentosRestantes < MAX_INTENTOS ? (
+              <Aviso variante="pausa" titulo={T.verificar.quedanTitulo(intentosRestantes)}>
+                <p className="pgo-acc-aviso-p">{T.verificar.quedanTexto}</p>
+              </Aviso>
+            ) : null}
+            <Boton type="submit" bloque cargando={cargando} disabled={codigo.length < 6}>
+              {cargando ? T.verificar.ctaCargando : T.verificar.cta}
+            </Boton>
+            <div style={{ justifySelf: "center" }}>
+              <BotonReenviar cooldown={cooldown} enviando={enviando} onClick={enviarCodigo} etiqueta={T.verificar.reenviar} />
+            </div>
+          </form>
+        ) : (
+          <>
+            <Aviso
+              variante="error"
+              titulo={mode === "EXPIRADO" ? T.verificar.vencidoTitulo : T.verificar.agotadoTitulo}
+            >
+              <p className="pgo-acc-aviso-p">{mode === "EXPIRADO" ? T.verificar.vencidoTexto : T.verificar.agotadoTexto}</p>
+            </Aviso>
+            <BotonReenviar cooldown={cooldown} enviando={enviando} onClick={enviarCodigo}
+              etiqueta={T.verificar.pedirNuevo} variante="primario" />
+          </>
+        )}
 
-            <IntentosRestantesBadge restantes={intentosRestantes} />
+        {IS_DEV ? (
+          <Aviso variante="info" titulo={T.verificar.devTitulo}>
+            <p className="pgo-acc-aviso-p">{T.verificar.devTexto}</p>
+          </Aviso>
+        ) : null}
 
-            {enviado && expirySecsLeft !== null && expirySecsLeft > 0 && (
-              <ExpiryClock secsLeft={expirySecsLeft} />
-            )}
-
-          </div>
-
-          <button
-            type="submit"
-            disabled={cargando || codigo.length < 6}
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-50"
-            style={{ background: "var(--pgo-primary)" }}
-          >
-            {cargando ? (
-              <><Loader2 className="h-4 w-4 animate-spin" />Verificando…</>
-            ) : (
-              <>Verificar dispositivo<ArrowRight className="h-4 w-4" /></>
-            )}
+        <div className="pgo-acc-salida">
+          <p>{T.verificar.otraCuenta}</p>
+          <button type="button" className="pgo-acc-enlace pgo-acc-enlace--suave" onClick={salir} disabled={saliendo}>
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            {saliendo ? T.verificar.saliendo : T.verificar.salir}
           </button>
-        </form>
-      )}
-
-      {/* Reenviar (solo en NORMAL) */}
-      {mode === "NORMAL" && (
-        <div className="mt-4 flex items-center justify-center">
-          <ReenviarButton
-            cooldown={cooldown}
-            enviando={enviando}
-            onClick={enviarCodigo}
-          />
         </div>
-      )}
-
-      {/* Hint DEV */}
-      {IS_DEV && (
-        <div
-          className="mt-4 flex items-start gap-2.5 rounded-xl px-3.5 py-3 text-xs"
-          style={{ background: "var(--pgo-success-lt)", border: "1px solid var(--pgo-success-bd)", color: "var(--pgo-success-dk)" }}
-        >
-          <Terminal className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden />
-          <span>
-            <strong>Modo desarrollo:</strong> el código de 6 dígitos aparece en la{" "}
-            <strong>consola del servidor</strong> (terminal donde corre{" "}
-            <code className="rounded bg-[var(--pgo-success-lt)] px-1 font-mono">npm run dev</code>), no en tu email.
-          </span>
-        </div>
-      )}
-
-      {/* Cerrar sesión */}
-      <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--pgo-border)" }}>
-        <p className="mb-3 text-center text-xs" style={{ color: "var(--pgo-text-4)" }}>
-          ¿No eres tú o quieres cambiar de cuenta?
-        </p>
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={loggingOut}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
-          style={{
-            borderColor: loggingOut ? "var(--pgo-border-2)" : "var(--pgo-danger-bd)",
-            background:  loggingOut ? "var(--pgo-surface-2)"  : "var(--pgo-danger-lt)",
-            color:       loggingOut ? "var(--pgo-text-4)"  : "var(--pgo-danger)",
-          }}
-        >
-          {loggingOut
-            ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /><span>Cerrando sesión…</span></>
-            : <><LogOut className="h-4 w-4" aria-hidden /><span>Cerrar sesión</span></>}
-        </button>
       </div>
-    </div>
+    </MarcoGuiado>
   );
 }

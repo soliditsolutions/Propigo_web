@@ -342,7 +342,9 @@ export default async function MarketplacePage({
       <div>
       {/* ── Filtros rápidos ──────────────────────────────────────────────
           Pegados bajo el navbar: se cambia de categoría desde cualquier
-          punto de los resultados, sin volver a subir. Vidrio como el navbar. */}
+          punto de los resultados, sin volver a subir. Vidrio como el navbar.
+          Todo enlace que cambia filtros lleva scroll={false}: sin él, Next
+          vuelve al tope de la página en cada navegación. */}
       <div className="pf-filtros-pegados sticky z-10 border-b" style={{ top: "var(--pf-navbar-alto, 0px)", borderColor: "var(--pf-border)" }}>
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6">
 
@@ -357,6 +359,7 @@ export default async function MarketplacePage({
                 <Link
                   key={t.key}
                   href={`/marketplace${params.toString() ? `?${params}` : ""}`}
+                  scroll={false}
                   className="shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all"
                   style={{
                     background:  active ? "var(--pf-brand-btn)" : "transparent",
@@ -386,6 +389,7 @@ export default async function MarketplacePage({
                 <Link
                   key={pf.id}
                   href={`/marketplace${params.toString() ? `?${params}` : ""}`}
+                  scroll={false}
                   className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all"
                   style={{
                     background: isActive ? "var(--pf-brand-tint)" : "var(--pf-surface)",
@@ -408,6 +412,7 @@ export default async function MarketplacePage({
               return (
               <Link
                 href={limpiarHref}
+                scroll={false}
                 className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all"
                 style={{
                   background: "var(--pf-surface)",
@@ -437,7 +442,7 @@ export default async function MarketplacePage({
             <p className="text-sm" style={{ color: "var(--pf-navy)" }}>
               Mostrando propiedades de <strong>{corredorFiltro.nombre}</strong>
             </p>
-            <Link href="/marketplace" className="text-xs font-semibold" style={{ color: "var(--pf-brand)" }}>
+            <Link href="/marketplace" scroll={false} className="text-xs font-semibold" style={{ color: "var(--pf-brand)" }}>
               Ver todos los corredores ✕
             </Link>
           </div>
@@ -459,7 +464,7 @@ export default async function MarketplacePage({
               Los corredores publican propiedades nuevas todas las semanas. Vuelve a mirar en unos días.
             </p>
             {(q || tipo !== "todas" || hayFiltrosActivos) && (
-              <Link href="/marketplace" className="pf-btn-secondary" style={{ padding: "10px 20px", fontSize: "13px" }}>
+              <Link href="/marketplace" scroll={false} className="pf-btn-secondary" style={{ padding: "10px 20px", fontSize: "13px" }}>
                 Ver todas las propiedades
               </Link>
             )}

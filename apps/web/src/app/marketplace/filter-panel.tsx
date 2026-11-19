@@ -159,7 +159,8 @@ export function FilterPanel({ searchParams }: { searchParams: Record<string, str
   }
 
   function aplicar() {
-    router.push(buildUrl(f));
+    // Sin volver al tope: los filtros se aplican desde la mitad de los resultados.
+    router.push(buildUrl(f), { scroll: false });
     setOpen(false);
   }
 

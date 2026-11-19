@@ -70,6 +70,7 @@ desarrollo, no versiones publicadas.
 
 ### Corregido
 
+- **Aplicar un filtro ya no devuelve la página al tope.** En el marketplace, los chips de tipo y de filtros rápidos, «Limpiar filtros» y el panel de filtros mantienen la posición; en el panel, también los filtros de comprobantes y las pestañas de perfil, estadísticas y contrato. Next.js vuelve al tope en cada navegación salvo que se le indique `scroll: false`. `qa:mobile` ahora lo revisa en el marketplace y en las pestañas del panel.
 - **La descripción de `/registro-tratamiento` mostraba «${MARCA}» literal** a buscadores y redes, porque estaba entre comillas normales. ESLint ahora rechaza ese error con `no-template-curly-in-string`.
 - **La foto de perfil se guarda al subirla y aparece en los avatares del panel.**
   Antes solo se guardaba si después se presionaba «Guardar perfil» con todo el

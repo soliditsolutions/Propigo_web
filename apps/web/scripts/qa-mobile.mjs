@@ -10,7 +10,8 @@
 // errores de consola, estructura de textos (h1/main/hgroup, niveles, títulos
 // sin punto, nombres accesibles), redirecciones inesperadas, textos o
 // controles que se traslapan, texto recortado sin puntos suspensivos e
-// imágenes rotas, sin tamaño o invisibles tras recorrer la página. Sale con
+// imágenes rotas, sin tamaño o invisibles tras recorrer la página, y que
+// cambiar un filtro o una pestaña no devuelva al tope. Sale con
 // código 1 si encuentra alguno. Avisa (sin fallar) las páginas que en un
 // teléfono pasan de 8 pantallas de alto.
 //
@@ -312,6 +313,33 @@ async function visitar(page, disp, ruta, nombre, informe) {
 // Sin códigos de color ANSI y con la causa completa (Playwright la pone al final del log).
 const errorLegible = (e) => String(e).replace(/\u001b\[\d+m/g, "").slice(0, 1500);
 
+// Cambiar un filtro o una pestaña (navegación que solo cambia la query) no
+// debe devolver al tope: Next lo hace salvo que el enlace o el router.push
+// lleven scroll: false. `selector` es lo que se desplaza (window o el <main>
+// del panel); `disparar` hace clic en el filtro.
+async function filtrarSinSalto(page, disp, nombre, ruta, selector, disparar, informe) {
+  try {
+    await page.goto(BASE + ruta, { waitUntil: "networkidle" });
+    // behavior "instant": el sitio usa scroll-behavior: smooth y una asignación
+    // directa a scrollTop todavía no se refleja al leerla.
+    await page.evaluate((sel) => {
+      const el = sel ? document.querySelector(sel) : document.scrollingElement;
+      el.scrollTo({ top: Math.min(300, el.scrollHeight - el.clientHeight), behavior: "instant" });
+    }, selector);
+    await page.waitForTimeout(300);
+    const antes = await page.evaluate((sel) => (sel ? document.querySelector(sel) : document.scrollingElement).scrollTop, selector);
+    const url0 = page.url();
+    await page.evaluate(disparar);
+    await page.waitForURL((u) => u.toString() !== url0, { timeout: 15_000 });
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(600);
+    const despues = await page.evaluate((sel) => (sel ? document.querySelector(sel) : document.scrollingElement).scrollTop, selector);
+    informe.push({ disp: disp.id, nombre, ruta, estado: 200, ...(antes > 50 && despues < antes / 2 ? { saltoAlTope: { antes, despues } } : {}) });
+  } catch (e) {
+    informe.push({ disp: disp.id, nombre, ruta, estado: "FALLÓ", error: errorLegible(e) });
+  }
+}
+
 async function loginPanel(ctx, page) {
   const token = randomUUID();
   const hash = createHash("sha256").update(token).digest("hex");
@@ -362,6 +390,8 @@ try {
       const ficha = await page.$$eval('a[href^="/marketplace/"]', (as) => as.map((a) => a.getAttribute("href")).find((h) => h.split("/").length === 3));
       if (ficha) await visitar(page, disp, ficha, "ficha-propiedad", informe);
       else informe.push({ disp: disp.id, nombre: "ficha-propiedad", estado: "FALLÓ", error: "El marketplace no lista ninguna publicación (¿seed sin propiedades publicadas?)." });
+      await filtrarSinSalto(page, disp, "marketplace-filtro-sin-salto", "/marketplace", null,
+        () => document.querySelectorAll(".pf-filtros-pegados a")[1].click(), informe);
       await ctx.close();
     }
     // Panel del corredor
@@ -371,6 +401,8 @@ try {
       try {
         await loginPanel(ctx, page);
         for (const [ruta, nombre] of RUTAS_PANEL) await visitar(page, disp, ruta, nombre, informe);
+        await filtrarSinSalto(page, disp, "panel-pestana-sin-salto", "/panel/perfil", "#main-content",
+          () => document.querySelectorAll("[role=tab]")[1].click(), informe);
       } catch (e) {
         informe.push({ disp: disp.id, nombre: "login-panel", estado: "FALLÓ", error: errorLegible(e) });
       }
@@ -397,10 +429,10 @@ try {
 }
 
 writeFileSync(join(OUT, "informe.json"), JSON.stringify(informe, null, 2));
-const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.estructura?.length || r.traslapes?.length || r.cortados?.length || r.imagenes?.length || r.redirigido || r.errores?.length);
+const conProblemas = informe.filter((r) => r.estado === "FALLÓ" || r.scrollHorizontal > 0 || r.fuera?.length || r.zoomIOS?.length || r.chicos?.length || r.scrollInterno?.length || r.estructura?.length || r.traslapes?.length || r.cortados?.length || r.imagenes?.length || r.redirigido || r.errores?.length || r.saltoAlTope);
 console.log(`páginas: ${informe.length} · con problemas: ${conProblemas.length} · capturas en ${OUT}`);
 for (const r of conProblemas) {
-  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, estructura: r.estructura?.length ? r.estructura : undefined, traslapes: r.traslapes?.length ? r.traslapes : undefined, cortados: r.cortados?.length ? r.cortados : undefined, imagenes: r.imagenes?.length ? r.imagenes : undefined, redirigido: r.redirigido, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
+  console.log(JSON.stringify({ disp: r.disp, pagina: r.nombre, estado: r.estado, scrollHorizontal: r.scrollHorizontal || undefined, fuera: r.fuera?.length ? r.fuera : undefined, zoomIOS: r.zoomIOS?.length ? r.zoomIOS : undefined, chicos: r.chicos?.length ? r.chicos : undefined, scrollInterno: r.scrollInterno?.length ? r.scrollInterno : undefined, estructura: r.estructura?.length ? r.estructura : undefined, traslapes: r.traslapes?.length ? r.traslapes : undefined, cortados: r.cortados?.length ? r.cortados : undefined, imagenes: r.imagenes?.length ? r.imagenes : undefined, redirigido: r.redirigido, saltoAlTope: r.saltoAlTope, errores: r.errores?.length ? r.errores.slice(0, 3) : undefined, error: r.error }));
 }
 // Advertencia (no error): páginas que en un teléfono pasan de 8 pantallas de alto.
 const LARGO_MAX = 8;

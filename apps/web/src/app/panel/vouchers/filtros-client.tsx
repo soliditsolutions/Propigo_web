@@ -31,7 +31,7 @@ export function FiltrosClient({
     if (fd.get("desde"))       params.set("desde",      String(fd.get("desde")));
     if (fd.get("hasta"))       params.set("hasta",      String(fd.get("hasta")));
     if (fd.get("contratoId"))  params.set("contratoId", String(fd.get("contratoId")));
-    start(() => router.push(`${pathname}?${params.toString()}`));
+    start(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
   }
 
   const hasFilters = tipoActivo || desdeActivo || hastaActivo || contratoIdActivo;

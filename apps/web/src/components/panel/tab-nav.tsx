@@ -30,6 +30,7 @@ export function TabNav({
           <Link
             key={tab.key}
             href={`${baseHref}?tab=${tab.key}`}
+            scroll={false}
             role="tab"
             aria-selected={isActive}
             className="relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"

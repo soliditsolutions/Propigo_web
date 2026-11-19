@@ -148,7 +148,7 @@
   .pgo-acc-hoja[data-estado="ok"]::before { animation: pgo-acc-asienta 1.6s var(--acc-ease) both; }
   .pgo-acc-card[data-estado="error"] .pgo-acc-cuerpo,
   .pgo-acc-hoja[data-estado="error"] .pgo-acc-cuerpo { animation: pgo-acc-sacudida 0.36s var(--acc-ease); }
-  .pgo-acc-card { animation: pgo-acc-sube 0.6s var(--acc-ease) both; }
+  .pgo-acc-card { animation: pgo-acc-sube 0.7s var(--acc-ease) backwards; }
 }
 @keyframes pgo-acc-hilo { to { --acc-ang: 360deg; } }
 @keyframes pgo-acc-asienta {
@@ -162,9 +162,10 @@
   60% { transform: translateX(4px); }
   85% { transform: translateX(-2px); }
 }
+/* translate y scale (no transform) para no pisar la inclinación de la tarjeta viva */
 @keyframes pgo-acc-sube {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; translate: 0 22px; scale: 0.97; }
+  to   { opacity: 1; translate: 0 0; scale: 1; }
 }
 
 .pgo-acc-cuerpo { display: grid; gap: 18px; }
@@ -513,6 +514,225 @@ button.pgo-acc-lado:hover { color: var(--pgo-text-1); background: var(--pgo-glas
 .pgo-acc-marca-pie { display: grid; gap: 14px; }
 .pgo-acc-logo-movil { display: none; position: absolute; top: 18px; left: clamp(16px, 3vw, 32px); border-radius: 8px; }
 @media (max-width: 1023px) { .pgo-acc-logo-movil { display: inline-flex; } }
+
+/* ═════ Capa de luz — profundidad, reflejos y movimiento (estructura B) ═════
+   Una sola idea: la luz. Sigue al puntero sobre la tarjeta y el panel (reflejo),
+   da profundidad con sombras desplazadas y recorre el botón al pasar. Las
+   variables --gx/--gy/--px/--py las publica useLuzPuntero (luz.ts) solo con
+   mouse y sin movimiento reducido; sin ellas todo queda en su estado de reposo. */
+
+.pgo-acc {
+  --acc-sombra: 2 6 23;
+  --acc-k: 1;
+}
+:root[data-theme="aurora-light"] .pgo-acc { --acc-sombra: 15 23 42; --acc-k: 0.5; }
+
+/* Tarjeta viva: reflejo fijo arriba, reflejo móvil bajo el puntero, sombra en capas e inclinación leve */
+.pgo-acc-card--viva {
+  --px: 0; --py: 0; --gx: 50%; --gy: 0%;
+  --incl: 2.5deg;
+  background:
+    linear-gradient(165deg, rgb(255 255 255 / 0.07) 0%, transparent 34%),
+    var(--pgo-glass-card);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 2px rgb(var(--acc-sombra) / calc(0.2 * var(--acc-k))),
+    0 14px 28px -14px rgb(var(--acc-sombra) / calc(0.45 * var(--acc-k))),
+    0 44px 90px -36px rgb(var(--acc-sombra) / calc(0.7 * var(--acc-k)));
+  transform: perspective(1400px) rotateX(calc(var(--py) * -1 * var(--incl))) rotateY(calc(var(--px) * var(--incl)));
+  transition: border-color 0.25s var(--acc-ease), transform 0.7s var(--acc-ease), box-shadow 0.5s var(--acc-ease);
+}
+/* Escribiendo, la tarjeta casi no se mueve: el foco manda */
+.pgo-acc-card--viva:focus-within { --incl: 0.6deg; }
+.pgo-acc-card--viva[data-luz="on"] {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(var(--acc-sombra) / calc(0.2 * var(--acc-k))),
+    calc(var(--px) * -10px) calc(20px - var(--py) * 8px) 36px -16px rgb(var(--acc-sombra) / calc(0.5 * var(--acc-k))),
+    calc(var(--px) * -24px) calc(56px - var(--py) * 16px) 100px -36px rgb(var(--acc-sombra) / calc(0.75 * var(--acc-k)));
+}
+.pgo-acc-card--viva::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(560px circle at var(--gx) var(--gy), rgb(255 255 255 / 0.1), transparent 42%);
+  opacity: 0;
+  transition: opacity 0.5s var(--acc-ease);
+}
+:root[data-theme="aurora-light"] .pgo-acc-card--viva::after {
+  background: radial-gradient(560px circle at var(--gx) var(--gy), rgb(255 255 255 / 0.6), transparent 42%);
+}
+.pgo-acc-card--viva[data-luz="on"]::after { opacity: 1; }
+.pgo-acc-card--viva > * { position: relative; z-index: 1; }
+
+/* Campos: al enfocar, el campo se levanta un poco */
+.pgo-acc-input:focus,
+.pgo-acc-input:focus-visible {
+  box-shadow: 0 0 0 3px var(--pgo-primary-bd), 0 10px 22px -14px rgb(var(--acc-sombra) / calc(0.8 * var(--acc-k)));
+}
+.pgo-acc-envoltura:focus-within .pgo-acc-icono { scale: 1.08; }
+.pgo-acc-icono { transition: color 0.18s var(--acc-ease), scale 0.25s var(--acc-ease); }
+
+/* Botón principal: se eleva y una franja de luz lo cruza al pasar */
+.pgo-acc-btn--primario { overflow: hidden; isolation: isolate; }
+.pgo-acc-btn--primario::after {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.3) 48%, transparent 64%);
+  translate: -110% 0;
+}
+.pgo-acc-btn--primario:hover:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.24), 0 14px 26px -12px color-mix(in srgb, var(--pgo-primary) 75%, #000);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pgo-acc-btn { transition: transform 0.12s var(--acc-ease), translate 0.25s var(--acc-ease), filter 0.18s var(--acc-ease), background 0.18s var(--acc-ease), border-color 0.18s var(--acc-ease), box-shadow 0.25s var(--acc-ease); }
+  .pgo-acc-btn--primario:hover:not(:disabled) { translate: 0 -1px; }
+  .pgo-acc-btn--primario:hover:not(:disabled)::after { translate: 110% 0; transition: translate 0.9s var(--acc-ease); }
+}
+
+/* Entrada escalonada del contenido de cada pantalla y de cada paso */
+@media (prefers-reduced-motion: no-preference) {
+  .pgo-acc-entra > .pgo-acc-cuerpo > :not(.pgo-acc-panel) {
+    animation: pgo-acc-asoma 0.6s var(--acc-ease) backwards;
+    animation-delay: calc(var(--n, 0) * 55ms + 80ms);
+  }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(2) { --n: 1; }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(3) { --n: 2; }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(4) { --n: 3; }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(5) { --n: 4; }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(6) { --n: 5; }
+  .pgo-acc-entra > .pgo-acc-cuerpo > :nth-child(n + 7) { --n: 6; }
+}
+@keyframes pgo-acc-asoma {
+  from { opacity: 0; translate: 0 10px; filter: blur(4px); }
+  to   { opacity: 1; translate: 0 0; filter: blur(0); }
+}
+
+/* Panel de marca: luz ambiental que deriva, foco bajo el puntero y canto con reflejo */
+.pgo-acc-marca {
+  --px: 0; --py: 0; --gx: 30%; --gy: 20%;
+  overflow: hidden;
+  isolation: isolate;
+  border-right: 0;
+}
+.pgo-acc-marca > :not(.pgo-acc-orbes) { position: relative; z-index: 1; }
+.pgo-acc-marca::before {
+  content: "";
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 1;
+  width: 1px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.32) 45%, rgb(255 255 255 / 0.04));
+}
+.pgo-acc-marca::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(440px circle at var(--gx) var(--gy), rgb(255 255 255 / 0.07), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.6s var(--acc-ease);
+}
+.pgo-acc-marca[data-luz="on"]::after { opacity: 1; }
+.pgo-acc-orbes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.pgo-acc-orbes span { position: absolute; border-radius: 50%; }
+.pgo-acc-orbes span:nth-child(1) {
+  width: 560px; height: 560px; left: -200px; top: -160px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--pgo-primary) 42%, transparent), transparent);
+}
+.pgo-acc-orbes span:nth-child(2) {
+  width: 460px; height: 460px; right: -220px; bottom: 6%;
+  background: radial-gradient(closest-side, color-mix(in srgb, #2ED3EA 22%, transparent), transparent);
+}
+
+/* El título entra palabra por palabra, de desenfocado a nítido */
+.pgo-acc-palabra { display: inline-block; }
+
+/* Tarjetas flotantes con lo que hace el producto: vidrio, reflejo superior y paralaje */
+.pgo-acc-destellos { display: grid; gap: 12px; justify-items: start; margin: 36px 0 0; padding: 0; list-style: none; }
+.pgo-acc-destellos li {
+  --prof: calc(5px + var(--d) * 5px);
+  display: flex; align-items: center; gap: 12px;
+  margin-left: calc(var(--d) * 28px);
+  padding: 11px 18px 11px 11px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.13), rgb(255 255 255 / 0.04));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 20px 34px -20px rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  translate: calc(var(--px) * var(--prof)) calc(var(--py) * var(--prof));
+  transition: translate 0.9s var(--acc-ease);
+}
+.pgo-acc-destellos strong { display: block; font-size: 0.875rem; font-weight: 600; color: #fff; }
+.pgo-acc-destellos small { display: block; margin-top: 1px; font-size: 0.75rem; color: rgb(255 255 255 / 0.64); }
+.pgo-acc-destello-icono {
+  display: grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgb(52 211 153 / 0.18); color: #6EE7B7;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16);
+}
+.pgo-acc-destellos li:nth-child(2) .pgo-acc-destello-icono { background: rgb(46 211 234 / 0.16); color: #67E8F9; }
+.pgo-acc-destellos li:nth-child(3) .pgo-acc-destello-icono { background: rgb(129 140 248 / 0.2); color: #C7D2FE; }
+.pgo-acc-destello-icono svg { width: 17px; height: 17px; }
+
+/* Ruta del registro: la línea se llena hacia el paso actual y el paso actual late */
+.pgo-acc-ruta li:not(:last-child)::after {
+  content: "";
+  position: absolute; left: 13.5px; top: 30px; bottom: 2px;
+  width: 1px;
+  background: linear-gradient(180deg, #2ED3EA, var(--pgo-primary));
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.7s var(--acc-ease);
+}
+.pgo-acc-ruta li[data-estado="hecho"]::after { transform: scaleY(1); }
+.pgo-acc-marcador { position: relative; }
+.pgo-acc-ruta li[data-estado="actual"] .pgo-acc-marcador { box-shadow: 0 8px 18px -8px rgb(0 0 0 / 0.6); }
+.pgo-acc-ruta li[data-estado="actual"] .pgo-acc-marcador::after {
+  content: "";
+  position: absolute; inset: -1px;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pgo-acc-orbes span:nth-child(1) { animation: pgo-acc-deriva 24s ease-in-out infinite alternate; }
+  .pgo-acc-orbes span:nth-child(2) { animation: pgo-acc-deriva-2 30s ease-in-out infinite alternate; }
+  .pgo-acc-palabra {
+    animation: pgo-acc-palabra 0.8s var(--acc-ease) backwards;
+    animation-delay: calc(var(--i) * 55ms + 80ms);
+  }
+  .pgo-acc-marca .pgo-acc-entra > .pgo-acc-marca-texto { animation: pgo-acc-asoma 0.7s 0.38s var(--acc-ease) backwards; }
+  .pgo-acc-destellos li {
+    animation:
+      pgo-acc-asoma 0.7s var(--acc-ease) backwards,
+      pgo-acc-flota 6s ease-in-out infinite alternate;
+    animation-delay: calc(0.55s + var(--d) * 0.12s), calc(var(--d) * -2s);
+  }
+  .pgo-acc-ruta li { animation: pgo-acc-asoma 0.6s var(--acc-ease) backwards; }
+  .pgo-acc-ruta li:nth-child(1) { animation-delay: 0.5s; }
+  .pgo-acc-ruta li:nth-child(2) { animation-delay: 0.6s; }
+  .pgo-acc-ruta li:nth-child(3) { animation-delay: 0.7s; }
+  .pgo-acc-ruta li[data-estado="actual"] .pgo-acc-marcador::after { animation: pgo-acc-onda 2.4s ease-out infinite; }
+  .pgo-acc-ruta li[data-estado="hecho"] .pgo-acc-marcador svg { animation: pgo-acc-pop 0.4s var(--acc-ease); }
+}
+@keyframes pgo-acc-deriva { to { translate: 110px 90px; scale: 1.15; } }
+@keyframes pgo-acc-deriva-2 { to { translate: -90px -120px; scale: 1.2; } }
+@keyframes pgo-acc-palabra {
+  from { opacity: 0; translate: 0 0.35em; filter: blur(8px); }
+  to   { opacity: 1; translate: 0 0; filter: blur(0); }
+}
+@keyframes pgo-acc-flota {
+  from { transform: translateY(-3px); }
+  to   { transform: translateY(4px); }
+}
+@keyframes pgo-acc-onda {
+  0%   { opacity: 0.7; scale: 1; }
+  100% { opacity: 0; scale: 1.9; }
+}
 
 /* ═════ Estructura C — cabecera narrativa ═════ */
 .pgo-acc-columna { position: relative; z-index: 2; width: min(100%, 580px); margin-inline: auto; padding: 8px 20px 24px; }

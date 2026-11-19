@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { Check, FileText, ShieldCheck, Wallet, Lock } from "lucide-react";
+import { Fragment, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { Check, FileCheck2, FileText, Link2, ShieldCheck, TrendingUp, Wallet, Lock } from "lucide-react";
+import { useLuzPuntero } from "./luz";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CORREO, ESLOGAN, MARCA } from "@/lib/marca";
@@ -176,23 +177,57 @@ const TITULOS_MARCA: Record<Flujo, { t: string; x: string }> = {
   registro: { t: "Crea tu cuenta en tres pasos.", x: "Sin tarjeta de crédito. Empiezas con una propiedad y el plan Gratuito." },
 };
 
+const ICONOS_DESTELLO = [Wallet, TrendingUp, FileCheck2];
+
+function Destellos({ flujo }: { flujo: Flujo }) {
+  if (flujo === "registro") return null;
+  const items = T.destellos[flujo];
+  const iconos = flujo === "recuperar" ? [Link2] : ICONOS_DESTELLO;
+  return (
+    <ul className="pgo-acc-destellos" aria-label="Lo que hace Propigo por ti">
+      {items.map((d, i) => {
+        const Icono = iconos[i];
+        return (
+          <li key={d.titulo} style={{ "--d": i } as CSSProperties}>
+            <span className="pgo-acc-destello-icono"><Icono aria-hidden="true" /></span>
+            <span><strong>{d.titulo}</strong><small>{d.detalle}</small></span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function EstructuraGuiada(p: PropsEstructura) {
   const [estado, setEstado] = useState<EstadoCard>("reposo");
   const dir = useDireccion(p.flujo);
   const m = TITULOS_MARCA[p.flujo];
+  const marca = useRef<HTMLElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  useLuzPuntero(marca);
+  useLuzPuntero(card);
 
   return (
     <div className="pgo-acc">
       <Fondo />
       <div className="pgo-acc-dividida">
-        <aside className="pgo-acc-marca">
+        <aside className="pgo-acc-marca" ref={marca}>
+          <div className="pgo-acc-orbes" aria-hidden="true"><span /><span /></div>
           <Link href="/" aria-label={`${MARCA}: ir al inicio`} style={{ display: "inline-flex", width: "fit-content" }}>
             <Logo size="lg" wordColor="#fff" />
           </Link>
 
           <div key={p.flujo} className="pgo-acc-entra">
-            <p className="pgo-acc-marca-titulo" aria-hidden="true">{m.t}</p>
+            <p className="pgo-acc-marca-titulo" aria-hidden="true">
+              {m.t.split(" ").map((w, i) => (
+                <Fragment key={i}>
+                  {i > 0 ? " " : null}
+                  <span className="pgo-acc-palabra" style={{ "--i": i } as CSSProperties}>{w}</span>
+                </Fragment>
+              ))}
+            </p>
             <p className="pgo-acc-marca-texto">{m.x}</p>
+            <Destellos flujo={p.flujo} />
             {p.flujo === "registro" ? (
               <ol className="pgo-acc-ruta" aria-label="Pasos para crear tu cuenta">
                 {T.registro.pasos.map((s, i) => {
@@ -218,7 +253,7 @@ export function EstructuraGuiada(p: PropsEstructura) {
           <Link href="/" className="pgo-acc-logo-movil" aria-label={`${MARCA}: ir al inicio`}>
             <Logo size="md" wordColor="var(--pgo-text-1)" />
           </Link>
-          <div className="pgo-acc-card" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
+          <div ref={card} className="pgo-acc-card pgo-acc-card--viva" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
             <PanelAnimado clave={p.flujo} direccion={dir}>
               <Flujos p={p} onEstado={setEstado} progreso="movil" />
             </PanelAnimado>

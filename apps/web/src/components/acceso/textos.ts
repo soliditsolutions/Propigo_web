@@ -100,6 +100,17 @@ export const T = {
       "Un último paso: confirma este dispositivo con el código de 6 dígitos que te enviamos al correo.",
     exitoCta: "Ingresar el código",
   },
+  /** Tarjetas flotantes del panel de marca: funciones del producto, sin cifras inventadas. */
+  destellos: {
+    login: [
+      { titulo: "Pago detectado", detalle: "El arriendo de este mes" },
+      { titulo: "Reajuste IPC aplicado", detalle: "Al nuevo valor del contrato" },
+      { titulo: "Comprobante listo", detalle: "Para rendirle al propietario" },
+    ],
+    recuperar: [
+      { titulo: "Enlace de un solo uso", detalle: "Vence a los 15 minutos" },
+    ],
+  },
   confianza: [
     "Conexión cifrada",
     "Datos tratados según la Ley 21.719",

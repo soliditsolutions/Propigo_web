@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatoReloj, Aviso, Campo } from "../campos";
 import { saludoSegunHora, T } from "../textos";
 import { Mail } from "lucide-react";
+import { luzDesdePuntero } from "../luz";
 
 describe("saludoSegunHora", () => {
   it("cambia en los bordes de la mañana, la tarde y la noche", () => {
@@ -25,7 +26,28 @@ describe("formatoReloj", () => {
   });
 });
 
+describe("luzDesdePuntero", () => {
+  const caja = { left: 100, top: 50, width: 200, height: 100 };
+
+  it("el centro da 50 % y desplazamiento cero", () => {
+    expect(luzDesdePuntero(200, 100, caja)).toEqual({ gx: 50, gy: 50, px: 0, py: 0 });
+  });
+
+  it("las esquinas dan los extremos y fuera de la caja se acota", () => {
+    expect(luzDesdePuntero(100, 50, caja)).toEqual({ gx: 0, gy: 0, px: -1, py: -1 });
+    expect(luzDesdePuntero(900, 900, caja)).toEqual({ gx: 100, gy: 100, px: 1, py: 1 });
+  });
+
+  it("una caja sin tamaño no divide por cero", () => {
+    expect(luzDesdePuntero(10, 10, { left: 0, top: 0, width: 0, height: 0 })).toEqual({ gx: 50, gy: 50, px: 0, py: 0 });
+  });
+});
+
 describe("textos de acceso", () => {
+  it("las tarjetas flotantes no traen cifras: son funciones, no datos inventados", () => {
+    expect(JSON.stringify(T.destellos.login)).not.toMatch(/\$|\d/);
+  });
+
   it("el plan Gratuito sale de PLAN_GRATUITO, no de un texto aparte", () => {
     expect(T.planGratuito.detalle).toBe("1 propiedad · 1 usuario · sin tarjeta");
   });

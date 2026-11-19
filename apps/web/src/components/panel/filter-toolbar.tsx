@@ -74,6 +74,10 @@ export function FilterChip({
  *   Fila 1 (top): [búsqueda flex-1] ··· [dateFilter] [rightActions]
  *   Fila 2 (mid): [children chips flex-wrap]
  *
+ * En teléfono y tablet (bajo `lg`) la búsqueda toma su propio renglón (antes Fecha y las acciones,
+ * que no se encogen, la aplastaban a casi cero y se le montaban encima) y los
+ * chips se deslizan en una sola línea (.pgo-chips-fila).
+ *
  * - La búsqueda queda siempre top-left.
  * - Los chips predefinidos van en la fila del medio.
  * - Fecha y acciones van top-right, por lo que el dropdown de fecha
@@ -111,9 +115,9 @@ export function FilterToolbar({
     <div className="mb-5 space-y-2">
       {/* ── Fila superior: búsqueda (izq) + fecha + acciones (der) ── */}
       {tieneTopBar && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
           {/* Búsqueda ocupa el espacio restante a la izquierda */}
-          <div className="flex-1 min-w-0">
+          <div className={`min-w-0 ${tieneBusqueda ? "basis-full lg:basis-auto" : ""} flex-1`}>
             {tieneBusqueda && (
               <div className="relative pgo-input-search-wrap">
                 <Search
@@ -145,7 +149,7 @@ export function FilterToolbar({
 
           {/* Fecha + acciones siempre al extremo derecho */}
           {(tieneFecha || !!rightActions) && (
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 max-lg:ml-auto lg:shrink-0">
               {tieneFecha && (
                 <DateFilterPanel
                   value={dateFilter}
@@ -163,7 +167,7 @@ export function FilterToolbar({
 
       {/* ── Fila media: chips predefinidos ── */}
       {children && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <div className="pgo-chips-fila flex flex-wrap items-center gap-x-2 gap-y-2">
           {children}
         </div>
       )}

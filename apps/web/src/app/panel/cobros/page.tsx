@@ -76,7 +76,7 @@ export default async function CobrosPage() {
           role="region"
           aria-label="Progreso de liquidaciones del mes"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <div className="flex items-center gap-2">
               <CheckCircle2
                 className="h-4 w-4"
@@ -88,7 +88,7 @@ export default async function CobrosPage() {
               </span>
             </div>
             <span
-              className="text-sm font-bold pgo-num"
+              className="whitespace-nowrap text-sm font-bold pgo-num"
               style={{ color: progresoPct === 100 ? "var(--pgo-success)" : "var(--pgo-primary)" }}
             >
               {liquidadosMes} / {totalMes} liquidados ({progresoPct}%)

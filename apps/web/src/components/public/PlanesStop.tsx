@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { CarruselMovil } from "@/components/public/CarruselMovil";
 import { useRouter } from "next/navigation";
 import { Check, Info, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -283,11 +284,12 @@ export function PlanesStop() {
       </div>
 
       {/* pt-2.5 deja aire para el badge "Más popular" que sobresale de Gold. */}
-      <div className="mt-3 grid gap-3 pt-2.5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+      {/* En teléfono, carrusel: los 4 planes apilados medían 4 pantallas. */}
+      <CarruselMovil etiqueta="Planes" hasta="sm" className="mt-3 grid gap-3 pt-2.5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {PLANS.map((plan) => (
           <PlanCard key={plan.id} plan={plan} billing={billing} onSelect={openAccept} />
         ))}
-      </div>
+      </CarruselMovil>
 
       {/* Banner de confianza — garantía legal siempre visible, con acceso a
           la política completa (mismo modal informativo de siempre). */}

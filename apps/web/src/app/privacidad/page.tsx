@@ -9,6 +9,8 @@
  */
 import Link from "next/link";
 import { ShieldCheck, Eye, Database, Mail, Clock, Globe, AlertTriangle } from "lucide-react";
+import { SeccionLegal } from "@/components/public/SeccionLegal";
+import { IndiceLegalMovil } from "@/components/public/IndiceLegalMovil";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { RETENCIONES } from "@/lib/retencion";
 import { MARCA, RAZON_SOCIAL, CORREO, DOMINIO, EMPRESA } from "@/lib/marca";
@@ -42,25 +44,7 @@ const SECCIONES = [
 function Section({ id, icon, title, children }: {
   id: string; icon: React.ReactNode; title: string; children: React.ReactNode;
 }) {
-  return (
-    <section id={id} className="mb-10">
-      <div className="mb-4 flex items-center gap-3">
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
-        >
-          {icon}
-        </div>
-        <h2 className="text-xl font-bold" style={{ color: "var(--pf-navy)", letterSpacing: "-0.01em" }}>
-          {title}
-        </h2>
-      </div>
-      {/* Sangría bajo el ícono solo desde sm; overflow-wrap:anywhere corta URLs y nombres de cookie que desbordaban a 320px. */}
-      <div className="space-y-4 text-base leading-relaxed sm:pl-12 [overflow-wrap:anywhere]" style={{ color: "var(--pf-text-body)" }}>
-        {children}
-      </div>
-    </section>
-  );
+  return <SeccionLegal id={id} icono={icon} titulo={title} sangria>{children}</SeccionLegal>;
 }
 
 function DerechoCard({ titulo, descripcion }: { titulo: string; descripcion: string }) {
@@ -547,6 +531,7 @@ export default function PrivacidadPage() {
                 <Link href="/portal" className="hover:opacity-70">Consulta tu arriendo</Link>
               </div>
             </div>
+            <IndiceLegalMovil secciones={SECCIONES} />
           </main>
         </div>
       </div>

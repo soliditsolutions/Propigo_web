@@ -543,7 +543,8 @@ export function ScrollWalkthrough({
                     motion/sin JS) siempre, y en escritorio hasta que el
                     crossfade de arriba está listo (`active`), momento en que
                     se apaga y la foto la pone el fotograma 0, idéntico.
-                    Las paradas 1+ NO llevan foto en apilado: son fotogramas
+                    Las paradas 1+ NO llevan foto DE FONDO en apilado (la
+                    llevan como franja, más abajo): son fotogramas
                     compuestos para 100vh de escritorio, y recortados por
                     `object-cover` a la altura variable de una tarjeta de
                     texto se ven como una porción arbitraria de la escena
@@ -577,6 +578,21 @@ export function ScrollWalkthrough({
                     que dispara casi al montar) — pero en modo apilado (mobile/
                     reduced-motion) es la ÚNICA transición entre categorías: sin
                     esto, cada parada aparecía de golpe al hacer scroll normal. */}
+                {/* Paradas 1+ en modo apilado (teléfono, tablet, movimiento
+                    reducido): su foto va como franja 16:9 sobre el contenido.
+                    De fondo no servía (recortada a la altura del texto se veía
+                    una porción arbitraria de la escena) y sin ella la parada
+                    se quedaba sin imagen. En 16:9 la escena se ve casi entera.
+                    En escritorio con el efecto activo la pone el crossfade. */}
+                {i > 0 && s.image && (
+                  <div
+                    className="pgo-walk-banda"
+                    aria-hidden="true"
+                    style={active ? { display: "none" } : undefined}
+                  >
+                    <Image src={s.image} alt="" fill sizes="(max-width: 1023px) 100vw, 768px" className="object-cover" />
+                  </div>
+                )}
                 <div className="relative mx-auto w-full max-w-6xl">
                   <ScrollReveal>{s.node}</ScrollReveal>
                 </div>

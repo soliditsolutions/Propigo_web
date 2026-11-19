@@ -1,6 +1,7 @@
 import { Logo } from "./Logo";
 import { PublicNavLinks, PublicNavLink } from "./PublicNavLinks";
 import { PublicNavMenu } from "./PublicNavMenu";
+import { MedidorNavbar } from "./MedidorNavbar";
 import { getSession } from "@/lib/auth";
 import { MARCA } from "@/lib/marca";
 
@@ -23,6 +24,7 @@ export async function PublicNavbar() {
         <PublicNavLinks />
         <PublicNavMenu isLoggedIn={!!session} />
       </div>
+      <MedidorNavbar />
     </header>
   );
 }

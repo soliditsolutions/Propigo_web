@@ -206,7 +206,9 @@ export default async function MarketplacePage({
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--pf-surface)", overflowX: "hidden" }}>
+    // overflow-x clip, no hidden: hidden crea un contenedor de scroll y la
+    // barra de categorías dejaría de pegarse bajo el navbar.
+    <div className="min-h-screen" style={{ background: "var(--pf-surface)", overflowX: "clip" }}>
 
       {/* Aviso de T&C + anti-fraude — se muestra solo en el primer acceso */}
       <TerminosAviso />
@@ -218,7 +220,9 @@ export default async function MarketplacePage({
           queda dentro de main y el pie fuera (regla de estructura de textos). */}
       <main>
       {/* ── Hero section ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ paddingTop: "96px", paddingBottom: "72px" }}>
+      {/* En teléfono menos aire arriba y abajo: el hero ocupaba una pantalla
+          entera antes del primer resultado. */}
+      <section className="relative overflow-hidden pb-10 pt-10 sm:pb-[72px] sm:pt-24">
         <div
           className="absolute inset-0 pointer-events-none"
           aria-hidden="true"
@@ -333,8 +337,13 @@ export default async function MarketplacePage({
         </div>
       </section>
 
-      {/* ── Filtros rápidos ────────────────────────────────────────────── */}
-      <div className="border-b" style={{ background: "var(--pf-surface)", borderColor: "var(--pf-border)" }}>
+      {/* Filtros + resultados juntos: la barra pegada se suelta al terminar
+          los resultados en vez de quedar encima del CTA y el pie. */}
+      <div>
+      {/* ── Filtros rápidos ──────────────────────────────────────────────
+          Pegados bajo el navbar: se cambia de categoría desde cualquier
+          punto de los resultados, sin volver a subir. Vidrio como el navbar. */}
+      <div className="pf-filtros-pegados sticky z-10 border-b" style={{ top: "var(--pf-navbar-alto, 0px)", borderColor: "var(--pf-border)" }}>
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6">
 
           {/* Chips de tipo */}
@@ -462,7 +471,9 @@ export default async function MarketplacePage({
               {q && <> para <strong style={{ color: "var(--pf-navy)" }}>&ldquo;{q}&rdquo;</strong></>}
             </p>
 
-            <div className="pgo-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* En teléfono las tarjetas son filas (foto a la izquierda): apiladas en
+                vertical, 12 resultados medían casi 9 pantallas y 48 llegaban a 30. */}
+            <div className="pgo-stagger grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {publicaciones.map((pub) => {
                 const prop = pub.propiedad;
                 const meta = tipoMeta(prop.tipo);
@@ -473,11 +484,11 @@ export default async function MarketplacePage({
                   <BorderGlow key={pub.id} radius={16}>
                   <Link
                     href={`/marketplace/${pub.id}`}
-                    className="pf-card group flex w-full flex-col overflow-hidden"
+                    className="pf-card group flex w-full overflow-hidden sm:flex-col"
                     style={{ borderRadius: "16px", textDecoration: "none" }}
                   >
                     {/* Imagen o placeholder */}
-                    <div className={`relative h-44 w-full overflow-hidden ${img ? "" : "pf-img-empty"}`}>
+                    <div className={`relative w-32 shrink-0 overflow-hidden sm:h-44 sm:w-full ${img ? "" : "pf-img-empty"}`}>
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -488,12 +499,12 @@ export default async function MarketplacePage({
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
-                          <Icon className="h-14 w-14" style={{ color: "var(--pf-border-input)" }} aria-hidden />
+                          <Icon className="h-10 w-10 sm:h-14 sm:w-14" style={{ color: "var(--pf-border-input)" }} aria-hidden />
                         </div>
                       )}
                       {/* Badge tipo */}
                       <span
-                        className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                        className="absolute left-2 top-2 rounded-full px-2.5 sm:left-3 sm:top-3 py-0.5 text-[11px] font-semibold"
                         style={{ background: "var(--pf-brand-tint)", color: "var(--pf-brand)" }}
                       >
                         {meta.label}
@@ -511,7 +522,7 @@ export default async function MarketplacePage({
                     </div>
 
                     {/* Contenido */}
-                    <div className="flex flex-1 flex-col p-4">
+                    <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
                       <h2 className="line-clamp-2 text-sm font-bold" style={{ color: "var(--pf-navy)" }}>
                         {pub.titulo}
                       </h2>
@@ -523,7 +534,7 @@ export default async function MarketplacePage({
                       </p>
 
                       {/* Amenities */}
-                      <div className="mt-3 flex flex-wrap gap-3 text-xs" style={{ color: "var(--pf-text-muted)" }}>
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs sm:mt-3" style={{ color: "var(--pf-text-muted)" }}>
                         {prop.piezas    != null && (
                           <span className="flex items-center gap-1">
                             <BedDouble className="h-3.5 w-3.5" style={{ color: "var(--pf-text-light)" }} aria-hidden />
@@ -570,7 +581,7 @@ export default async function MarketplacePage({
                         </div>
                       )}
 
-                      <div className="mt-auto pt-4">
+                      <div className="mt-auto pt-2 sm:pt-4">
                         <p className="text-base font-bold" style={{ color: "var(--pf-brand)" }}>
                           {clpOrUf(pub.precioReferencia?.toNumber() ?? null, pub.denominacionPrecio)} /mes
                         </p>
@@ -580,9 +591,10 @@ export default async function MarketplacePage({
                       </div>
                     </div>
 
-                    {/* CTA row */}
+                    {/* CTA row: en teléfono sobra (la tarjeta entera es el enlace) y,
+                        con la tarjeta en fila, le quitaba ancho al texto. */}
                     <div
-                      className="flex items-center justify-between px-4 py-2.5"
+                      className="hidden items-center justify-between px-4 py-2.5 sm:flex"
                       style={{ borderTop: "1px solid var(--pf-border)" }}
                     >
                       <span className="text-xs font-semibold" style={{ color: "var(--pf-brand)" }}>Ver detalle</span>
@@ -600,6 +612,7 @@ export default async function MarketplacePage({
           </>
         )}
       </section>
+      </div>
 
       {/* ── CTA dark ─────────────────────────────────────────────────── */}
       <section className="pf-cta-dark">

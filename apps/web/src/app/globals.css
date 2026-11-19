@@ -714,8 +714,8 @@ html {
 /* scroll-margin solo importa en el modo apilado (mobile/sin JS), donde el
    ancla vive en la parada misma y hay que despejar el navbar. */
 .pgo-walk-stop    { position: relative; padding: 4rem 1.5rem; scroll-margin-top: 6rem; overflow: hidden; }
-/* Fondo por-parada del modo apilado: SOLO existe ya en la parada 0 (ver
-   ScrollWalkthrough.tsx) — el fotograma cubre esa parada (object-cover) y
+/* Fondo por-parada del modo apilado: SOLO en la parada 0; las demás llevan
+   su foto como franja (.pgo-walk-banda) (ver ScrollWalkthrough.tsx) — el fotograma cubre esa parada (object-cover) y
    encima va el mismo velo de legibilidad del escenario. El scrim funde los
    bordes superior e inferior hacia el color de página, así la transición
    hacia la parada siguiente (sin foto) es suave en vez de una costura dura. */
@@ -725,6 +725,22 @@ html {
    para 100vh de escritorio, se recortaría a una tira sin componer como
    escena. Con una altura mínima intencional se lee como una escena real. */
 .pgo-walk-stop-hero { min-height: min(720px, 88vh); display: flex; align-items: center; justify-content: center; }
+/* Franja de foto de las paradas 1+ en modo apilado (ver ScrollWalkthrough). */
+.pgo-walk-banda {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 48rem;
+  margin: 0 auto 1.5rem;
+  overflow: hidden;
+  border-radius: var(--pgo-radius-card);
+  border: 1px solid var(--pgo-glass-line);
+  box-shadow: var(--pgo-shadow-2);
+}
+/* Escritorio con movimiento: el escenario fijado pone la foto de fondo; la
+   franja sobraría incluso antes de que el efecto se active (sin parpadeo). */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .pgo-walk-banda { display: none; }
+}
 
 /* Panel para el texto que va DIRECTO sobre la foto (titulares del hero y de
    sección). Sin esto el texto compite con la escena: en tema claro el cuerpo
@@ -1715,6 +1731,14 @@ html {
    distinto, pero al ser ambas columnas laterales "1fr" el bloque central
    (auto) queda matemáticamente centrado en la barra completa — no solo
    centrado en el espacio sobrante. */
+/* Barra de categorías del marketplace pegada bajo el navbar. Casi opaca: con
+   el vidrio del navbar se leía el texto de las tarjetas que pasan debajo. */
+.pf-filtros-pegados {
+  background: color-mix(in srgb, var(--pf-surface) 94%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+
 .pf-navbar-grid {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1941,4 +1965,54 @@ html {
 @media (pointer: coarse) {
   .pgo-scroll-x { scrollbar-width: none; }
   .pgo-scroll-x::-webkit-scrollbar { display: none; }
+}
+/* Fila de chips: en teléfono se desliza en una sola línea (con el mismo
+   difuminado que .pgo-scroll-x) en vez de apilarse en 3-4 renglones que
+   empujan el contenido hacia abajo; desde sm vuelve a envolver. El padding
+   vertical deja ver la sombra del chip activo, que el overflow recortaría. */
+@media (max-width: 639.98px) {
+  .pgo-chips-fila {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding: 2px 24px 4px 0;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+  }
+  .pgo-chips-fila::-webkit-scrollbar { display: none; }
+  .pgo-chips-fila > * { flex-shrink: 0; scroll-snap-align: start; }
+}
+/* CarruselMovil: grilla que bajo el corte pasa a carrusel con scroll-snap.
+   Fuera de @layer para ganarle a las utilidades de grilla (`grid`). */
+@media (max-width: 639.98px) {
+  .pgo-carrusel--sm {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Aire arriba para sellos que sobresalen (p. ej. «Más popular») y abajo
+       para la sombra: el overflow recortaría ambos. */
+    padding-block: 12px 14px;
+  }
+  .pgo-carrusel--sm::-webkit-scrollbar { display: none; }
+  .pgo-carrusel--sm > * { flex: 0 0 min(85%, 360px); scroll-snap-align: center; }
+}
+@media (max-width: 1023.98px) {
+  .pgo-carrusel--lg {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Aire arriba para sellos que sobresalen (p. ej. «Más popular») y abajo
+       para la sombra: el overflow recortaría ambos. */
+    padding-block: 12px 14px;
+  }
+  .pgo-carrusel--lg::-webkit-scrollbar { display: none; }
+  .pgo-carrusel--lg > * { flex: 0 0 min(85%, 360px); scroll-snap-align: center; }
 }

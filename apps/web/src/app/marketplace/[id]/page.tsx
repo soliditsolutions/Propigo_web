@@ -3,7 +3,6 @@
  * Sin autenticación. Tema PayFlow aplicado.
  */
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import {
@@ -14,6 +13,7 @@ import { CorredorPanel } from "@/components/marketplace/CorredorPanel";
 import { PropertyMap } from "@/components/marketplace/PropertyMap";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicFooter } from "@/components/public/PublicFooter";
+import { GaleriaPropiedad } from "@/components/public/GaleriaPropiedad";
 import { clpOrUf, plural } from "@/lib/format";
 import { tipoMeta } from "@/lib/propiedad-meta";
 import { idFiltro } from "@/lib/busqueda";
@@ -153,33 +153,7 @@ export default async function MarketplaceFichaPage({
 
             {/* Galería */}
             {imagenes.length > 0 ? (
-              <div className="overflow-hidden rounded-2xl">
-                {imagenes.length === 1 ? (
-                  <div className="relative h-72 w-full overflow-hidden rounded-2xl sm:h-96" style={{ background: "var(--pf-hero-1)" }}>
-                    <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 100vw, 768px" preload />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="relative h-60 overflow-hidden rounded-2xl sm:h-80" style={{ background: "var(--pf-hero-1)" }}>
-                      <Image src={imagenes[0].url} alt={pub.titulo} fill className="object-cover" sizes="(max-width: 640px) 50vw, 384px" preload />
-                    </div>
-                    <div className="grid gap-2">
-                      {imagenes.slice(1, 3).map((img, i) => (
-                        <div
-                          key={i}
-                          className="relative overflow-hidden rounded-2xl"
-                          style={{
-                            background: "var(--pf-hero-1)",
-                            height: imagenes.slice(1, 3).length === 1 ? "100%" : "calc(50% - 4px)",
-                          }}
-                        >
-                          <Image src={img.url} alt={`Imagen ${i + 2}`} fill className="object-cover" sizes="(max-width: 640px) 50vw, 384px" loading="lazy" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <GaleriaPropiedad titulo={pub.titulo} imagenes={imagenes} />
             ) : (
               <div className="pf-img-empty flex h-60 items-center justify-center rounded-2xl">
                 <Icon className="h-16 w-16" style={{ color: "var(--pf-border-input)" }} aria-hidden />

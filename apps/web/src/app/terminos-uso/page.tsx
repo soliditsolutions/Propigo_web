@@ -14,6 +14,8 @@
  */
 import Link from "next/link";
 import { ShieldCheck, AlertTriangle, Scale, Phone, Mail } from "lucide-react";
+import { SeccionLegal } from "@/components/public/SeccionLegal";
+import { IndiceLegalMovil } from "@/components/public/IndiceLegalMovil";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { MARCA, RAZON_SOCIAL, CORREO, EMPRESA } from "@/lib/marca";
 
@@ -30,25 +32,23 @@ const DOMICILIO           = EMPRESA.domicilio;
 const EMAIL_CONTACTO      = CORREO.legal;
 const TELEFONO            = EMPRESA.telefono;
 
+const SECCIONES = [
+  { id: "identificacion",  label: "Identificación" },
+  { id: "intermediacion",  label: "Carácter intermediario" },
+  { id: "fraudes",         label: "Advertencia anti-fraude" },
+  { id: "responsabilidad", label: "Limitación de responsabilidad" },
+  { id: "obligaciones",    label: "Obligaciones del usuario" },
+  { id: "datos",           label: "Datos personales" },
+  { id: "propiedad",       label: "Propiedad intelectual" },
+  { id: "modificaciones",  label: "Modificaciones" },
+  { id: "ley",             label: "Ley y jurisdicción" },
+  { id: "contacto",        label: "Contacto" },
+] as const;
+
 function Section({ id, title, children }: {
   id: string; title: string; children: React.ReactNode;
 }) {
-  return (
-    <section id={id} className="mb-10">
-      <h2
-        className="mb-4 text-xl font-bold"
-        style={{ color: "var(--pf-navy)", letterSpacing: "-0.01em" }}
-      >
-        {title}
-      </h2>
-      <div
-        className="space-y-4 text-base leading-relaxed"
-        style={{ color: "var(--pf-text-body)" }}
-      >
-        {children}
-      </div>
-    </section>
-  );
+  return <SeccionLegal id={id} titulo={title}>{children}</SeccionLegal>;
 }
 
 function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -115,18 +115,7 @@ export default function TerminosUsoPage() {
                 Contenido
               </p>
               <nav className="space-y-1.5 text-sm">
-                {[
-                  ["#identificacion",   "1. Identificación"],
-                  ["#intermediacion",   "2. Carácter intermediario"],
-                  ["#fraudes",          "3. Advertencia anti-fraude"],
-                  ["#responsabilidad",  "4. Limitación de responsabilidad"],
-                  ["#obligaciones",     "5. Obligaciones del usuario"],
-                  ["#datos",            "6. Datos personales"],
-                  ["#propiedad",        "7. Propiedad intelectual"],
-                  ["#modificaciones",   "8. Modificaciones"],
-                  ["#ley",              "9. Ley y jurisdicción"],
-                  ["#contacto",         "10. Contacto"],
-                ].map(([href, label]) => (
+                {SECCIONES.map((x, i) => [`#${x.id}`, `${i + 1}. ${x.label}`]).map(([href, label]) => (
                   <a
                     key={href}
                     href={href}
@@ -426,7 +415,7 @@ export default function TerminosUsoPage() {
               </p>
             </Section>
 
-            <Section id="modificaciones" title="8. Modificaciones de los Términos">
+            <Section id="modificaciones" title="8. Modificaciones de los términos">
               <p>
                 {MARCA} puede modificar estos Términos en cualquier momento. Las
                 modificaciones entrarán en vigor a los <strong>15 días hábiles</strong>{" "}
@@ -507,6 +496,7 @@ export default function TerminosUsoPage() {
               </p>
             </div>
 
+            <IndiceLegalMovil secciones={SECCIONES} />
           </article>
         </div>
       </div>

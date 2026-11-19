@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Building2, Wallet, Globe, ShieldCheck, Users, Star, ArrowRight, KeyRound, Home as HomeIcon } from "lucide-react";
+import { CarruselMovil } from "@/components/public/CarruselMovil";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
@@ -221,9 +222,10 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Desktop (≥lg, 3 tarjetas caben cómodas lado a lado): grilla fija,
-          sin cambios respecto al diseño anterior. */}
-      <div className="hidden gap-5 lg:grid lg:grid-cols-3">
+      {/* Escritorio (≥lg): grilla de 3. Teléfono y tablet: carrusel con
+          puntos (CarruselMovil), un solo render en vez de grilla + Embla
+          duplicados. Sin autoplay: son textos para leer con calma. */}
+      <CarruselMovil etiqueta={`Qué hace ${MARCA} por un corredor`} hasta="lg" className="grid gap-5 lg:grid-cols-3">
         {features.map((f) => (
           <div key={f.id} className="pgo-auth-card flex h-full flex-col p-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-brand-tint)] text-[var(--pf-brand)]">
@@ -233,28 +235,7 @@ export default async function Home() {
             <p className="mt-2 text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">{f.text}</p>
           </div>
         ))}
-      </div>
-
-      {/* Mobile/tablet (<lg): mismo componente EmblaCarousel que ya usa
-          "Destacado" para propiedades/corredores — no un patrón nuevo. Sin
-          parallax (no hay imagen de fondo en la tarjeta) ni autoplay: son 3
-          tarjetas con texto para leer con calma, no una vitrina para hojear
-          pasivamente. Ancho fijo por tarjeta (no 100%) para que se note que
-          hay una siguiente y anime a deslizar en vez de leerse como una
-          lista de una sola columna. */}
-      <div className="lg:hidden">
-        <EmblaCarousel ariaLabel={`Qué hace ${MARCA} por un corredor`} autoplay={false}>
-          {features.map((f) => (
-            <div key={f.id} className="pgo-auth-card flex h-full w-[82vw] max-w-xs shrink-0 flex-col p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--pf-brand-tint)] text-[var(--pf-brand)]">
-                <f.icon className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <h3 className="mt-4 text-balance font-semibold text-[var(--pf-navy)]">{f.title}</h3>
-              <p className="mt-2 text-pretty text-sm leading-relaxed text-[var(--pf-text-body)]">{f.text}</p>
-            </div>
-          ))}
-        </EmblaCarousel>
-      </div>
+      </CarruselMovil>
     </div>
   );
 

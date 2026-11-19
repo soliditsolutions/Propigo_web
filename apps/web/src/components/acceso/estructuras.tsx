@@ -142,7 +142,7 @@ export function EstructuraTabs(p: PropsEstructura) {
         <Barra />
         <main className="pgo-acc-centro">
           <div
-            className="pgo-acc-card"
+            className="pgo-auth-card pgo-acc-card"
             data-estado={estado}
             style={{ "--acc-ancho": p.flujo === "registro" ? "500px" : "460px" } as CSSProperties}
           >
@@ -206,7 +206,7 @@ export function EstructuraGuiada(p: PropsEstructura) {
     <div className="pgo-acc">
       <Fondo />
       <div className="pgo-acc-dividida">
-        <aside className="pgo-acc-marca" ref={marca} aria-label={`Sobre ${MARCA}`}>
+        <aside className="pgo-auth-aside pgo-acc-marca" ref={marca} aria-label={`Sobre ${MARCA}`}>
           <div className="pgo-acc-orbes" aria-hidden="true"><span /><span /></div>
           <Link href="/" aria-label={`${MARCA}: ir al inicio`} style={{ display: "inline-flex", width: "fit-content" }}>
             <Logo size="lg" wordColor="#fff" />
@@ -255,7 +255,7 @@ export function EstructuraGuiada(p: PropsEstructura) {
             <Logo size="md" wordColor="var(--pgo-text-1)" />
           </Link>
           <main className="pgo-acc-form-main">
-            <div ref={card} className="pgo-acc-card pgo-acc-card--viva" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
+            <div ref={card} className="pgo-auth-card pgo-acc-card pgo-acc-card--viva" data-estado={estado} style={{ "--acc-ancho": "460px" } as CSSProperties}>
               <PanelAnimado clave={p.flujo} direccion={dir}>
                 <Flujos p={p} onEstado={setEstado} progreso="movil" />
               </PanelAnimado>
@@ -317,7 +317,7 @@ export function EstructuraEscena(p: PropsEstructura) {
       <div className="pgo-acc-escena-grid">
         <div className="pgo-acc-escena-form">
           <Barra />
-          <div className="pgo-acc-card" data-estado={estado} style={{ "--acc-ancho": "440px" } as CSSProperties}>
+          <div className="pgo-auth-card pgo-acc-card" data-estado={estado} style={{ "--acc-ancho": "440px" } as CSSProperties}>
             <PanelAnimado clave={p.flujo} direccion={dir}>
               <Flujos p={p} onEstado={setEstado} progreso="dentro" />
             </PanelAnimado>

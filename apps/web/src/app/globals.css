@@ -742,60 +742,40 @@ html {
   .pgo-walk-banda { display: none; }
 }
 
-/* Teléfono y tablet: cada parada lleva de fondo su lámina de dibujo técnico
-   (LaminasMovil.tsx) en lugar de las fotos del recorrido de escritorio, que
-   recortadas a una pantalla vertical perdían la escena. Como la franja y la
-   foto del hero no se muestran, el navegador tampoco las descarga (la del
-   hero va en un <picture> que solo trae fuente desde 1024 px). */
-.pgo-walk-lamina {
+/* Teléfono y tablet: cada parada lleva de fondo su foto vertical
+   (WalkStop.imagenMovil) en lugar de las del recorrido de escritorio, que
+   recortadas a una pantalla vertical perdían la escena. Cada foto solo se
+   descarga en su tamaño de pantalla (<picture> con media, ver
+   FotoPorPantalla en ScrollWalkthrough.tsx). */
+.pgo-walk-foto-movil {
   position: absolute;
   inset: 0;
   pointer-events: none;
   /* Se funde hacia el color de página arriba y abajo: sin costuras entre paradas. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 82%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 82%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
 }
-.pgo-walk-lamina > svg { width: 100%; height: 100%; display: block; }
-@media (min-width: 1024px) { .pgo-walk-lamina { display: none; } }
+@media (min-width: 1024px) { .pgo-walk-foto-movil { display: none; } }
+/* Las fotos son interiores de día, muy luminosos. Sin tratarlas, en tema
+   oscuro el texto claro de los paneles quedaba en 2,4:1 sobre ellas (medido
+   en Safari y Chromium); en claro, el cuerpo del hero en 4,2:1. Se ajusta la
+   foto, no los textos ni el vidrio, que son los mismos del resto del sitio. */
+.pgo-walk-foto-movil img { filter: brightness(1.12) contrast(0.78) saturate(0.85); }
+:root[data-theme="aurora-dark"] .pgo-walk-foto-movil img { filter: brightness(0.5) saturate(0.8); }
+/* Velo parejo del color de página: acerca la foto al fondo para el que están
+   calibrados los tokens de texto, sin borrar la escena. */
+.pgo-walk-foto-movil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--pgo-page) 66%, transparent);
+}
+:root[data-theme="aurora-dark"] .pgo-walk-foto-movil::after {
+  background: color-mix(in srgb, var(--pgo-page) 72%, transparent);
+}
 @media (max-width: 1023.98px) {
   .pgo-walk-banda,
   .pgo-walk-stop-bg--foto { display: none; }
-}
-
-.pgo-lamina {
-  stroke: var(--pf-brand);
-  stroke-width: 1;
-  stroke-opacity: 0.36;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.pgo-lamina .pgo-lamina-muro   { stroke-width: 2.5; stroke-opacity: 0.55; }
-.pgo-lamina .pgo-lamina-grueso { stroke-width: 2; }
-.pgo-lamina .pgo-lamina-acento { stroke: var(--pf-cyan); stroke-opacity: 0.6; }
-.pgo-lamina .pgo-lamina-relleno { fill: var(--pf-cyan); fill-opacity: 0.08; }
-.pgo-lamina .pgo-lamina-rotulo,
-.pgo-lamina-rotulo {
-  stroke: none;
-  fill: var(--pf-brand);
-  fill-opacity: 0.5;
-  font: 600 9px/1 var(--font-mono, ui-monospace, monospace);
-  letter-spacing: 0.08em;
-}
-.pgo-lamina .pgo-lamina-rotulo--acento { fill: var(--pf-cyan); fill-opacity: 0.85; }
-/* Tema claro: el trazo azul sobre fondo claro necesita un poco más de cuerpo. */
-:root[data-theme="aurora-light"] .pgo-lamina { stroke-opacity: 0.42; }
-:root[data-theme="aurora-light"] .pgo-lamina .pgo-lamina-acento { stroke-opacity: 0.7; }
-
-/* El plano del hero se revela una vez al llegar, de abajo hacia arriba (el
-   único momento animado de las láminas). Con clip-path y no con
-   stroke-dashoffset: con `non-scaling-stroke` Chromium ignora `pathLength` y
-   el trazo quedaba punteado. Con movimiento reducido queda dibujado. */
-@media (prefers-reduced-motion: no-preference) {
-  .pgo-lamina--trazo { animation: pgo-lamina-revela 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
-}
-@keyframes pgo-lamina-revela {
-  from { clip-path: inset(100% 0 0 0); }
-  to   { clip-path: inset(0 0 0 0); }
 }
 
 /* Panel para el texto que va DIRECTO sobre la foto (titulares del hero y de
@@ -2071,21 +2051,5 @@ html {
   }
   .pgo-carrusel--lg::-webkit-scrollbar { display: none; }
   .pgo-carrusel--lg > * { flex: 0 0 min(85%, 360px); scroll-snap-align: center; }
-}
-
-/* Portada en teléfono y tablet: la lámina de fondo (LaminasMovil) pasa
-   detrás de los paneles de vidrio. No se confía en el desenfoque para
-   apagarla: Safari no lo aplica sobre la lámina (el contenedor del contenido
-   corta lo que el filtro ve detrás) y las líneas quedaban nítidas bajo el
-   texto. El vidrio se mezcla con el color de página hasta ~70 % de opacidad:
-   el dibujo queda como textura tenue en cualquier motor y el texto conserva
-   su contraste. Va al final para ganarle a .pgo-walk-panel y .pgo-auth-card. */
-@media (max-width: 1023.98px) {
-  .pgo-walk-stop .pgo-walk-panel,
-  .pgo-walk-stop .pgo-auth-card {
-    background: color-mix(in srgb, var(--pgo-glass-card) 55%, var(--pgo-page));
-    -webkit-backdrop-filter: blur(8px) saturate(1.2);
-    backdrop-filter: blur(8px) saturate(1.2);
-  }
 }
 

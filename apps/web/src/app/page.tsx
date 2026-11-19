@@ -11,10 +11,14 @@ import { PropiedadDestacadaCard, type PropiedadDestacada } from "@/components/pu
 import { HomeHashHandler } from "@/components/public/HomeHashHandler";
 import { ScrollWalkthrough } from "@/components/public/ScrollWalkthrough";
 import { PlanesStop } from "@/components/public/PlanesStop";
-import { LaminaCalendario, LaminaFachadas, LaminaMapa, LaminaPlano } from "@/components/public/LaminasMovil";
 import walkDoor from "@/images/backgrounds/scroll-walkthrough_door.png";
 import walkRoom from "@/images/backgrounds/scroll-walkthrough_keys_and_costumers.png";
 import walkContract from "@/images/backgrounds/scroll-walkthrough_signed_contract.png";
+// Fotos verticales para teléfono y tablet (Docs/gestion/prompts-fondos-movil-2026-11.md).
+import movilInicio from "@/images/backgrounds/movil/movil-inicio-entrada.jpg";
+import movilFunciones from "@/images/backgrounds/movil/movil-funciones.jpg";
+import movilDestacado from "@/images/backgrounds/movil/movil-destacado-ventana.jpg";
+import movilPlanes from "@/images/backgrounds/movil/movil-planes.jpg";
 import { MARCA } from "@/lib/marca";
 
 /** Top 10 corredores por rating agregado (ValoracionCorredor, esVisible=true). */
@@ -309,8 +313,9 @@ export default async function Home() {
               "Nuestros Planes": en vez de resumirla (se sentía pobre) o
               sacarla del escenario (perdía la foto y las transiciones), su
               contenido es una tabla comparativa densa que sí cabe en un
-              frame fijado (ver PlanesStop). Sin foto propia (WalkStop.image
-              es opcional): a diferencia de las otras 3 paradas, esta es una
+              frame fijado (ver PlanesStop). Sin foto propia en escritorio
+              (WalkStop.image es opcional; en teléfono lleva una pared casi
+              vacía, igual de calma): a diferencia de las otras 3 paradas, esta es una
               decisión de compra, no narrativa — la tabla de precios necesita
               contraste calmo para comparar cifras, no una foto de fondo
               compitiendo por atención. Al desvanecerse el frame anterior sin
@@ -319,10 +324,10 @@ export default async function Home() {
               usado en login/registro. */}
           <ScrollWalkthrough
             stops={[
-              { image: walkDoor,     lamina: <LaminaPlano />,      node: stopHero },
-              { image: walkRoom,     lamina: <LaminaCalendario />, node: stopFeatures,    anchorId: "acerca-de" },
-              { image: walkContract, lamina: <LaminaMapa />,       node: stopPropiedades, anchorId: "destacado" },
-              { lamina: <LaminaFachadas />, node: <PlanesStop />, anchorId: "planes" },
+              { image: walkDoor,     imagenMovil: { src: movilInicio, posicion: "50% 75%" },  node: stopHero },
+              { image: walkRoom,     imagenMovil: { src: movilFunciones },                      node: stopFeatures,    anchorId: "acerca-de" },
+              { image: walkContract, imagenMovil: { src: movilDestacado },                      node: stopPropiedades, anchorId: "destacado" },
+              { imagenMovil: { src: movilPlanes, posicion: "50% 100%" }, node: <PlanesStop />, anchorId: "planes" },
             ]}
           />
         </main>

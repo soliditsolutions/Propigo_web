@@ -4,8 +4,7 @@ Noviembre 2026. Cuatro imágenes verticales, una por sección de la portada, par
 pantallas de menos de 1024 px. En escritorio se siguen usando las fotos del
 recorrido animado (`src/images/backgrounds/scroll-walkthrough_*.png`).
 
-Mientras no estén, esas pantallas muestran las láminas de dibujo técnico de
-`components/public/LaminasMovil.tsx`.
+Integradas el 2026-11-19 (ver «Integración» al final).
 
 ## Qué tienen que transmitir
 
@@ -126,16 +125,10 @@ alto según su contenido. Con 375 px de ancho:
 Por eso lo importante de «Destacado» (ventana y cordillera) tiene que quedar
 cerca del centro vertical, no en los bordes.
 
-## Integración (cuando estén los archivos)
+## Integración (hecha el 2026-11-19)
 
-1. Cada parada del recorrido (`app/page.tsx`) recibe su foto de teléfono en
-   lugar de la lámina, en un `<picture>` con `media="(max-width: 1023px)"`.
-   Así el escritorio no la descarga, igual que hoy el teléfono no descarga la
-   de escritorio (`FotoSoloEscritorio` en `ScrollWalkthrough.tsx`).
-2. Encima va el velo de legibilidad del tema (claro u oscuro), el mismo de las
-   fotos de escritorio.
-3. Se revisa en Safari y en Chromium el contraste del texto sobre los paneles
-   de vidrio, en claro y en oscuro. Se ajusta la opacidad del vidrio, que hoy
-   está en ~70 % por las láminas.
-4. Se quitan `LaminasMovil.tsx`, su prueba y sus estilos `.pgo-lamina*`.
-5. Se corre `qa:mobile` en los 8 perfiles.
+- **Archivos usados:** `movil-funciones.jpg` y `movil-planes.jpg` tal cual. `movil-inicio.jpg` y `movil-destacado.jpg` llegaron como collage de varias escenas con costuras; se usan recortes de una sola escena (`movil-inicio-entrada.jpg`, 768 × 906, y `movil-destacado-ventana.jpg`, 768 × 524). Los originales no se suben al repositorio.
+- **Resolución:** llegaron en 768 × 1376, por debajo de lo pedido. En teléfonos 3x y en tablet se amplían y se ven algo blandas bajo el velo. Si se regeneran, pedirlas en 1080 × 1920 o más y como una sola escena.
+- **Código:** cada parada de `app/page.tsx` recibe `imagenMovil` (foto y encuadre). `FotoPorPantalla` en `ScrollWalkthrough.tsx` arma un `<picture>` con `media`, así cada foto solo se descarga en su tamaño de pantalla.
+- **Contraste:** `.pgo-walk-foto-movil` en `globals.css` aplica un filtro por tema y un velo del color de página (66 % en claro, 72 % en oscuro). Se midió el contraste de cada texto de los paneles, con y sin foto, en Safari (iPhone SE, iPad Mini) y en Chromium (Pixel 7), en claro y en oscuro. Lo que queda bajo 4,5:1 ya fallaba sin foto por los tokens de color: es deuda aparte.
+- Las láminas de dibujo técnico (`LaminasMovil.tsx`) y el vidrio al 70 % se eliminaron.

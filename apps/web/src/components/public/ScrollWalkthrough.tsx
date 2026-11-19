@@ -46,11 +46,14 @@ export type WalkStop = {
    */
   image?: StaticImageData;
   /**
-   * Fondo de esta parada en teléfono y tablet (bajo 1024 px), en lugar de la
-   * foto: una lámina de dibujo técnico (ver LaminasMovil). Las fotos están
-   * compuestas para una pantalla horizontal y en vertical perdían la escena.
+   * Foto vertical de esta parada en teléfono y tablet (bajo 1024 px), en
+   * lugar de `image`: las de escritorio están compuestas en horizontal y en
+   * una pantalla vertical perdían la escena. `posicion` es el
+   * `object-position` que mantiene el motivo a la vista cuando la parada es
+   * más baja que la foto. Dirección de arte en
+   * Docs/gestion/prompts-fondos-movil-2026-11.md.
    */
-  lamina?: ReactNode;
+  imagenMovil?: { src: StaticImageData; posicion?: string };
   /** Contenido (UI) que aparece sobre la foto en esta parada. */
   node: ReactNode;
   /**
@@ -567,13 +570,20 @@ export function ScrollWalkthrough({
                     aria-hidden="true"
                     style={active ? { display: "none" } : undefined}
                   >
-                    <FotoSoloEscritorio src={s.image} />
+                    <FotoPorPantalla src={s.image} media={MEDIA_ESCRITORIO} sizes="100vw" prioridad />
                     <div className="absolute inset-0" style={{ background: scrimBg }} />
                   </div>
                 )}
-                {s.lamina && (
-                  <div className="pgo-walk-lamina" aria-hidden="true" style={active ? { display: "none" } : undefined}>
-                    {s.lamina}
+                {s.imagenMovil && (
+                  <div className="pgo-walk-foto-movil" aria-hidden="true" style={active ? { display: "none" } : undefined}>
+                    <FotoPorPantalla
+                      src={s.imagenMovil.src}
+                      media={MEDIA_MOVIL}
+                      sizes="100vw"
+                      prioridad={i === 0}
+                      posicion={s.imagenMovil.posicion}
+                    />
+                    <div className="absolute inset-0" style={{ background: scrimBg }} />
                   </div>
                 )}
                 {/* ScrollReveal: no-op en modo fijado (el fade ya lo maneja `vis`
@@ -583,7 +593,7 @@ export function ScrollWalkthrough({
                     esto, cada parada aparecía de golpe al hacer scroll normal. */}
                 {/* Paradas 1+ en modo apilado con movimiento reducido en
                     escritorio: su foto va como franja 16:9 sobre el contenido
-                    (bajo 1024 px la reemplaza la lámina y no se descarga).
+                    (bajo 1024 px la reemplaza la foto vertical y no se descarga).
                     De fondo no servía (recortada a la altura del texto se veía
                     una porción arbitraria de la escena) y sin ella la parada
                     se quedaba sin imagen. En 16:9 la escena se ve casi entera.
@@ -594,7 +604,7 @@ export function ScrollWalkthrough({
                     aria-hidden="true"
                     style={active ? { display: "none" } : undefined}
                   >
-                    <FotoSoloEscritorio src={s.image} sizes="768px" media={MEDIA_FRANJA} />
+                    <FotoPorPantalla src={s.image} media={MEDIA_FRANJA} sizes="768px" />
                   </div>
                 )}
                 <div className="relative mx-auto w-full max-w-6xl">
@@ -629,31 +639,53 @@ export function ScrollWalkthrough({
 }
 
 /** Única situación en que la franja se ve: escritorio sin el recorrido animado. */
+/** Escritorio: el recorrido animado (fotogramas) y la foto del hero. */
+const MEDIA_ESCRITORIO = "(min-width: 1024px)";
+/** Única situación en que la franja se ve: escritorio sin el recorrido animado. */
 const MEDIA_FRANJA = "(min-width: 1024px) and (prefers-reduced-motion: reduce)";
+/** Teléfono y tablet: la foto vertical de cada parada (WalkStop.imagenMovil). */
+const MEDIA_MOVIL = "(max-width: 1023.98px)";
 
-/** GIF transparente de 1×1: la imagen de reserva del <picture> bajo 1024 px. */
+/** GIF transparente de 1×1: la imagen de reserva cuando ninguna fuente aplica. */
 const SIN_FOTO = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 /**
- * Foto del recorrido que solo se descarga desde 1024 px. En teléfono y tablet
- * el fondo es la lámina: con un <Image> oculto por CSS el navegador la bajaba
- * igual (Chromium descarga incluso las `loading="lazy"` con display:none),
- * cientos de KB sin usar. El <source> con `media` deja al teléfono sin
- * fuente y solo con el GIF de 1×1 (la franja, además, solo la trae con
- * movimiento reducido: con el recorrido animado la ponen los fotogramas y se
- * descargaba dos veces). Sin `sizes` es la del hero: el LCP de
- * escritorio, con carga temprana y prioridad alta.
+ * Foto que solo se descarga en las pantallas de `media`. Con un <Image>
+ * oculto por CSS el navegador la bajaba igual (Chromium descarga incluso las
+ * `loading="lazy"` con display:none): el teléfono traía las fotos de
+ * escritorio y viceversa. El <source> con `media` deja a las demás pantallas
+ * sin fuente y solo con el GIF de 1×1.
+ *
+ * `prioridad` es para la foto de la primera parada (el LCP de cada tamaño):
+ * carga temprana y prioridad alta; el resto carga diferida.
  */
-export function FotoSoloEscritorio({ src, sizes: ancho, media = "(min-width: 1024px)" }: { src: StaticImageData; sizes?: string; media?: string }) {
-  const { props } = getImageProps(
-    ancho
-      ? { src, alt: "", fill: true, sizes: ancho, loading: "lazy", className: "object-cover" }
-      : { src, alt: "", fill: true, sizes: "100vw", loading: "eager", fetchPriority: "high", className: "object-cover" },
-  );
-  const { srcSet, sizes, ...resto } = props;
+export function FotoPorPantalla({
+  src,
+  media,
+  sizes,
+  prioridad = false,
+  posicion,
+}: {
+  src: StaticImageData;
+  media: string;
+  sizes: string;
+  prioridad?: boolean;
+  /** `object-position` para encuadrar el motivo cuando la parada recorta la foto. */
+  posicion?: string;
+}) {
+  const { props } = getImageProps({
+    src,
+    alt: "",
+    fill: true,
+    sizes,
+    className: "object-cover",
+    style: posicion ? { objectPosition: posicion } : undefined,
+    ...(prioridad ? { loading: "eager", fetchPriority: "high" } : { loading: "lazy" }),
+  });
+  const { srcSet, sizes: tamanos, ...resto } = props;
   return (
     <picture>
-      <source media={media} srcSet={srcSet} sizes={sizes} />
+      <source media={media} srcSet={srcSet} sizes={tamanos} />
       <img {...resto} src={SIN_FOTO} alt="" />
     </picture>
   );
